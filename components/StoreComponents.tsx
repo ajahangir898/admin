@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig } from '../types';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star } from 'lucide-react';
+import { Product, User as UserType, WebsiteConfig, CarouselItem } from '../types';
 import { RECENT_ORDERS } from '../constants';
 import { GoogleGenAI } from "@google/genai";
 
@@ -46,8 +46,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   return (
     <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
-        <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium">
-           {websiteConfig.headerSliderText}
+        <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium overflow-hidden whitespace-nowrap">
+           <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
         </div>
       )}
       <div className="container mx-auto px-4 py-4">
@@ -58,8 +58,14 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
               <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
             ) : (
               <h1 className="text-2xl font-bold tracking-tighter">
-                <span className="text-gray-800 dark:text-white">GADGET</span>
-                <span className="text-pink-500">SHOB</span>
+                {websiteConfig?.brandingText ? (
+                   <span className="text-gray-800 dark:text-white">{websiteConfig.brandingText}</span>
+                ) : (
+                   <>
+                    <span className="text-gray-800 dark:text-white">GADGET</span>
+                    <span className="text-pink-500">SHOB</span>
+                   </>
+                )}
               </h1>
             )}
           </div>
@@ -68,7 +74,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
           <div className="hidden md:flex flex-1 max-w-2xl relative">
             <input
               type="text"
-              placeholder="Search product..."
+              placeholder={websiteConfig?.searchHints || "Search product..."}
               className="w-full border-2 border-green-500 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600"
             />
             <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-6 rounded-r-full hover:bg-green-600 transition flex items-center justify-center">
@@ -156,7 +162,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         <div className="relative">
           <input
              type="text"
-             placeholder="Search product..."
+             placeholder={websiteConfig?.searchHints || "Search product..."}
              className="w-full border border-green-500 rounded-lg py-2 px-3 focus:outline-none dark:bg-slate-800 dark:text-white dark:border-green-600"
           />
           <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-3 rounded-r-lg">
@@ -170,6 +176,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         <div className="container mx-auto px-4">
           <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
              <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
+             {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
              <a href="#" className="hover:text-green-500 transition">Products</a>
              <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
              <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
@@ -635,28 +642,59 @@ export const TrackOrderModal: React.FC<{ onClose: () => void }> = ({ onClose }) 
   );
 };
 
-export const HeroSection: React.FC = () => {
+export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Filter only published items or use mock if none
+  const slides = carouselItems?.filter(i => i.status === 'Publish') || [];
+  const displaySlides = slides.length > 0 ? slides : [
+      { id: 'mock1', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200', name: '50% OFF', url: '#' }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % displaySlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [displaySlides.length]);
+
+  const slide = displaySlides[currentSlide];
+
   return (
-    <div className="bg-gradient-to-r from-pink-500 to-purple-600 h-64 md:h-[400px] w-full relative overflow-hidden text-white">
-      <div className="container mx-auto h-full flex items-center px-4 relative z-10">
-        <div className="max-w-lg animate-fade-in-up pt-8 md:pt-0">
-          <span className="bg-white/20 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider mb-3 inline-block">Best Electronics</span>
-          <h2 className="text-4xl md:text-7xl font-bold mb-4 leading-tight">50% OFF</h2>
-          <p className="text-lg md:text-xl mb-8 opacity-90 max-w-sm">On all wireless headphones this weekend only. Don't miss out!</p>
-          <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition shadow-lg transform hover:scale-105 active:scale-95">
-            SHOP NOW
-          </button>
-        </div>
-        {/* Abstract decorative elements */}
-        <div className="absolute top-10 right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-yellow-400/20 rounded-full blur-2xl"></div>
+    <div className="bg-gray-100 h-64 md:h-[400px] w-full relative overflow-hidden group">
+      {/* Background Image */}
+      <img 
+        src={slide.image} 
+        alt={slide.name} 
+        className="w-full h-full object-cover transition-transform duration-1000 transform hover:scale-105"
+      />
+      
+      {/* Overlay & Content */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center">
+         <div className="container mx-auto px-6 text-white">
+             <div className="max-w-lg animate-fade-in-up">
+                 <span className="bg-pink-500 text-white text-xs font-bold px-3 py-1 rounded uppercase tracking-wider mb-4 inline-block shadow-lg">Special Offer</span>
+                 <h2 className="text-4xl md:text-6xl font-bold mb-4 leading-tight drop-shadow-md">{slide.name}</h2>
+                 <p className="text-lg md:text-xl mb-8 opacity-90 max-w-sm drop-shadow">Don't miss out on our latest collection.</p>
+                 <a href={slide.url} className="bg-white text-gray-900 px-8 py-3 rounded-full font-bold hover:bg-green-500 hover:text-white transition shadow-lg transform hover:scale-105 active:scale-95 inline-block">
+                    SHOP NOW
+                 </a>
+             </div>
+         </div>
       </div>
-       {/* Mock Product Image in Hero */}
-       <img 
-         src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=800" 
-         alt="Hero Product" 
-         className="absolute right-[5%] bottom-[-10%] h-[120%] object-contain hidden md:block drop-shadow-2xl transform -rotate-12 hover:rotate-0 transition duration-700" 
-       />
+
+      {/* Slide Indicators */}
+      {displaySlides.length > 1 && (
+         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            {displaySlides.map((_, idx) => (
+                <button 
+                  key={idx} 
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${currentSlide === idx ? 'bg-white w-8' : 'bg-white/50 hover:bg-white'}`}
+                />
+            ))}
+         </div>
+      )}
     </div>
   );
 };
@@ -670,7 +708,59 @@ export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> =
   </div>
 );
 
-export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void }> = ({ product, onClick }) => {
+export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void, variant?: string }> = ({ product, onClick, variant = 'style1' }) => {
+  
+  // Render specific styles based on variant
+  if (variant === 'style2') {
+     return (
+        <div 
+          className="bg-white rounded-xl border border-gray-100 hover:border-pink-200 overflow-hidden hover:shadow-xl transition-all duration-300 group relative flex flex-col h-full cursor-pointer"
+          onClick={() => onClick && onClick(product)}
+        >
+           <div className="relative p-4 pb-0 h-48 flex items-center justify-center bg-white">
+               <button className="absolute top-3 left-3 text-gray-300 hover:text-pink-500 transition z-10">
+                   <Heart size={20} />
+               </button>
+               {product.discount && (
+                   <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                       SALE
+                   </span>
+               )}
+               <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain transform group-hover:scale-110 transition duration-500" />
+           </div>
+           
+           <div className="p-4 flex flex-col flex-1">
+               <div className="flex gap-1 mb-2">
+                   {[1,2,3,4,5].map(s => <Star key={s} size={12} className={s <= (product.rating||0) ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} />)}
+                   <span className="text-xs text-gray-400 ml-1">({product.reviews})</span>
+               </div>
+               <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition" title={product.name}>{product.name}</h3>
+               <p className="text-xs text-gray-500 line-clamp-2 mb-3 h-8 overflow-hidden">{product.description || "Premium quality product."}</p>
+               
+               <div className="mt-auto">
+                   <div className="flex items-center gap-2 mb-1">
+                       <span className="text-pink-600 font-bold text-lg">৳ {product.price.toLocaleString()}</span>
+                       {product.originalPrice && (
+                           <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice.toLocaleString()}</span>
+                       )}
+                   </div>
+                   <div className="text-[10px] text-blue-500 font-bold mb-3">Get 50 Coins</div>
+                   
+                   <div className="flex gap-2">
+                       <button className="flex-1 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded text-xs font-bold transition shadow-md shadow-pink-200">
+                           Buy Now
+                       </button>
+                       <button className="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded transition">
+                           <ShoppingCart size={18} />
+                       </button>
+                   </div>
+               </div>
+           </div>
+        </div>
+     );
+  }
+
+  // Default Style (Style 1)
   return (
     <div 
       className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"

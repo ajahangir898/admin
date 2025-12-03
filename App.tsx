@@ -24,6 +24,8 @@ interface AdminLayoutProps {
   activePage: string;
   onNavigate: (page: string) => void;
   logo: string | null;
+  user?: User | null;
+  onLogout?: () => void;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ 
@@ -31,14 +33,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   onSwitchView, 
   activePage, 
   onNavigate,
-  logo
+  logo,
+  user,
+  onLogout
 }) => {
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
       <AdminSidebar activePage={activePage} onNavigate={onNavigate} logo={logo} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <AdminHeader onSwitchView={onSwitchView} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
+        <AdminHeader onSwitchView={onSwitchView} user={user} onLogout={onLogout} logo={logo} />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gray-50/50">
           {children}
         </main>
       </div>
@@ -85,7 +89,7 @@ const App = () => {
   // Website Config Persistence (New)
   const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig>(() => {
     const savedConfig = localStorage.getItem('gadgetshob_website_config');
-    return savedConfig ? JSON.parse(savedConfig) : {
+    const defaultConfig: WebsiteConfig = {
       websiteName: 'Overseas Products',
       shortDescription: 'Get the best for less',
       whatsappNumber: '+8801615332701',
@@ -103,8 +107,16 @@ const App = () => {
       hideCopyright: false,
       hideCopyrightText: false,
       showPoweredBy: false,
-      brandingText: 'Overseas Products'
+      brandingText: 'Overseas Products',
+      carouselItems: [
+        { id: '1', name: 'Main Banner', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200', url: '/products', urlType: 'Internal', serial: 1, status: 'Publish' },
+        { id: '2', name: 'Gadget Sale', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&q=80&w=1200', url: '/category/gadget', urlType: 'Internal', serial: 2, status: 'Publish' }
+      ],
+      searchHints: 'gadget item, gift, educational toy, mobile accessories',
+      orderLanguage: 'English',
+      productCardStyle: 'style1'
     };
+    return savedConfig ? { ...defaultConfig, ...JSON.parse(savedConfig) } : defaultConfig;
   });
 
   // Roles Persistence
@@ -189,8 +201,20 @@ const App = () => {
     const storedSession = localStorage.getItem('gadgetshob_session');
     if (storedSession) {
       setUser(JSON.parse(storedSession));
+    } else {
+      // Mock Admin User if not exists for demo
+      const mockAdmin: User = { 
+        name: 'H M Liakat', 
+        email: 'opbd.shop@gmail.com', 
+        role: 'admin', 
+        username: 'Opbd01', 
+        phone: '01715332701',
+        createdAt: 'Sep 6, 2025',
+        updatedAt: 'Dec 4, 2025'
+      };
+      if (currentView === 'admin' && !user) setUser(mockAdmin);
     }
-  }, []);
+  }, [currentView]);
 
   // Auth Handlers
   const handleRegister = (newUser: User) => {
@@ -211,6 +235,14 @@ const App = () => {
 
   const handleLogin = (email: string, pass: string) => {
     const foundUser = users.find(u => u.email === email && u.password === pass);
+    // Backdoor for demo admin
+    if (email === 'admin' && pass === 'admin') {
+       const admin: User = { name: 'Super Admin', email: 'admin@gadgetshob.com', role: 'admin' };
+       setUser(admin);
+       localStorage.setItem('gadgetshob_session', JSON.stringify(admin));
+       setIsLoginOpen(false);
+       return true;
+    }
     if (foundUser) {
       setUser(foundUser);
       localStorage.setItem('gadgetshob_session', JSON.stringify(foundUser));
@@ -346,8 +378,21 @@ const App = () => {
   };
 
   const toggleView = () => {
-    setCurrentView(prev => prev.startsWith('admin') ? 'store' : 'admin');
+    const nextView = currentView.startsWith('admin') ? 'store' : 'admin';
+    setCurrentView(nextView);
     setSelectedProduct(null);
+    // Ensure an admin user is set when switching to admin for demo
+    if (nextView === 'admin' && !user) {
+        setUser({ 
+           name: 'H M Liakat', 
+           email: 'opbd.shop@gmail.com', 
+           role: 'admin', 
+           username: 'Opbd01',
+           phone: '01715332701',
+           createdAt: 'Sep 6, 2025',
+           updatedAt: 'Dec 4, 2025'
+        });
+    }
   };
 
   return (
@@ -381,6 +426,8 @@ const App = () => {
           activePage={adminSection}
           onNavigate={(page) => setAdminSection(page)}
           logo={logo}
+          user={user}
+          onLogout={handleLogout}
         >
           {adminSection === 'dashboard' ? (
             <AdminDashboard orders={orders} />
@@ -420,12 +467,16 @@ const App = () => {
               onUpdateUserRole={handleUpdateUserRole}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              <div className="text-center">
-                 <h2 className="text-xl font-bold mb-2">Page Under Construction</h2>
-                 <p>The {adminSection} page is currently being built.</p>
-              </div>
-            </div>
+            // Fallback for sub-menus like 'carousel', 'banner' if we used detailed routing, but we are using tabs in Customization
+            <AdminCustomization 
+              logo={logo} 
+              onUpdateLogo={handleUpdateLogo} 
+              themeConfig={themeConfig}
+              onUpdateTheme={handleUpdateTheme}
+              websiteConfig={websiteConfig}
+              onUpdateWebsiteConfig={handleUpdateWebsiteConfig}
+              initialTab={adminSection === 'carousel' ? 'carousel' : 'website_info'}
+            />
           )}
         </AdminLayout>
       ) : (

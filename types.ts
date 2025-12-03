@@ -34,6 +34,10 @@ export interface User {
   address?: string;
   role?: 'customer' | 'admin';
   roleId?: string; // ID of the custom role defined in AdminControl
+  username?: string; // Added for admin profile
+  image?: string; // Added for admin profile
+  createdAt?: string; // Added for admin profile
+  updatedAt?: string; // Added for admin profile
 }
 
 export interface Role {
@@ -69,6 +73,16 @@ export interface SocialLink {
   url: string;
 }
 
+export interface CarouselItem {
+  id: string;
+  image: string;
+  name: string;
+  url: string;
+  urlType: 'Internal' | 'External';
+  serial: number;
+  status: 'Publish' | 'Draft';
+}
+
 export interface WebsiteConfig {
   websiteName: string;
   shortDescription: string;
@@ -93,4 +107,10 @@ export interface WebsiteConfig {
   headerStyle?: string;
   categorySectionStyle?: string;
   showcaseSectionStyle?: string;
+  brandSectionStyle?: string;
+  productSectionStyle?: string;
+  // New Additions
+  carouselItems: CarouselItem[];
+  searchHints?: string;
+  orderLanguage?: 'English' | 'Bangla';
 }

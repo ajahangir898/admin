@@ -68,7 +68,7 @@ const StoreHome = ({
       {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
       
       {/* Hero Section */}
-      <HeroSection />
+      <HeroSection carouselItems={websiteConfig?.carouselItems} />
 
       <main className="container mx-auto px-4 space-y-12 pb-12">
         
@@ -91,11 +91,16 @@ const StoreHome = ({
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {displayProducts.map((product) => (
-              <ProductCard key={`flash-${product.id}`} product={product} onClick={onProductClick} />
+              <ProductCard 
+                key={`flash-${product.id}`} 
+                product={product} 
+                onClick={onProductClick} 
+                variant={websiteConfig?.productCardStyle}
+              />
             ))}
             {/* Add a duplicate if few products to fill grid */}
             {displayProducts.length > 0 && displayProducts.length < 5 && 
-              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} />
+              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
             }
           </div>
         </section>
@@ -108,11 +113,11 @@ const StoreHome = ({
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
              {displayProducts.slice().reverse().map((product) => (
-              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} />
+              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
             ))}
              {/* Add a duplicate if few products to fill grid */}
              {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} />
+               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
              }
           </div>
         </section>
@@ -137,11 +142,11 @@ const StoreHome = ({
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {displayProducts.map((product) => (
-              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} />
+              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
             ))}
              {/* Add a duplicate if few products to fill grid */}
              {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} />
+               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
              }
           </div>
         </section>

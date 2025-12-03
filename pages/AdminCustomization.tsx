@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag } from 'lucide-react';
-import { ThemeConfig, WebsiteConfig, SocialLink } from '../types';
+import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical } from 'lucide-react';
+import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem } from '../types';
 
 interface AdminCustomizationProps {
   logo: string | null;
@@ -10,6 +10,7 @@ interface AdminCustomizationProps {
   onUpdateTheme?: (config: ThemeConfig) => void;
   websiteConfig?: WebsiteConfig;
   onUpdateWebsiteConfig?: (config: WebsiteConfig) => void;
+  initialTab?: string;
 }
 
 const AdminCustomization: React.FC<AdminCustomizationProps> = ({ 
@@ -18,8 +19,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   themeConfig,
   onUpdateTheme,
   websiteConfig,
-  onUpdateWebsiteConfig
+  onUpdateWebsiteConfig,
+  initialTab = 'website_info'
 }) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
   const [config, setConfig] = useState<WebsiteConfig>({
     websiteName: '',
     shortDescription: '',
@@ -35,7 +39,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     hideCopyright: false,
     hideCopyrightText: false,
     showPoweredBy: false,
-    brandingText: ''
+    brandingText: '',
+    carouselItems: [],
+    searchHints: '',
+    orderLanguage: 'English'
   });
 
   // Initialize config from props
@@ -144,341 +151,380 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     alert('Settings saved successfully!');
   };
 
+  // Carousel Logic
+  const handleAddCarousel = () => {
+      const newItem: CarouselItem = {
+          id: Date.now().toString(),
+          image: '',
+          name: 'New Slide',
+          url: '/',
+          urlType: 'Internal',
+          serial: config.carouselItems.length + 1,
+          status: 'Draft'
+      };
+      setConfig(prev => ({ ...prev, carouselItems: [...prev.carouselItems, newItem] }));
+  };
+  
   const socialOptions = ['Facebook', 'Instagram', 'YouTube', 'Daraz', 'Twitter', 'LinkedIn'];
 
+  const TabButton = ({ id, label, icon }: { id: string, label: string, icon?: React.ReactNode }) => (
+      <button 
+        onClick={() => setActiveTab(id)}
+        className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition ${activeTab === id ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+      >
+        {icon} {label}
+      </button>
+  );
+
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      <div className="flex justify-between items-center sticky top-0 bg-gray-50 z-30 py-4 border-b border-gray-200">
+    <div className="space-y-6 animate-fade-in pb-20">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center bg-gray-50 z-30 pt-4 pb-2">
         <div>
            <h2 className="text-2xl font-bold text-gray-800">Customization</h2>
-           <p className="text-sm text-gray-500">Manage your store's appearance and information</p>
+           <p className="text-sm text-gray-500">Manage appearance and content</p>
         </div>
         <button 
            onClick={handleSave}
-           className="flex items-center gap-2 px-6 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600 transition shadow-lg shadow-green-200"
+           className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
         >
            <Save size={18} /> Save Changes
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white rounded-t-xl">
+         <TabButton id="carousel" label="Carousel" icon={<Image as ImageIcon size={18}/>} />
+         <TabButton id="website_info" label="Website Information" icon={<Globe size={18}/>} />
+         <TabButton id="theme_view" label="Theme View" icon={<Layout size={18}/>} />
+         <TabButton id="theme_colors" label="Theme Colors" icon={<Palette size={18}/>} />
+      </div>
+
+      <div className="bg-white rounded-b-xl border border-t-0 border-gray-200 shadow-sm p-6 min-h-[500px]">
         
-        {/* WEBSITE INFORMATION */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit">
-          <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-             <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
-               <Globe size={24} />
-             </div>
-             <div>
-                <h3 className="font-bold text-gray-800">Website Information</h3>
-                <p className="text-sm text-gray-500">General settings and logos</p>
-             </div>
-          </div>
-          <div className="p-8 space-y-6">
-             
-             {/* Logo Upload */}
-             <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Website Logo (Horizontal 256x56px)</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition relative">
-                   {logo ? (
-                     <div className="relative group w-full flex justify-center">
-                       <img src={logo} alt="Logo" className="h-14 object-contain" />
-                       <button onClick={() => handleRemoveImage('logo')} className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow hover:bg-red-600"><Trash2 size={12}/></button>
-                     </div>
-                   ) : (
-                     <div className="text-center text-gray-400 py-2" onClick={() => logoInputRef.current?.click()}>
-                        <ImageIcon size={32} className="mx-auto mb-1 opacity-50" />
-                        <span className="text-xs cursor-pointer">Upload Logo</span>
-                     </div>
-                   )}
-                   <input type="file" ref={logoInputRef} onChange={(e) => handleImageUpload(e, 'logo')} className="hidden" accept="image/*" />
-                </div>
-                {!logo && <button onClick={() => logoInputRef.current?.click()} className="w-full py-1 text-xs text-blue-600 font-bold border border-blue-100 rounded hover:bg-blue-50">Select Image</button>}
-             </div>
-
-             {/* Favicon Upload */}
-             <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Favicon (32x32px)</label>
-                <div className="flex items-center gap-4">
-                   <div className="w-16 h-16 border rounded-lg flex items-center justify-center bg-gray-50 overflow-hidden relative">
-                      {config.favicon ? (
-                        <img src={config.favicon} alt="Favicon" className="w-8 h-8 object-contain" />
-                      ) : (
-                        <Globe size={20} className="text-gray-300"/>
-                      )}
-                      {config.favicon && <button onClick={() => handleRemoveImage('favicon')} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl"><Trash2 size={10}/></button>}
-                   </div>
-                   <div className="flex-1">
-                      <input type="file" ref={faviconInputRef} onChange={(e) => handleImageUpload(e, 'favicon')} className="hidden" accept="image/*" />
-                      <button onClick={() => faviconInputRef.current?.click()} className="px-3 py-1.5 border border-gray-300 rounded text-xs font-medium hover:bg-gray-50">Upload Favicon</button>
-                      <p className="text-[10px] text-gray-400 mt-1">Displayed in browser tab</p>
-                   </div>
-                </div>
-             </div>
-
-             <div className="space-y-3">
-               <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Website Name*</label>
-                  <input type="text" className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm" 
-                    value={config.websiteName} onChange={(e) => setConfig({...config, websiteName: e.target.value})} />
-               </div>
-               <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
-                  <input type="text" className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm" 
-                    value={config.shortDescription} onChange={(e) => setConfig({...config, shortDescription: e.target.value})} />
-               </div>
-               <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Whatsapp Number</label>
-                  <input type="text" className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm" 
-                    value={config.whatsappNumber} onChange={(e) => setConfig({...config, whatsappNumber: e.target.value})} />
-               </div>
-             </div>
-          </div>
-        </div>
-
-        {/* CONTACT INFORMATION */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit">
-          <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-             <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
-               <Phone size={24} />
-             </div>
-             <div>
-                <h3 className="font-bold text-gray-800">Contact Information</h3>
-                <p className="text-sm text-gray-500">Addresses, emails, and phones</p>
-             </div>
-          </div>
-          <div className="p-8 space-y-6">
-             
-             {/* Addresses */}
-             <div className="space-y-2">
+        {/* CAROUSEL TAB */}
+        {activeTab === 'carousel' && (
+            <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                   <label className="text-sm font-medium text-gray-700">Addresses</label>
-                   <button onClick={() => addArrayItem('addresses')} className="text-xs bg-purple-600 text-white px-2 py-1 rounded flex items-center gap-1 hover:bg-purple-700"><Plus size={12}/> Add</button>
-                </div>
-                {config.addresses.map((addr, idx) => (
-                  <div key={idx} className="flex gap-2">
-                     <div className="relative flex-1">
-                        <MapPin size={14} className="absolute left-3 top-3 text-gray-400"/>
-                        <input type="text" value={addr} onChange={(e) => updateArrayItem('addresses', idx, e.target.value)} 
-                          className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-1 focus:ring-purple-500 outline-none" placeholder="Enter address"/>
-                     </div>
-                     <button onClick={() => removeArrayItem('addresses', idx)} className="bg-red-50 text-red-500 p-2 rounded hover:bg-red-100"><Trash2 size={16}/></button>
-                  </div>
-                ))}
-             </div>
-
-             {/* Emails */}
-             <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                   <label className="text-sm font-medium text-gray-700">Emails</label>
-                   <button onClick={() => addArrayItem('emails')} className="text-xs bg-purple-600 text-white px-2 py-1 rounded flex items-center gap-1 hover:bg-purple-700"><Plus size={12}/> Add</button>
-                </div>
-                {config.emails.map((email, idx) => (
-                  <div key={idx} className="flex gap-2">
-                     <div className="relative flex-1">
-                        <Mail size={14} className="absolute left-3 top-3 text-gray-400"/>
-                        <input type="text" value={email} onChange={(e) => updateArrayItem('emails', idx, e.target.value)} 
-                          className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-1 focus:ring-purple-500 outline-none" placeholder="Enter email"/>
-                     </div>
-                     <button onClick={() => removeArrayItem('emails', idx)} className="bg-red-50 text-red-500 p-2 rounded hover:bg-red-100"><Trash2 size={16}/></button>
-                  </div>
-                ))}
-             </div>
-
-             {/* Phones */}
-             <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                   <label className="text-sm font-medium text-gray-700">Phone Numbers</label>
-                   <button onClick={() => addArrayItem('phones')} className="text-xs bg-purple-600 text-white px-2 py-1 rounded flex items-center gap-1 hover:bg-purple-700"><Plus size={12}/> Add</button>
-                </div>
-                {config.phones.map((phone, idx) => (
-                  <div key={idx} className="flex gap-2">
-                     <div className="relative flex-1">
-                        <Phone size={14} className="absolute left-3 top-3 text-gray-400"/>
-                        <input type="text" value={phone} onChange={(e) => updateArrayItem('phones', idx, e.target.value)} 
-                          className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-1 focus:ring-purple-500 outline-none" placeholder="Enter phone number"/>
-                     </div>
-                     <button onClick={() => removeArrayItem('phones', idx)} className="bg-red-50 text-red-500 p-2 rounded hover:bg-red-100"><Trash2 size={16}/></button>
-                  </div>
-                ))}
-             </div>
-
-          </div>
-        </div>
-
-        {/* SOCIAL LINKS */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit">
-           <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-             <div className="bg-pink-100 p-2 rounded-lg text-pink-600">
-               <Instagram size={24} />
-             </div>
-             <div className="flex-1">
-                <h3 className="font-bold text-gray-800">Social Links</h3>
-                <p className="text-sm text-gray-500">Connect with your audience</p>
-             </div>
-             <button onClick={addSocial} className="bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-purple-700 shadow-sm"><Plus size={14}/> Add New</button>
-           </div>
-           <div className="p-8 space-y-4">
-              {config.socialLinks.map((link, idx) => (
-                 <div key={link.id} className="flex flex-col sm:flex-row gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="w-full sm:w-1/3">
-                       <select 
-                         value={link.platform}
-                         onChange={(e) => updateSocial(idx, 'platform', e.target.value)}
-                         className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-pink-500"
-                       >
-                         {socialOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                       </select>
+                    <div className="relative w-64">
+                        <input type="text" placeholder="Search" className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"/>
+                        <Search className="absolute left-3 top-2.5 text-gray-400" size={16}/>
                     </div>
-                    <div className="flex-1">
-                       <input 
-                         type="text" 
-                         value={link.url}
-                         onChange={(e) => updateSocial(idx, 'url', e.target.value)}
-                         placeholder="https://..."
-                         className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-pink-500"
-                       />
+                    <button onClick={handleAddCarousel} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-purple-700">
+                        <Plus size={16}/> Add Carousel
+                    </button>
+                </div>
+                
+                <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-purple-50 text-gray-700 font-semibold text-xs uppercase">
+                            <tr>
+                                <th className="px-4 py-3"><input type="checkbox"/></th>
+                                <th className="px-4 py-3">Image</th>
+                                <th className="px-4 py-3">Name</th>
+                                <th className="px-4 py-3">Url</th>
+                                <th className="px-4 py-3">Url Type</th>
+                                <th className="px-4 py-3">Serial</th>
+                                <th className="px-4 py-3">Status</th>
+                                <th className="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {config.carouselItems.map((item) => (
+                                <tr key={item.id} className="hover:bg-gray-50">
+                                    <td className="px-4 py-3"><input type="checkbox"/></td>
+                                    <td className="px-4 py-3">
+                                        <div className="w-16 h-10 bg-gray-100 rounded border border-gray-200 overflow-hidden">
+                                            {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
+                                    <td className="px-4 py-3 text-gray-500 max-w-xs truncate">{item.url}</td>
+                                    <td className="px-4 py-3 text-gray-500">{item.urlType}</td>
+                                    <td className="px-4 py-3 text-gray-800">{item.serial}</td>
+                                    <td className="px-4 py-3">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.status === 'Publish' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                        <button className="text-gray-400 hover:text-gray-600"><MoreVertical size={16}/></button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {config.carouselItems.length === 0 && (
+                                <tr><td colSpan={8} className="text-center py-8 text-gray-400">No carousel items found.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                <div className="flex justify-end gap-2 text-sm text-gray-500">
+                    <span>1 of 1</span>
+                    <button className="w-6 h-6 border rounded flex items-center justify-center hover:bg-gray-50">&lt;</button>
+                    <button className="w-6 h-6 border rounded flex items-center justify-center hover:bg-gray-50">&gt;</button>
+                </div>
+            </div>
+        )}
+
+        {/* WEBSITE INFO TAB */}
+        {activeTab === 'website_info' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 <div className="space-y-6">
+                    {/* Logo Section */}
+                     <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <ImageIcon size={32} className="text-gray-400"/>
+                            <p className="text-sm font-bold text-gray-700">Website Logo (Horizontal 256x56px)</p>
+                            {logo && <img src={logo} alt="Logo" className="h-10 object-contain my-2"/>}
+                            <div className="flex gap-2">
+                                <button onClick={() => logoInputRef.current?.click()} className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
+                                {logo && <button onClick={() => handleRemoveImage('logo')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}
+                            </div>
+                            <input type="file" ref={logoInputRef} onChange={(e) => handleImageUpload(e, 'logo')} className="hidden" accept="image/*" />
+                        </div>
+                     </div>
+                     
+                     {/* Favicon Section */}
+                     <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <Globe size={32} className="text-gray-400"/>
+                            <p className="text-sm font-bold text-gray-700">Favicon (32x32px)</p>
+                            {config.favicon && <img src={config.favicon} alt="Favicon" className="w-8 h-8 object-contain my-2"/>}
+                             <div className="flex gap-2">
+                                <button onClick={() => faviconInputRef.current?.click()} className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
+                                {config.favicon && <button onClick={() => handleRemoveImage('favicon')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}
+                            </div>
+                            <input type="file" ref={faviconInputRef} onChange={(e) => handleImageUpload(e, 'favicon')} className="hidden" accept="image/*" />
+                        </div>
+                     </div>
+
+                     <div className="space-y-3">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Website Name*</label>
+                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500" 
+                                value={config.websiteName} onChange={(e) => setConfig({...config, websiteName: e.target.value})} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
+                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500" 
+                                value={config.shortDescription} onChange={(e) => setConfig({...config, shortDescription: e.target.value})} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Whatsapp Number</label>
+                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500" 
+                                value={config.whatsappNumber} onChange={(e) => setConfig({...config, whatsappNumber: e.target.value})} />
+                        </div>
+                     </div>
+                 </div>
+
+                 <div className="space-y-6">
+                     {/* Dynamic Addresses */}
+                     <div className="space-y-2">
+                         <button onClick={() => addArrayItem('addresses')} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                             <Plus size={16}/> Add New Address
+                         </button>
+                         {config.addresses.map((addr, idx) => (
+                             <div key={idx} className="flex gap-2">
+                                 <input type="text" value={addr} onChange={(e) => updateArrayItem('addresses', idx, e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm"/>
+                                 <button onClick={() => removeArrayItem('addresses', idx)} className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"><Trash2 size={16}/></button>
+                             </div>
+                         ))}
+                     </div>
+
+                     {/* Dynamic Emails */}
+                     <div className="space-y-2">
+                         <button onClick={() => addArrayItem('emails')} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                             <Plus size={16}/> Add New Email
+                         </button>
+                         {config.emails.map((email, idx) => (
+                             <div key={idx} className="flex gap-2">
+                                 <input type="text" value={email} onChange={(e) => updateArrayItem('emails', idx, e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm"/>
+                                 <button onClick={() => removeArrayItem('emails', idx)} className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"><Trash2 size={16}/></button>
+                             </div>
+                         ))}
+                     </div>
+
+                     {/* Dynamic Phones */}
+                     <div className="space-y-2">
+                         <button onClick={() => addArrayItem('phones')} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                             <Plus size={16}/> Add New Phone No
+                         </button>
+                         {config.phones.map((phone, idx) => (
+                             <div key={idx} className="flex gap-2">
+                                 <input type="text" value={phone} onChange={(e) => updateArrayItem('phones', idx, e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm"/>
+                                 <button onClick={() => removeArrayItem('phones', idx)} className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"><Trash2 size={16}/></button>
+                             </div>
+                         ))}
+                     </div>
+
+                     {/* Dynamic Social Links */}
+                     <div className="space-y-2">
+                         <button onClick={addSocial} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                             <Plus size={16}/> Add New Social Link
+                         </button>
+                         {config.socialLinks.map((link, idx) => (
+                             <div key={link.id} className="bg-gray-50 border border-gray-200 p-3 rounded-lg space-y-2 relative">
+                                 <div className="flex gap-2">
+                                     <select value={link.platform} onChange={(e) => updateSocial(idx, 'platform', e.target.value)} className="w-1/3 text-sm border rounded px-2 py-1">
+                                         {socialOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                     </select>
+                                     <input type="text" value={link.url} onChange={(e) => updateSocial(idx, 'url', e.target.value)} className="flex-1 text-sm border rounded px-2 py-1" placeholder="URL"/>
+                                 </div>
+                                 <button onClick={() => removeSocial(idx)} className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow hover:bg-red-600"><Trash2 size={12}/></button>
+                             </div>
+                         ))}
+                     </div>
+                     
+                     <div className="space-y-3 pt-4 border-t">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.showMobileHeaderCategory} onChange={e => setConfig({...config, showMobileHeaderCategory: e.target.checked})}/>
+                            <span className="text-sm font-medium">isShowMobileHeaderCategoryMenu</span>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.showNewsSlider} onChange={e => setConfig({...config, showNewsSlider: e.target.checked})}/>
+                            <span className="text-sm font-medium">Is Show News Slider</span>
+                        </label>
+                        {config.showNewsSlider && (
+                             <div className="ml-8 border border-gray-300 rounded p-2 text-sm bg-gray-50">
+                                <p className="text-xs text-gray-500 mb-1">Header Slider Text</p>
+                                <textarea className="w-full bg-transparent outline-none resize-none" rows={2} value={config.headerSliderText} onChange={e => setConfig({...config, headerSliderText: e.target.value})} />
+                             </div>
+                        )}
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.hideCopyright} onChange={e => setConfig({...config, hideCopyright: e.target.checked})}/>
+                            <span className="text-sm font-medium">Hide Copyright Section in Footer</span>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.hideCopyrightText} onChange={e => setConfig({...config, hideCopyrightText: e.target.checked})}/>
+                            <span className="text-sm font-medium">Hide Copyright Text</span>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.showPoweredBy} onChange={e => setConfig({...config, showPoweredBy: e.target.checked})}/>
+                            <span className="text-sm font-medium">Powered by Saleecom (Show in footer)</span>
+                        </label>
+                        <div className="pt-2">
+                             <label className="block text-xs text-gray-500 mb-1">Branding Text</label>
+                             <input type="text" className="w-full px-3 py-2 border rounded text-sm" value={config.brandingText} onChange={e => setConfig({...config, brandingText: e.target.value})}/>
+                        </div>
+                     </div>
+                 </div>
+            </div>
+        )}
+
+        {/* THEME VIEW TAB */}
+        {activeTab === 'theme_view' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  { title: 'Header Section', key: 'headerStyle', count: 2 },
+                  { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 4 },
+                  { title: 'Brand Section', key: 'brandSectionStyle', count: 1, hasNone: true },
+                  { title: 'Category Section', key: 'categorySectionStyle', count: 4, hasNone: true },
+                  { title: 'Product Section', key: 'productSectionStyle', count: 1 },
+                  { title: 'Product Card', key: 'productCardStyle', count: 5 },
+                  { title: 'Footer Section', key: 'footerStyle', count: 4 },
+                  { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }
+                ].map((section) => (
+                    <div key={section.title} className="space-y-3">
+                        <h3 className="font-bold text-gray-800 text-lg border-b pb-2">{section.title}</h3>
+                        <div className="space-y-3">
+                            {section.hasNone && (
+                                <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <input 
+                                          type="radio" 
+                                          name={section.title} 
+                                          className="w-5 h-5 text-purple-600"
+                                          checked={!config[section.key as keyof WebsiteConfig]}
+                                          onChange={() => setConfig({...config, [section.key]: ''})}
+                                        />
+                                        <span className="font-bold text-gray-700">None</span>
+                                    </div>
+                                    <button className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1">
+                                        <Eye size={14} /> View demo
+                                    </button>
+                                </div>
+                            )}
+                            {Array.from({length: section.count}).map((_, i) => {
+                                const val = `style${i+1}`;
+                                const displayTitle = `${section.title.split(' ')[0]} ${i+1}`; // e.g. "Header 1"
+                                const currentVal = config[section.key as keyof WebsiteConfig] || 'style1';
+                                
+                                return (
+                                    <div key={i} className={`border rounded-lg p-4 flex items-center justify-between ${currentVal === val ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <input 
+                                              type="radio" 
+                                              name={section.title}
+                                              className="w-5 h-5 text-purple-600"
+                                              checked={currentVal === val}
+                                              onChange={() => setConfig({...config, [section.key]: val})}
+                                            />
+                                            <span className="font-bold text-gray-700">{displayTitle}</span>
+                                        </div>
+                                        <button className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1">
+                                            <Eye size={14} /> View demo
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                    <button onClick={() => removeSocial(idx)} className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 self-end sm:self-auto"><Trash2 size={16}/></button>
+                ))}
+            </div>
+        )}
+
+        {/* THEME COLORS TAB */}
+        {activeTab === 'theme_colors' && (
+            <div className="space-y-8 max-w-xl">
+                 <div>
+                     <h3 className="font-bold text-xl mb-4">Theme Colors</h3>
+                     <p className="text-gray-500 text-sm mb-6">Enter primary, secondary and tertiary colors</p>
+                     
+                     <div className="space-y-4">
+                         <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 rounded border shadow-sm" style={{backgroundColor: colors.primary}}></div>
+                             <input type="text" value={colors.primary} onChange={(e) => setColors({...colors, primary: e.target.value})} className="flex-1 px-4 py-2 border rounded-lg uppercase"/>
+                         </div>
+                         <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 rounded border shadow-sm" style={{backgroundColor: colors.secondary}}></div>
+                             <input type="text" value={colors.secondary} onChange={(e) => setColors({...colors, secondary: e.target.value})} className="flex-1 px-4 py-2 border rounded-lg uppercase"/>
+                         </div>
+                         <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 rounded border shadow-sm" style={{backgroundColor: colors.tertiary}}></div>
+                             <input type="text" value={colors.tertiary} onChange={(e) => setColors({...colors, tertiary: e.target.value})} className="flex-1 px-4 py-2 border rounded-lg uppercase"/>
+                         </div>
+                     </div>
                  </div>
-              ))}
-              {config.socialLinks.length === 0 && <p className="text-center text-gray-400 text-sm py-4">No social links added yet.</p>}
-           </div>
-        </div>
 
-        {/* DISPLAY SETTINGS */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit">
-           <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-             <div className="bg-green-100 p-2 rounded-lg text-green-600">
-               <Layout size={24} />
-             </div>
-             <div>
-                <h3 className="font-bold text-gray-800">Display Settings</h3>
-                <p className="text-sm text-gray-500">Toggle headers, footers and sliders</p>
-             </div>
-           </div>
-           <div className="p-8 space-y-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                 <input type="checkbox" className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" 
-                   checked={config.showMobileHeaderCategory} onChange={(e) => setConfig({...config, showMobileHeaderCategory: e.target.checked})} />
-                 <span className="text-sm font-medium text-gray-700">Show Mobile Header Category Menu</span>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                 <input type="checkbox" className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" 
-                   checked={config.showNewsSlider} onChange={(e) => setConfig({...config, showNewsSlider: e.target.checked})} />
-                 <span className="text-sm font-medium text-gray-700">Show News Slider</span>
-              </label>
-
-              {config.showNewsSlider && (
-                 <div className="ml-8">
-                    <label className="block text-xs font-bold text-gray-500 mb-1">Header Slider Text</label>
-                    <textarea className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500" rows={2}
-                      value={config.headerSliderText} onChange={(e) => setConfig({...config, headerSliderText: e.target.value})} />
+                 <div>
+                     <h3 className="font-bold text-xl mb-4">Search Hints</h3>
+                     <input 
+                        type="text" 
+                        value={config.searchHints || ''} 
+                        onChange={(e) => setConfig({...config, searchHints: e.target.value})}
+                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        placeholder="gadget item, gift, educational toy..."
+                     />
                  </div>
-              )}
 
-              <hr className="border-gray-100 my-2" />
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                 <input type="checkbox" className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" 
-                   checked={config.hideCopyright} onChange={(e) => setConfig({...config, hideCopyright: e.target.checked})} />
-                 <span className="text-sm font-medium text-gray-700">Hide Copyright Section in Footer</span>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                 <input type="checkbox" className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" 
-                   checked={config.hideCopyrightText} onChange={(e) => setConfig({...config, hideCopyrightText: e.target.checked})} />
-                 <span className="text-sm font-medium text-gray-700">Hide Copyright Text</span>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                 <input type="checkbox" className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" 
-                   checked={config.showPoweredBy} onChange={(e) => setConfig({...config, showPoweredBy: e.target.checked})} />
-                 <span className="text-sm font-medium text-gray-700">Powered by Saleecom (Show in footer)</span>
-              </label>
-
-              <div className="pt-2">
-                 <label className="block text-sm font-bold text-gray-700 mb-1">Branding Text</label>
-                 <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
-                   value={config.brandingText} onChange={(e) => setConfig({...config, brandingText: e.target.value})} />
-              </div>
-
-           </div>
-        </div>
-
-        {/* THEME COLORS (Existing) */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit">
-          <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-             <div className="bg-purple-100 p-2 rounded-lg text-purple-600">
-               <Palette size={24} />
-             </div>
-             <div>
-                <h3 className="font-bold text-gray-800">Theme Colors</h3>
-                <p className="text-sm text-gray-500">Customize site palette</p>
-             </div>
-          </div>
-          
-          <div className="p-8 space-y-6">
-             {/* Primary Color */}
-             <div className="flex items-center justify-between">
-                <div>
-                   <label className="block text-sm font-bold text-gray-800">Primary Color</label>
-                   <p className="text-xs text-gray-500">Main actions (Green)</p>
-                </div>
-                <div className="flex items-center gap-2">
-                   <div className="w-10 h-10 rounded-lg shadow-sm border border-gray-200 overflow-hidden relative">
-                      <input type="color" value={colors.primary} onChange={(e) => setColors({...colors, primary: e.target.value})} className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] cursor-pointer p-0 border-0"/>
-                   </div>
-                   <input type="text" value={colors.primary} onChange={(e) => setColors({...colors, primary: e.target.value})} className="w-24 px-2 py-1 border border-gray-300 rounded text-sm font-mono uppercase"/>
-                </div>
-             </div>
-             
-             {/* Secondary Color */}
-             <div className="flex items-center justify-between">
-                <div>
-                   <label className="block text-sm font-bold text-gray-800">Secondary Color</label>
-                   <p className="text-xs text-gray-500">Branding (Pink)</p>
-                </div>
-                <div className="flex items-center gap-2">
-                   <div className="w-10 h-10 rounded-lg shadow-sm border border-gray-200 overflow-hidden relative">
-                      <input type="color" value={colors.secondary} onChange={(e) => setColors({...colors, secondary: e.target.value})} className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] cursor-pointer p-0 border-0"/>
-                   </div>
-                   <input type="text" value={colors.secondary} onChange={(e) => setColors({...colors, secondary: e.target.value})} className="w-24 px-2 py-1 border border-gray-300 rounded text-sm font-mono uppercase"/>
-                </div>
-             </div>
-
-             {/* Tertiary Color */}
-             <div className="flex items-center justify-between">
-                <div>
-                   <label className="block text-sm font-bold text-gray-800">Tertiary Color</label>
-                   <p className="text-xs text-gray-500">Accents (Purple)</p>
-                </div>
-                <div className="flex items-center gap-2">
-                   <div className="w-10 h-10 rounded-lg shadow-sm border border-gray-200 overflow-hidden relative">
-                      <input type="color" value={colors.tertiary} onChange={(e) => setColors({...colors, tertiary: e.target.value})} className="absolute inset-0 w-[150%] h-[150%] -top-[25%] -left-[25%] cursor-pointer p-0 border-0"/>
-                   </div>
-                   <input type="text" value={colors.tertiary} onChange={(e) => setColors({...colors, tertiary: e.target.value})} className="w-24 px-2 py-1 border border-gray-300 rounded text-sm font-mono uppercase"/>
-                </div>
-             </div>
-             
-             {/* Dark Mode Toggle */}
-             <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
-                <div>
-                   <label className="block text-sm font-bold text-gray-800">Dark Mode</label>
-                   <p className="text-xs text-gray-500">Enable dark theme</p>
-                </div>
-                <button 
-                   onClick={() => setIsDarkMode(!isDarkMode)}
-                   className={`relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none ${isDarkMode ? 'bg-purple-600' : 'bg-gray-200'}`}
-                >
-                   <div className={`absolute top-1 left-1 bg-white w-6 h-6 rounded-full shadow-sm transform transition-transform duration-300 flex items-center justify-center ${isDarkMode ? 'translate-x-6' : 'translate-x-0'}`}>
-                      {isDarkMode ? <Moon size={12} className="text-purple-600"/> : <Sun size={12} className="text-orange-400"/>}
-                   </div>
-                </button>
-             </div>
-          </div>
-        </div>
+                 <div>
+                     <h3 className="font-bold text-xl mb-4">Order Language</h3>
+                     <div className="space-y-3">
+                         <label className="flex items-center gap-3 border p-4 rounded-lg cursor-pointer hover:bg-gray-50">
+                             <input type="radio" name="lang" className="w-5 h-5 text-purple-600" 
+                               checked={config.orderLanguage === 'English'} onChange={() => setConfig({...config, orderLanguage: 'English'})}/>
+                             <span className="font-bold">English</span>
+                         </label>
+                         <label className="flex items-center gap-3 border p-4 rounded-lg cursor-pointer hover:bg-gray-50">
+                             <input type="radio" name="lang" className="w-5 h-5 text-purple-600" 
+                               checked={config.orderLanguage === 'Bangla'} onChange={() => setConfig({...config, orderLanguage: 'Bangla'})}/>
+                             <span className="font-bold">Bangla</span>
+                         </label>
+                     </div>
+                 </div>
+            </div>
+        )}
 
       </div>
     </div>

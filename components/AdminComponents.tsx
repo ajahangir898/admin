@@ -3,30 +3,26 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen, 
   FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
-  Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe
+  Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight
 } from 'lucide-react';
-import { StatCardProps } from '../types';
+import { StatCardProps, User } from '../types';
 
 export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: string) => void, logo?: string | null }> = ({ activePage, onNavigate, logo }) => {
-  const [isOpen, setIsOpen] = useState(false); // Mobile state (not implemented fully for brevity)
+  const [isCustomizationOpen, setIsCustomizationOpen] = useState(true);
 
   const menuItems = [
     { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { id: 'orders', icon: <ShoppingBag size={18} />, label: 'Orders' },
     { id: 'products', icon: <Box size={18} />, label: 'Products' },
     { id: 'settings', icon: <Settings size={18} />, label: 'Settings' },
-    { id: 'customization', icon: <Sliders size={18} />, label: 'Customization' },
-    { id: 'catalog', icon: <FolderOpen size={18} />, label: 'Catalog' },
-    { id: 'landing', icon: <FileText size={18} />, label: 'Landing page' },
-    { id: 'review', icon: <Star size={18} />, label: 'Review' },
-    { id: 'customer', icon: <Users size={18} />, label: 'Customer' },
-    { id: 'coupon', icon: <Ticket size={18} />, label: 'Coupon' },
-    { id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery' },
-    { id: 'additional', icon: <FilePlus size={18} />, label: 'Additional Pages' },
-    { id: 'expense', icon: <DollarSign size={18} />, label: 'Expense' },
-    { id: 'admin', icon: <Shield size={18} />, label: 'Admin Control' },
-    { id: 'support', icon: <LifeBuoy size={18} />, label: 'Support' },
-    { id: 'tutorials', icon: <BookOpen size={18} />, label: 'Tutorials' },
+  ];
+
+  const customizationItems = [
+    { id: 'carousel', label: 'Carousel' },
+    { id: 'banner', label: 'Banner' },
+    { id: 'popup', label: 'PopUp' },
+    { id: 'website_info', label: 'Website Information' },
+    { id: 'theme_view', label: 'Theme View' },
   ];
 
   return (
@@ -59,6 +55,52 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
           </div>
         ))}
         
+        {/* Customization Dropdown */}
+        <div>
+          <div 
+            onClick={() => setIsCustomizationOpen(!isCustomizationOpen)}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900`}
+          >
+            <div className="flex items-center gap-3">
+              <Sliders size={18} />
+              <span>Customization</span>
+            </div>
+            {isCustomizationOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </div>
+          
+          {isCustomizationOpen && (
+            <div className="pl-9 pr-2 space-y-1 mt-1">
+              {customizationItems.map(item => (
+                <div
+                  key={item.id}
+                  onClick={() => onNavigate && onNavigate('customization')} // Route to customization page
+                  className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${
+                     false ? 'text-purple-600 font-bold bg-purple-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                     <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                     {item.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-6">System</div>
+        <div 
+            onClick={() => onNavigate && onNavigate('admin')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+              activePage === 'admin'
+                ? 'bg-purple-50 text-purple-600 font-bold shadow-sm' 
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+        >
+            <Shield size={18} />
+            <span>Admin Control</span>
+        </div>
+
         <div className="mt-8 pt-4 border-t border-gray-100">
            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-gray-600 hover:text-red-500 hover:bg-red-50 transition text-sm">
              <LogOut size={18} />
@@ -70,7 +112,9 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
   );
 };
 
-export const AdminHeader: React.FC<{ onSwitchView: () => void }> = ({ onSwitchView }) => {
+export const AdminHeader: React.FC<{ onSwitchView: () => void, user?: User | null, onLogout?: () => void, logo?: string | null }> = ({ onSwitchView, user, onLogout, logo }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
       <div className="flex items-center gap-4">
@@ -93,8 +137,44 @@ export const AdminHeader: React.FC<{ onSwitchView: () => void }> = ({ onSwitchVi
                <Bell size={20} />
                <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-purple-700 font-bold text-sm cursor-pointer border-2 border-white shadow-sm">
-               A
+            
+            <div className="relative">
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                 <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-purple-200">
+                    <img src={user?.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100"} alt="Admin" className="w-full h-full object-cover" />
+                 </div>
+              </div>
+
+              {/* Enhanced User Dropdown */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+                   <div className="p-4 border-b border-gray-50">
+                     <button className="flex items-center gap-3 text-sm text-gray-700 hover:text-purple-600 w-full p-2 rounded hover:bg-gray-50 transition mb-1">
+                        <UserIcon size={18} /> View Profile
+                     </button>
+                     <button 
+                       onClick={onLogout}
+                       className="flex items-center gap-3 text-sm text-gray-700 hover:text-red-600 w-full p-2 rounded hover:bg-gray-50 transition"
+                     >
+                        <LogOutIcon size={18} /> Logout
+                     </button>
+                   </div>
+                   <div className="bg-gray-50 p-4 text-center">
+                      <p className="text-xs text-gray-500 mb-1">(Login as {user?.username || 'admin'})</p>
+                      {logo ? (
+                        <img src={logo} alt="Brand" className="h-6 mx-auto object-contain opacity-70" />
+                      ) : (
+                        <div className="flex items-center justify-center gap-1 opacity-70">
+                           <div className="w-4 h-4 rounded-full border-2 border-green-500"></div>
+                           <span className="text-[10px] font-bold text-gray-600 tracking-widest uppercase">Overseas Products</span>
+                        </div>
+                      )}
+                   </div>
+                </div>
+              )}
             </div>
          </div>
       </div>

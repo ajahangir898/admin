@@ -1,8 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig, CarouselItem } from '../types';
-import { RECENT_ORDERS } from '../constants';
+import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
 interface StoreHeaderProps { 
@@ -543,16 +542,16 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
   );
 };
 
-export const TrackOrderModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }> = ({ onClose, orders = [] }) => {
   const [orderId, setOrderId] = useState('');
-  const [result, setResult] = useState<typeof RECENT_ORDERS[0] | null>(null);
+  const [result, setResult] = useState<Order | null>(null);
   const [searched, setSearched] = useState(false);
 
   const handleTrack = () => {
     if (!orderId.trim()) return;
     setSearched(true);
-    // Simulate finding order from mock data (insensitive case and handle optional '#')
-    const order = RECENT_ORDERS.find(o => 
+    // Find order in dynamic prop orders
+    const order = orders.find(o => 
       o.id.toLowerCase() === orderId.toLowerCase() || 
       o.id.replace('#', '').toLowerCase() === orderId.toLowerCase()
     );

@@ -23,6 +23,7 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
     { id: 'popup', label: 'PopUp' },
     { id: 'website_info', label: 'Website Information' },
     { id: 'theme_view', label: 'Theme View' },
+    { id: 'theme_colors', label: 'Theme Colors' },
   ];
 
   return (
@@ -73,13 +74,13 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
               {customizationItems.map(item => (
                 <div
                   key={item.id}
-                  onClick={() => onNavigate && onNavigate('customization')} // Route to customization page
+                  onClick={() => onNavigate && onNavigate(item.id)} // Pass specific ID
                   className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${
-                     false ? 'text-purple-600 font-bold bg-purple-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                     activePage === item.id ? 'text-purple-600 font-bold bg-purple-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                     <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                     <div className={`w-1.5 h-1.5 rounded-full ${activePage === item.id ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
                      {item.label}
                   </div>
                 </div>

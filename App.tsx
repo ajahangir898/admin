@@ -62,7 +62,15 @@ const hexToRgb = (hex: string) => {
 
 const App = () => {
   // Global Data State
-  const [orders, setOrders] = useState<Order[]>(RECENT_ORDERS);
+  const [orders, setOrders] = useState<Order[]>(() => {
+    const savedOrders = localStorage.getItem('gadgetshob_orders');
+    return savedOrders ? JSON.parse(savedOrders) : RECENT_ORDERS;
+  });
+
+  // Persist Orders
+  useEffect(() => {
+    localStorage.setItem('gadgetshob_orders', JSON.stringify(orders));
+  }, [orders]);
   
   // Products State with LocalStorage Persistence (Simulating Database)
   const [products, setProducts] = useState<Product[]>(() => {
@@ -446,7 +454,7 @@ const App = () => {
               onBulkDelete={handleBulkDeleteProducts}
               onBulkUpdate={handleBulkUpdateProducts}
             />
-          ) : adminSection === 'customization' ? (
+          ) : adminSection === 'customization' || adminSection === 'carousel' || adminSection === 'banner' || adminSection === 'popup' || adminSection === 'website_info' || adminSection === 'theme_view' || adminSection === 'theme_colors' ? (
             <AdminCustomization 
               logo={logo} 
               onUpdateLogo={handleUpdateLogo} 
@@ -454,6 +462,7 @@ const App = () => {
               onUpdateTheme={handleUpdateTheme}
               websiteConfig={websiteConfig}
               onUpdateWebsiteConfig={handleUpdateWebsiteConfig}
+              initialTab={adminSection === 'customization' ? 'website_info' : adminSection}
             />
           ) : adminSection === 'settings' ? (
             <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} />
@@ -467,16 +476,7 @@ const App = () => {
               onUpdateUserRole={handleUpdateUserRole}
             />
           ) : (
-            // Fallback for sub-menus like 'carousel', 'banner' if we used detailed routing, but we are using tabs in Customization
-            <AdminCustomization 
-              logo={logo} 
-              onUpdateLogo={handleUpdateLogo} 
-              themeConfig={themeConfig}
-              onUpdateTheme={handleUpdateTheme}
-              websiteConfig={websiteConfig}
-              onUpdateWebsiteConfig={handleUpdateWebsiteConfig}
-              initialTab={adminSection === 'carousel' ? 'carousel' : 'website_info'}
-            />
+             <AdminDashboard orders={orders} />
           )}
         </AdminLayout>
       ) : (
@@ -485,6 +485,7 @@ const App = () => {
           {currentView === 'store' && (
              <StoreHome 
                 products={products}
+                orders={orders}
                 onProductClick={handleProductClick} 
                 wishlistCount={wishlist.length}
                 wishlist={wishlist}
@@ -501,6 +502,7 @@ const App = () => {
           {currentView === 'detail' && selectedProduct && (
             <StoreProductDetail 
               product={selectedProduct} 
+              orders={orders}
               onBack={() => setCurrentView('store')}
               onProductClick={handleProductClick}
               wishlistCount={wishlist.length}

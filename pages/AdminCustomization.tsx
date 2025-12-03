@@ -24,6 +24,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
   
+  // Sync tab with prop change (for sidebar navigation)
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+  
   const [config, setConfig] = useState<WebsiteConfig>({
     websiteName: '',
     shortDescription: '',
@@ -258,11 +263,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                             )}
                         </tbody>
                     </table>
-                </div>
-                <div className="flex justify-end gap-2 text-sm text-gray-500">
-                    <span>1 of 1</span>
-                    <button className="w-6 h-6 border rounded flex items-center justify-center hover:bg-gray-50">&lt;</button>
-                    <button className="w-6 h-6 border rounded flex items-center justify-center hover:bg-gray-50">&gt;</button>
                 </div>
             </div>
         )}

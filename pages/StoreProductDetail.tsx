@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Product, User, WebsiteConfig } from '../types';
+import { Product, User, WebsiteConfig, Order } from '../types';
 import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal } from '../components/StoreComponents';
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
@@ -30,6 +30,7 @@ const iconMap: Record<string, React.ReactNode> = {
 
 interface StoreProductDetailProps {
   product: Product;
+  orders?: Order[];
   onBack: () => void;
   onProductClick: (p: Product) => void;
   wishlistCount: number;
@@ -46,6 +47,7 @@ interface StoreProductDetailProps {
 
 const StoreProductDetail = ({ 
   product, 
+  orders,
   onBack, 
   onProductClick, 
   wishlistCount, 
@@ -95,7 +97,7 @@ const StoreProductDetail = ({
         websiteConfig={websiteConfig}
       />
       
-      {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}
+      {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
       {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
       {showCartSuccess && (
         <AddToCartSuccessModal 

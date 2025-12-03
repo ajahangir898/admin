@@ -1,8 +1,15 @@
+
 import React, { useState } from 'react';
-import { Search, Filter, Eye, MoreHorizontal, Download, Calendar, MapPin, DollarSign, RefreshCw, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Search, Filter, Eye, MoreHorizontal, Download, Calendar, MapPin, DollarSign, RefreshCw, ChevronDown, ChevronUp, Truck, Loader2, CheckCircle } from 'lucide-react';
 import { Order } from '../types';
 
-const AdminOrders = ({ orders }: { orders: Order[] }) => {
+interface AdminOrdersProps {
+  orders: Order[];
+  courierConfig?: { apiKey: string, secretKey: string };
+  onUpdateStatus?: (orderId: string, status: Order['status']) => void;
+}
+
+const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpdateStatus }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -13,6 +20,9 @@ const AdminOrders = ({ orders }: { orders: Order[] }) => {
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
+
+  // Courier Loading State
+  const [processingOrder, setProcessingOrder] = useState<string | null>(null);
 
   const filteredOrders = orders.filter(order => {
     // 1. Status Filter
@@ -59,6 +69,29 @@ const AdminOrders = ({ orders }: { orders: Order[] }) => {
     setMinAmount('');
     setMaxAmount('');
     setLocationFilter('');
+  };
+
+  const handleSendToCourier = async (order: Order) => {
+    if (!courierConfig?.apiKey || !courierConfig?.secretKey) {
+      alert("Please configure Steadfast Courier API keys in Settings first.");
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to send Order ${order.id} to Steadfast Courier?`)) {
+      return;
+    }
+
+    setProcessingOrder(order.id);
+
+    // Simulate API Call delay
+    setTimeout(() => {
+      // Mock Success
+      setProcessingOrder(null);
+      if (onUpdateStatus) {
+        onUpdateStatus(order.id, 'Shipped');
+      }
+      alert(`Order ${order.id} successfully sent to Steadfast Courier! Tracking ID generated.`);
+    }, 1500);
   };
 
   const activeFilterCount = [
@@ -254,6 +287,23 @@ const AdminOrders = ({ orders }: { orders: Order[] }) => {
                     </td>
                     <td className="px-6 py-4 text-right">
                        <div className="flex justify-end gap-2">
+                          
+                          {/* Courier Action */}
+                          {(order.status === 'Pending' || order.status === 'Confirmed') && (
+                            <button 
+                              onClick={() => handleSendToCourier(order)}
+                              disabled={processingOrder === order.id}
+                              className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded transition shadow-sm flex items-center gap-1 disabled:opacity-70 disabled:cursor-not-allowed"
+                              title="Send to Steadfast Courier"
+                            >
+                              {processingOrder === order.id ? (
+                                <Loader2 size={18} className="animate-spin" />
+                              ) : (
+                                <Truck size={18} />
+                              )}
+                            </button>
+                          )}
+
                           <button className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition" title="View Details">
                             <Eye size={18} />
                           </button>

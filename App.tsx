@@ -9,6 +9,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminProducts from './pages/AdminProducts';
 import AdminCustomization from './pages/AdminCustomization';
+import AdminSettings from './pages/AdminSettings';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
 import { Product, Order, User } from './types';
@@ -60,6 +61,16 @@ const App = () => {
   const [logo, setLogo] = useState<string | null>(() => {
     return localStorage.getItem('gadgetshob_logo');
   });
+
+  // Courier Config State Persistence
+  const [courierConfig, setCourierConfig] = useState({ apiKey: '', secretKey: '' });
+  
+  useEffect(() => {
+    const savedCourier = localStorage.getItem('gadgetshob_courier');
+    if (savedCourier) {
+      setCourierConfig(JSON.parse(savedCourier));
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('gadgetshob_products', JSON.stringify(products));
@@ -160,6 +171,17 @@ const App = () => {
     }
   };
 
+  // Courier Config Handler
+  const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => {
+    setCourierConfig(config);
+    localStorage.setItem('gadgetshob_courier', JSON.stringify(config));
+  };
+  
+  // Order Status Handler
+  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
+    setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
+  };
+
   // Wishlist Handlers
   const addToWishlist = (id: number) => {
     if (!wishlist.includes(id)) setWishlist([...wishlist, id]);
@@ -239,7 +261,11 @@ const App = () => {
           {adminSection === 'dashboard' ? (
             <AdminDashboard orders={orders} />
           ) : adminSection === 'orders' ? (
-            <AdminOrders orders={orders} />
+            <AdminOrders 
+              orders={orders} 
+              courierConfig={courierConfig}
+              onUpdateStatus={handleUpdateOrderStatus}
+            />
           ) : adminSection === 'products' ? (
             <AdminProducts 
               products={products}
@@ -249,6 +275,8 @@ const App = () => {
             />
           ) : adminSection === 'customization' ? (
             <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} />
+          ) : adminSection === 'settings' ? (
+            <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <div className="text-center">

@@ -1,0 +1,218 @@
+
+import React, { useState, useEffect } from 'react';
+import { DeliveryConfig } from '../types';
+import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft } from 'lucide-react';
+
+interface AdminDeliverySettingsProps {
+  configs: DeliveryConfig[];
+  onSave: (configs: DeliveryConfig[]) => void;
+  onBack: () => void;
+}
+
+const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, onSave, onBack }) => {
+  const [activeTab, setActiveTab] = useState<'Regular' | 'Express' | 'Free'>('Regular');
+  const [localConfigs, setLocalConfigs] = useState<DeliveryConfig[]>(configs);
+  const [isFormVisible, setIsFormVisible] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Sync with props if they change externally
+  useEffect(() => {
+    setLocalConfigs(configs);
+  }, [configs]);
+
+  const activeConfig = localConfigs.find(c => c.type === activeTab) || localConfigs[0];
+
+  const handleUpdateConfig = (field: keyof DeliveryConfig, value: any) => {
+    const updated = localConfigs.map(c => 
+      c.type === activeTab ? { ...c, [field]: value } : c
+    );
+    setLocalConfigs(updated);
+  };
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(localConfigs);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center gap-4 mb-6">
+        <button onClick={onBack} className="p-2 hover:bg-gray-200 rounded-full transition">
+           <ArrowLeft size={20} className="text-gray-600"/>
+        </button>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Delivery Settings</h2>
+          <p className="text-sm text-gray-500">Configure delivery charges, methods, and areas.</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {['Regular', 'Express', 'Free'].map((type) => {
+          const config = localConfigs.find(c => c.type === type);
+          const isActive = activeTab === type;
+          const isEnabled = config?.isEnabled;
+
+          return (
+            <div 
+              key={type}
+              onClick={() => { setActiveTab(type as any); setIsFormVisible(true); }}
+              className={`
+                relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between h-24
+                ${isActive ? 'border-purple-600 bg-purple-50' : 'border-gray-200 bg-white hover:border-purple-200'}
+              `}
+            >
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                   {isEnabled ? (
+                     <CheckCircle size={20} className="text-green-500 fill-green-100" />
+                   ) : (
+                     <Circle size={20} className="text-gray-300" />
+                   )}
+                   <span className={`font-bold ${isActive ? 'text-purple-700' : 'text-gray-700'}`}>
+                     {type} Delivery
+                   </span>
+                </div>
+              </div>
+              
+              {isActive && (
+                <div className="text-xs text-purple-600 font-medium flex items-center gap-1 mt-2">
+                   {isFormVisible ? 'Hide Setting Form' : 'Show Setting Form'} 
+                   {isFormVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Configuration Form */}
+      {isFormVisible && (
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden animate-in slide-in-from-top-2">
+           <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+              <div>
+                 <h3 className="font-bold text-gray-800 text-lg">{activeTab} Delivery Configuration</h3>
+                 <p className="text-xs text-gray-500">Update shipping rates and rules for this method.</p>
+              </div>
+              
+              <label className="flex items-center gap-3 cursor-pointer">
+                 <span className="text-sm font-medium text-gray-700">Enable this method</span>
+                 <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full border border-gray-300 bg-white">
+                    <input 
+                      type="checkbox" 
+                      className="absolute w-full h-full opacity-0 cursor-pointer"
+                      checked={activeConfig.isEnabled}
+                      onChange={(e) => handleUpdateConfig('isEnabled', e.target.checked)}
+                    />
+                    <span className={`block w-6 h-6 rounded-full shadow transition-transform duration-200 ${activeConfig.isEnabled ? 'translate-x-6 bg-green-500' : 'translate-x-0 bg-gray-300'}`}></span>
+                 </div>
+              </label>
+           </div>
+
+           <form onSubmit={handleSave} className="p-8 space-y-6">
+              
+              {showSuccess && (
+                <div className="bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-green-100">
+                   <CheckCircle size={18} /> Settings saved successfully!
+                </div>
+              )}
+
+              <div className="space-y-4">
+                 <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Delivery Type</label>
+                    <input 
+                      type="text" 
+                      value={`${activeTab} Delivery`} 
+                      disabled 
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
+                    />
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Your Division</label>
+                    <select 
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                      value={activeConfig.division}
+                      onChange={(e) => handleUpdateConfig('division', e.target.value)}
+                    >
+                       <option value="Dhaka">Dhaka</option>
+                       <option value="Chittagong">Chittagong</option>
+                       <option value="Sylhet">Sylhet</option>
+                       <option value="Khulna">Khulna</option>
+                       <option value="Rajshahi">Rajshahi</option>
+                       <option value="Barisal">Barisal</option>
+                       <option value="Rangpur">Rangpur</option>
+                       <option value="Mymensingh">Mymensingh</option>
+                    </select>
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Charge Inside {activeConfig.division} Division</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                      value={activeConfig.insideCharge}
+                      onChange={(e) => handleUpdateConfig('insideCharge', Number(e.target.value))}
+                    />
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Charge Outside {activeConfig.division} Division</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                      value={activeConfig.outsideCharge}
+                      onChange={(e) => handleUpdateConfig('outsideCharge', Number(e.target.value))}
+                    />
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Order Amount for Free Delivery</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                      placeholder="Leave 0 if not applicable"
+                      value={activeConfig.freeThreshold}
+                      onChange={(e) => handleUpdateConfig('freeThreshold', Number(e.target.value))}
+                    />
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Schedule Note</label>
+                    <div className="relative">
+                       <textarea 
+                         rows={3}
+                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none resize-none"
+                         value={activeConfig.note}
+                         onChange={(e) => handleUpdateConfig('note', e.target.value)}
+                         placeholder="e.g. Order & Delivery Policy..."
+                       ></textarea>
+                       <div className="absolute right-2 bottom-2 flex flex-col gap-1">
+                          <button type="button" className="text-gray-400 hover:text-gray-600"><ChevronUp size={14}/></button>
+                          <button type="button" className="text-gray-400 hover:text-gray-600"><ChevronDown size={14}/></button>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="pt-4">
+                 <button 
+                   type="submit"
+                   className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
+                 >
+                   <Save size={18} /> Save Changes
+                 </button>
+              </div>
+           </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminDeliverySettings;

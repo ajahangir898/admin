@@ -118,6 +118,16 @@ export interface WebsiteConfig {
   orderLanguage?: 'English' | 'Bangla';
 }
 
+export interface DeliveryConfig {
+  type: 'Regular' | 'Express' | 'Free';
+  isEnabled: boolean;
+  division: string;
+  insideCharge: number;
+  outsideCharge: number;
+  freeThreshold: number;
+  note: string;
+}
+
 // Catalog Types
 export interface Category {
   id: string;

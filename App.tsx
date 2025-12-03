@@ -12,9 +12,10 @@ import AdminCustomization from './pages/AdminCustomization';
 import AdminSettings from './pages/AdminSettings';
 import AdminControl from './pages/AdminControl';
 import AdminCatalog from './pages/AdminCatalog';
+import AdminDeliverySettings from './pages/AdminDeliverySettings'; // Imported
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
 import { RECENT_ORDERS, PRODUCTS } from './constants';
 import { LoginModal } from './components/StoreComponents';
 
@@ -38,9 +39,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   user,
   onLogout
 }) => {
+  // Highlight settings parent if in sub-settings
+  const highlightPage = activePage.startsWith('settings') ? 'settings' : activePage;
+
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
-      <AdminSidebar activePage={activePage} onNavigate={onNavigate} logo={logo} />
+      <AdminSidebar activePage={highlightPage} onNavigate={onNavigate} logo={logo} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader onSwitchView={onSwitchView} user={user} onLogout={onLogout} logo={logo} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gray-50/50">
@@ -94,6 +98,20 @@ const App = () => {
       darkMode: false
     };
   });
+
+  // Delivery Config Persistence
+  const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>(() => {
+    const saved = localStorage.getItem('gadgetshob_delivery_config');
+    return saved ? JSON.parse(saved) : [
+      { type: 'Regular', isEnabled: true, division: 'Dhaka', insideCharge: 60, outsideCharge: 120, freeThreshold: 0, note: 'Standard delivery time 2-3 days' },
+      { type: 'Express', isEnabled: true, division: 'Dhaka', insideCharge: 100, outsideCharge: 200, freeThreshold: 5000, note: 'Next day delivery available' },
+      { type: 'Free', isEnabled: false, division: 'Dhaka', insideCharge: 0, outsideCharge: 0, freeThreshold: 0, note: 'Promotional free shipping' }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gadgetshob_delivery_config', JSON.stringify(deliveryConfig));
+  }, [deliveryConfig]);
 
   // CATALOG STATE
   const [categories, setCategories] = useState<Category[]>(() => {
@@ -404,6 +422,11 @@ const App = () => {
     localStorage.setItem('gadgetshob_courier', JSON.stringify(config));
   };
   
+  // Delivery Config Handler
+  const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => {
+    setDeliveryConfig(configs);
+  };
+
   // Order Status Handler
   const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
     setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
@@ -533,7 +556,22 @@ const App = () => {
               initialTab={adminSection === 'customization' ? 'website_info' : adminSection}
             />
           ) : adminSection === 'settings' ? (
-            <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} />
+            <AdminSettings 
+              courierConfig={courierConfig} 
+              onUpdateCourierConfig={handleUpdateCourierConfig} 
+              onNavigate={(page) => setAdminSection(page)}
+            />
+          ) : adminSection === 'settings_delivery' ? (
+            <AdminDeliverySettings 
+              configs={deliveryConfig}
+              onSave={handleUpdateDeliveryConfig}
+              onBack={() => setAdminSection('settings')}
+            />
+          ) : adminSection === 'settings_courier' ? (
+             <div className="bg-white rounded-xl p-6">
+                <h2 className="text-2xl font-bold mb-4">Courier Configuration</h2>
+                {/* Reusing logic from previous simple settings if needed, or redirecting logic */}
+             </div>
           ) : adminSection === 'admin' ? (
             <AdminControl 
               users={users}

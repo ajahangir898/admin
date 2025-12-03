@@ -2,10 +2,22 @@ import React from 'react';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 
-const StoreOrderSuccess = ({ onHome }: { onHome: () => void }) => {
+interface SuccessProps {
+  onHome: () => void;
+  user?: { name: string } | null;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
+}
+
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900 flex flex-col">
-      <StoreHeader onHomeClick={onHome} />
+      <StoreHeader 
+        onHomeClick={onHome}
+        user={user}
+        onLoginClick={onLoginClick}
+        onLogoutClick={onLogoutClick}
+      />
       
       <main className="flex-1 container mx-auto px-4 flex items-center justify-center py-12">
         <div className="bg-white rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 max-w-lg w-full text-center animate-in fade-in zoom-in-95 duration-500">

@@ -35,6 +35,9 @@ interface StoreProductDetailProps {
   isWishlisted: boolean;
   onToggleWishlist: () => void;
   onCheckout: (p: Product, quantity: number) => void;
+  user?: { name: string } | null;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
 }
 
 const StoreProductDetail = ({ 
@@ -44,7 +47,10 @@ const StoreProductDetail = ({
   wishlistCount, 
   isWishlisted, 
   onToggleWishlist,
-  onCheckout
+  onCheckout,
+  user,
+  onLoginClick,
+  onLogoutClick 
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -74,6 +80,9 @@ const StoreProductDetail = ({
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
         onHomeClick={onBack}
         wishlistCount={wishlistCount}
+        user={user}
+        onLoginClick={onLoginClick}
+        onLogoutClick={onLogoutClick}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}

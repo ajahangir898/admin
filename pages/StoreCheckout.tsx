@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
-import { ArrowLeft, Banknote, MapPin, Mail, Phone, User, X } from 'lucide-react';
+import { ArrowLeft, Banknote, MapPin, Mail, Phone, User as UserIcon, X } from 'lucide-react';
 
 interface CheckoutProps {
   product: Product;
   quantity: number;
   onBack: () => void;
   onConfirmOrder: (formData: any) => void;
+  user?: { name: string } | null;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
 }
 
-const StoreCheckout = ({ product, quantity, onBack, onConfirmOrder }: CheckoutProps) => {
+const StoreCheckout = ({ 
+  product, 
+  quantity, 
+  onBack, 
+  onConfirmOrder,
+  user,
+  onLoginClick,
+  onLogoutClick 
+}: CheckoutProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -18,6 +29,16 @@ const StoreCheckout = ({ product, quantity, onBack, onConfirmOrder }: CheckoutPr
     email: '',
     address: ''
   });
+
+  // Pre-fill if user is logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: prev.fullName || user.name,
+      }));
+    }
+  }, [user]);
 
   const subTotal = product.price * quantity;
   const discount = product.originalPrice ? (product.originalPrice - product.price) * quantity : 0;
@@ -41,7 +62,12 @@ const StoreCheckout = ({ product, quantity, onBack, onConfirmOrder }: CheckoutPr
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <StoreHeader onHomeClick={onBack} />
+      <StoreHeader 
+        onHomeClick={onBack}
+        user={user}
+        onLoginClick={onLoginClick}
+        onLogoutClick={onLogoutClick}
+      />
 
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -54,7 +80,7 @@ const StoreCheckout = ({ product, quantity, onBack, onConfirmOrder }: CheckoutPr
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="relative">
-                  <User className="absolute left-3 top-3 text-gray-400" size={18} />
+                  <UserIcon className="absolute left-3 top-3 text-gray-400" size={18} />
                   <input 
                     type="text" 
                     placeholder="Full Name*" 

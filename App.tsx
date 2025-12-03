@@ -9,18 +9,21 @@ import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
 import { Product, Order } from './types';
 import { RECENT_ORDERS } from './constants';
+import { LoginModal } from './components/StoreComponents';
 
 // Wrapper layout for Admin pages
-const AdminLayout = ({ 
+interface AdminLayoutProps {
+  children: React.ReactNode;
+  onSwitchView: () => void;
+  activePage: string;
+  onNavigate: (page: string) => void;
+}
+
+const AdminLayout: React.FC<AdminLayoutProps> = ({ 
   children, 
   onSwitchView, 
   activePage, 
   onNavigate 
-}: { 
-  children: React.ReactNode, 
-  onSwitchView: () => void,
-  activePage: string,
-  onNavigate: (page: string) => void
 }) => {
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
@@ -42,6 +45,10 @@ const App = () => {
   const [orders, setOrders] = useState<Order[]>(RECENT_ORDERS);
   const [wishlist, setWishlist] = useState<number[]>([]);
   
+  // Auth State
+  const [user, setUser] = useState<{name: string} | null>(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  
   // Navigation State
   const [currentView, setCurrentView] = useState<ViewState>('store');
   const [adminSection, setAdminSection] = useState('dashboard');
@@ -49,6 +56,16 @@ const App = () => {
   // Transaction State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
+
+  // Auth Handlers
+  const handleLogin = (name: string) => {
+    setUser({ name });
+    setIsLoginOpen(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
 
   // Wishlist Handlers
   const addToWishlist = (id: number) => {
@@ -95,6 +112,11 @@ const App = () => {
 
   return (
     <div className="relative">
+      {/* Login Modal Overlay */}
+      {isLoginOpen && (
+        <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} />
+      )}
+
       {/* Floating Toggle Button for Demo Purposes */}
       <div className="fixed bottom-6 right-6 z-[100]">
         <button 
@@ -137,6 +159,9 @@ const App = () => {
                 wishlistCount={wishlist.length}
                 wishlist={wishlist}
                 onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)}
+                user={user}
+                onLoginClick={() => setIsLoginOpen(true)}
+                onLogoutClick={handleLogout}
              />
           )}
           
@@ -149,6 +174,9 @@ const App = () => {
               isWishlisted={isInWishlist(selectedProduct.id)}
               onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)}
               onCheckout={(prod, qty) => handleCheckoutStart(prod, qty)}
+              user={user}
+              onLoginClick={() => setIsLoginOpen(true)}
+              onLogoutClick={handleLogout}
             />
           )}
 
@@ -158,11 +186,19 @@ const App = () => {
               quantity={checkoutQuantity}
               onBack={() => setCurrentView('detail')}
               onConfirmOrder={handlePlaceOrder}
+              user={user}
+              onLoginClick={() => setIsLoginOpen(true)}
+              onLogoutClick={handleLogout}
             />
           )}
 
           {currentView === 'success' && (
-            <StoreOrderSuccess onHome={() => setCurrentView('store')} />
+            <StoreOrderSuccess 
+              onHome={() => setCurrentView('store')}
+              user={user}
+              onLoginClick={() => setIsLoginOpen(true)}
+              onLogoutClick={handleLogout} 
+            />
           )}
         </>
       )}

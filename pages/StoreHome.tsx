@@ -16,7 +16,25 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={28} strokeWidth={1.5} />,
 };
 
-const StoreHome = ({ onProductClick, wishlistCount, wishlist, onToggleWishlist }: { onProductClick: (p: Product) => void, wishlistCount: number, wishlist: number[], onToggleWishlist: (id: number) => void }) => {
+interface StoreHomeProps {
+  onProductClick: (p: Product) => void;
+  wishlistCount: number;
+  wishlist: number[];
+  onToggleWishlist: (id: number) => void;
+  user?: { name: string } | null;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
+}
+
+const StoreHome = ({ 
+  onProductClick, 
+  wishlistCount, 
+  wishlist, 
+  onToggleWishlist,
+  user,
+  onLoginClick,
+  onLogoutClick 
+}: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
 
@@ -26,6 +44,9 @@ const StoreHome = ({ onProductClick, wishlistCount, wishlist, onToggleWishlist }
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
         wishlistCount={wishlistCount}
+        user={user}
+        onLoginClick={onLoginClick}
+        onLogoutClick={onLogoutClick}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}

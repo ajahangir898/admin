@@ -4,7 +4,25 @@ import { Product } from '../types';
 import { RECENT_ORDERS } from '../constants';
 import { GoogleGenAI } from "@google/genai";
 
-export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick, wishlistCount }: { onTrackOrder?: () => void, onOpenAIStudio?: () => void, onHomeClick?: () => void, wishlistCount?: number }) => {
+interface StoreHeaderProps { 
+  onTrackOrder?: () => void;
+  onOpenAIStudio?: () => void;
+  onHomeClick?: () => void;
+  wishlistCount?: number;
+  user?: { name: string } | null;
+  onLoginClick?: () => void;
+  onLogoutClick?: () => void;
+}
+
+export const StoreHeader: React.FC<StoreHeaderProps> = ({ 
+  onTrackOrder, 
+  onOpenAIStudio, 
+  onHomeClick, 
+  wishlistCount, 
+  user, 
+  onLoginClick, 
+  onLogoutClick 
+}) => {
   return (
     <header className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -48,9 +66,20 @@ export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick, wishlis
               </div>
               <span className="hidden sm:inline text-sm font-medium">Cart</span>
             </div>
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition">
+            
+            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition" onClick={user ? undefined : onLoginClick}>
               <User size={24} />
-              <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
+              {user ? (
+                 <div className="hidden sm:flex flex-col items-start leading-tight">
+                    <span className="text-xs text-gray-500">Hello,</span>
+                    <span className="text-sm font-bold flex items-center gap-1">
+                      {user.name} 
+                      <button onClick={(e) => { e.stopPropagation(); onLogoutClick?.() }} className="text-xs text-red-500 hover:underline ml-1">(Logout)</button>
+                    </span>
+                 </div>
+              ) : (
+                 <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
+              )}
             </div>
           </div>
         </div>
@@ -88,7 +117,74 @@ export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick, wishlis
   );
 };
 
-export const AddToCartSuccessModal = ({ product, onClose, onCheckout }: { product: Product, onClose: () => void, onCheckout: () => void }) => {
+export const LoginModal: React.FC<{ onClose: () => void, onLogin: (name: string) => void }> = ({ onClose, onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isRegister, setIsRegister] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock login - extract name from email or use a default
+    const name = email.split('@')[0];
+    onLogin(name || 'User');
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><X size={24}/></button>
+        
+        <div className="p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
+            <p className="text-gray-500 text-sm">Please enter your details to {isRegister ? 'register' : 'sign in'}.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <input 
+                type="email" 
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                placeholder="mail@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input 
+                type="password" 
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-green-200 mt-2 transform active:scale-95">
+              {isRegister ? 'Register' : 'Login'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-gray-600">
+            {isRegister ? 'Already have an account? ' : "Don't have an account? "}
+            <button 
+              onClick={() => setIsRegister(!isRegister)}
+              className="text-green-600 font-bold hover:underline"
+            >
+              {isRegister ? 'Login' : 'Register'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => void, onCheckout: () => void }> = ({ product, onClose, onCheckout }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -123,7 +219,7 @@ export const AddToCartSuccessModal = ({ product, onClose, onCheckout }: { produc
   );
 };
 
-export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
+export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [resultImage, setResultImage] = useState<string>('');
@@ -310,7 +406,7 @@ export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-export const TrackOrderModal = ({ onClose }: { onClose: () => void }) => {
+export const TrackOrderModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [orderId, setOrderId] = useState('');
   const [result, setResult] = useState<typeof RECENT_ORDERS[0] | null>(null);
   const [searched, setSearched] = useState(false);
@@ -409,7 +505,7 @@ export const TrackOrderModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-export const HeroSection = () => {
+export const HeroSection: React.FC = () => {
   return (
     <div className="bg-gradient-to-r from-pink-500 to-purple-600 h-64 md:h-[400px] w-full relative overflow-hidden text-white">
       <div className="container mx-auto h-full flex items-center px-4 relative z-10">
@@ -435,7 +531,7 @@ export const HeroSection = () => {
   );
 };
 
-export const CategoryCircle = ({ name, icon }: { name: string; icon: React.ReactNode }) => (
+export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
   <div className="flex flex-col items-center gap-3 group cursor-pointer min-w-[80px]">
     <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-gray-100 flex items-center justify-center text-gray-500 group-hover:border-green-500 group-hover:text-green-500 transition bg-white shadow-sm group-hover:shadow-md">
       {icon}
@@ -444,10 +540,10 @@ export const CategoryCircle = ({ name, icon }: { name: string; icon: React.React
   </div>
 );
 
-export const ProductCard = ({ product, onClick }: { product: Product, onClick?: (p: Product) => void }) => {
+export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void }> = ({ product, onClick }) => {
   return (
     <div 
-      className="bg-white border border-gray-100 rounded-lg p-3 hover:shadow-xl transition duration-300 group relative flex flex-col h-full cursor-pointer"
+      className="bg-white border border-gray-100 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
       onClick={() => onClick && onClick(product)}
     >
       {product.discount && (
@@ -467,14 +563,14 @@ export const ProductCard = ({ product, onClick }: { product: Product, onClick?: 
           <span className="text-gray-400 text-xs line-through decoration-red-400">৳{product.originalPrice.toLocaleString()}</span>
         )}
       </div>
-      <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded text-sm font-bold transition flex items-center justify-center gap-2 active:bg-green-700">
+      <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded text-sm font-bold transition flex items-center justify-center gap-2 active:bg-green-700 shadow-sm hover:shadow">
         অর্ডার করুন
       </button>
     </div>
   );
 };
 
-export const SectionHeader = ({ title, linkText = "View All" }: { title: string; linkText?: string }) => (
+export const SectionHeader: React.FC<{ title: string; linkText?: string }> = ({ title, linkText = "View All" }) => (
   <div className="flex justify-between items-center mb-6">
     <h2 className="text-lg md:text-2xl font-bold text-gray-800">{title}</h2>
     <a href="#" className="text-xs md:text-sm text-gray-500 hover:text-green-600 flex items-center gap-1 transition">
@@ -483,7 +579,7 @@ export const SectionHeader = ({ title, linkText = "View All" }: { title: string;
   </div>
 );
 
-export const StoreFooter = () => (
+export const StoreFooter: React.FC = () => (
   <footer className="bg-white pt-16 pb-8 border-t border-gray-200 mt-12">
     <div className="container mx-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">

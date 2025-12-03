@@ -18,6 +18,7 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 interface StoreHomeProps {
+  products?: Product[];
   onProductClick: (p: Product) => void;
   wishlistCount: number;
   wishlist: number[];
@@ -26,9 +27,11 @@ interface StoreHomeProps {
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
+  logo?: string | null;
 }
 
 const StoreHome = ({ 
+  products,
   onProductClick, 
   wishlistCount, 
   wishlist, 
@@ -36,34 +39,14 @@ const StoreHome = ({
   user,
   onLoginClick,
   onLogoutClick,
-  onProfileClick
+  onProfileClick,
+  logo
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
 
-  // In a real app, products would come from props, but for now we are using the constant. 
-  // Ideally App.tsx should pass products down, but since the requirement for Products Admin is new, 
-  // we will continue using INITIAL_PRODUCTS here unless we refactor StoreHome to accept products prop.
-  // To keep it simple and working with the new Admin features, let's keep using constants for the storefront display 
-  // OR refactor StoreHome to take products as props. 
-  // Let's stick to using the imported products for now as the prompt asked for Admin management.
-  // HOWEVER, for the admin changes to reflect here, we really should pass products as props.
-  // Let's assume for this specific task, updating Admin is the priority.
-  // If the user wants the storefront to update, we'd need to change the App structure significantly to pass products down.
-  
-  // NOTE: Ideally, we should receive `products` as a prop here.
-  // Since I updated App.tsx to have `products` state, I should update this component to accept it.
-  // I'll update the interface and component usage.
-  
-  // Wait, I can't easily change the prop signature without updating App.tsx call site first.
-  // In App.tsx I didn't pass `products` to StoreHome.
-  // I will leave StoreHome reading from constants for now to prevent breaking, 
-  // BUT the prompt was "Develop a form within the admin dashboard".
-  // It didn't explicitly say "Make sure the storefront updates dynamically based on admin changes immediately".
-  // However, `App.tsx` handles the state. I'll modify App.tsx to pass products if I could, but let's stick to the requested file changes.
-  
-  // Actually, to make it consistent, I WILL use the constant here.
-  const displayProducts = INITIAL_PRODUCTS; 
+  // Use passed products or fallback to initial constants
+  const displayProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
@@ -75,6 +58,7 @@ const StoreHome = ({
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
         onProfileClick={onProfileClick}
+        logo={logo}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}
@@ -106,7 +90,10 @@ const StoreHome = ({
             {displayProducts.map((product) => (
               <ProductCard key={`flash-${product.id}`} product={product} onClick={onProductClick} />
             ))}
-             <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} />
+            {/* Add a duplicate if few products to fill grid */}
+            {displayProducts.length > 0 && displayProducts.length < 5 && 
+              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} />
+            }
           </div>
         </section>
 
@@ -120,7 +107,10 @@ const StoreHome = ({
              {displayProducts.slice().reverse().map((product) => (
               <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} />
             ))}
-             <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} />
+             {/* Add a duplicate if few products to fill grid */}
+             {displayProducts.length > 0 && displayProducts.length < 5 && 
+               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} />
+             }
           </div>
         </section>
 
@@ -146,7 +136,10 @@ const StoreHome = ({
             {displayProducts.map((product) => (
               <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} />
             ))}
-             <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} />
+             {/* Add a duplicate if few products to fill grid */}
+             {displayProducts.length > 0 && displayProducts.length < 5 && 
+               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} />
+             }
           </div>
         </section>
 

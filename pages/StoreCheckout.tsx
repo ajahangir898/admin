@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Product, User } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
@@ -12,6 +13,7 @@ interface CheckoutProps {
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
+  logo?: string | null;
 }
 
 const StoreCheckout = ({ 
@@ -22,7 +24,8 @@ const StoreCheckout = ({
   user,
   onLoginClick,
   onLogoutClick,
-  onProfileClick 
+  onProfileClick,
+  logo
 }: CheckoutProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -73,6 +76,7 @@ const StoreCheckout = ({
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
         onProfileClick={onProfileClick}
+        logo={logo}
       />
 
       <main className="container mx-auto px-4 py-8">

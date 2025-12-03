@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
@@ -9,9 +10,10 @@ interface SuccessProps {
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
+  logo?: string | null;
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900 flex flex-col">
       <StoreHeader 
@@ -20,6 +22,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
         onProfileClick={onProfileClick}
+        logo={logo}
       />
       
       <main className="flex-1 container mx-auto px-4 flex items-center justify-center py-12">

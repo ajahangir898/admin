@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Product, User } from '../types';
 import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal } from '../components/StoreComponents';
@@ -39,6 +40,7 @@ interface StoreProductDetailProps {
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
+  logo?: string | null;
 }
 
 const StoreProductDetail = ({ 
@@ -52,7 +54,8 @@ const StoreProductDetail = ({
   user,
   onLoginClick,
   onLogoutClick,
-  onProfileClick
+  onProfileClick,
+  logo
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -86,6 +89,7 @@ const StoreProductDetail = ({
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
         onProfileClick={onProfileClick}
+        logo={logo}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}

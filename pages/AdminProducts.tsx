@@ -32,6 +32,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     discount: '',
     tags: []
   });
+  const [initialFormData, setInitialFormData] = useState<Partial<Product> | null>(null); // To track dirty state
   const [tagInput, setTagInput] = useState('');
   
   // File Upload Ref
@@ -44,12 +45,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   );
 
   const handleOpenModal = (product?: Product) => {
+    let initialData: Partial<Product>;
     if (product) {
       setEditingProduct(product);
-      setFormData({ ...product });
+      initialData = { ...product };
     } else {
       setEditingProduct(null);
-      setFormData({
+      initialData = {
         name: '',
         price: 0,
         originalPrice: 0,
@@ -58,9 +60,22 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         image: '',
         discount: '',
         tags: []
-      });
+      };
     }
+    setFormData(initialData);
+    setInitialFormData(initialData);
     setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    const isDirty = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+    
+    if (isDirty) {
+      if (!window.confirm("You have unsaved changes. Are you sure you want to discard them?")) {
+        return;
+      }
+    }
+    setIsModalOpen(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -120,6 +135,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         alert("File size is too large. Please upload an image under 2MB.");
         return;
       }
+
+      console.log(`Processing upload for ${file.name} (Simulating DB store)`);
 
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -225,7 +242,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                  <h3 className="text-xl font-bold text-gray-800">
                    {editingProduct ? 'Edit Product' : 'Add New Product'}
                  </h3>
-                 <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                 <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
                    <X size={24} />
                  </button>
               </div>
@@ -378,7 +395,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
               <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-end gap-3">
                  <button 
                    type="button" 
-                   onClick={() => setIsModalOpen(false)}
+                   onClick={handleCloseModal}
                    className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-white transition"
                  >
                    Cancel

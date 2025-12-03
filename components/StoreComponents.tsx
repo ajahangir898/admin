@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle } from 'lucide-react';
 import { Product, User as UserType } from '../types';
@@ -13,6 +14,7 @@ interface StoreHeaderProps {
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
+  logo?: string | null;
 }
 
 export const StoreHeader: React.FC<StoreHeaderProps> = ({ 
@@ -23,7 +25,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   user, 
   onLoginClick, 
   onLogoutClick,
-  onProfileClick
+  onProfileClick,
+  logo
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -44,10 +47,14 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-            <h1 className="text-2xl font-bold tracking-tighter">
-              <span className="text-gray-800">GADGET</span>
-              <span className="text-pink-500">SHOB</span>
-            </h1>
+            {logo ? (
+              <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
+            ) : (
+              <h1 className="text-2xl font-bold tracking-tighter">
+                <span className="text-gray-800">GADGET</span>
+                <span className="text-pink-500">SHOB</span>
+              </h1>
+            )}
           </div>
 
           {/* Search Bar */}

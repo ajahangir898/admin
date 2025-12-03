@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen, 
@@ -6,7 +7,7 @@ import {
 } from 'lucide-react';
 import { StatCardProps } from '../types';
 
-export const AdminSidebar = ({ activePage, onNavigate }: { activePage?: string, onNavigate?: (page: string) => void }) => {
+export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: string) => void, logo?: string | null }> = ({ activePage, onNavigate, logo }) => {
   const [isOpen, setIsOpen] = useState(false); // Mobile state (not implemented fully for brevity)
 
   const menuItems = [
@@ -31,10 +32,14 @@ export const AdminSidebar = ({ activePage, onNavigate }: { activePage?: string, 
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen overflow-y-auto hidden lg:flex flex-col sticky top-0 scrollbar-hide">
       <div className="p-6 border-b border-gray-100 flex items-center justify-center">
-        <h2 className="text-2xl font-bold tracking-tighter">
-          <span className="text-gray-800">GADGET</span>
-          <span className="text-pink-500">SHOB</span>
-        </h2>
+        {logo ? (
+          <img src={logo} alt="Admin Logo" className="h-10 object-contain" />
+        ) : (
+          <h2 className="text-2xl font-bold tracking-tighter">
+            <span className="text-gray-800">GADGET</span>
+            <span className="text-pink-500">SHOB</span>
+          </h2>
+        )}
       </div>
       
       <div className="p-4 space-y-1 flex-1">
@@ -65,7 +70,7 @@ export const AdminSidebar = ({ activePage, onNavigate }: { activePage?: string, 
   );
 };
 
-export const AdminHeader = ({ onSwitchView }: { onSwitchView: () => void }) => {
+export const AdminHeader: React.FC<{ onSwitchView: () => void }> = ({ onSwitchView }) => {
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
       <div className="flex items-center gap-4">
@@ -97,7 +102,7 @@ export const AdminHeader = ({ onSwitchView }: { onSwitchView: () => void }) => {
   );
 };
 
-export const DashboardStatCard = ({ title, value, icon, colorClass }: StatCardProps) => {
+export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon, colorClass }) => {
   const getColors = (color: string) => {
     switch(color) {
       case 'pink': return 'bg-pink-50 text-pink-600 border-pink-100 hover:border-pink-300';

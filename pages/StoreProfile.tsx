@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { User, Order } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
@@ -10,6 +11,7 @@ interface StoreProfileProps {
   onHome: () => void;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
+  logo?: string | null;
 }
 
 const StoreProfile = ({ 
@@ -18,7 +20,8 @@ const StoreProfile = ({
   orders, 
   onHome, 
   onLoginClick, 
-  onLogoutClick 
+  onLogoutClick,
+  logo
 }: StoreProfileProps) => {
   const [activeTab, setActiveTab] = useState<'info' | 'orders'>('info');
   const [formData, setFormData] = useState({
@@ -55,6 +58,7 @@ const StoreProfile = ({
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
         onProfileClick={() => {}} // Already on profile
+        logo={logo}
       />
 
       <main className="container mx-auto px-4 py-8">

@@ -8,6 +8,7 @@ import StoreProfile from './pages/StoreProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminProducts from './pages/AdminProducts';
+import AdminCustomization from './pages/AdminCustomization';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
 import { Product, Order, User } from './types';
@@ -20,17 +21,19 @@ interface AdminLayoutProps {
   onSwitchView: () => void;
   activePage: string;
   onNavigate: (page: string) => void;
+  logo: string | null;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ 
   children, 
   onSwitchView, 
   activePage, 
-  onNavigate 
+  onNavigate,
+  logo
 }) => {
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
-      <AdminSidebar activePage={activePage} onNavigate={onNavigate} />
+      <AdminSidebar activePage={activePage} onNavigate={onNavigate} logo={logo} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader onSwitchView={onSwitchView} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
@@ -46,7 +49,22 @@ type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admi
 const App = () => {
   // Global Data State
   const [orders, setOrders] = useState<Order[]>(RECENT_ORDERS);
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  
+  // Products State with LocalStorage Persistence (Simulating Database)
+  const [products, setProducts] = useState<Product[]>(() => {
+    const savedProducts = localStorage.getItem('gadgetshob_products');
+    return savedProducts ? JSON.parse(savedProducts) : PRODUCTS;
+  });
+
+  // Logo State Persistence
+  const [logo, setLogo] = useState<string | null>(() => {
+    return localStorage.getItem('gadgetshob_logo');
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gadgetshob_products', JSON.stringify(products));
+  }, [products]);
+  
   const [wishlist, setWishlist] = useState<number[]>([]);
   
   // Auth State
@@ -72,7 +90,6 @@ const App = () => {
     if (storedSession) {
       setUser(JSON.parse(storedSession));
     }
-    // Optional: Load products from local storage if needed in future
   }, []);
 
   // Auth Handlers
@@ -133,6 +150,16 @@ const App = () => {
     setProducts(products.filter(p => p.id !== id));
   };
 
+  // Logo Handler
+  const handleUpdateLogo = (newLogo: string | null) => {
+    setLogo(newLogo);
+    if (newLogo) {
+      localStorage.setItem('gadgetshob_logo', newLogo);
+    } else {
+      localStorage.removeItem('gadgetshob_logo');
+    }
+  };
+
   // Wishlist Handlers
   const addToWishlist = (id: number) => {
     if (!wishlist.includes(id)) setWishlist([...wishlist, id]);
@@ -183,8 +210,8 @@ const App = () => {
       {isLoginOpen && (
         <LoginModal 
           onClose={() => setIsLoginOpen(false)} 
-          onLogin={handleLogin}
-          onRegister={handleRegister}
+          onLogin={handleLogin} 
+          onRegister={handleRegister} 
         />
       )}
 
@@ -207,6 +234,7 @@ const App = () => {
           onSwitchView={() => setCurrentView('store')}
           activePage={adminSection}
           onNavigate={(page) => setAdminSection(page)}
+          logo={logo}
         >
           {adminSection === 'dashboard' ? (
             <AdminDashboard orders={orders} />
@@ -219,6 +247,8 @@ const App = () => {
               onUpdateProduct={handleUpdateProduct}
               onDeleteProduct={handleDeleteProduct}
             />
+          ) : adminSection === 'customization' ? (
+            <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <div className="text-center">
@@ -233,6 +263,7 @@ const App = () => {
         <>
           {currentView === 'store' && (
              <StoreHome 
+                products={products}
                 onProductClick={handleProductClick} 
                 wishlistCount={wishlist.length}
                 wishlist={wishlist}
@@ -241,6 +272,7 @@ const App = () => {
                 onLoginClick={() => setIsLoginOpen(true)}
                 onLogoutClick={handleLogout}
                 onProfileClick={() => setCurrentView('profile')}
+                logo={logo}
              />
           )}
           
@@ -257,6 +289,7 @@ const App = () => {
               onLoginClick={() => setIsLoginOpen(true)}
               onLogoutClick={handleLogout}
               onProfileClick={() => setCurrentView('profile')}
+              logo={logo}
             />
           )}
 
@@ -270,6 +303,7 @@ const App = () => {
               onLoginClick={() => setIsLoginOpen(true)}
               onLogoutClick={handleLogout}
               onProfileClick={() => setCurrentView('profile')}
+              logo={logo}
             />
           )}
 
@@ -280,6 +314,7 @@ const App = () => {
               onLoginClick={() => setIsLoginOpen(true)}
               onLogoutClick={handleLogout}
               onProfileClick={() => setCurrentView('profile')} 
+              logo={logo}
             />
           )}
 
@@ -291,6 +326,7 @@ const App = () => {
               onHome={() => setCurrentView('store')}
               onLoginClick={() => setIsLoginOpen(true)}
               onLogoutClick={handleLogout}
+              logo={logo}
             />
           )}
         </>

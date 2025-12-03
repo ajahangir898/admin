@@ -75,14 +75,39 @@ const StoreHome = ({
       <main className="container mx-auto px-4 space-y-12 pb-12">
         
         {/* Categories */}
-        <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <SectionHeader title="Categories" />
-            <div className="flex flex-wrap gap-4 md:gap-8 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide">
-            {CATEGORIES.map((cat, idx) => (
-                <CategoryCircle key={idx} name={cat.name} icon={iconMap[cat.icon]} />
-            ))}
-            </div>
-        </div>
+        {websiteConfig?.categorySectionStyle === 'style2' ? (
+           <div className="mt-8 mb-8">
+              <div className="flex justify-between items-end mb-6 border-b border-gray-100 pb-2">
+                 <div className="relative">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white pb-2">Categories</h2>
+                    <div className="absolute bottom-0 left-0 w-8 h-0.5 bg-pink-500"></div>
+                    <div className="absolute bottom-0 left-8 w-16 h-0.5 bg-blue-400"></div>
+                 </div>
+                 <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-2 transition mb-2">
+                    View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent"></div>
+                 </a>
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                 {CATEGORIES.map((cat, idx) => (
+                    <div key={idx} className="flex items-center gap-3 p-1.5 pr-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full shadow-sm min-w-max cursor-pointer hover:border-blue-300 hover:shadow-md transition group">
+                       <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 border border-blue-100 dark:border-slate-600 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition">
+                          {React.cloneElement(iconMap[cat.icon] as React.ReactElement, { size: 20, strokeWidth: 2 })}
+                       </div>
+                       <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400">{cat.name}</span>
+                    </div>
+                 ))}
+              </div>
+           </div>
+        ) : (
+           <div className="mt-8 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+               <SectionHeader title="Categories" />
+               <div className="flex flex-wrap gap-4 md:gap-8 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide">
+               {CATEGORIES.map((cat, idx) => (
+                   <CategoryCircle key={idx} name={cat.name} icon={iconMap[cat.icon]} />
+               ))}
+               </div>
+           </div>
+        )}
 
         {/* Flash Deals */}
         <section>

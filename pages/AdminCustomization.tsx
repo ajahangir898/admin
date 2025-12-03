@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical } from 'lucide-react';
+import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem } from '../types';
 
 interface AdminCustomizationProps {
@@ -68,6 +68,16 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   });
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Carousel State
+  const [carouselFilter, setCarouselFilter] = useState<'All' | 'Publish' | 'Draft' | 'Trash'>('All');
+  const [carouselSearch, setCarouselSearch] = useState('');
+  const [isCarouselModalOpen, setIsCarouselModalOpen] = useState(false);
+  const [editingCarousel, setEditingCarousel] = useState<CarouselItem | null>(null);
+  const [carouselFormData, setCarouselFormData] = useState<Partial<CarouselItem>>({
+      name: '', image: '', url: '', urlType: 'Internal', serial: 1, status: 'Publish'
+  });
+  const carouselFileRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (themeConfig) {
       setColors({
@@ -79,7 +89,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     }
   }, [themeConfig]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon') => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel') => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
@@ -90,8 +100,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       reader.onloadend = () => {
         if (type === 'logo') {
           onUpdateLogo(reader.result as string);
-        } else {
+        } else if (type === 'favicon') {
           setConfig(prev => ({ ...prev, favicon: reader.result as string }));
+        } else if (type === 'carousel') {
+          setCarouselFormData(prev => ({ ...prev, image: reader.result as string }));
         }
       };
       reader.readAsDataURL(file);
@@ -157,25 +169,67 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   };
 
   // Carousel Logic
-  const handleAddCarousel = () => {
-      const newItem: CarouselItem = {
-          id: Date.now().toString(),
-          image: '',
-          name: 'New Slide',
-          url: '/',
-          urlType: 'Internal',
-          serial: config.carouselItems.length + 1,
-          status: 'Draft'
-      };
-      setConfig(prev => ({ ...prev, carouselItems: [...prev.carouselItems, newItem] }));
+  const openCarouselModal = (item?: CarouselItem) => {
+      if (item) {
+          setEditingCarousel(item);
+          setCarouselFormData({ ...item });
+      } else {
+          setEditingCarousel(null);
+          setCarouselFormData({
+              name: '',
+              image: '',
+              url: '',
+              urlType: 'Internal',
+              serial: config.carouselItems.length + 1,
+              status: 'Publish'
+          });
+      }
+      setIsCarouselModalOpen(true);
   };
+
+  const saveCarouselItem = (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      const newItem: CarouselItem = {
+          id: editingCarousel ? editingCarousel.id : Date.now().toString(),
+          name: carouselFormData.name || 'Untitled',
+          image: carouselFormData.image || '',
+          url: carouselFormData.url || '#',
+          urlType: carouselFormData.urlType as 'Internal' | 'External',
+          serial: Number(carouselFormData.serial),
+          status: carouselFormData.status as 'Publish' | 'Draft'
+      };
+
+      let newItems;
+      if (editingCarousel) {
+          newItems = config.carouselItems.map(i => i.id === editingCarousel.id ? newItem : i);
+      } else {
+          newItems = [...config.carouselItems, newItem];
+      }
+      
+      setConfig(prev => ({ ...prev, carouselItems: newItems }));
+      setIsCarouselModalOpen(false);
+  };
+
+  const deleteCarouselItem = (id: string) => {
+      if(confirm('Are you sure you want to delete this carousel?')) {
+          setConfig(prev => ({ ...prev, carouselItems: prev.carouselItems.filter(i => i.id !== id) }));
+      }
+  };
+
+  // Filter Logic
+  const filteredCarouselItems = config.carouselItems.filter(item => {
+      const matchesStatus = carouselFilter === 'All' || item.status === carouselFilter;
+      const matchesSearch = item.name.toLowerCase().includes(carouselSearch.toLowerCase());
+      return matchesStatus && matchesSearch;
+  });
   
   const socialOptions = ['Facebook', 'Instagram', 'YouTube', 'Daraz', 'Twitter', 'LinkedIn'];
 
   const TabButton = ({ id, label, icon }: { id: string, label: string, icon?: React.ReactNode }) => (
       <button 
         onClick={() => setActiveTab(id)}
-        className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition ${activeTab === id ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition whitespace-nowrap ${activeTab === id ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
       >
         {icon} {label}
       </button>
@@ -211,21 +265,49 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         {/* CAROUSEL TAB */}
         {activeTab === 'carousel' && (
             <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                    <div className="relative w-64">
-                        <input type="text" placeholder="Search" className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"/>
-                        <Search className="absolute left-3 top-2.5 text-gray-400" size={16}/>
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                        {['All', 'Publish', 'Draft', 'Trash'].map(status => (
+                            <button 
+                                key={status}
+                                onClick={() => setCarouselFilter(status as any)}
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+                                    carouselFilter === status 
+                                    ? 'bg-white text-purple-600 shadow-sm' 
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                {status === 'All' ? 'All Data' : status}
+                                {status === 'All' && <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">{config.carouselItems.length}</span>}
+                            </button>
+                        ))}
                     </div>
-                    <button onClick={handleAddCarousel} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-purple-700">
-                        <Plus size={16}/> Add Carousel
-                    </button>
+                    
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-64">
+                            <input 
+                                type="text" 
+                                placeholder="Search" 
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                                value={carouselSearch}
+                                onChange={(e) => setCarouselSearch(e.target.value)}
+                            />
+                            <Search className="absolute left-3 top-2.5 text-gray-400" size={16}/>
+                        </div>
+                        <button 
+                            onClick={() => openCarouselModal()} 
+                            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-purple-700 whitespace-nowrap"
+                        >
+                            <Plus size={16}/> Add Carousel
+                        </button>
+                    </div>
                 </div>
                 
-                <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-purple-50 text-gray-700 font-semibold text-xs uppercase">
+                        <thead className="bg-purple-50 text-gray-700 font-semibold text-xs uppercase border-b border-gray-200">
                             <tr>
-                                <th className="px-4 py-3"><input type="checkbox"/></th>
+                                <th className="px-4 py-3 w-10"><input type="checkbox" className="rounded text-purple-600 focus:ring-purple-500"/></th>
                                 <th className="px-4 py-3">Image</th>
                                 <th className="px-4 py-3">Name</th>
                                 <th className="px-4 py-3">Url</th>
@@ -236,33 +318,60 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {config.carouselItems.map((item) => (
-                                <tr key={item.id} className="hover:bg-gray-50">
-                                    <td className="px-4 py-3"><input type="checkbox"/></td>
+                            {filteredCarouselItems.map((item) => (
+                                <tr key={item.id} className="hover:bg-gray-50 transition group">
+                                    <td className="px-4 py-3"><input type="checkbox" className="rounded text-purple-600 focus:ring-purple-500"/></td>
                                     <td className="px-4 py-3">
-                                        <div className="w-16 h-10 bg-gray-100 rounded border border-gray-200 overflow-hidden">
-                                            {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>}
+                                        <div className="w-16 h-10 bg-gray-100 rounded border border-gray-200 overflow-hidden relative">
+                                            {item.image ? (
+                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={16}/></div>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
                                     <td className="px-4 py-3 text-gray-500 max-w-xs truncate">{item.url}</td>
                                     <td className="px-4 py-3 text-gray-500">{item.urlType}</td>
-                                    <td className="px-4 py-3 text-gray-800">{item.serial}</td>
+                                    <td className="px-4 py-3 text-gray-800 font-mono">{item.serial}</td>
                                     <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.status === 'Publish' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                            item.status === 'Publish' 
+                                            ? 'bg-green-100 text-green-700' 
+                                            : 'bg-orange-100 text-orange-700'
+                                        }`}>
                                             {item.status}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <button className="text-gray-400 hover:text-gray-600"><MoreVertical size={16}/></button>
+                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition">
+                                            <button onClick={() => openCarouselModal(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="Edit">
+                                                <Edit size={16}/>
+                                            </button>
+                                            <button onClick={() => deleteCarouselItem(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete">
+                                                <Trash2 size={16}/>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
-                            {config.carouselItems.length === 0 && (
-                                <tr><td colSpan={8} className="text-center py-8 text-gray-400">No carousel items found.</td></tr>
+                            {filteredCarouselItems.length === 0 && (
+                                <tr><td colSpan={8} className="text-center py-12 text-gray-400 flex flex-col items-center justify-center">
+                                    <ImageIcon size={32} className="mb-2 opacity-50"/>
+                                    No carousel items found matching your criteria.
+                                </td></tr>
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Pagination (Mock) */}
+                <div className="flex justify-end items-center gap-2">
+                    <span className="text-sm text-gray-600">1 of 1</span>
+                    <div className="flex border rounded-lg overflow-hidden">
+                        <button disabled className="px-2 py-1 bg-gray-50 text-gray-400 border-r"><ChevronLeft size={16}/></button>
+                        <button disabled className="px-2 py-1 bg-gray-50 text-gray-400"><ChevronRight size={16}/></button>
+                    </div>
                 </div>
             </div>
         )}
@@ -527,6 +636,71 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         )}
 
       </div>
+
+      {/* Add/Edit Carousel Modal */}
+      {isCarouselModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+                  <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+                      <h3 className="font-bold text-gray-800">{editingCarousel ? 'Edit Carousel' : 'Add New Carousel'}</h3>
+                      <button onClick={() => setIsCarouselModalOpen(false)}><X size={20} className="text-gray-500"/></button>
+                  </div>
+                  <form onSubmit={saveCarouselItem} className="p-6 space-y-4">
+                      <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image*</label>
+                          <input type="file" ref={carouselFileRef} onChange={(e) => handleImageUpload(e, 'carousel')} className="hidden" accept="image/*" />
+                          <div 
+                              onClick={() => carouselFileRef.current?.click()}
+                              className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition"
+                          >
+                              {carouselFormData.image ? (
+                                  <img src={carouselFormData.image} alt="Preview" className="h-32 mx-auto object-contain"/>
+                              ) : (
+                                  <div className="text-gray-400">
+                                      <Upload size={32} className="mx-auto mb-2"/>
+                                      <p className="text-sm">Click to upload image</p>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                              <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.name} onChange={e => setCarouselFormData({...carouselFormData, name: e.target.value})} required/>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Serial</label>
+                              <input type="number" className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.serial} onChange={e => setCarouselFormData({...carouselFormData, serial: Number(e.target.value)})} required/>
+                          </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Url</label>
+                              <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.url} onChange={e => setCarouselFormData({...carouselFormData, url: e.target.value})}/>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Url Type</label>
+                              <select className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.urlType} onChange={e => setCarouselFormData({...carouselFormData, urlType: e.target.value as any})}>
+                                  <option value="Internal">Internal</option>
+                                  <option value="External">External</option>
+                              </select>
+                          </div>
+                      </div>
+                      <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                          <select className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.status} onChange={e => setCarouselFormData({...carouselFormData, status: e.target.value as any})}>
+                              <option value="Publish">Publish</option>
+                              <option value="Draft">Draft</option>
+                          </select>
+                      </div>
+                      <div className="pt-4 flex justify-end gap-3">
+                          <button type="button" onClick={() => setIsCarouselModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+                          <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700">Save Carousel</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
     </div>
   );
 };

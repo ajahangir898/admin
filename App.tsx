@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StoreHome from './pages/StoreHome';
 import StoreProductDetail from './pages/StoreProductDetail';
 import StoreCheckout from './pages/StoreCheckout';
 import StoreOrderSuccess from './pages/StoreOrderSuccess';
+import StoreProfile from './pages/StoreProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
-import { Product, Order } from './types';
+import { Product, Order, User } from './types';
 import { RECENT_ORDERS } from './constants';
 import { LoginModal } from './components/StoreComponents';
 
@@ -38,7 +39,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   );
 };
 
-type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'admin';
+type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin';
 
 const App = () => {
   // Global Data State
@@ -46,7 +47,8 @@ const App = () => {
   const [wishlist, setWishlist] = useState<number[]>([]);
   
   // Auth State
-  const [user, setUser] = useState<{name: string} | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   
   // Navigation State
@@ -57,14 +59,61 @@ const App = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
 
+  // Initialize from LocalStorage
+  useEffect(() => {
+    const storedUsers = localStorage.getItem('gadgetshob_users');
+    if (storedUsers) {
+      setUsers(JSON.parse(storedUsers));
+    }
+    const storedSession = localStorage.getItem('gadgetshob_session');
+    if (storedSession) {
+      setUser(JSON.parse(storedSession));
+    }
+  }, []);
+
   // Auth Handlers
-  const handleLogin = (name: string) => {
-    setUser({ name });
+  const handleRegister = (newUser: User) => {
+    // Check if email exists
+    if (users.some(u => u.email === newUser.email)) {
+      return false;
+    }
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
+    localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
+    
+    // Auto login after register
+    setUser(newUser);
+    localStorage.setItem('gadgetshob_session', JSON.stringify(newUser));
     setIsLoginOpen(false);
+    return true;
+  };
+
+  const handleLogin = (email: string, pass: string) => {
+    const foundUser = users.find(u => u.email === email && u.password === pass);
+    if (foundUser) {
+      setUser(foundUser);
+      localStorage.setItem('gadgetshob_session', JSON.stringify(foundUser));
+      setIsLoginOpen(false);
+      return true;
+    }
+    return false;
   };
 
   const handleLogout = () => {
     setUser(null);
+    localStorage.removeItem('gadgetshob_session');
+    setCurrentView('store');
+  };
+
+  const handleUpdateProfile = (updatedUser: User) => {
+    // Update local state
+    setUser(updatedUser);
+    localStorage.setItem('gadgetshob_session', JSON.stringify(updatedUser));
+    
+    // Update users list
+    const updatedUsers = users.map(u => u.email === updatedUser.email ? updatedUser : u);
+    setUsers(updatedUsers);
+    localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
   };
 
   // Wishlist Handlers
@@ -97,7 +146,8 @@ const App = () => {
       location: formData.address,
       amount: formData.amount,
       date: new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      status: 'Pending'
+      status: 'Pending',
+      email: formData.email
     };
     
     setOrders([newOrder, ...orders]);
@@ -114,7 +164,11 @@ const App = () => {
     <div className="relative">
       {/* Login Modal Overlay */}
       {isLoginOpen && (
-        <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} />
+        <LoginModal 
+          onClose={() => setIsLoginOpen(false)} 
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+        />
       )}
 
       {/* Floating Toggle Button for Demo Purposes */}
@@ -162,6 +216,7 @@ const App = () => {
                 user={user}
                 onLoginClick={() => setIsLoginOpen(true)}
                 onLogoutClick={handleLogout}
+                onProfileClick={() => setCurrentView('profile')}
              />
           )}
           
@@ -177,6 +232,7 @@ const App = () => {
               user={user}
               onLoginClick={() => setIsLoginOpen(true)}
               onLogoutClick={handleLogout}
+              onProfileClick={() => setCurrentView('profile')}
             />
           )}
 
@@ -189,6 +245,7 @@ const App = () => {
               user={user}
               onLoginClick={() => setIsLoginOpen(true)}
               onLogoutClick={handleLogout}
+              onProfileClick={() => setCurrentView('profile')}
             />
           )}
 
@@ -197,7 +254,19 @@ const App = () => {
               onHome={() => setCurrentView('store')}
               user={user}
               onLoginClick={() => setIsLoginOpen(true)}
-              onLogoutClick={handleLogout} 
+              onLogoutClick={handleLogout}
+              onProfileClick={() => setCurrentView('profile')} 
+            />
+          )}
+
+          {currentView === 'profile' && user && (
+            <StoreProfile 
+              user={user}
+              onUpdateProfile={handleUpdateProfile}
+              orders={orders}
+              onHome={() => setCurrentView('store')}
+              onLoginClick={() => setIsLoginOpen(true)}
+              onLogoutClick={handleLogout}
             />
           )}
         </>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
 import { CATEGORIES, PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
-import { Product } from '../types';
+import { Product, User } from '../types';
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -21,9 +21,10 @@ interface StoreHomeProps {
   wishlistCount: number;
   wishlist: number[];
   onToggleWishlist: (id: number) => void;
-  user?: { name: string } | null;
+  user?: User | null;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
+  onProfileClick?: () => void;
 }
 
 const StoreHome = ({ 
@@ -33,7 +34,8 @@ const StoreHome = ({
   onToggleWishlist,
   user,
   onLoginClick,
-  onLogoutClick 
+  onLogoutClick,
+  onProfileClick
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -47,6 +49,7 @@ const StoreHome = ({
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
+        onProfileClick={onProfileClick}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}

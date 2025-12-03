@@ -21,7 +21,17 @@ export interface Order {
   location: string;
   amount: number;
   date: string;
-  status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered';
+  status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
+  email?: string; // To link with registered user
+}
+
+export interface User {
+  name: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  address?: string;
+  role?: 'customer' | 'admin';
 }
 
 export interface StatCardProps {

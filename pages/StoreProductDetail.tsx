@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Product } from '../types';
+import { Product, User } from '../types';
 import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal } from '../components/StoreComponents';
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
@@ -35,9 +35,10 @@ interface StoreProductDetailProps {
   isWishlisted: boolean;
   onToggleWishlist: () => void;
   onCheckout: (p: Product, quantity: number) => void;
-  user?: { name: string } | null;
+  user?: User | null;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
+  onProfileClick?: () => void;
 }
 
 const StoreProductDetail = ({ 
@@ -50,7 +51,8 @@ const StoreProductDetail = ({
   onCheckout,
   user,
   onLoginClick,
-  onLogoutClick 
+  onLogoutClick,
+  onProfileClick
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -83,6 +85,7 @@ const StoreProductDetail = ({
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
+        onProfileClick={onProfileClick}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}

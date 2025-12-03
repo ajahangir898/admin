@@ -1,15 +1,17 @@
 import React from 'react';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
+import { User } from '../types';
 
 interface SuccessProps {
   onHome: () => void;
-  user?: { name: string } | null;
+  user?: User | null;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
+  onProfileClick?: () => void;
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900 flex flex-col">
       <StoreHeader 
@@ -17,6 +19,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick }: Succes
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
+        onProfileClick={onProfileClick}
       />
       
       <main className="flex-1 container mx-auto px-4 flex items-center justify-center py-12">

@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart } from 'lucide-react';
-import { Product } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle } from 'lucide-react';
+import { Product, User as UserType } from '../types';
 import { RECENT_ORDERS } from '../constants';
 import { GoogleGenAI } from "@google/genai";
 
@@ -9,9 +9,10 @@ interface StoreHeaderProps {
   onOpenAIStudio?: () => void;
   onHomeClick?: () => void;
   wishlistCount?: number;
-  user?: { name: string } | null;
+  user?: UserType | null;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
+  onProfileClick?: () => void;
 }
 
 export const StoreHeader: React.FC<StoreHeaderProps> = ({ 
@@ -21,8 +22,22 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   wishlistCount, 
   user, 
   onLoginClick, 
-  onLogoutClick 
+  onLogoutClick,
+  onProfileClick
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <header className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -67,18 +82,55 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
               <span className="hidden sm:inline text-sm font-medium">Cart</span>
             </div>
             
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition" onClick={user ? undefined : onLoginClick}>
-              <User size={24} />
-              {user ? (
-                 <div className="hidden sm:flex flex-col items-start leading-tight">
-                    <span className="text-xs text-gray-500">Hello,</span>
-                    <span className="text-sm font-bold flex items-center gap-1">
-                      {user.name} 
-                      <button onClick={(e) => { e.stopPropagation(); onLogoutClick?.() }} className="text-xs text-red-500 hover:underline ml-1">(Logout)</button>
-                    </span>
-                 </div>
-              ) : (
-                 <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
+            <div className="relative" ref={menuRef}>
+              <div 
+                className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition" 
+                onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
+              >
+                <div className="bg-gray-100 p-1 rounded-full">
+                  <User size={20} />
+                </div>
+                {user ? (
+                   <div className="hidden sm:flex flex-col items-start leading-tight">
+                      <span className="text-xs text-gray-500">Hello,</span>
+                      <span className="text-sm font-bold flex items-center gap-1">
+                        {user.name.split(' ')[0]} 
+                        <ChevronDown size={12} />
+                      </span>
+                   </div>
+                ) : (
+                   <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
+                )}
+              </div>
+
+              {/* User Dropdown */}
+              {user && isMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                   <div className="px-4 py-3 border-b border-gray-50">
+                      <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                   </div>
+                   <button 
+                      onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600 flex items-center gap-2"
+                   >
+                      <UserCircle size={16} /> My Profile
+                   </button>
+                   <button 
+                      onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600 flex items-center gap-2"
+                   >
+                      <Truck size={16} /> My Orders
+                   </button>
+                   <div className="border-t border-gray-50 mt-1">
+                     <button 
+                        onClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                     >
+                        <LogOut size={16} /> Logout
+                     </button>
+                   </div>
+                </div>
               )}
             </div>
           </div>
@@ -117,16 +169,43 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   );
 };
 
-export const LoginModal: React.FC<{ onClose: () => void, onLogin: (name: string) => void }> = ({ onClose, onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export const LoginModal: React.FC<{ 
+  onClose: () => void, 
+  onLogin: (email: string, pass: string) => boolean,
+  onRegister: (data: UserType) => boolean 
+}> = ({ onClose, onLogin, onRegister }) => {
   const [isRegister, setIsRegister] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - extract name from email or use a default
-    const name = email.split('@')[0];
-    onLogin(name || 'User');
+    setError('');
+
+    if (isRegister) {
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
+      if (formData.password.length < 6) {
+        setError("Password must be at least 6 characters");
+        return;
+      }
+      const success = onRegister({ 
+        name: formData.name, 
+        email: formData.email, 
+        password: formData.password 
+      });
+      if (!success) setError("Email already registered");
+    } else {
+      const success = onLogin(formData.email, formData.password);
+      if (!success) setError("Invalid email or password");
+    }
   };
 
   return (
@@ -137,10 +216,32 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (name: string)
         <div className="p-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
-            <p className="text-gray-500 text-sm">Please enter your details to {isRegister ? 'register' : 'sign in'}.</p>
+            <p className="text-gray-500 text-sm">
+              {isRegister ? 'Join us to manage orders and checkout faster' : 'Please enter your details to sign in'}
+            </p>
           </div>
 
+          {error && (
+            <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg mb-4 text-center border border-red-100">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegister && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                />
+              </div>
+            )}
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
               <input 
@@ -148,10 +249,11 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (name: string)
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
                 placeholder="mail@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
             </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input 
@@ -159,10 +261,24 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (name: string)
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
               />
             </div>
+
+            {isRegister && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                <input 
+                  type="password" 
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                />
+              </div>
+            )}
 
             <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-green-200 mt-2 transform active:scale-95">
               {isRegister ? 'Register' : 'Login'}
@@ -172,7 +288,7 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (name: string)
           <div className="mt-6 text-center text-sm text-gray-600">
             {isRegister ? 'Already have an account? ' : "Don't have an account? "}
             <button 
-              onClick={() => setIsRegister(!isRegister)}
+              onClick={() => { setIsRegister(!isRegister); setError(''); }}
               className="text-green-600 font-bold hover:underline"
             >
               {isRegister ? 'Login' : 'Register'}

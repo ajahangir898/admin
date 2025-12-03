@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Product } from '../types';
+import { Product, User } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { ArrowLeft, Banknote, MapPin, Mail, Phone, User as UserIcon, X } from 'lucide-react';
 
@@ -8,9 +8,10 @@ interface CheckoutProps {
   quantity: number;
   onBack: () => void;
   onConfirmOrder: (formData: any) => void;
-  user?: { name: string } | null;
+  user?: User | null;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
+  onProfileClick?: () => void;
 }
 
 const StoreCheckout = ({ 
@@ -20,7 +21,8 @@ const StoreCheckout = ({
   onConfirmOrder,
   user,
   onLoginClick,
-  onLogoutClick 
+  onLogoutClick,
+  onProfileClick 
 }: CheckoutProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -36,6 +38,9 @@ const StoreCheckout = ({
       setFormData(prev => ({
         ...prev,
         fullName: prev.fullName || user.name,
+        email: prev.email || user.email,
+        phone: prev.phone || user.phone || '',
+        address: prev.address || user.address || ''
       }));
     }
   }, [user]);
@@ -67,6 +72,7 @@ const StoreCheckout = ({
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
+        onProfileClick={onProfileClick}
       />
 
       <main className="container mx-auto px-4 py-8">

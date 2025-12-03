@@ -6,26 +6,26 @@ import {
 } from 'lucide-react';
 import { StatCardProps } from '../types';
 
-export const AdminSidebar = () => {
+export const AdminSidebar = ({ activePage, onNavigate }: { activePage?: string, onNavigate?: (page: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false); // Mobile state (not implemented fully for brevity)
 
   const menuItems = [
-    { icon: <LayoutDashboard size={18} />, label: 'Dashboard', active: true },
-    { icon: <ShoppingBag size={18} />, label: 'Orders' },
-    { icon: <Box size={18} />, label: 'Products' },
-    { icon: <Settings size={18} />, label: 'Settings' },
-    { icon: <Sliders size={18} />, label: 'Customization' },
-    { icon: <FolderOpen size={18} />, label: 'Catalog' },
-    { icon: <FileText size={18} />, label: 'Landing page' },
-    { icon: <Star size={18} />, label: 'Review' },
-    { icon: <Users size={18} />, label: 'Customer' },
-    { icon: <Ticket size={18} />, label: 'Coupon' },
-    { icon: <ImageIcon size={18} />, label: 'Gallery' },
-    { icon: <FilePlus size={18} />, label: 'Additional Pages' },
-    { icon: <DollarSign size={18} />, label: 'Expense' },
-    { icon: <Shield size={18} />, label: 'Admin Control' },
-    { icon: <LifeBuoy size={18} />, label: 'Support' },
-    { icon: <BookOpen size={18} />, label: 'Tutorials' },
+    { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+    { id: 'orders', icon: <ShoppingBag size={18} />, label: 'Orders' },
+    { id: 'products', icon: <Box size={18} />, label: 'Products' },
+    { id: 'settings', icon: <Settings size={18} />, label: 'Settings' },
+    { id: 'customization', icon: <Sliders size={18} />, label: 'Customization' },
+    { id: 'catalog', icon: <FolderOpen size={18} />, label: 'Catalog' },
+    { id: 'landing', icon: <FileText size={18} />, label: 'Landing page' },
+    { id: 'review', icon: <Star size={18} />, label: 'Review' },
+    { id: 'customer', icon: <Users size={18} />, label: 'Customer' },
+    { id: 'coupon', icon: <Ticket size={18} />, label: 'Coupon' },
+    { id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery' },
+    { id: 'additional', icon: <FilePlus size={18} />, label: 'Additional Pages' },
+    { id: 'expense', icon: <DollarSign size={18} />, label: 'Expense' },
+    { id: 'admin', icon: <Shield size={18} />, label: 'Admin Control' },
+    { id: 'support', icon: <LifeBuoy size={18} />, label: 'Support' },
+    { id: 'tutorials', icon: <BookOpen size={18} />, label: 'Tutorials' },
   ];
 
   return (
@@ -39,11 +39,12 @@ export const AdminSidebar = () => {
       
       <div className="p-4 space-y-1 flex-1">
         <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-2">Main Menu</div>
-        {menuItems.map((item, index) => (
+        {menuItems.map((item) => (
           <div 
-            key={index} 
+            key={item.id} 
+            onClick={() => onNavigate && onNavigate(item.id)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
-              item.active 
+              activePage === item.id
                 ? 'bg-purple-50 text-purple-600 font-bold shadow-sm' 
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}

@@ -2,15 +2,26 @@ import React, { useState } from 'react';
 import StoreHome from './pages/StoreHome';
 import StoreProductDetail from './pages/StoreProductDetail';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminOrders from './pages/AdminOrders';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
 import { Product } from './types';
 
 // Wrapper layout for Admin pages
-const AdminLayout = ({ children, onSwitchView }: { children: React.ReactNode, onSwitchView: () => void }) => {
+const AdminLayout = ({ 
+  children, 
+  onSwitchView, 
+  activePage, 
+  onNavigate 
+}: { 
+  children: React.ReactNode, 
+  onSwitchView: () => void,
+  activePage: string,
+  onNavigate: (page: string) => void
+}) => {
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
-      <AdminSidebar />
+      <AdminSidebar activePage={activePage} onNavigate={onNavigate} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader onSwitchView={onSwitchView} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
@@ -23,6 +34,7 @@ const AdminLayout = ({ children, onSwitchView }: { children: React.ReactNode, on
 
 const App = () => {
   const [currentView, setCurrentView] = useState<'store' | 'admin'>('store');
+  const [adminSection, setAdminSection] = useState('dashboard');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const toggleView = () => {
@@ -68,8 +80,23 @@ const App = () => {
           <StoreHome onProductClick={handleProductClick} />
         )
       ) : (
-        <AdminLayout onSwitchView={() => setCurrentView('store')}>
-          <AdminDashboard />
+        <AdminLayout 
+          onSwitchView={() => setCurrentView('store')}
+          activePage={adminSection}
+          onNavigate={(page) => setAdminSection(page)}
+        >
+          {adminSection === 'dashboard' ? (
+            <AdminDashboard />
+          ) : adminSection === 'orders' ? (
+            <AdminOrders />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="text-center">
+                 <h2 className="text-xl font-bold mb-2">Page Under Construction</h2>
+                 <p>The {adminSection} page is currently being built.</p>
+              </div>
+            </div>
+          )}
         </AdminLayout>
       )}
     </div>

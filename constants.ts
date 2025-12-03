@@ -72,6 +72,11 @@ export const RECENT_ORDERS: Order[] = [
   { id: '#0024', customer: 'Fahim', location: 'Dhaka', amount: 4300, date: '28 Nov, 2025, 11:43 PM', status: 'Pending' },
   { id: '#0023', customer: 'Durjoy Roy', location: 'Mirpur 6, Dhaka', amount: 29999, date: '28 Nov, 2025, 08:54 PM', status: 'Confirmed' },
   { id: '#0022', customer: 'Sabbir Ahmed', location: 'Sylhet', amount: 14700, date: '25 Nov, 2025, 07:49 AM', status: 'Delivered' },
+  { id: '#0021', customer: 'Tanvir Hasan', location: 'Chittagong', amount: 5500, date: '24 Nov, 2025, 03:20 PM', status: 'Shipped' },
+  { id: '#0020', customer: 'Nusrat Jahan', location: 'Uttara, Dhaka', amount: 8200, date: '24 Nov, 2025, 10:15 AM', status: 'Confirmed' },
+  { id: '#0019', customer: 'Karim Ullah', location: 'Rajshahi', amount: 1250, date: '23 Nov, 2025, 06:45 PM', status: 'Delivered' },
+  { id: '#0018', customer: 'Rahim Sheikh', location: 'Khulna', amount: 21000, date: '23 Nov, 2025, 09:30 AM', status: 'Pending' },
+  { id: '#0017', customer: 'Samiul Islam', location: 'Barisal', amount: 3400, date: '22 Nov, 2025, 04:10 PM', status: 'Shipped' },
 ];
 
 export const REVENUE_DATA: ChartData[] = [

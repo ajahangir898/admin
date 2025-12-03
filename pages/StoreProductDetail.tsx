@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
-import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal } from '../components/StoreComponents';
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 
@@ -30,10 +30,24 @@ const iconMap: Record<string, React.ReactNode> = {
 const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Product, onBack: () => void, onProductClick: (p: Product) => void }) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
+  const [showCartSuccess, setShowCartSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
+  const [selectedImage, setSelectedImage] = useState(product.image);
+
+  // Mock additional images based on the main image for demo purposes
+  const additionalImages = [
+    product.image,
+    `${product.image}&w=401`, // Hack to get a "different" image from Unsplash for demo
+    `${product.image}&w=402`,
+    `${product.image}&w=403`,
+  ];
 
   const relatedProducts = PRODUCTS.filter(p => p.id !== product.id).slice(0, 4);
+
+  const handleAddToCart = () => {
+    setShowCartSuccess(true);
+  };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
@@ -45,6 +59,13 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}
       {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
+      {showCartSuccess && (
+        <AddToCartSuccessModal 
+          product={product} 
+          onClose={() => setShowCartSuccess(false)} 
+          onCheckout={() => { setShowCartSuccess(false); alert('Redirecting to checkout...'); }} 
+        />
+      )}
 
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -55,9 +76,9 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
             <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col md:flex-row gap-8 shadow-sm">
               
               {/* Image Section */}
-              <div className="w-full md:w-1/2 relative">
-                 <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden relative group">
-                    <img src={product.image} alt={product.name} className="w-full h-full object-contain p-4 mix-blend-multiply" />
+              <div className="w-full md:w-1/2 flex flex-col gap-4">
+                 <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden relative group border border-gray-100">
+                    <img src={selectedImage} alt={product.name} className="w-full h-full object-contain p-4 mix-blend-multiply" />
                     {product.discount && (
                       <span className="absolute top-4 left-4 bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
                         {product.discount}
@@ -66,6 +87,20 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
                     <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-md text-gray-400 hover:text-pink-500 transition">
                       <Heart size={20} />
                     </button>
+                 </div>
+                 {/* Thumbnail Gallery */}
+                 <div className="flex gap-2 overflow-x-auto pb-2">
+                   {additionalImages.map((img, idx) => (
+                     <div 
+                       key={idx} 
+                       className={`w-16 h-16 rounded-md border-2 cursor-pointer p-1 transition ${
+                         selectedImage === img ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'
+                       }`}
+                       onClick={() => setSelectedImage(img)}
+                     >
+                       <img src={img} alt={`View ${idx}`} className="w-full h-full object-contain mix-blend-multiply" />
+                     </div>
+                   ))}
                  </div>
               </div>
 
@@ -99,7 +134,10 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
                  </div>
 
                  <div className="flex gap-3 mb-8">
-                    <button className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-orange-200 flex items-center justify-center gap-2 transition transform active:scale-95">
+                    <button 
+                      onClick={handleAddToCart}
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-orange-200 flex items-center justify-center gap-2 transition transform active:scale-95"
+                    >
                        <ShoppingCart size={20} /> Add to cart
                     </button>
                     <button className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition transform active:scale-95">

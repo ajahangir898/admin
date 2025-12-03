@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight } from 'lucide-react';
 import { Product } from '../types';
 import { RECENT_ORDERS } from '../constants';
 import { GoogleGenAI } from "@google/genai";
@@ -78,6 +78,41 @@ export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick }: { onT
   );
 };
 
+export const AddToCartSuccessModal = ({ product, onClose, onCheckout }: { product: Product, onClose: () => void, onCheckout: () => void }) => {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="bg-green-500 p-4 text-white flex justify-between items-center">
+           <h3 className="font-bold flex items-center gap-2">
+             <CheckCircle size={20} /> Added to Cart
+           </h3>
+           <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full"><X size={20}/></button>
+        </div>
+        <div className="p-6">
+           <div className="flex gap-4 items-center mb-6">
+              <div className="w-16 h-16 bg-gray-50 rounded border border-gray-200 p-1">
+                 <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
+              </div>
+              <div className="flex-1">
+                 <h4 className="font-bold text-gray-800 text-sm line-clamp-2">{product.name}</h4>
+                 <p className="text-orange-500 font-bold mt-1">৳ {product.price.toLocaleString()}</p>
+              </div>
+           </div>
+           
+           <div className="space-y-3">
+              <button onClick={onCheckout} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition">
+                 Checkout Now <ArrowRight size={18} />
+              </button>
+              <button onClick={onClose} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-bold transition">
+                 Continue Shopping
+              </button>
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -104,11 +139,7 @@ export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
 
     setLoading(true);
     try {
-      // Initialize Gemini
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
-      // Prepare image data
-      // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
       const base64Data = imagePreview.split(',')[1];
       const mimeType = selectedFile.type;
 
@@ -129,14 +160,11 @@ export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
         },
       });
 
-      // Extract generated image
-      // The API returns the image in the parts
       let generatedImageBase64 = '';
       if (response.candidates && response.candidates[0].content.parts) {
         for (const part of response.candidates[0].content.parts) {
           if (part.inlineData) {
              generatedImageBase64 = part.inlineData.data;
-             // Construct data URL
              const resultUrl = `data:image/png;base64,${generatedImageBase64}`;
              setResultImage(resultUrl);
              break;
@@ -145,7 +173,6 @@ export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
       }
       
       if (!generatedImageBase64) {
-          console.error("No image found in response", response);
           alert("Could not generate image. Please try a different prompt.");
       }
 
@@ -160,7 +187,6 @@ export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Modal Header */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-4 flex justify-between items-center text-white shrink-0">
           <h3 className="font-bold text-xl flex items-center gap-2">
             <Sparkles size={24} className="text-yellow-300"/> 
@@ -169,11 +195,8 @@ export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
           <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full transition"><X size={24}/></button>
         </div>
 
-        {/* Modal Content */}
         <div className="flex-1 overflow-y-auto p-6">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-              
-              {/* Left: Input Section */}
               <div className="flex flex-col gap-4">
                  <div className="font-semibold text-gray-700 flex items-center gap-2">
                    <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
@@ -235,7 +258,6 @@ export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
                  </button>
               </div>
 
-              {/* Right: Result Section */}
               <div className="flex flex-col gap-4 border-l border-gray-100 md:pl-8">
                  <div className="font-semibold text-gray-700 flex items-center gap-2">
                    <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">3</span>

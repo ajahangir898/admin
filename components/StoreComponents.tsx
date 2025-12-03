@@ -42,7 +42,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   }, []);
 
   return (
-    <header className="w-full bg-white shadow-sm sticky top-0 z-50">
+    <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
@@ -51,7 +51,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
               <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
             ) : (
               <h1 className="text-2xl font-bold tracking-tighter">
-                <span className="text-gray-800">GADGET</span>
+                <span className="text-gray-800 dark:text-white">GADGET</span>
                 <span className="text-pink-500">SHOB</span>
               </h1>
             )}
@@ -62,7 +62,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             <input
               type="text"
               placeholder="Search product..."
-              className="w-full border-2 border-green-500 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-200"
+              className="w-full border-2 border-green-500 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600"
             />
             <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-6 rounded-r-full hover:bg-green-600 transition flex items-center justify-center">
               <Search size={20} />
@@ -70,8 +70,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-6 text-gray-600">
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition">
+          <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition">
               <div className="relative">
                 <Heart size={24} />
                 {wishlistCount !== undefined && wishlistCount > 0 && (
@@ -81,7 +81,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
               <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
             </div>
             
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition">
+            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition">
               <div className="relative">
                 <ShoppingCart size={24} />
                 <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
@@ -91,16 +91,16 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             
             <div className="relative" ref={menuRef}>
               <div 
-                className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition" 
+                className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition" 
                 onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
               >
-                <div className="bg-gray-100 p-1 rounded-full">
+                <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-full">
                   <User size={20} />
                 </div>
                 {user ? (
                    <div className="hidden sm:flex flex-col items-start leading-tight">
-                      <span className="text-xs text-gray-500">Hello,</span>
-                      <span className="text-sm font-bold flex items-center gap-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Hello,</span>
+                      <span className="text-sm font-bold flex items-center gap-1 dark:text-white">
                         {user.name.split(' ')[0]} 
                         <ChevronDown size={12} />
                       </span>
@@ -112,27 +112,27 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
 
               {/* User Dropdown */}
               {user && isMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                   <div className="px-4 py-3 border-b border-gray-50">
-                      <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                   <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                    </div>
                    <button 
                       onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
                    >
                       <UserCircle size={16} /> My Profile
                    </button>
                    <button 
                       onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
                    >
                       <Truck size={16} /> My Orders
                    </button>
-                   <div className="border-t border-gray-50 mt-1">
+                   <div className="border-t border-gray-50 dark:border-slate-700 mt-1">
                      <button 
                         onClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                      >
                         <LogOut size={16} /> Logout
                      </button>
@@ -150,7 +150,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
           <input
              type="text"
              placeholder="Search product..."
-             className="w-full border border-green-500 rounded-lg py-2 px-3 focus:outline-none"
+             className="w-full border border-green-500 rounded-lg py-2 px-3 focus:outline-none dark:bg-slate-800 dark:text-white dark:border-green-600"
           />
           <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-3 rounded-r-lg">
             <Search size={18} />
@@ -159,13 +159,13 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
       </div>
       
       {/* Navigation Bar */}
-      <div className="border-t border-gray-100 hidden md:block">
+      <div className="border-t border-gray-100 dark:border-slate-800 hidden md:block">
         <div className="container mx-auto px-4">
-          <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 items-center">
+          <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
              <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
              <a href="#" className="hover:text-green-500 transition">Products</a>
              <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
-             <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 hover:text-purple-700 transition font-bold">
+             <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
                <Sparkles size={16} /> AI Image Studio
              </button>
              <a href="#" className="hover:text-green-500 transition">Wishlist</a>
@@ -217,13 +217,13 @@ export const LoginModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><X size={24}/></button>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"><X size={24}/></button>
         
         <div className="p-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
-            <p className="text-gray-500 text-sm">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
               {isRegister ? 'Join us to manage orders and checkout faster' : 'Please enter your details to sign in'}
             </p>
           </div>
@@ -237,11 +237,11 @@ export const LoginModal: React.FC<{
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
                 <input 
                   type="text" 
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
                   placeholder="John Doe"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -250,11 +250,11 @@ export const LoginModal: React.FC<{
             )}
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
               <input 
                 type="email" 
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
                 placeholder="mail@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -262,11 +262,11 @@ export const LoginModal: React.FC<{
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
               <input 
                 type="password" 
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
@@ -275,11 +275,11 @@ export const LoginModal: React.FC<{
 
             {isRegister && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
                 <input 
                   type="password" 
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
@@ -287,16 +287,16 @@ export const LoginModal: React.FC<{
               </div>
             )}
 
-            <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-green-200 mt-2 transform active:scale-95">
+            <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-green-200 dark:shadow-none mt-2 transform active:scale-95">
               {isRegister ? 'Register' : 'Login'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             {isRegister ? 'Already have an account? ' : "Don't have an account? "}
             <button 
               onClick={() => { setIsRegister(!isRegister); setError(''); }}
-              className="text-green-600 font-bold hover:underline"
+              className="text-green-600 dark:text-green-400 font-bold hover:underline"
             >
               {isRegister ? 'Login' : 'Register'}
             </button>
@@ -310,7 +310,7 @@ export const LoginModal: React.FC<{
 export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => void, onCheckout: () => void }> = ({ product, onClose, onCheckout }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
         <div className="bg-green-500 p-4 text-white flex justify-between items-center">
            <h3 className="font-bold flex items-center gap-2">
              <CheckCircle size={20} /> Added to Cart
@@ -319,11 +319,11 @@ export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => 
         </div>
         <div className="p-6">
            <div className="flex gap-4 items-center mb-6">
-              <div className="w-16 h-16 bg-gray-50 rounded border border-gray-200 p-1">
+              <div className="w-16 h-16 bg-gray-50 dark:bg-slate-700 rounded border border-gray-200 dark:border-slate-600 p-1">
                  <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
               </div>
               <div className="flex-1">
-                 <h4 className="font-bold text-gray-800 text-sm line-clamp-2">{product.name}</h4>
+                 <h4 className="font-bold text-gray-800 dark:text-white text-sm line-clamp-2">{product.name}</h4>
                  <p className="text-orange-500 font-bold mt-1">৳ {product.price.toLocaleString()}</p>
               </div>
            </div>
@@ -332,7 +332,7 @@ export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => 
               <button onClick={onCheckout} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition">
                  Checkout Now <ArrowRight size={18} />
               </button>
-              <button onClick={onClose} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-bold transition">
+              <button onClick={onClose} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-gray-300 py-3 rounded-lg font-bold transition">
                  Continue Shopping
               </button>
            </div>
@@ -415,7 +415,7 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-4 flex justify-between items-center text-white shrink-0">
           <h3 className="font-bold text-xl flex items-center gap-2">
             <Sparkles size={24} className="text-yellow-300"/> 
@@ -427,14 +427,14 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         <div className="flex-1 overflow-y-auto p-6">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
               <div className="flex flex-col gap-4">
-                 <div className="font-semibold text-gray-700 flex items-center gap-2">
-                   <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
+                 <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                   <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
                    Upload Image
                  </div>
                  
                  <div 
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl h-64 flex flex-col items-center justify-center cursor-pointer transition relative overflow-hidden group ${imagePreview ? 'border-purple-300 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'}`}
+                    className={`border-2 border-dashed rounded-xl h-64 flex flex-col items-center justify-center cursor-pointer transition relative overflow-hidden group dark:border-slate-600 ${imagePreview ? 'border-purple-300 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                  >
                     <input 
                       type="file" 
@@ -455,12 +455,12 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                     )}
                  </div>
 
-                 <div className="font-semibold text-gray-700 flex items-center gap-2 mt-2">
-                   <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>
+                 <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2 mt-2">
+                   <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>
                    Describe Changes
                  </div>
                  <textarea
-                   className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none h-24"
+                   className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none h-24"
                    placeholder="E.g., Change background to a beach at sunset, make it look cinematic..."
                    value={prompt}
                    onChange={(e) => setPrompt(e.target.value)}
@@ -471,7 +471,7 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                     disabled={!selectedFile || !prompt || loading}
                     className={`py-3 rounded-lg font-bold text-white shadow-lg transition flex items-center justify-center gap-2 ${
                       !selectedFile || !prompt || loading 
-                        ? 'bg-gray-300 cursor-not-allowed' 
+                        ? 'bg-gray-300 dark:bg-slate-600 cursor-not-allowed' 
                         : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-[1.02]'
                     }`}
                  >
@@ -487,17 +487,17 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                  </button>
               </div>
 
-              <div className="flex flex-col gap-4 border-l border-gray-100 md:pl-8">
-                 <div className="font-semibold text-gray-700 flex items-center gap-2">
-                   <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">3</span>
+              <div className="flex flex-col gap-4 border-l border-gray-100 dark:border-slate-700 md:pl-8">
+                 <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                   <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-6 h-6 rounded-full flex items-center justify-center text-sm">3</span>
                    Result
                  </div>
                  
-                 <div className="bg-gray-100 rounded-xl flex-1 flex items-center justify-center min-h-[300px] border border-gray-200 relative overflow-hidden">
+                 <div className="bg-gray-100 dark:bg-slate-700 rounded-xl flex-1 flex items-center justify-center min-h-[300px] border border-gray-200 dark:border-slate-600 relative overflow-hidden">
                     {loading && (
                       <div className="absolute inset-0 bg-black/10 flex flex-col items-center justify-center backdrop-blur-[1px] z-10">
                         <Loader2 size={48} className="text-purple-600 animate-spin mb-4" />
-                        <p className="text-purple-800 font-bold animate-pulse">Processing Image...</p>
+                        <p className="text-purple-800 dark:text-purple-300 font-bold animate-pulse">Processing Image...</p>
                       </div>
                     )}
 
@@ -515,7 +515,7 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                     <a 
                       href={resultImage} 
                       download="magic-edit.png"
-                      className="text-center text-purple-600 font-bold hover:underline py-2"
+                      className="text-center text-purple-600 dark:text-purple-400 font-bold hover:underline py-2"
                     >
                       Download Image
                     </a>
@@ -547,7 +547,7 @@ export const TrackOrderModal: React.FC<{ onClose: () => void }> = ({ onClose }) 
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="bg-green-500 p-4 flex justify-between items-center text-white">
           <h3 className="font-bold text-lg flex items-center gap-2"><Truck size={20}/> Track Your Order</h3>
           <button onClick={onClose} className="hover:bg-green-600 p-1 rounded transition"><X size={20}/></button>
@@ -557,7 +557,7 @@ export const TrackOrderModal: React.FC<{ onClose: () => void }> = ({ onClose }) 
             <input 
               type="text" 
               placeholder="Enter Order ID (e.g. 0024)" 
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+              className="flex-1 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none dark:bg-slate-700 dark:text-white"
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
@@ -568,13 +568,13 @@ export const TrackOrderModal: React.FC<{ onClose: () => void }> = ({ onClose }) 
           </div>
 
           {searched && (
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 animate-in slide-in-from-top-2">
+            <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 border border-gray-100 dark:border-slate-600 animate-in slide-in-from-top-2">
               {result ? (
                 <div className="space-y-4">
-                   <div className="flex justify-between items-start border-b border-gray-200 pb-3">
+                   <div className="flex justify-between items-start border-b border-gray-200 dark:border-slate-600 pb-3">
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Order ID</p>
-                        <p className="font-bold text-gray-800 text-lg">{result.id}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Order ID</p>
+                        <p className="font-bold text-gray-800 dark:text-white text-lg">{result.id}</p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         result.status === 'Delivered' ? 'bg-green-100 text-green-700' :
@@ -586,37 +586,37 @@ export const TrackOrderModal: React.FC<{ onClose: () => void }> = ({ onClose }) 
                    </div>
                    <div className="grid grid-cols-2 gap-4">
                      <div>
-                       <p className="text-xs text-gray-500">Customer</p>
-                       <p className="text-sm font-medium text-gray-800">{result.customer}</p>
+                       <p className="text-xs text-gray-500 dark:text-gray-400">Customer</p>
+                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{result.customer}</p>
                      </div>
                      <div>
-                       <p className="text-xs text-gray-500">Amount</p>
-                       <p className="text-sm font-medium text-gray-800">৳ {result.amount.toLocaleString()}</p>
+                       <p className="text-xs text-gray-500 dark:text-gray-400">Amount</p>
+                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {result.amount.toLocaleString()}</p>
                      </div>
                      <div className="col-span-2">
-                       <p className="text-xs text-gray-500">Date</p>
-                       <p className="text-sm font-medium text-gray-800">{result.date}</p>
+                       <p className="text-xs text-gray-500 dark:text-gray-400">Date</p>
+                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{result.date}</p>
                      </div>
                    </div>
                    
                    {result.status !== 'Delivered' && (
-                     <div className="bg-white p-3 rounded border border-gray-100 flex items-center gap-3">
+                     <div className="bg-white dark:bg-slate-600 p-3 rounded border border-gray-100 dark:border-slate-500 flex items-center gap-3">
                         <div className="bg-green-100 p-2 rounded-full text-green-600">
                           <CheckCircle size={16} />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-gray-700">Estimated Delivery</p>
-                          <p className="text-xs text-gray-500">3-5 Business Days</p>
+                          <p className="text-xs font-bold text-gray-700 dark:text-gray-200">Estimated Delivery</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">3-5 Business Days</p>
                         </div>
                      </div>
                    )}
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-4">
-                  <div className="bg-red-50 text-red-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                  <div className="bg-red-50 dark:bg-red-900/20 text-red-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Search size={24} />
                   </div>
-                  <p className="font-bold text-gray-800 mb-1">Order not found</p>
+                  <p className="font-bold text-gray-800 dark:text-white mb-1">Order not found</p>
                   <p className="text-sm">Please check your Order ID and try again.</p>
                 </div>
               )}
@@ -656,17 +656,17 @@ export const HeroSection: React.FC = () => {
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
   <div className="flex flex-col items-center gap-3 group cursor-pointer min-w-[80px]">
-    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-gray-100 flex items-center justify-center text-gray-500 group-hover:border-green-500 group-hover:text-green-500 transition bg-white shadow-sm group-hover:shadow-md">
+    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-gray-100 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-green-500 transition bg-white dark:bg-slate-800 shadow-sm group-hover:shadow-md">
       {icon}
     </div>
-    <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600">{name}</span>
+    <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-600">{name}</span>
   </div>
 );
 
 export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void }> = ({ product, onClick }) => {
   return (
     <div 
-      className="bg-white border border-gray-100 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
+      className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
       onClick={() => onClick && onClick(product)}
     >
       {product.discount && (
@@ -674,14 +674,14 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
           {product.discount}
         </span>
       )}
-      <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-md bg-gray-50">
+      <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-md bg-gray-50 dark:bg-slate-700">
         <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
       </div>
-      <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
+      <h3 className="text-sm font-medium text-gray-800 dark:text-gray-100 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
         {product.name}
       </h3>
       <div className="flex items-center gap-2 mb-4 mt-auto">
-        <span className="text-green-600 font-bold text-lg">৳{product.price.toLocaleString()}</span>
+        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{product.price.toLocaleString()}</span>
         {product.originalPrice && (
           <span className="text-gray-400 text-xs line-through decoration-red-400">৳{product.originalPrice.toLocaleString()}</span>
         )}
@@ -695,35 +695,35 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
 
 export const SectionHeader: React.FC<{ title: string; linkText?: string }> = ({ title, linkText = "View All" }) => (
   <div className="flex justify-between items-center mb-6">
-    <h2 className="text-lg md:text-2xl font-bold text-gray-800">{title}</h2>
-    <a href="#" className="text-xs md:text-sm text-gray-500 hover:text-green-600 flex items-center gap-1 transition">
+    <h2 className="text-lg md:text-2xl font-bold text-gray-800 dark:text-white">{title}</h2>
+    <a href="#" className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 flex items-center gap-1 transition">
       {linkText} <span>&rsaquo;</span>
     </a>
   </div>
 );
 
 export const StoreFooter: React.FC = () => (
-  <footer className="bg-white pt-16 pb-8 border-t border-gray-200 mt-12">
+  <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300">
     <div className="container mx-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
         <div>
           <h1 className="text-2xl font-bold mb-4">
-            <span className="text-gray-800">GADGET</span>
+            <span className="text-gray-800 dark:text-white">GADGET</span>
             <span className="text-pink-500">SHOB</span>
           </h1>
-          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
             Best Online shop in Bangladesh for authentic gadgets and electronics. Trusted by thousands.
           </p>
           <div className="flex gap-4">
-            <div className="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Facebook size={18} /></div>
-            <div className="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Instagram size={18} /></div>
-            <div className="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Twitter size={18} /></div>
+            <div className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Facebook size={18} /></div>
+            <div className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Instagram size={18} /></div>
+            <div className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Twitter size={18} /></div>
           </div>
         </div>
         
         <div>
-          <h3 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Contact Us</h3>
-          <ul className="space-y-3 text-sm text-gray-600">
+          <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Contact Us</h3>
+          <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
             <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> mail@gmail.com</li>
             <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> +8801700000000</li>
             <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> Mirpur 10, Dhaka</li>
@@ -731,8 +731,8 @@ export const StoreFooter: React.FC = () => (
         </div>
 
         <div>
-          <h3 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Quick Links</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
+          <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Quick Links</h3>
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <li><a href="#" className="hover:text-green-600 transition">Return & Refund Policy</a></li>
             <li><a href="#" className="hover:text-green-600 transition">Privacy Policy</a></li>
             <li><a href="#" className="hover:text-green-600 transition">Terms and Conditions</a></li>
@@ -741,8 +741,8 @@ export const StoreFooter: React.FC = () => (
         </div>
 
         <div>
-          <h3 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Useful Links</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
+          <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Useful Links</h3>
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <li><a href="#" className="hover:text-green-600 transition">Why Shop Online with Us</a></li>
             <li><a href="#" className="hover:text-green-600 transition">Online Payment Methods</a></li>
             <li><a href="#" className="hover:text-green-600 transition">After Sales Support</a></li>
@@ -750,7 +750,7 @@ export const StoreFooter: React.FC = () => (
           </ul>
         </div>
       </div>
-      <div className="text-center text-xs text-gray-400 border-t border-gray-100 pt-8">
+      <div className="text-center text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800 pt-8">
         <p>Copyright © 2025 gadgetshob.com</p>
       </div>
     </div>

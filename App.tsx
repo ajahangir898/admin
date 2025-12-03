@@ -12,7 +12,7 @@ import AdminCustomization from './pages/AdminCustomization';
 import AdminSettings from './pages/AdminSettings';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
-import { Product, Order, User } from './types';
+import { Product, Order, User, ThemeConfig } from './types';
 import { RECENT_ORDERS, PRODUCTS } from './constants';
 import { LoginModal } from './components/StoreComponents';
 
@@ -47,6 +47,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
 type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin';
 
+// Helper to convert Hex to RGB for Tailwind variables
+const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result 
+    ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+    : '0, 0, 0';
+};
+
 const App = () => {
   // Global Data State
   const [orders, setOrders] = useState<Order[]>(RECENT_ORDERS);
@@ -61,6 +69,33 @@ const App = () => {
   const [logo, setLogo] = useState<string | null>(() => {
     return localStorage.getItem('gadgetshob_logo');
   });
+
+  // Theme Config Persistence
+  const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => {
+    const savedTheme = localStorage.getItem('gadgetshob_theme');
+    return savedTheme ? JSON.parse(savedTheme) : {
+      primaryColor: '#22c55e',   // Green-500
+      secondaryColor: '#ec4899', // Pink-500
+      tertiaryColor: '#9333ea',  // Purple-600
+      darkMode: false
+    };
+  });
+
+  // Apply Theme Side Effects
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
+    root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
+    root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
+
+    if (themeConfig.darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    
+    localStorage.setItem('gadgetshob_theme', JSON.stringify(themeConfig));
+  }, [themeConfig]);
 
   // Courier Config State Persistence
   const [courierConfig, setCourierConfig] = useState({ apiKey: '', secretKey: '' });
@@ -171,6 +206,11 @@ const App = () => {
     }
   };
 
+  // Theme Handler
+  const handleUpdateTheme = (newConfig: ThemeConfig) => {
+    setThemeConfig(newConfig);
+  };
+
   // Courier Config Handler
   const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => {
     setCourierConfig(config);
@@ -227,7 +267,7 @@ const App = () => {
   };
 
   return (
-    <div className="relative">
+    <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
       {/* Login Modal Overlay */}
       {isLoginOpen && (
         <LoginModal 
@@ -241,7 +281,7 @@ const App = () => {
       <div className="fixed bottom-6 right-6 z-[100]">
         <button 
           onClick={toggleView}
-          className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white"
+          className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700"
           title={currentView.startsWith('admin') ? "Switch to Storefront" : "Switch to Admin Dashboard"}
         >
           {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
@@ -274,7 +314,12 @@ const App = () => {
               onDeleteProduct={handleDeleteProduct}
             />
           ) : adminSection === 'customization' ? (
-            <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} />
+            <AdminCustomization 
+              logo={logo} 
+              onUpdateLogo={handleUpdateLogo} 
+              themeConfig={themeConfig}
+              onUpdateTheme={handleUpdateTheme}
+            />
           ) : adminSection === 'settings' ? (
             <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} />
           ) : (

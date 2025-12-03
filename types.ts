@@ -46,3 +46,10 @@ export interface ChartData {
   value: number;
   [key: string]: string | number;
 }
+
+export interface ThemeConfig {
+  primaryColor: string;
+  secondaryColor: string;
+  tertiaryColor: string;
+  darkMode: boolean;
+}

@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
@@ -48,7 +48,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
       <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans">
         {/* Top Bar */}
         <div className="bg-white border-b border-gray-100 dark:bg-slate-900 dark:border-slate-800">
-          <div className="container mx-auto px-4 py-2 text-[11px] md:text-xs font-medium text-gray-600 dark:text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
+          <div className="max-w-7xl mx-auto px-4 py-2 text-[11px] md:text-xs font-medium text-gray-600 dark:text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
             <div className="flex items-center gap-4 md:gap-6">
                <div className="flex items-center gap-1.5">
                   <Mail size={14} className="text-gray-800 dark:text-gray-200" />
@@ -77,7 +77,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         </div>
 
         {/* Main Header */}
-        <div className="container mx-auto px-4 py-4 md:py-5">
+        <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
            <div className="flex items-center justify-between gap-4 md:gap-8">
               
               {/* Logo */}
@@ -178,7 +178,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
            <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
         </div>
       )}
-      <div className="container mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
@@ -301,7 +301,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
       
       {/* Navigation Bar */}
       <div className="border-t border-gray-100 dark:border-slate-800 hidden md:block">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
              <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
              {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
@@ -773,10 +773,13 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
 export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Filter only published items or use mock if none
-  const slides = carouselItems?.filter(i => i.status === 'Publish') || [];
+  // Filter only published items and sort by serial
+  const slides = carouselItems?.filter(i => i.status === 'Publish').sort((a, b) => (a.serial || 0) - (b.serial || 0)) || [];
+  
+  // Default mock slides if no data
   const displaySlides = slides.length > 0 ? slides : [
-      { id: 'mock1', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200', name: '50% OFF', url: '#' }
+      { id: 'mock1', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200', name: 'Premium Headphones', url: '#', serial: 1, status: 'Publish' },
+      { id: 'mock2', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&q=80&w=1200', name: 'Smart Gadgets', url: '#', serial: 2, status: 'Publish' }
   ];
 
   useEffect(() => {
@@ -786,39 +789,76 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
     return () => clearInterval(timer);
   }, [displaySlides.length]);
 
-  const slide = displaySlides[currentSlide];
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % displaySlides.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + displaySlides.length) % displaySlides.length);
 
   return (
-    <div className="bg-gray-100 h-64 md:h-[400px] w-full relative overflow-hidden group">
-      {/* Background Image */}
-      <img 
-        src={slide.image} 
-        alt={slide.name} 
-        className="w-full h-full object-cover transition-transform duration-1000 transform hover:scale-105"
-      />
-      
-      {/* Overlay & Content */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center">
-         <div className="container mx-auto px-6 text-white">
-             <div className="max-w-lg animate-fade-in-up">
-                 <span className="bg-pink-500 text-white text-xs font-bold px-3 py-1 rounded uppercase tracking-wider mb-4 inline-block shadow-lg">Special Offer</span>
-                 <h2 className="text-4xl md:text-6xl font-bold mb-4 leading-tight drop-shadow-md">{slide.name}</h2>
-                 <p className="text-lg md:text-xl mb-8 opacity-90 max-w-sm drop-shadow">Don't miss out on our latest collection.</p>
-                 <a href={slide.url} className="bg-white text-gray-900 px-8 py-3 rounded-full font-bold hover:bg-green-500 hover:text-white transition shadow-lg transform hover:scale-105 active:scale-95 inline-block">
-                    SHOP NOW
-                 </a>
+    <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100 overflow-hidden group">
+      {displaySlides.map((slide, index) => (
+        <div 
+          key={slide.id || index}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+        >
+          {/* Image */}
+          <img 
+            src={slide.image} 
+            alt={slide.name} 
+            className="w-full h-full object-cover object-center"
+          />
+          
+          {/* Overlay & Content */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent flex items-center">
+             <div className="max-w-7xl mx-auto px-6 md:px-12 w-full text-white">
+                 <div className={`max-w-xl transition-all duration-700 delay-300 transform ${index === currentSlide ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                     <span className="inline-block py-1 px-3 rounded bg-pink-500 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2 md:mb-4 shadow-lg animate-pulse">
+                        Special Offer
+                     </span>
+                     <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-5 leading-tight drop-shadow-lg">
+                        {slide.name}
+                     </h2>
+                     <p className="text-sm sm:text-base md:text-xl mb-6 md:mb-8 opacity-90 max-w-sm sm:max-w-md drop-shadow font-light">
+                        Discover the latest trends and exclusive deals tailored just for you.
+                     </p>
+                     {slide.url && (
+                       <a 
+                         href={slide.url} 
+                         className="inline-block bg-white text-gray-900 px-6 py-2.5 md:px-8 md:py-3.5 rounded-full text-xs md:text-sm font-bold hover:bg-green-500 hover:text-white transition shadow-xl transform hover:scale-105 active:scale-95"
+                       >
+                          SHOP NOW
+                       </a>
+                     )}
+                 </div>
              </div>
-         </div>
-      </div>
+          </div>
+        </div>
+      ))}
 
-      {/* Slide Indicators */}
+      {/* Navigation Arrows */}
       {displaySlides.length > 1 && (
-         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+        <>
+          <button 
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevSlide(); }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 bg-white/10 hover:bg-white/30 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <button 
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextSlide(); }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 bg-white/10 hover:bg-white/30 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0"
+          >
+            <ChevronRight size={24} />
+          </button>
+        </>
+      )}
+
+      {/* Indicators */}
+      {displaySlides.length > 1 && (
+         <div className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
             {displaySlides.map((_, idx) => (
                 <button 
                   key={idx} 
                   onClick={() => setCurrentSlide(idx)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${currentSlide === idx ? 'bg-white w-8' : 'bg-white/50 hover:bg-white'}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${currentSlide === idx ? 'bg-pink-500 w-8' : 'bg-white/50 hover:bg-white w-2'}`}
                 />
             ))}
          </div>

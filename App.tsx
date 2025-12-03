@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import StoreHome from './pages/StoreHome';
 import StoreProductDetail from './pages/StoreProductDetail';
@@ -6,10 +7,11 @@ import StoreOrderSuccess from './pages/StoreOrderSuccess';
 import StoreProfile from './pages/StoreProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
+import AdminProducts from './pages/AdminProducts';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
 import { Product, Order, User } from './types';
-import { RECENT_ORDERS } from './constants';
+import { RECENT_ORDERS, PRODUCTS } from './constants';
 import { LoginModal } from './components/StoreComponents';
 
 // Wrapper layout for Admin pages
@@ -44,6 +46,7 @@ type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admi
 const App = () => {
   // Global Data State
   const [orders, setOrders] = useState<Order[]>(RECENT_ORDERS);
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [wishlist, setWishlist] = useState<number[]>([]);
   
   // Auth State
@@ -69,6 +72,7 @@ const App = () => {
     if (storedSession) {
       setUser(JSON.parse(storedSession));
     }
+    // Optional: Load products from local storage if needed in future
   }, []);
 
   // Auth Handlers
@@ -114,6 +118,19 @@ const App = () => {
     const updatedUsers = users.map(u => u.email === updatedUser.email ? updatedUser : u);
     setUsers(updatedUsers);
     localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
+  };
+
+  // Product Handlers
+  const handleAddProduct = (newProduct: Product) => {
+    setProducts([...products, newProduct]);
+  };
+
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+  };
+
+  const handleDeleteProduct = (id: number) => {
+    setProducts(products.filter(p => p.id !== id));
   };
 
   // Wishlist Handlers
@@ -195,6 +212,13 @@ const App = () => {
             <AdminDashboard orders={orders} />
           ) : adminSection === 'orders' ? (
             <AdminOrders orders={orders} />
+          ) : adminSection === 'products' ? (
+            <AdminProducts 
+              products={products}
+              onAddProduct={handleAddProduct}
+              onUpdateProduct={handleUpdateProduct}
+              onDeleteProduct={handleDeleteProduct}
+            />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <div className="text-center">

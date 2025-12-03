@@ -136,18 +136,18 @@ const App = () => {
   useEffect(() => localStorage.setItem('gadgetshob_brands', JSON.stringify(brands)), [brands]);
   useEffect(() => localStorage.setItem('gadgetshob_tags', JSON.stringify(tags)), [tags]);
 
-  // Catalog Handlers
-  const crudHandler = (setter: any, items: any[]) => ({
-    add: (item: any) => setter([...items, item]),
-    update: (item: any) => setter(items.map(i => i.id === item.id ? item : i)),
-    delete: (id: string) => setter(items.filter(i => i.id !== id))
+  // Catalog Handlers (Refactored to use functional updates for safety)
+  const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>) => ({
+    add: (item: any) => setter(prev => [...prev, item]),
+    update: (item: any) => setter(prev => prev.map(i => i.id === item.id ? item : i)),
+    delete: (id: string) => setter(prev => prev.filter(i => i.id !== id))
   });
 
-  const catHandlers = crudHandler(setCategories, categories);
-  const subCatHandlers = crudHandler(setSubCategories, subCategories);
-  const childCatHandlers = crudHandler(setChildCategories, childCategories);
-  const brandHandlers = crudHandler(setBrands, brands);
-  const tagHandlers = crudHandler(setTags, tags);
+  const catHandlers = createCrudHandler(setCategories);
+  const subCatHandlers = createCrudHandler(setSubCategories);
+  const childCatHandlers = createCrudHandler(setChildCategories);
+  const brandHandlers = createCrudHandler(setBrands);
+  const tagHandlers = createCrudHandler(setTags);
 
 
   // Website Config Persistence (New)
@@ -511,6 +511,11 @@ const App = () => {
           ) : adminSection === 'products' ? (
             <AdminProducts 
               products={products}
+              categories={categories}
+              subCategories={subCategories}
+              childCategories={childCategories}
+              brands={brands}
+              tags={tags}
               onAddProduct={handleAddProduct}
               onUpdateProduct={handleUpdateProduct}
               onDeleteProduct={handleDeleteProduct}

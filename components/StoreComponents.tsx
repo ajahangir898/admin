@@ -793,58 +793,38 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + displaySlides.length) % displaySlides.length);
 
   return (
-    <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100 overflow-hidden group">
-      {displaySlides.map((slide, index) => (
-        <div 
-          key={slide.id || index}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-        >
-          {/* Image */}
-          <img 
-            src={slide.image} 
-            alt={slide.name} 
-            className="w-full h-full object-cover object-center"
-          />
-          
-          {/* Overlay & Content */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent flex items-center">
-             <div className="max-w-7xl mx-auto px-6 md:px-12 w-full text-white">
-                 <div className={`max-w-xl transition-all duration-700 delay-300 transform ${index === currentSlide ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                     <span className="inline-block py-1 px-3 rounded bg-pink-500 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2 md:mb-4 shadow-lg animate-pulse">
-                        Special Offer
-                     </span>
-                     <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-5 leading-tight drop-shadow-lg">
-                        {slide.name}
-                     </h2>
-                     <p className="text-sm sm:text-base md:text-xl mb-6 md:mb-8 opacity-90 max-w-sm sm:max-w-md drop-shadow font-light">
-                        Discover the latest trends and exclusive deals tailored just for you.
-                     </p>
-                     {slide.url && (
-                       <a 
-                         href={slide.url} 
-                         className="inline-block bg-white text-gray-900 px-6 py-2.5 md:px-8 md:py-3.5 rounded-full text-xs md:text-sm font-bold hover:bg-green-500 hover:text-white transition shadow-xl transform hover:scale-105 active:scale-95"
-                       >
-                          SHOP NOW
-                       </a>
-                     )}
-                 </div>
-             </div>
-          </div>
-        </div>
-      ))}
+    <div className="relative w-full group">
+       {/* Container for aspect ratio. Using a common banner ratio like 21:9 */}
+       <div className="relative w-full overflow-hidden aspect-[16/9] md:aspect-[21/9] max-h-[500px] mx-auto md:max-w-7xl md:rounded-xl shadow-sm">
+          {displaySlides.map((slide, index) => (
+            <div 
+              key={slide.id || index}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+            >
+               {/* Clickable Banner Image */}
+               <a href={slide.url || '#'} className="block w-full h-full cursor-pointer">
+                  <img 
+                    src={slide.image} 
+                    alt={slide.name} 
+                    className="w-full h-full object-cover" 
+                  />
+               </a>
+            </div>
+          ))}
+       </div>
 
-      {/* Navigation Arrows */}
-      {displaySlides.length > 1 && (
+       {/* Navigation Buttons - Style match: White circle, gray icon */}
+       {displaySlides.length > 1 && (
         <>
           <button 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevSlide(); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 bg-white/10 hover:bg-white/30 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0"
+            onClick={(e) => { e.preventDefault(); prevSlide(); }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/90 text-gray-700 rounded-full shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0"
           >
             <ChevronLeft size={24} />
           </button>
           <button 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextSlide(); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 bg-white/10 hover:bg-white/30 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0"
+            onClick={(e) => { e.preventDefault(); nextSlide(); }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/90 text-gray-700 rounded-full shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0"
           >
             <ChevronRight size={24} />
           </button>
@@ -853,12 +833,12 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 
       {/* Indicators */}
       {displaySlides.length > 1 && (
-         <div className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
+         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
             {displaySlides.map((_, idx) => (
                 <button 
                   key={idx} 
                   onClick={() => setCurrentSlide(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${currentSlide === idx ? 'bg-pink-500 w-8' : 'bg-white/50 hover:bg-white w-2'}`}
+                  className={`h-2 rounded-full transition-all duration-300 shadow-sm ${currentSlide === idx ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80 w-2'}`}
                 />
             ))}
          </div>
@@ -1009,6 +989,103 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
     'Daraz': <ShoppingBag size={18} />,
   };
 
+  if (websiteConfig?.footerStyle === 'style2') {
+    return (
+      <footer className="bg-white border-t border-gray-100 font-sans">
+        {/* Contact Bar */}
+        <div className="bg-gray-50 border-b border-gray-100 py-6">
+           <div className="container mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-gray-100">
+                    <Mail size={18} />
+                 </div>
+                 <div>
+                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Email Support</p>
+                    <p className="text-sm font-medium text-gray-800">{websiteConfig.emails?.[0] || 'support@example.com'}</p>
+                 </div>
+              </div>
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-gray-100">
+                    <Phone size={18} />
+                 </div>
+                 <div>
+                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Phone Support</p>
+                    <p className="text-sm font-medium text-gray-800">{websiteConfig.phones?.[0] || '+880 1234 567 890'}</p>
+                 </div>
+              </div>
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-gray-100">
+                    <MapPin size={18} />
+                 </div>
+                 <div>
+                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Location</p>
+                    <p className="text-sm font-medium text-gray-800 line-clamp-1 max-w-[200px]">{websiteConfig.addresses?.[0] || 'Dhaka, Bangladesh'}</p>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        {/* Main Footer */}
+        <div className="container mx-auto px-4 py-12">
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+              <div className="flex flex-col items-center md:items-start">
+                 <div className="flex flex-col leading-none mb-4">
+                     <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
+                     <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1">KIDS</span>
+                 </div>
+                 <p className="text-sm font-medium text-gray-600 mb-6">Every Smile Matters</p>
+                 <div className="flex gap-3">
+                    <a href="#" className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition"><Facebook size={16}/></a>
+                    <a href="#" className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition"><MessageCircle size={16}/></a> 
+                    {/* Using MessageCircle as WhatsApp placeholder or import MessageCircle if available, using standard lucide icons */}
+                 </div>
+              </div>
+
+              <div>
+                 <h3 className="font-bold text-gray-800 mb-4 text-lg">Contact Us</h3>
+                 <ul className="space-y-3 text-sm text-gray-600">
+                    <li className="flex items-center gap-2 justify-center md:justify-start"><Mail size={16} className="text-blue-500"/> {websiteConfig.emails?.[0]}</li>
+                    <li className="flex items-center gap-2 justify-center md:justify-start"><Phone size={16} className="text-blue-500"/> {websiteConfig.phones?.[0]}</li>
+                    <li className="flex items-start gap-2 justify-center md:justify-start text-left"><MapPin size={16} className="text-blue-500 shrink-0 mt-0.5"/> {websiteConfig.addresses?.[0]}</li>
+                 </ul>
+              </div>
+
+              <div>
+                 <h3 className="font-bold text-gray-800 mb-4 text-lg">Quick Links</h3>
+                 <ul className="space-y-2 text-sm text-gray-600">
+                    <li><a href="#" className="hover:text-blue-600 transition">Return & Refund Policy</a></li>
+                    <li><a href="#" className="hover:text-blue-600 transition">Privacy Policy</a></li>
+                    <li><a href="#" className="hover:text-blue-600 transition">Terms and Conditions</a></li>
+                    <li><a href="#" className="hover:text-blue-600 transition">About us</a></li>
+                 </ul>
+              </div>
+
+              <div>
+                 <h3 className="font-bold text-gray-800 mb-4 text-lg">Useful Links</h3>
+                 <ul className="space-y-2 text-sm text-gray-600">
+                    <li><a href="#" className="hover:text-blue-600 transition">Why Shop Online with Us</a></li>
+                    <li><a href="#" className="hover:text-blue-600 transition">Online Payment Methods</a></li>
+                    <li><a href="#" className="hover:text-blue-600 transition">After Sales Support</a></li>
+                    <li><a href="#" className="hover:text-blue-600 transition">FAQ</a></li>
+                 </ul>
+              </div>
+           </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="border-t border-gray-100 py-6 text-center text-sm text-gray-500">
+           <p>© All Copyrights Reserved by {websiteConfig.brandingText || 'Cocokids'}</p>
+        </div>
+
+        {/* Floating Chat Button */}
+        <button className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40 animate-bounce-slow">
+           <MessageCircle size={28} />
+        </button>
+      </footer>
+    );
+  }
+
+  // Default Footer
   return (
     <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300">
       <div className="container mx-auto px-4">
@@ -1084,3 +1161,6 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
     </footer>
   );
 };
+
+// Helper for Footer Style 2
+import { MessageCircle } from 'lucide-react';

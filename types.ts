@@ -13,6 +13,9 @@ export interface Product {
   rating?: number;
   reviews?: number;
   category?: string;
+  subCategory?: string; // Added
+  childCategory?: string; // Added
+  brand?: string; // Added
   tags?: string[];
 }
 

@@ -1,11 +1,15 @@
 
 import React, { useState, useRef } from 'react';
-import { Product } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag, Percent } from 'lucide-react';
-import { CATEGORIES } from '../constants';
+import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent } from 'lucide-react';
 
 interface AdminProductsProps {
   products: Product[];
+  categories: Category[];
+  subCategories: SubCategory[];
+  childCategories: ChildCategory[];
+  brands: Brand[];
+  tags: Tag[];
   onAddProduct: (product: Product) => void;
   onUpdateProduct: (product: Product) => void;
   onDeleteProduct: (id: number) => void;
@@ -14,7 +18,12 @@ interface AdminProductsProps {
 }
 
 const AdminProducts: React.FC<AdminProductsProps> = ({ 
-  products, 
+  products,
+  categories,
+  subCategories,
+  childCategories,
+  brands,
+  tags,
   onAddProduct, 
   onUpdateProduct, 
   onDeleteProduct,
@@ -36,6 +45,9 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     price: 0,
     originalPrice: 0,
     category: '',
+    subCategory: '',
+    childCategory: '',
+    brand: '',
     description: '',
     image: '',
     discount: '',
@@ -53,6 +65,17 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // Filtered dropdown options based on selection
+  const availableSubCategories = subCategories.filter(s => {
+    const parentCat = categories.find(c => c.name === formData.category);
+    return parentCat && s.categoryId === parentCat.id;
+  });
+
+  const availableChildCategories = childCategories.filter(c => {
+    const parentSub = subCategories.find(s => s.name === formData.subCategory);
+    return parentSub && c.subCategoryId === parentSub.id;
+  });
+
   const handleOpenModal = (product?: Product) => {
     let initialData: Partial<Product>;
     if (product) {
@@ -64,7 +87,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         name: '',
         price: 0,
         originalPrice: 0,
-        category: CATEGORIES[0].name,
+        category: categories[0]?.name || '',
+        subCategory: '',
+        childCategory: '',
+        brand: '',
         description: '',
         image: '',
         discount: '',
@@ -126,6 +152,15 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         tags: [...(formData.tags || []), tagInput.trim()]
       });
       setTagInput('');
+    }
+  };
+
+  const addExistingTag = (tagName: string) => {
+    if (!formData.tags?.includes(tagName)) {
+      setFormData({
+        ...formData,
+        tags: [...(formData.tags || []), tagName]
+      });
     }
   };
 
@@ -323,10 +358,15 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                  </div>
               </div>
               <div className="p-4 cursor-pointer" onClick={() => toggleSelection(product.id)}>
-                 <div className="mb-2">
+                 <div className="mb-2 flex flex-wrap gap-1">
                     <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
                       {product.category || 'Uncategorized'}
                     </span>
+                    {product.brand && (
+                      <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                        {product.brand}
+                      </span>
+                    )}
                  </div>
                  <h3 className="font-bold text-gray-800 line-clamp-1 mb-1" title={product.name}>{product.name}</h3>
                  <div className="flex justify-between items-center mt-3">
@@ -346,7 +386,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
               <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
                  <h3 className="text-xl font-bold text-gray-800">
                    {editingProduct ? 'Edit Product' : 'Add New Product'}
@@ -369,18 +409,74 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                             onChange={e => setFormData({...formData, name: e.target.value})}
                           />
                        </div>
+                       
                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Category</label>
+                          <label className="text-sm font-medium text-gray-700">Brand</label>
+                          <select 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                            value={formData.brand}
+                            onChange={e => setFormData({...formData, brand: e.target.value})}
+                          >
+                             <option value="">Select Brand</option>
+                             {brands.map(b => (
+                               <option key={b.name} value={b.name}>{b.name}</option>
+                             ))}
+                          </select>
+                       </div>
+
+                       <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Category*</label>
                           <select 
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
                             value={formData.category}
-                            onChange={e => setFormData({...formData, category: e.target.value})}
+                            onChange={e => setFormData({
+                                ...formData, 
+                                category: e.target.value,
+                                subCategory: '', 
+                                childCategory: '' 
+                            })}
                           >
-                             {CATEGORIES.map(c => (
+                             <option value="">Select Category</option>
+                             {categories.map(c => (
                                <option key={c.name} value={c.name}>{c.name}</option>
                              ))}
                           </select>
                        </div>
+
+                       <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Sub Category</label>
+                          <select 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                            value={formData.subCategory}
+                            onChange={e => setFormData({
+                                ...formData, 
+                                subCategory: e.target.value,
+                                childCategory: ''
+                            })}
+                            disabled={!formData.category}
+                          >
+                             <option value="">Select Sub Category</option>
+                             {availableSubCategories.map(s => (
+                               <option key={s.name} value={s.name}>{s.name}</option>
+                             ))}
+                          </select>
+                       </div>
+
+                       <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Child Category</label>
+                          <select 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                            value={formData.childCategory}
+                            onChange={e => setFormData({...formData, childCategory: e.target.value})}
+                            disabled={!formData.subCategory}
+                          >
+                             <option value="">Select Child Category</option>
+                             {availableChildCategories.map(c => (
+                               <option key={c.name} value={c.name}>{c.name}</option>
+                             ))}
+                          </select>
+                       </div>
+
                        <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-700">Price (৳)*</label>
                           <input 
@@ -392,6 +488,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                             onChange={e => setFormData({...formData, price: Number(e.target.value)})}
                           />
                        </div>
+                       
                        <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-700">Original Price (৳)</label>
                           <input 
@@ -488,6 +585,21 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                              />
                              <button type="button" onClick={addTag} className="bg-gray-100 px-4 rounded-lg hover:bg-gray-200 text-gray-600 font-bold">+</button>
                           </div>
+                          
+                          {/* Quick Tag Select from Catalog */}
+                          <div className="flex gap-2 flex-wrap mt-2">
+                             {tags.map(t => (
+                               <button 
+                                 key={t.name}
+                                 type="button"
+                                 onClick={() => addExistingTag(t.name)}
+                                 className="text-xs bg-gray-50 border border-gray-200 px-2 py-1 rounded-full text-gray-600 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition"
+                               >
+                                 + {t.name}
+                               </button>
+                             ))}
+                          </div>
+
                           <div className="flex flex-wrap gap-2 mt-2">
                              {formData.tags?.map(tag => (
                                <span key={tag} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
@@ -541,7 +653,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                      onChange={(e) => setBulkValue(e.target.value)}
                    >
                       <option value="">Select New Category</option>
-                      {CATEGORIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                      {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                    </select>
                  ) : (
                    <input 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, SectionHeader, ProductCard, TrackOrderModal } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
 import { CATEGORIES, PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
+import { Product } from '../types';
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -15,14 +16,19 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={28} strokeWidth={1.5} />,
 };
 
-const StoreHome = () => {
+const StoreHome = ({ onProductClick }: { onProductClick: (p: Product) => void }) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
+  const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <StoreHeader onTrackOrder={() => setIsTrackOrderOpen(true)} />
+      <StoreHeader 
+        onTrackOrder={() => setIsTrackOrderOpen(true)} 
+        onOpenAIStudio={() => setIsAIStudioOpen(true)}
+      />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}
+      {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
       
       {/* Hero Section */}
       <HeroSection />
@@ -48,10 +54,10 @@ const StoreHome = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {PRODUCTS.map((product) => (
-              <ProductCard key={`flash-${product.id}`} product={product} />
+              <ProductCard key={`flash-${product.id}`} product={product} onClick={onProductClick} />
             ))}
             {/* Duplicate for grid fill demonstration */}
-             <ProductCard product={{...PRODUCTS[0], id: 99}} />
+             <ProductCard product={{...PRODUCTS[0], id: 99}} onClick={onProductClick} />
           </div>
         </section>
 
@@ -63,9 +69,9 @@ const StoreHome = () => {
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
              {PRODUCTS.slice().reverse().map((product) => (
-              <ProductCard key={`best-${product.id}`} product={product} />
+              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} />
             ))}
-             <ProductCard product={{...PRODUCTS[1], id: 98}} />
+             <ProductCard product={{...PRODUCTS[1], id: 98}} onClick={onProductClick} />
           </div>
         </section>
 
@@ -89,9 +95,9 @@ const StoreHome = () => {
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {PRODUCTS.map((product) => (
-              <ProductCard key={`pop-${product.id}`} product={product} />
+              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} />
             ))}
-             <ProductCard product={{...PRODUCTS[2], id: 97}} />
+             <ProductCard product={{...PRODUCTS[2], id: 97}} onClick={onProductClick} />
           </div>
         </section>
 

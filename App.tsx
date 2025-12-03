@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import StoreHome from './pages/StoreHome';
+import StoreProductDetail from './pages/StoreProductDetail';
 import AdminDashboard from './pages/AdminDashboard';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
+import { Product } from './types';
 
 // Wrapper layout for Admin pages
 const AdminLayout = ({ children, onSwitchView }: { children: React.ReactNode, onSwitchView: () => void }) => {
@@ -21,9 +23,22 @@ const AdminLayout = ({ children, onSwitchView }: { children: React.ReactNode, on
 
 const App = () => {
   const [currentView, setCurrentView] = useState<'store' | 'admin'>('store');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const toggleView = () => {
     setCurrentView(prev => prev === 'store' ? 'admin' : 'store');
+    // Reset product selection when switching main views
+    setSelectedProduct(null);
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    window.scrollTo(0,0);
+  };
+
+  const handleBackToHome = () => {
+    setSelectedProduct(null);
+    window.scrollTo(0,0);
   };
 
   return (
@@ -43,7 +58,15 @@ const App = () => {
       </div>
 
       {currentView === 'store' ? (
-        <StoreHome />
+        selectedProduct ? (
+          <StoreProductDetail 
+            product={selectedProduct} 
+            onBack={handleBackToHome}
+            onProductClick={handleProductClick}
+          />
+        ) : (
+          <StoreHome onProductClick={handleProductClick} />
+        )
       ) : (
         <AdminLayout onSwitchView={() => setCurrentView('store')}>
           <AdminDashboard />

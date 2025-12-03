@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Product } from '../types';
 import { RECENT_ORDERS } from '../constants';
+import { GoogleGenAI } from "@google/genai";
 
-export const StoreHeader = ({ onTrackOrder }: { onTrackOrder?: () => void }) => {
+export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick }: { onTrackOrder?: () => void, onOpenAIStudio?: () => void, onHomeClick?: () => void }) => {
   return (
     <header className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center cursor-pointer">
+          <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
             <h1 className="text-2xl font-bold tracking-tighter">
               <span className="text-gray-800">GADGET</span>
               <span className="text-pink-500">SHOB</span>
@@ -62,15 +63,218 @@ export const StoreHeader = ({ onTrackOrder }: { onTrackOrder?: () => void }) => 
       {/* Navigation Bar */}
       <div className="border-t border-gray-100 hidden md:block">
         <div className="container mx-auto px-4">
-          <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700">
-             <a href="#" className="hover:text-green-500 transition">Home</a>
+          <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 items-center">
+             <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
              <a href="#" className="hover:text-green-500 transition">Products</a>
              <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
+             <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 hover:text-purple-700 transition font-bold">
+               <Sparkles size={16} /> AI Image Studio
+             </button>
              <a href="#" className="hover:text-green-500 transition">Wishlist</a>
           </nav>
         </div>
       </div>
     </header>
+  );
+};
+
+export const AIStudioModal = ({ onClose }: { onClose: () => void }) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [resultImage, setResultImage] = useState<string>('');
+  const [prompt, setPrompt] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        setResultImage(''); // Clear previous result
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedFile || !prompt.trim()) return;
+
+    setLoading(true);
+    try {
+      // Initialize Gemini
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
+      // Prepare image data
+      // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
+      const base64Data = imagePreview.split(',')[1];
+      const mimeType = selectedFile.type;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: mimeType,
+              },
+            },
+            {
+              text: `Edit this image: ${prompt}`,
+            },
+          ],
+        },
+      });
+
+      // Extract generated image
+      // The API returns the image in the parts
+      let generatedImageBase64 = '';
+      if (response.candidates && response.candidates[0].content.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+             generatedImageBase64 = part.inlineData.data;
+             // Construct data URL
+             const resultUrl = `data:image/png;base64,${generatedImageBase64}`;
+             setResultImage(resultUrl);
+             break;
+          }
+        }
+      }
+      
+      if (!generatedImageBase64) {
+          console.error("No image found in response", response);
+          alert("Could not generate image. Please try a different prompt.");
+      }
+
+    } catch (error) {
+      console.error("Error generating image:", error);
+      alert("Something went wrong. Please check your API key and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Modal Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-4 flex justify-between items-center text-white shrink-0">
+          <h3 className="font-bold text-xl flex items-center gap-2">
+            <Sparkles size={24} className="text-yellow-300"/> 
+            AI Magic Studio
+          </h3>
+          <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full transition"><X size={24}/></button>
+        </div>
+
+        {/* Modal Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+              
+              {/* Left: Input Section */}
+              <div className="flex flex-col gap-4">
+                 <div className="font-semibold text-gray-700 flex items-center gap-2">
+                   <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
+                   Upload Image
+                 </div>
+                 
+                 <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl h-64 flex flex-col items-center justify-center cursor-pointer transition relative overflow-hidden group ${imagePreview ? 'border-purple-300 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'}`}
+                 >
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                    
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <div className="text-center text-gray-400 group-hover:text-purple-500 transition">
+                         <Upload size={48} className="mx-auto mb-2" />
+                         <p className="font-medium">Click to upload</p>
+                         <p className="text-xs">JPG, PNG supported</p>
+                      </div>
+                    )}
+                 </div>
+
+                 <div className="font-semibold text-gray-700 flex items-center gap-2 mt-2">
+                   <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>
+                   Describe Changes
+                 </div>
+                 <textarea
+                   className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none h-24"
+                   placeholder="E.g., Change background to a beach at sunset, make it look cinematic..."
+                   value={prompt}
+                   onChange={(e) => setPrompt(e.target.value)}
+                 ></textarea>
+
+                 <button 
+                    onClick={handleGenerate}
+                    disabled={!selectedFile || !prompt || loading}
+                    className={`py-3 rounded-lg font-bold text-white shadow-lg transition flex items-center justify-center gap-2 ${
+                      !selectedFile || !prompt || loading 
+                        ? 'bg-gray-300 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-[1.02]'
+                    }`}
+                 >
+                    {loading ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" /> Generating Magic...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 size={20} /> Generate
+                      </>
+                    )}
+                 </button>
+              </div>
+
+              {/* Right: Result Section */}
+              <div className="flex flex-col gap-4 border-l border-gray-100 md:pl-8">
+                 <div className="font-semibold text-gray-700 flex items-center gap-2">
+                   <span className="bg-gray-100 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center text-sm">3</span>
+                   Result
+                 </div>
+                 
+                 <div className="bg-gray-100 rounded-xl flex-1 flex items-center justify-center min-h-[300px] border border-gray-200 relative overflow-hidden">
+                    {loading && (
+                      <div className="absolute inset-0 bg-black/10 flex flex-col items-center justify-center backdrop-blur-[1px] z-10">
+                        <Loader2 size={48} className="text-purple-600 animate-spin mb-4" />
+                        <p className="text-purple-800 font-bold animate-pulse">Processing Image...</p>
+                      </div>
+                    )}
+
+                    {resultImage ? (
+                      <img src={resultImage} alt="Generated Result" className="w-full h-full object-contain" />
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <ImageIcon size={64} className="mx-auto mb-3 opacity-50" />
+                        <p>Your masterpiece will appear here</p>
+                      </div>
+                    )}
+                 </div>
+                 
+                 {resultImage && (
+                    <a 
+                      href={resultImage} 
+                      download="magic-edit.png"
+                      className="text-center text-purple-600 font-bold hover:underline py-2"
+                    >
+                      Download Image
+                    </a>
+                 )}
+              </div>
+
+           </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -208,9 +412,12 @@ export const CategoryCircle = ({ name, icon }: { name: string; icon: React.React
   </div>
 );
 
-export const ProductCard = ({ product }: { product: Product }) => {
+export const ProductCard = ({ product, onClick }: { product: Product, onClick?: (p: Product) => void }) => {
   return (
-    <div className="bg-white border border-gray-100 rounded-lg p-3 hover:shadow-xl transition duration-300 group relative flex flex-col h-full">
+    <div 
+      className="bg-white border border-gray-100 rounded-lg p-3 hover:shadow-xl transition duration-300 group relative flex flex-col h-full cursor-pointer"
+      onClick={() => onClick && onClick(product)}
+    >
       {product.discount && (
         <span className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-md">
           {product.discount}
@@ -219,7 +426,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
       <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-md bg-gray-50">
         <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
       </div>
-      <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 h-10 leading-snug" title={product.name}>
+      <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
         {product.name}
       </h3>
       <div className="flex items-center gap-2 mb-4 mt-auto">

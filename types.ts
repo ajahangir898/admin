@@ -7,7 +7,12 @@ export interface Product {
   originalPrice?: number;
   image: string;
   discount?: string;
-  tag?: string; 
+  tag?: string;
+  description?: string;
+  rating?: number;
+  reviews?: number;
+  category?: string;
+  tags?: string[];
 }
 
 export interface Order {

@@ -37,7 +37,7 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in w-full max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
         <button onClick={onBack} className="p-2 hover:bg-gray-200 rounded-full transition">
            <ArrowLeft size={20} className="text-gray-600"/>
@@ -111,16 +111,16 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
               </label>
            </div>
 
-           <form onSubmit={handleSave} className="p-8 space-y-6">
+           <form onSubmit={handleSave} className="p-8">
               
               {showSuccess && (
-                <div className="bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-green-100">
+                <div className="bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-green-100 mb-6 animate-in fade-in slide-in-from-top-1">
                    <CheckCircle size={18} /> Settings saved successfully!
                 </div>
               )}
 
-              <div className="space-y-4">
-                 <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Delivery Type</label>
                     <input 
                       type="text" 
@@ -130,7 +130,7 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
                     />
                  </div>
 
-                 <div>
+                 <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Your Division</label>
                     <select 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
@@ -149,40 +149,49 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
                  </div>
 
                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Charge Inside {activeConfig.division} Division</label>
-                    <input 
-                      type="number" 
-                      min="0"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                      value={activeConfig.insideCharge}
-                      onChange={(e) => handleUpdateConfig('insideCharge', Number(e.target.value))}
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Charge Inside {activeConfig.division}</label>
+                    <div className="relative">
+                        <span className="absolute left-4 top-3 text-gray-500">৳</span>
+                        <input 
+                        type="number" 
+                        min="0"
+                        className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                        value={activeConfig.insideCharge}
+                        onChange={(e) => handleUpdateConfig('insideCharge', Number(e.target.value))}
+                        />
+                    </div>
                  </div>
 
                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Charge Outside {activeConfig.division} Division</label>
-                    <input 
-                      type="number" 
-                      min="0"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                      value={activeConfig.outsideCharge}
-                      onChange={(e) => handleUpdateConfig('outsideCharge', Number(e.target.value))}
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Charge Outside {activeConfig.division}</label>
+                    <div className="relative">
+                        <span className="absolute left-4 top-3 text-gray-500">৳</span>
+                        <input 
+                        type="number" 
+                        min="0"
+                        className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                        value={activeConfig.outsideCharge}
+                        onChange={(e) => handleUpdateConfig('outsideCharge', Number(e.target.value))}
+                        />
+                    </div>
                  </div>
 
-                 <div>
+                 <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Order Amount for Free Delivery</label>
-                    <input 
-                      type="number" 
-                      min="0"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                      placeholder="Leave 0 if not applicable"
-                      value={activeConfig.freeThreshold}
-                      onChange={(e) => handleUpdateConfig('freeThreshold', Number(e.target.value))}
-                    />
+                    <div className="relative">
+                        <span className="absolute left-4 top-3 text-gray-500">৳</span>
+                        <input 
+                        type="number" 
+                        min="0"
+                        className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                        placeholder="Leave 0 if not applicable"
+                        value={activeConfig.freeThreshold}
+                        onChange={(e) => handleUpdateConfig('freeThreshold', Number(e.target.value))}
+                        />
+                    </div>
                  </div>
 
-                 <div>
+                 <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Schedule Note</label>
                     <div className="relative">
                        <textarea 
@@ -200,10 +209,10 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
                  </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-6 border-t border-gray-100 mt-6 flex justify-end">
                  <button 
                    type="submit"
-                   className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
+                   className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200 transform active:scale-95"
                  >
                    <Save size={18} /> Save Changes
                  </button>

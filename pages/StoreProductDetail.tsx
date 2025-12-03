@@ -27,7 +27,25 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={20} strokeWidth={1.5} />,
 };
 
-const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Product, onBack: () => void, onProductClick: (p: Product) => void }) => {
+interface StoreProductDetailProps {
+  product: Product;
+  onBack: () => void;
+  onProductClick: (p: Product) => void;
+  wishlistCount: number;
+  isWishlisted: boolean;
+  onToggleWishlist: () => void;
+  onCheckout: (p: Product, quantity: number) => void;
+}
+
+const StoreProductDetail = ({ 
+  product, 
+  onBack, 
+  onProductClick, 
+  wishlistCount, 
+  isWishlisted, 
+  onToggleWishlist,
+  onCheckout
+}: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
   const [showCartSuccess, setShowCartSuccess] = useState(false);
@@ -55,6 +73,7 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
         onHomeClick={onBack}
+        wishlistCount={wishlistCount}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}
@@ -63,7 +82,7 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
         <AddToCartSuccessModal 
           product={product} 
           onClose={() => setShowCartSuccess(false)} 
-          onCheckout={() => { setShowCartSuccess(false); alert('Redirecting to checkout...'); }} 
+          onCheckout={() => onCheckout(product, quantity)} 
         />
       )}
 
@@ -84,8 +103,11 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
                         {product.discount}
                       </span>
                     )}
-                    <button className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-md text-gray-400 hover:text-pink-500 transition">
-                      <Heart size={20} />
+                    <button 
+                      onClick={onToggleWishlist}
+                      className={`absolute top-4 right-4 p-2 rounded-full shadow-md transition ${isWishlisted ? 'bg-pink-50 text-pink-500' : 'bg-white text-gray-400 hover:text-pink-500'}`}
+                    >
+                      <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
                     </button>
                  </div>
                  {/* Thumbnail Gallery */}
@@ -140,7 +162,10 @@ const StoreProductDetail = ({ product, onBack, onProductClick }: { product: Prod
                     >
                        <ShoppingCart size={20} /> Add to cart
                     </button>
-                    <button className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition transform active:scale-95">
+                    <button 
+                      onClick={() => onCheckout(product, quantity)}
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition transform active:scale-95"
+                    >
                        <ShoppingBag size={20} /> Buy Now
                     </button>
                  </div>

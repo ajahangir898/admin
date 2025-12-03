@@ -16,7 +16,7 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={28} strokeWidth={1.5} />,
 };
 
-const StoreHome = ({ onProductClick }: { onProductClick: (p: Product) => void }) => {
+const StoreHome = ({ onProductClick, wishlistCount, wishlist, onToggleWishlist }: { onProductClick: (p: Product) => void, wishlistCount: number, wishlist: number[], onToggleWishlist: (id: number) => void }) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
 
@@ -25,6 +25,7 @@ const StoreHome = ({ onProductClick }: { onProductClick: (p: Product) => void })
       <StoreHeader 
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
+        wishlistCount={wishlistCount}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { RECENT_ORDERS } from '../constants';
 import { Search, Filter, Eye, MoreHorizontal, Download } from 'lucide-react';
+import { Order } from '../types';
 
-const AdminOrders = () => {
+const AdminOrders = ({ orders }: { orders: Order[] }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredOrders = RECENT_ORDERS.filter(order => {
+  const filteredOrders = orders.filter(order => {
     const matchesStatus = filterStatus === 'All' || order.status === filterStatus;
     const matchesSearch = 
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 

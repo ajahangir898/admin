@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { RECENT_ORDERS } from '../constants';
 import { GoogleGenAI } from "@google/genai";
 
-export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick }: { onTrackOrder?: () => void, onOpenAIStudio?: () => void, onHomeClick?: () => void }) => {
+export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick, wishlistCount }: { onTrackOrder?: () => void, onOpenAIStudio?: () => void, onHomeClick?: () => void, wishlistCount?: number }) => {
   return (
     <header className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -31,6 +31,16 @@ export const StoreHeader = ({ onTrackOrder, onOpenAIStudio, onHomeClick }: { onT
 
           {/* Actions */}
           <div className="flex items-center gap-6 text-gray-600">
+            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition">
+              <div className="relative">
+                <Heart size={24} />
+                {wishlistCount !== undefined && wishlistCount > 0 && (
+                   <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistCount}</span>
+                )}
+              </div>
+              <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
+            </div>
+            
             <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition">
               <div className="relative">
                 <ShoppingCart size={24} />

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import StoreHome from './pages/StoreHome';
 import StoreProductDetail from './pages/StoreProductDetail';
+import StoreCheckout from './pages/StoreCheckout';
+import StoreOrderSuccess from './pages/StoreOrderSuccess';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
-import { Product } from './types';
+import { Product, Order } from './types';
+import { RECENT_ORDERS } from './constants';
 
 // Wrapper layout for Admin pages
 const AdminLayout = ({ 
@@ -32,25 +35,62 @@ const AdminLayout = ({
   );
 };
 
+type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'admin';
+
 const App = () => {
-  const [currentView, setCurrentView] = useState<'store' | 'admin'>('store');
+  // Global Data State
+  const [orders, setOrders] = useState<Order[]>(RECENT_ORDERS);
+  const [wishlist, setWishlist] = useState<number[]>([]);
+  
+  // Navigation State
+  const [currentView, setCurrentView] = useState<ViewState>('store');
   const [adminSection, setAdminSection] = useState('dashboard');
+  
+  // Transaction State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [checkoutQuantity, setCheckoutQuantity] = useState(1);
 
-  const toggleView = () => {
-    setCurrentView(prev => prev === 'store' ? 'admin' : 'store');
-    // Reset product selection when switching main views
-    setSelectedProduct(null);
+  // Wishlist Handlers
+  const addToWishlist = (id: number) => {
+    if (!wishlist.includes(id)) setWishlist([...wishlist, id]);
   };
+  const removeFromWishlist = (id: number) => {
+    setWishlist(wishlist.filter(wId => wId !== id));
+  };
+  const isInWishlist = (id: number) => wishlist.includes(id);
 
+  // Navigation Handlers
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
+    setCurrentView('detail');
     window.scrollTo(0,0);
   };
 
-  const handleBackToHome = () => {
-    setSelectedProduct(null);
+  const handleCheckoutStart = (product: Product, quantity: number = 1) => {
+    setSelectedProduct(product);
+    setCheckoutQuantity(quantity);
+    setCurrentView('checkout');
     window.scrollTo(0,0);
+  };
+
+  const handlePlaceOrder = (formData: any) => {
+    const newOrder: Order = {
+      id: `#${Math.floor(1000 + Math.random() * 9000)}`,
+      customer: formData.fullName,
+      location: formData.address,
+      amount: formData.amount,
+      date: new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      status: 'Pending'
+    };
+    
+    setOrders([newOrder, ...orders]);
+    setCurrentView('success');
+    window.scrollTo(0,0);
+  };
+
+  const toggleView = () => {
+    setCurrentView(prev => prev.startsWith('admin') ? 'store' : 'admin');
+    setSelectedProduct(null);
   };
 
   return (
@@ -60,35 +100,25 @@ const App = () => {
         <button 
           onClick={toggleView}
           className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white"
-          title={currentView === 'store' ? "Switch to Admin Dashboard" : "Switch to Storefront"}
+          title={currentView.startsWith('admin') ? "Switch to Storefront" : "Switch to Admin Dashboard"}
         >
-          {currentView === 'store' ? <LayoutDashboard size={24} /> : <Monitor size={24} />}
+          {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
           <span className="font-bold hidden md:inline">
-            {currentView === 'store' ? "View Admin Dashboard" : "View Storefront"}
+            {currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}
           </span>
         </button>
       </div>
 
-      {currentView === 'store' ? (
-        selectedProduct ? (
-          <StoreProductDetail 
-            product={selectedProduct} 
-            onBack={handleBackToHome}
-            onProductClick={handleProductClick}
-          />
-        ) : (
-          <StoreHome onProductClick={handleProductClick} />
-        )
-      ) : (
+      {currentView === 'admin' ? (
         <AdminLayout 
           onSwitchView={() => setCurrentView('store')}
           activePage={adminSection}
           onNavigate={(page) => setAdminSection(page)}
         >
           {adminSection === 'dashboard' ? (
-            <AdminDashboard />
+            <AdminDashboard orders={orders} />
           ) : adminSection === 'orders' ? (
-            <AdminOrders />
+            <AdminOrders orders={orders} />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <div className="text-center">
@@ -98,6 +128,43 @@ const App = () => {
             </div>
           )}
         </AdminLayout>
+      ) : (
+        // Storefront Views
+        <>
+          {currentView === 'store' && (
+             <StoreHome 
+                onProductClick={handleProductClick} 
+                wishlistCount={wishlist.length}
+                wishlist={wishlist}
+                onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)}
+             />
+          )}
+          
+          {currentView === 'detail' && selectedProduct && (
+            <StoreProductDetail 
+              product={selectedProduct} 
+              onBack={() => setCurrentView('store')}
+              onProductClick={handleProductClick}
+              wishlistCount={wishlist.length}
+              isWishlisted={isInWishlist(selectedProduct.id)}
+              onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)}
+              onCheckout={(prod, qty) => handleCheckoutStart(prod, qty)}
+            />
+          )}
+
+          {currentView === 'checkout' && selectedProduct && (
+            <StoreCheckout 
+              product={selectedProduct} 
+              quantity={checkoutQuantity}
+              onBack={() => setCurrentView('detail')}
+              onConfirmOrder={handlePlaceOrder}
+            />
+          )}
+
+          {currentView === 'success' && (
+            <StoreOrderSuccess onHome={() => setCurrentView('store')} />
+          )}
+        </>
       )}
     </div>
   );

@@ -4,24 +4,36 @@ import {
   ShoppingBag, Truck, CheckCircle, Clock, PauseCircle, XCircle, PackageCheck, ArchiveRestore,
   LayoutGrid, Layers, TrendingUp
 } from 'lucide-react';
-import { RECENT_ORDERS, REVENUE_DATA, CATEGORY_DATA } from '../constants';
+import { REVENUE_DATA, CATEGORY_DATA } from '../constants';
+import { Order } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ orders }: { orders: Order[] }) => {
+  // Calculate dynamic stats based on props
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
+  const pendingOrders = orders.filter(o => o.status === 'Pending').length;
+  const confirmedOrders = orders.filter(o => o.status === 'Confirmed').length;
+  const deliveredOrders = orders.filter(o => o.status === 'Delivered').length;
+  const shippedOrders = orders.filter(o => o.status === 'Shipped').length;
+  // Mock data for others to show UI density
+  const courierOrders = 120;
+  const cancelledOrders = 12;
+
   return (
     <div className="space-y-8 animate-fade-in">
       
       {/* Top Stats Grid - Row 1 */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        <DashboardStatCard title="Today Orders" value="60" icon={<ShoppingBag />} colorClass="pink" />
-        <DashboardStatCard title="Courier Orders" value="120" icon={<Truck />} colorClass="purple" />
-        <DashboardStatCard title="Confirmed Orders" value="85" icon={<CheckCircle />} colorClass="green" />
-        <DashboardStatCard title="Pending Orders" value="24" icon={<Clock />} colorClass="orange" />
+        <DashboardStatCard title="Today Orders" value={Math.floor(totalOrders / 5)} icon={<ShoppingBag />} colorClass="pink" />
+        <DashboardStatCard title="Courier Orders" value={courierOrders} icon={<Truck />} colorClass="purple" />
+        <DashboardStatCard title="Confirmed Orders" value={confirmedOrders} icon={<CheckCircle />} colorClass="green" />
+        <DashboardStatCard title="Pending Orders" value={pendingOrders} icon={<Clock />} colorClass="orange" />
         <DashboardStatCard title="Hold Orders" value="5" icon={<PauseCircle />} colorClass="red" />
-        <DashboardStatCard title="Cancelled Orders" value="12" icon={<XCircle />} colorClass="cyan" />
-        <DashboardStatCard title="Delivered Orders" value="230" icon={<PackageCheck />} colorClass="teal" />
+        <DashboardStatCard title="Cancelled Orders" value={cancelledOrders} icon={<XCircle />} colorClass="cyan" />
+        <DashboardStatCard title="Delivered Orders" value={deliveredOrders} icon={<PackageCheck />} colorClass="teal" />
         <DashboardStatCard title="Return Orders" value="8" icon={<ArchiveRestore />} colorClass="blue" />
       </div>
 
@@ -30,12 +42,12 @@ const AdminDashboard = () => {
          <div className="bg-orange-50 rounded-2xl p-6 flex justify-between items-center border border-orange-100 shadow-sm relative overflow-hidden group">
              <div className="z-10">
                  <p className="text-gray-600 font-semibold mb-2 flex items-center gap-2">Total Order <TrendingUp size={16} className="text-orange-500"/></p>
-                 <h2 className="text-4xl font-extrabold text-gray-800">22</h2>
+                 <h2 className="text-4xl font-extrabold text-gray-800">{totalOrders}</h2>
                  <p className="text-sm text-gray-500 mt-2">vs last month <span className="text-green-500 font-bold">+12%</span></p>
              </div>
              <div className="z-10 text-right">
                  <p className="text-gray-600 font-semibold mb-2">Total Sales</p>
-                 <h2 className="text-4xl font-extrabold text-orange-600">৳ 6,97,643</h2>
+                 <h2 className="text-4xl font-extrabold text-orange-600">৳ {totalRevenue.toLocaleString()}</h2>
                  <p className="text-sm text-gray-500 mt-2">Net revenue</p>
              </div>
              <div className="absolute right-0 bottom-0 opacity-5 transform translate-y-4 translate-x-4">
@@ -138,7 +150,7 @@ const AdminDashboard = () => {
                           </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                          {RECENT_ORDERS.map((order) => (
+                          {orders.slice(0, 8).map((order) => (
                               <tr key={order.id} className="hover:bg-gray-50 transition">
                                   <td className="px-5 py-4 font-bold text-gray-900">{order.id}</td>
                                   <td className="px-5 py-4">
@@ -150,7 +162,8 @@ const AdminDashboard = () => {
                                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
                                           order.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' :
                                           order.status === 'Confirmed' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                          order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 border-gray-200'
+                                          order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : 
+                                          order.status === 'Shipped' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-gray-50 border-gray-200'
                                       }`}>
                                           {order.status}
                                       </span>

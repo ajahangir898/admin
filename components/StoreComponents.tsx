@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem } from '../types';
 import { RECENT_ORDERS } from '../constants';
 import { GoogleGenAI } from "@google/genai";
@@ -710,7 +710,7 @@ export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> =
 
 export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void, variant?: string }> = ({ product, onClick, variant = 'style1' }) => {
   
-  // Render specific styles based on variant
+  // Style 2: Flash Sale (Pink/Blue Theme)
   if (variant === 'style2') {
      return (
         <div 
@@ -760,14 +760,47 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
      );
   }
 
-  // Default Style (Style 1)
+  // Style 3: Minimalist Bordered
+  if (variant === 'style3') {
+    return (
+      <div 
+        className="bg-white rounded border border-gray-200 p-2 hover:shadow-lg transition-all duration-300 group cursor-pointer h-full flex flex-col"
+        onClick={() => onClick && onClick(product)}
+      >
+        <div className="relative h-40 bg-gray-50 mb-3 overflow-hidden rounded-sm">
+          {product.discount && (
+            <span className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 z-10">
+              {product.discount}
+            </span>
+          )}
+          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+          
+          {/* Quick Actions Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-2 translate-y-full group-hover:translate-y-0 transition duration-300 flex justify-center gap-4">
+             <button className="text-gray-600 hover:text-green-600"><Eye size={18} /></button>
+             <button className="text-gray-600 hover:text-green-600"><Heart size={18} /></button>
+          </div>
+        </div>
+        
+        <div className="flex flex-col flex-1">
+          <h3 className="text-sm text-gray-700 line-clamp-2 mb-1 group-hover:text-green-600 transition" title={product.name}>{product.name}</h3>
+          <div className="mt-auto pt-2 flex justify-between items-center border-t border-gray-100">
+             <span className="font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
+             <button className="text-green-600 hover:bg-green-50 p-1 rounded-full"><ShoppingCart size={18} /></button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Style 1: Default (Classic Green)
   return (
     <div 
       className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
       onClick={() => onClick && onClick(product)}
     >
       {product.discount && (
-        <span className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-md">
+        <span className="absolute top-3 left-3 bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-md">
           {product.discount}
         </span>
       )}

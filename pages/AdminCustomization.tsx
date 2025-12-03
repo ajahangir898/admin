@@ -195,7 +195,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
       {/* Navigation Tabs */}
       <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white rounded-t-xl">
-         <TabButton id="carousel" label="Carousel" icon={<Image as ImageIcon size={18}/>} />
+         <TabButton id="carousel" label="Carousel" icon={<ImageIcon size={18}/>} />
          <TabButton id="website_info" label="Website Information" icon={<Globe size={18}/>} />
          <TabButton id="theme_view" label="Theme View" icon={<Layout size={18}/>} />
          <TabButton id="theme_colors" label="Theme Colors" icon={<Palette size={18}/>} />

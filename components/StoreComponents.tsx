@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
@@ -42,6 +42,135 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Header Style 2 (Coco Kids Style)
+  if (websiteConfig?.headerStyle === 'style2') {
+    return (
+      <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-gray-100 dark:bg-slate-900 dark:border-slate-800">
+          <div className="container mx-auto px-4 py-2 text-[11px] md:text-xs font-medium text-gray-600 dark:text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
+            <div className="flex items-center gap-4 md:gap-6">
+               <div className="flex items-center gap-1.5">
+                  <Mail size={14} className="text-gray-800 dark:text-gray-200" />
+                  <span>{websiteConfig.emails?.[0] || 'info@example.com'}</span>
+               </div>
+               <div className="flex items-center gap-1.5">
+                  <Phone size={14} className="text-gray-800 dark:text-gray-200" />
+                  <span>{websiteConfig.phones?.[0] || '09638-000000'}</span>
+               </div>
+            </div>
+            <div className="flex items-center gap-4 md:gap-6">
+               <a href="#" className="flex items-center gap-1 hover:text-blue-600 transition">
+                  <Gift size={14} className="text-blue-600" /> Daily Reward
+               </a>
+               <a href="#" className="hover:text-blue-600 transition hidden sm:inline-block">Community</a>
+               <button onClick={onTrackOrder} className="hover:text-blue-600 transition">Track Order</button>
+               <div className="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition">
+                  <span>My Wishlist ({wishlistCount || 0})</span>
+               </div>
+               <a href="#" className="hover:text-blue-600 transition hidden sm:inline-block">Seller Registration</a>
+               <div className="border-l pl-4 border-gray-200 ml-2">
+                 <Bell size={16} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 cursor-pointer" />
+               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Header */}
+        <div className="container mx-auto px-4 py-4 md:py-5">
+           <div className="flex items-center justify-between gap-4 md:gap-8">
+              
+              {/* Logo */}
+              <div className="cursor-pointer shrink-0" onClick={onHomeClick}>
+                {logo ? (
+                  <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" />
+                ) : (
+                  <div className="flex flex-col leading-none">
+                     <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
+                     <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1">KIDS</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Search Bar - Center */}
+              <div className="hidden md:block flex-1 max-w-2xl relative">
+                 <input 
+                   type="text" 
+                   placeholder={websiteConfig?.searchHints || "Search..."}
+                   className="w-full border border-blue-400 rounded px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-gray-400 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                 />
+                 <button className="absolute right-0 top-0 h-full px-4 text-blue-500 hover:text-blue-600 transition">
+                    <Search size={20} />
+                 </button>
+              </div>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-6 md:gap-8 shrink-0">
+                 {/* Mobile Search Icon */}
+                 <button className="md:hidden text-gray-600 dark:text-gray-300">
+                    <Search size={24} />
+                 </button>
+
+                 {/* Cart */}
+                 <div className="relative cursor-pointer group">
+                    <ShoppingCart size={28} className="text-gray-700 dark:text-gray-200 group-hover:text-blue-600 transition" strokeWidth={1.5} />
+                    <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
+                       0
+                    </span>
+                 </div>
+
+                 {/* User / Login */}
+                 <div className="relative" ref={menuRef}>
+                    <div 
+                      className="flex items-center gap-2 cursor-pointer group"
+                      onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
+                    >
+                       <User size={28} className="text-gray-700 dark:text-gray-200 group-hover:text-blue-600 transition" strokeWidth={1.5} />
+                       <div className="hidden sm:flex flex-col leading-tight">
+                          {user ? (
+                             <>
+                               <span className="text-xs text-gray-500 dark:text-gray-400">Welcome,</span>
+                               <span className="text-sm font-bold text-gray-800 dark:text-white flex items-center gap-0.5">
+                                 {user.name.split(' ')[0]} <ChevronDown size={12}/>
+                               </span>
+                             </>
+                          ) : (
+                             <span className="text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-blue-600 transition whitespace-nowrap">
+                                Login / SignUp
+                             </span>
+                          )}
+                       </div>
+                    </div>
+
+                    {/* User Dropdown (Same as Style 1) */}
+                    {user && isMenuOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                         <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                         </div>
+                         <button onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-blue-600 flex items-center gap-2">
+                            <UserCircle size={16} /> My Profile
+                         </button>
+                         <button onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-blue-600 flex items-center gap-2">
+                            <Truck size={16} /> My Orders
+                         </button>
+                         <div className="border-t border-gray-50 dark:border-slate-700 mt-1">
+                           <button onClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2">
+                              <LogOut size={16} /> Logout
+                           </button>
+                         </div>
+                      </div>
+                    )}
+                 </div>
+              </div>
+           </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Default Style 1
   return (
     <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (

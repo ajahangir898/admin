@@ -114,3 +114,39 @@ export interface WebsiteConfig {
   searchHints?: string;
   orderLanguage?: 'English' | 'Bangla';
 }
+
+// Catalog Types
+export interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+  image?: string;
+  status: 'Active' | 'Inactive';
+}
+
+export interface SubCategory {
+  id: string;
+  categoryId: string;
+  name: string;
+  status: 'Active' | 'Inactive';
+}
+
+export interface ChildCategory {
+  id: string;
+  subCategoryId: string;
+  name: string;
+  status: 'Active' | 'Inactive';
+}
+
+export interface Brand {
+  id: string;
+  name: string;
+  logo: string;
+  status: 'Active' | 'Inactive';
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  status: 'Active' | 'Inactive';
+}

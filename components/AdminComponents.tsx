@@ -3,18 +3,27 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen, 
   FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
-  Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight
+  Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
+  Layers, Tag
 } from 'lucide-react';
 import { StatCardProps, User } from '../types';
 
 export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: string) => void, logo?: string | null }> = ({ activePage, onNavigate, logo }) => {
   const [isCustomizationOpen, setIsCustomizationOpen] = useState(true);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(true);
 
   const menuItems = [
     { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { id: 'orders', icon: <ShoppingBag size={18} />, label: 'Orders' },
     { id: 'products', icon: <Box size={18} />, label: 'Products' },
-    { id: 'settings', icon: <Settings size={18} />, label: 'Settings' },
+  ];
+
+  const catalogItems = [
+    { id: 'catalog_categories', label: 'Categories' },
+    { id: 'catalog_subcategories', label: 'Sub Categories' },
+    { id: 'catalog_childcategories', label: 'Child Categories' },
+    { id: 'catalog_brands', label: 'Brand' },
+    { id: 'catalog_tags', label: 'Tags' },
   ];
 
   const customizationItems = [
@@ -55,6 +64,39 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
             <span>{item.label}</span>
           </div>
         ))}
+
+        {/* Catalog Dropdown */}
+        <div>
+          <div 
+            onClick={() => setIsCatalogOpen(!isCatalogOpen)}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+                activePage?.startsWith('catalog_') ? 'text-purple-600 font-bold bg-purple-50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Layers size={18} />
+              <span>Catalog</span>
+            </div>
+            {isCatalogOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </div>
+          
+          {isCatalogOpen && (
+            <div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
+              {catalogItems.map(item => (
+                <div
+                  key={item.id}
+                  onClick={() => onNavigate && onNavigate(item.id)}
+                  className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition flex items-center gap-2 ${
+                     activePage === item.id ? 'text-purple-600 font-bold bg-white shadow-sm border border-gray-100' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                   <div className={`w-0 h-0 border-l-[4px] border-l-purple-600 border-y-[4px] border-y-transparent ${activePage === item.id ? 'opacity-100' : 'opacity-0'}`}></div>
+                   {item.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         
         {/* Customization Dropdown */}
         <div>
@@ -70,11 +112,11 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
           </div>
           
           {isCustomizationOpen && (
-            <div className="pl-9 pr-2 space-y-1 mt-1">
+            <div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
               {customizationItems.map(item => (
                 <div
                   key={item.id}
-                  onClick={() => onNavigate && onNavigate(item.id)} // Pass specific ID
+                  onClick={() => onNavigate && onNavigate(item.id)}
                   className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${
                      activePage === item.id ? 'text-purple-600 font-bold bg-purple-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                   }`}
@@ -90,6 +132,17 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
         </div>
 
         <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-6">System</div>
+        <div 
+            onClick={() => onNavigate && onNavigate('settings')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+              activePage === 'settings'
+                ? 'bg-purple-50 text-purple-600 font-bold shadow-sm' 
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+        >
+            <Settings size={18} />
+            <span>Settings</span>
+        </div>
         <div 
             onClick={() => onNavigate && onNavigate('admin')}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${

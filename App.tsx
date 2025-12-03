@@ -11,9 +11,10 @@ import AdminProducts from './pages/AdminProducts';
 import AdminCustomization from './pages/AdminCustomization';
 import AdminSettings from './pages/AdminSettings';
 import AdminControl from './pages/AdminControl';
+import AdminCatalog from './pages/AdminCatalog';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag } from './types';
 import { RECENT_ORDERS, PRODUCTS } from './constants';
 import { LoginModal } from './components/StoreComponents';
 
@@ -93,6 +94,61 @@ const App = () => {
       darkMode: false
     };
   });
+
+  // CATALOG STATE
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const saved = localStorage.getItem('gadgetshob_categories');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', name: 'Phones', icon: '', status: 'Active' },
+      { id: '2', name: 'Watches', icon: '', status: 'Active' }
+    ];
+  });
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(() => {
+    const saved = localStorage.getItem('gadgetshob_subcategories');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' },
+      { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }
+    ];
+  });
+  const [childCategories, setChildCategories] = useState<ChildCategory[]>(() => {
+    const saved = localStorage.getItem('gadgetshob_childcategories');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [brands, setBrands] = useState<Brand[]>(() => {
+    const saved = localStorage.getItem('gadgetshob_brands');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', name: 'Apple', logo: '', status: 'Active' },
+      { id: '2', name: 'Samsung', logo: '', status: 'Active' }
+    ];
+  });
+  const [tags, setTags] = useState<Tag[]>(() => {
+    const saved = localStorage.getItem('gadgetshob_tags');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', name: 'Flash Deal', status: 'Active' },
+      { id: '2', name: 'New Arrival', status: 'Active' }
+    ];
+  });
+
+  // Persist Catalog
+  useEffect(() => localStorage.setItem('gadgetshob_categories', JSON.stringify(categories)), [categories]);
+  useEffect(() => localStorage.setItem('gadgetshob_subcategories', JSON.stringify(subCategories)), [subCategories]);
+  useEffect(() => localStorage.setItem('gadgetshob_childcategories', JSON.stringify(childCategories)), [childCategories]);
+  useEffect(() => localStorage.setItem('gadgetshob_brands', JSON.stringify(brands)), [brands]);
+  useEffect(() => localStorage.setItem('gadgetshob_tags', JSON.stringify(tags)), [tags]);
+
+  // Catalog Handlers
+  const crudHandler = (setter: any, items: any[]) => ({
+    add: (item: any) => setter([...items, item]),
+    update: (item: any) => setter(items.map(i => i.id === item.id ? item : i)),
+    delete: (id: string) => setter(items.filter(i => i.id !== id))
+  });
+
+  const catHandlers = crudHandler(setCategories, categories);
+  const subCatHandlers = crudHandler(setSubCategories, subCategories);
+  const childCatHandlers = crudHandler(setChildCategories, childCategories);
+  const brandHandlers = crudHandler(setBrands, brands);
+  const tagHandlers = crudHandler(setTags, tags);
+
 
   // Website Config Persistence (New)
   const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig>(() => {
@@ -402,7 +458,7 @@ const App = () => {
            name: 'H M Liakat', 
            email: 'opbd.shop@gmail.com', 
            role: 'admin', 
-           username: 'Opbd01',
+           username: 'Opbd01', 
            phone: '01715332701',
            createdAt: 'Sep 6, 2025',
            updatedAt: 'Dec 4, 2025'
@@ -481,6 +537,35 @@ const App = () => {
               onUpdateRole={handleUpdateRole}
               onDeleteRole={handleDeleteRole}
               onUpdateUserRole={handleUpdateUserRole}
+            />
+          ) : adminSection.startsWith('catalog_') ? (
+            <AdminCatalog
+              view={adminSection}
+              categories={categories}
+              subCategories={subCategories}
+              childCategories={childCategories}
+              brands={brands}
+              tags={tags}
+              
+              onAddCategory={catHandlers.add}
+              onUpdateCategory={catHandlers.update}
+              onDeleteCategory={catHandlers.delete}
+
+              onAddSubCategory={subCatHandlers.add}
+              onUpdateSubCategory={subCatHandlers.update}
+              onDeleteSubCategory={subCatHandlers.delete}
+
+              onAddChildCategory={childCatHandlers.add}
+              onUpdateChildCategory={childCatHandlers.update}
+              onDeleteChildCategory={childCatHandlers.delete}
+
+              onAddBrand={brandHandlers.add}
+              onUpdateBrand={brandHandlers.update}
+              onDeleteBrand={brandHandlers.delete}
+
+              onAddTag={tagHandlers.add}
+              onUpdateTag={tagHandlers.update}
+              onDeleteTag={tagHandlers.delete}
             />
           ) : (
              <AdminDashboard orders={orders} />

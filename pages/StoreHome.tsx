@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
@@ -52,6 +52,45 @@ const StoreHome = ({
   // Use passed products or fallback to initial constants
   const displayProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
 
+  // Category Auto Scroll Logic for Style 2
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (websiteConfig?.categorySectionStyle === 'style2') {
+      const el = categoryScrollRef.current;
+      if (!el) return;
+      
+      let animationId: number;
+      const speed = 0.8; // Scroll speed
+      
+      const scroll = () => {
+        // If scrolled past half the width (since we duplicated content), reset to 0
+        if (el.scrollLeft >= (el.scrollWidth / 2)) {
+          el.scrollLeft = 0;
+        } else {
+          el.scrollLeft += speed;
+        }
+        animationId = requestAnimationFrame(scroll);
+      };
+      
+      animationId = requestAnimationFrame(scroll);
+      
+      const stop = () => cancelAnimationFrame(animationId);
+      const start = () => { stop(); animationId = requestAnimationFrame(scroll); };
+      
+      el.addEventListener('mouseenter', stop);
+      el.addEventListener('mouseleave', start);
+      
+      return () => {
+        stop();
+        if (el) {
+            el.removeEventListener('mouseenter', stop);
+            el.removeEventListener('mouseleave', start);
+        }
+      };
+    }
+  }, [websiteConfig?.categorySectionStyle]);
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
       <StoreHeader 
@@ -87,13 +126,20 @@ const StoreHome = ({
                     View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent"></div>
                  </a>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                 {CATEGORIES.map((cat, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-1.5 pr-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full shadow-sm min-w-max cursor-pointer hover:border-blue-300 hover:shadow-md transition group">
-                       <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 border border-blue-100 dark:border-slate-600 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition">
-                          {React.cloneElement(iconMap[cat.icon] as React.ReactElement, { size: 20, strokeWidth: 2 })}
+              
+              {/* Auto Scrolling Container */}
+              <div 
+                 ref={categoryScrollRef}
+                 className="flex gap-4 overflow-x-hidden pb-4 whitespace-nowrap scrollbar-hide"
+                 style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}
+              >
+                 {/* Render multiple times for infinite seamless loop */}
+                 {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
+                    <div key={`${cat.name}-${idx}`} className="inline-flex items-center gap-3 p-1.5 pr-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer hover:border-blue-400 transition group flex-shrink-0">
+                       <div className="w-10 h-10 rounded-full bg-white border border-blue-100 dark:bg-slate-700 dark:border-slate-600 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition shadow-sm">
+                          {React.cloneElement(iconMap[cat.icon] as React.ReactElement, { size: 20, strokeWidth: 1.5 })}
                        </div>
-                       <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400">{cat.name}</span>
+                       <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400">{cat.name}</span>
                     </div>
                  ))}
               </div>

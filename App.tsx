@@ -12,7 +12,7 @@ import AdminCustomization from './pages/AdminCustomization';
 import AdminSettings from './pages/AdminSettings';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
-import { Product, Order, User, ThemeConfig } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig } from './types';
 import { RECENT_ORDERS, PRODUCTS } from './constants';
 import { LoginModal } from './components/StoreComponents';
 
@@ -81,6 +81,31 @@ const App = () => {
     };
   });
 
+  // Website Config Persistence (New)
+  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig>(() => {
+    const savedConfig = localStorage.getItem('gadgetshob_website_config');
+    return savedConfig ? JSON.parse(savedConfig) : {
+      websiteName: 'Overseas Products',
+      shortDescription: 'Get the best for less',
+      whatsappNumber: '+8801615332701',
+      favicon: null,
+      addresses: ['D-14/3, Bank Colony, Savar, Dhaka'],
+      emails: ['opbd.shop@gmail.com', 'lunik.hasan@gmail.com'],
+      phones: ['+8801615332701', '+8801611053430'],
+      socialLinks: [
+        { id: '1', platform: 'Facebook', url: 'https://facebook.com' },
+        { id: '2', platform: 'Instagram', url: 'https://instagram.com' }
+      ],
+      showMobileHeaderCategory: true,
+      showNewsSlider: true,
+      headerSliderText: 'Easy return policy and complete cash on delivery, ease of shopping!',
+      hideCopyright: false,
+      hideCopyrightText: false,
+      showPoweredBy: false,
+      brandingText: 'Overseas Products'
+    };
+  });
+
   // Apply Theme Side Effects
   useEffect(() => {
     const root = document.documentElement;
@@ -96,6 +121,21 @@ const App = () => {
     
     localStorage.setItem('gadgetshob_theme', JSON.stringify(themeConfig));
   }, [themeConfig]);
+
+  // Apply Favicon Side Effect
+  useEffect(() => {
+    if (websiteConfig.favicon) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = websiteConfig.favicon;
+    }
+    // Also save to local storage on change
+    localStorage.setItem('gadgetshob_website_config', JSON.stringify(websiteConfig));
+  }, [websiteConfig]);
 
   // Courier Config State Persistence
   const [courierConfig, setCourierConfig] = useState({ apiKey: '', secretKey: '' });
@@ -211,6 +251,11 @@ const App = () => {
     setThemeConfig(newConfig);
   };
 
+  // Website Config Handler
+  const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => {
+    setWebsiteConfig(newConfig);
+  };
+
   // Courier Config Handler
   const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => {
     setCourierConfig(config);
@@ -319,6 +364,8 @@ const App = () => {
               onUpdateLogo={handleUpdateLogo} 
               themeConfig={themeConfig}
               onUpdateTheme={handleUpdateTheme}
+              websiteConfig={websiteConfig}
+              onUpdateWebsiteConfig={handleUpdateWebsiteConfig}
             />
           ) : adminSection === 'settings' ? (
             <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} />
@@ -346,6 +393,7 @@ const App = () => {
                 onLogoutClick={handleLogout}
                 onProfileClick={() => setCurrentView('profile')}
                 logo={logo}
+                websiteConfig={websiteConfig}
              />
           )}
           
@@ -363,6 +411,7 @@ const App = () => {
               onLogoutClick={handleLogout}
               onProfileClick={() => setCurrentView('profile')}
               logo={logo}
+              websiteConfig={websiteConfig}
             />
           )}
 
@@ -377,6 +426,7 @@ const App = () => {
               onLogoutClick={handleLogout}
               onProfileClick={() => setCurrentView('profile')}
               logo={logo}
+              websiteConfig={websiteConfig}
             />
           )}
 
@@ -388,6 +438,7 @@ const App = () => {
               onLogoutClick={handleLogout}
               onProfileClick={() => setCurrentView('profile')} 
               logo={logo}
+              websiteConfig={websiteConfig}
             />
           )}
 
@@ -400,6 +451,7 @@ const App = () => {
               onLoginClick={() => setIsLoginOpen(true)}
               onLogoutClick={handleLogout}
               logo={logo}
+              websiteConfig={websiteConfig}
             />
           )}
         </>

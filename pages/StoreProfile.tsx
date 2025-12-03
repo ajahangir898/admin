@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Order } from '../types';
+import { User, Order, WebsiteConfig } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { User as UserIcon, Mail, Phone, MapPin, Package, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
 
@@ -12,6 +12,7 @@ interface StoreProfileProps {
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
   logo?: string | null;
+  websiteConfig?: WebsiteConfig;
 }
 
 const StoreProfile = ({ 
@@ -21,7 +22,8 @@ const StoreProfile = ({
   onHome, 
   onLoginClick, 
   onLogoutClick,
-  logo
+  logo,
+  websiteConfig
 }: StoreProfileProps) => {
   const [activeTab, setActiveTab] = useState<'info' | 'orders'>('info');
   const [formData, setFormData] = useState({
@@ -59,6 +61,7 @@ const StoreProfile = ({
         onLogoutClick={onLogoutClick}
         onProfileClick={() => {}} // Already on profile
         logo={logo}
+        websiteConfig={websiteConfig}
       />
 
       <main className="container mx-auto px-4 py-8">
@@ -258,7 +261,7 @@ const StoreProfile = ({
         </div>
       </main>
 
-      <StoreFooter />
+      <StoreFooter websiteConfig={websiteConfig} />
     </div>
   );
 };

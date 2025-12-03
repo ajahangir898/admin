@@ -2,7 +2,7 @@
 import React from 'react';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
-import { User } from '../types';
+import { User, WebsiteConfig } from '../types';
 
 interface SuccessProps {
   onHome: () => void;
@@ -11,9 +11,10 @@ interface SuccessProps {
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
   logo?: string | null;
+  websiteConfig?: WebsiteConfig;
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900 flex flex-col">
       <StoreHeader 
@@ -23,6 +24,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         onLogoutClick={onLogoutClick}
         onProfileClick={onProfileClick}
         logo={logo}
+        websiteConfig={websiteConfig}
       />
       
       <main className="flex-1 container mx-auto px-4 flex items-center justify-center py-12">
@@ -59,7 +61,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         </div>
       </main>
 
-      <StoreFooter />
+      <StoreFooter websiteConfig={websiteConfig} />
     </div>
   );
 };

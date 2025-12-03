@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export interface Product {
@@ -52,4 +53,29 @@ export interface ThemeConfig {
   secondaryColor: string;
   tertiaryColor: string;
   darkMode: boolean;
+}
+
+export interface SocialLink {
+  id: string;
+  platform: string;
+  url: string;
+}
+
+export interface WebsiteConfig {
+  websiteName: string;
+  shortDescription: string;
+  whatsappNumber: string;
+  favicon: string | null;
+  addresses: string[];
+  emails: string[];
+  phones: string[];
+  socialLinks: SocialLink[];
+  // Display Toggles
+  showMobileHeaderCategory: boolean;
+  showNewsSlider: boolean;
+  headerSliderText: string;
+  hideCopyright: boolean;
+  hideCopyrightText: boolean;
+  showPoweredBy: boolean;
+  brandingText: string;
 }

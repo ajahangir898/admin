@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Product, User } from '../types';
+import { Product, User, WebsiteConfig } from '../types';
 import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal } from '../components/StoreComponents';
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
@@ -41,6 +41,7 @@ interface StoreProductDetailProps {
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
   logo?: string | null;
+  websiteConfig?: WebsiteConfig;
 }
 
 const StoreProductDetail = ({ 
@@ -55,7 +56,8 @@ const StoreProductDetail = ({
   onLoginClick,
   onLogoutClick,
   onProfileClick,
-  logo
+  logo,
+  websiteConfig
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -90,6 +92,7 @@ const StoreProductDetail = ({
         onLogoutClick={onLogoutClick}
         onProfileClick={onProfileClick}
         logo={logo}
+        websiteConfig={websiteConfig}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} />}
@@ -274,7 +277,7 @@ const StoreProductDetail = ({
 
         </div>
       </main>
-      <StoreFooter />
+      <StoreFooter websiteConfig={websiteConfig} />
     </div>
   );
 };

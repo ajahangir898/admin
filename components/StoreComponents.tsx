@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle } from 'lucide-react';
-import { Product, User as UserType } from '../types';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe } from 'lucide-react';
+import { Product, User as UserType, WebsiteConfig } from '../types';
 import { RECENT_ORDERS } from '../constants';
 import { GoogleGenAI } from "@google/genai";
 
@@ -15,6 +15,7 @@ interface StoreHeaderProps {
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
   logo?: string | null;
+  websiteConfig?: WebsiteConfig;
 }
 
 export const StoreHeader: React.FC<StoreHeaderProps> = ({ 
@@ -26,7 +27,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   onLoginClick, 
   onLogoutClick,
   onProfileClick,
-  logo
+  logo,
+  websiteConfig
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,6 +45,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
 
   return (
     <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+      {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
+        <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium">
+           {websiteConfig.headerSliderText}
+        </div>
+      )}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
@@ -702,57 +709,87 @@ export const SectionHeader: React.FC<{ title: string; linkText?: string }> = ({ 
   </div>
 );
 
-export const StoreFooter: React.FC = () => (
-  <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300">
-    <div className="container mx-auto px-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-        <div>
-          <h1 className="text-2xl font-bold mb-4">
-            <span className="text-gray-800 dark:text-white">GADGET</span>
-            <span className="text-pink-500">SHOB</span>
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-            Best Online shop in Bangladesh for authentic gadgets and electronics. Trusted by thousands.
-          </p>
-          <div className="flex gap-4">
-            <div className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Facebook size={18} /></div>
-            <div className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Instagram size={18} /></div>
-            <div className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition"><Twitter size={18} /></div>
+export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
+  const socialIcons: Record<string, React.ReactNode> = {
+    'Facebook': <Facebook size={18} />,
+    'Instagram': <Instagram size={18} />,
+    'Twitter': <Twitter size={18} />,
+    'YouTube': <Youtube size={18} />,
+    'Daraz': <ShoppingBag size={18} />,
+  };
+
+  return (
+    <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300">
+      <div className="container mx-auto px-4">
+        {!websiteConfig?.hideCopyright && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            <div>
+              <h1 className="text-2xl font-bold mb-4">
+                {websiteConfig?.brandingText ? (
+                  <span className="text-gray-800 dark:text-white">{websiteConfig.brandingText}</span>
+                ) : (
+                  <>
+                    <span className="text-gray-800 dark:text-white">GADGET</span>
+                    <span className="text-pink-500">SHOB</span>
+                  </>
+                )}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                {websiteConfig?.shortDescription || "Best Online shop in Bangladesh for authentic gadgets and electronics. Trusted by thousands."}
+              </p>
+              <div className="flex gap-4">
+                {websiteConfig?.socialLinks.map(link => (
+                  <a href={link.url} key={link.id} className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition">
+                    {socialIcons[link.platform] || <Globe size={18}/>}
+                  </a>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Contact Us</h3>
+              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                {websiteConfig?.emails.map((email, idx) => (
+                  <li key={idx} className="flex items-center gap-2"><Mail size={14} className="text-green-500"/> {email}</li>
+                ))}
+                {websiteConfig?.phones.map((phone, idx) => (
+                  <li key={idx} className="flex items-center gap-2"><Phone size={14} className="text-green-500"/> {phone}</li>
+                ))}
+                {websiteConfig?.addresses.map((addr, idx) => (
+                   <li key={idx} className="flex items-center gap-2"><MapPin size={14} className="text-green-500"/> {addr}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Quick Links</h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><a href="#" className="hover:text-green-600 transition">Return & Refund Policy</a></li>
+                <li><a href="#" className="hover:text-green-600 transition">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-green-600 transition">Terms and Conditions</a></li>
+                <li><a href="#" className="hover:text-green-600 transition">About us</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Useful Links</h3>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><a href="#" className="hover:text-green-600 transition">Why Shop Online with Us</a></li>
+                <li><a href="#" className="hover:text-green-600 transition">Online Payment Methods</a></li>
+                <li><a href="#" className="hover:text-green-600 transition">After Sales Support</a></li>
+                <li><a href="#" className="hover:text-green-600 transition">FAQ</a></li>
+              </ul>
+            </div>
           </div>
-        </div>
+        )}
         
-        <div>
-          <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Contact Us</h3>
-          <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-            <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> mail@gmail.com</li>
-            <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> +8801700000000</li>
-            <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> Mirpur 10, Dhaka</li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Quick Links</h3>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-            <li><a href="#" className="hover:text-green-600 transition">Return & Refund Policy</a></li>
-            <li><a href="#" className="hover:text-green-600 transition">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-green-600 transition">Terms and Conditions</a></li>
-            <li><a href="#" className="hover:text-green-600 transition">About us</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Useful Links</h3>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-            <li><a href="#" className="hover:text-green-600 transition">Why Shop Online with Us</a></li>
-            <li><a href="#" className="hover:text-green-600 transition">Online Payment Methods</a></li>
-            <li><a href="#" className="hover:text-green-600 transition">After Sales Support</a></li>
-            <li><a href="#" className="hover:text-green-600 transition">FAQ</a></li>
-          </ul>
-        </div>
+        {!websiteConfig?.hideCopyrightText && (
+          <div className="text-center text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800 pt-8">
+            <p>Copyright © 2025 {websiteConfig?.brandingText || 'gadgetshob.com'}</p>
+            {websiteConfig?.showPoweredBy && <p className="mt-1">Powered by Saleecom</p>}
+          </div>
+        )}
       </div>
-      <div className="text-center text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800 pt-8">
-        <p>Copyright © 2025 gadgetshob.com</p>
-      </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};

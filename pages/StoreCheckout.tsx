@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Product, User } from '../types';
+import { Product, User, WebsiteConfig } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { ArrowLeft, Banknote, MapPin, Mail, Phone, User as UserIcon, X } from 'lucide-react';
 
@@ -14,6 +14,7 @@ interface CheckoutProps {
   onLogoutClick?: () => void;
   onProfileClick?: () => void;
   logo?: string | null;
+  websiteConfig?: WebsiteConfig;
 }
 
 const StoreCheckout = ({ 
@@ -25,7 +26,8 @@ const StoreCheckout = ({
   onLoginClick,
   onLogoutClick,
   onProfileClick,
-  logo
+  logo,
+  websiteConfig
 }: CheckoutProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -77,6 +79,7 @@ const StoreCheckout = ({
         onLogoutClick={onLogoutClick}
         onProfileClick={onProfileClick}
         logo={logo}
+        websiteConfig={websiteConfig}
       />
 
       <main className="container mx-auto px-4 py-8">
@@ -250,7 +253,7 @@ const StoreCheckout = ({
         </div>
       </main>
 
-      <StoreFooter />
+      <StoreFooter websiteConfig={websiteConfig} />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Product } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag, Percent } from 'lucide-react';
 import { CATEGORIES } from '../constants';
 
 interface AdminProductsProps {
@@ -9,17 +9,26 @@ interface AdminProductsProps {
   onAddProduct: (product: Product) => void;
   onUpdateProduct: (product: Product) => void;
   onDeleteProduct: (id: number) => void;
+  onBulkDelete: (ids: number[]) => void;
+  onBulkUpdate: (ids: number[], updates: Partial<Product>) => void;
 }
 
 const AdminProducts: React.FC<AdminProductsProps> = ({ 
   products, 
   onAddProduct, 
   onUpdateProduct, 
-  onDeleteProduct 
+  onDeleteProduct,
+  onBulkDelete,
+  onBulkUpdate
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // Selection State
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkAction, setBulkAction] = useState<'category' | 'discount' | null>(null);
+  const [bulkValue, setBulkValue] = useState('');
 
   // Form State
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -153,8 +162,47 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     }
   };
 
+  // Bulk Handlers
+  const toggleSelection = (id: number) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(sid => sid !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const selectAll = () => {
+    if (selectedIds.length === filteredProducts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredProducts.map(p => p.id));
+    }
+  };
+
+  const executeBulkAction = () => {
+    if (bulkAction === 'category') {
+      if (!bulkValue) return alert("Please select a category");
+      onBulkUpdate(selectedIds, { category: bulkValue });
+    } else if (bulkAction === 'discount') {
+      onBulkUpdate(selectedIds, { discount: bulkValue }); // Allow empty to clear discount
+    }
+    
+    // Reset
+    setBulkAction(null);
+    setBulkValue('');
+    setSelectedIds([]);
+    alert("Bulk action completed successfully!");
+  };
+
+  const executeBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} products?`)) {
+      onBulkDelete(selectedIds);
+      setSelectedIds([]);
+    }
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
            <h2 className="text-2xl font-bold text-gray-800">Products</h2>
@@ -169,30 +217,91 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative flex-1 w-full sm:max-w-xs">
-           <input 
-             type="text" 
-             placeholder="Search products..." 
-             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-             value={searchTerm}
-             onChange={(e) => setSearchTerm(e.target.value)}
-           />
-           <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center sticky top-0 z-20">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
+            <input 
+              type="checkbox" 
+              className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+              checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+              onChange={selectAll}
+            />
+            <span className="text-sm text-gray-600">Select All</span>
+          </div>
+          <div className="h-6 w-px bg-gray-200 mx-2"></div>
+          <div className="relative flex-1 w-full sm:max-w-xs">
+             <input 
+               type="text" 
+               placeholder="Search products..." 
+               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+             />
+             <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+          </div>
         </div>
         <div className="text-sm text-gray-500">
            Showing <span className="font-bold text-gray-800">{filteredProducts.length}</span> products
         </div>
       </div>
 
+      {/* Bulk Actions Floating Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center gap-6 animate-in slide-in-from-bottom-4">
+           <span className="font-bold text-sm bg-gray-700 px-3 py-1 rounded-full">{selectedIds.length} Selected</span>
+           
+           <div className="h-6 w-px bg-gray-700"></div>
+           
+           <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setBulkAction('category')}
+                className="flex items-center gap-2 hover:text-purple-300 transition text-sm font-medium"
+              >
+                <Layers size={16} /> Category
+              </button>
+              <button 
+                onClick={() => setBulkAction('discount')}
+                className="flex items-center gap-2 hover:text-purple-300 transition text-sm font-medium"
+              >
+                <Percent size={16} /> Discount
+              </button>
+              <button 
+                onClick={executeBulkDelete}
+                className="flex items-center gap-2 text-red-400 hover:text-red-300 transition text-sm font-medium ml-2"
+              >
+                <Trash2 size={16} /> Delete
+              </button>
+           </div>
+
+           <button onClick={() => setSelectedIds([])} className="bg-gray-700 rounded-full p-1 hover:bg-gray-600 ml-2">
+             <X size={14} />
+           </button>
+        </div>
+      )}
+
       {/* Product List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
          {filteredProducts.map(product => (
-           <div key={product.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition group">
+           <div 
+             key={product.id} 
+             className={`bg-white rounded-xl border shadow-sm overflow-hidden hover:shadow-md transition group relative ${
+               selectedIds.includes(product.id) ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
+             }`}
+           >
+              {/* Selection Checkbox Overlay */}
+              <div className="absolute top-3 left-3 z-10">
+                <input 
+                  type="checkbox" 
+                  checked={selectedIds.includes(product.id)}
+                  onChange={() => toggleSelection(product.id)}
+                  className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 shadow-sm cursor-pointer"
+                />
+              </div>
+
               <div className="relative h-48 bg-gray-100">
                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                  {product.discount && (
-                   <span className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded">
+                   <span className="absolute top-2 right-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
                      {product.discount}
                    </span>
                  )}
@@ -213,7 +322,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                     </button>
                  </div>
               </div>
-              <div className="p-4">
+              <div className="p-4 cursor-pointer" onClick={() => toggleSelection(product.id)}>
                  <div className="mb-2">
                     <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
                       {product.category || 'Uncategorized'}
@@ -411,6 +520,48 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
            </div>
         </div>
       )}
+
+      {/* Bulk Action Modal */}
+      {bulkAction && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+              <div className="p-4 bg-gray-900 text-white font-bold flex justify-between items-center">
+                 <h3>Bulk Action: {bulkAction === 'category' ? 'Change Category' : 'Apply Discount'}</h3>
+                 <button onClick={() => setBulkAction(null)} className="hover:text-gray-300"><X size={18}/></button>
+              </div>
+              <div className="p-6">
+                 <p className="text-gray-600 text-sm mb-4">
+                    Applying to <span className="font-bold text-gray-900">{selectedIds.length}</span> selected products.
+                 </p>
+                 
+                 {bulkAction === 'category' ? (
+                   <select 
+                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                     value={bulkValue}
+                     onChange={(e) => setBulkValue(e.target.value)}
+                   >
+                      <option value="">Select New Category</option>
+                      {CATEGORIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                   </select>
+                 ) : (
+                   <input 
+                     type="text" 
+                     placeholder="Discount (e.g. 50% OFF)"
+                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                     value={bulkValue}
+                     onChange={(e) => setBulkValue(e.target.value)}
+                   />
+                 )}
+
+                 <div className="mt-6 flex gap-3">
+                    <button onClick={() => setBulkAction(null)} className="flex-1 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-medium text-gray-600">Cancel</button>
+                    <button onClick={executeBulkAction} className="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold shadow-md">Apply</button>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
     </div>
   );
 };

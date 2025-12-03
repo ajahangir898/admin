@@ -1,3 +1,4 @@
+
 import { Product, Order, ChartData } from './types';
 
 export const CATEGORIES = [
@@ -94,4 +95,15 @@ export const CATEGORY_DATA: ChartData[] = [
   { name: 'Watches', value: 300 },
   { name: 'Phones', value: 300 },
   { name: 'Audio', value: 200 },
+];
+
+export const AVAILABLE_PERMISSIONS = [
+  { id: 'view_dashboard', label: 'View Dashboard', category: 'General' },
+  { id: 'manage_orders', label: 'Manage Orders', category: 'Orders' },
+  { id: 'view_orders', label: 'View Orders', category: 'Orders' },
+  { id: 'manage_products', label: 'Manage Products', category: 'Products' },
+  { id: 'view_products', label: 'View Products', category: 'Products' },
+  { id: 'manage_settings', label: 'Manage Settings', category: 'System' },
+  { id: 'manage_customization', label: 'Theme Customization', category: 'System' },
+  { id: 'manage_users', label: 'Manage Users & Roles', category: 'System' },
 ];

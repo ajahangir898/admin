@@ -33,6 +33,14 @@ export interface User {
   phone?: string;
   address?: string;
   role?: 'customer' | 'admin';
+  roleId?: string; // ID of the custom role defined in AdminControl
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
 }
 
 export interface StatCardProps {
@@ -78,4 +86,11 @@ export interface WebsiteConfig {
   hideCopyrightText: boolean;
   showPoweredBy: boolean;
   brandingText: string;
+  // Visual Toggles
+  bottomNavStyle?: string;
+  footerStyle?: string;
+  productCardStyle?: string;
+  headerStyle?: string;
+  categorySectionStyle?: string;
+  showcaseSectionStyle?: string;
 }

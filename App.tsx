@@ -10,9 +10,10 @@ import AdminOrders from './pages/AdminOrders';
 import AdminProducts from './pages/AdminProducts';
 import AdminCustomization from './pages/AdminCustomization';
 import AdminSettings from './pages/AdminSettings';
+import AdminControl from './pages/AdminControl';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role } from './types';
 import { RECENT_ORDERS, PRODUCTS } from './constants';
 import { LoginModal } from './components/StoreComponents';
 
@@ -105,6 +106,19 @@ const App = () => {
       brandingText: 'Overseas Products'
     };
   });
+
+  // Roles Persistence
+  const [roles, setRoles] = useState<Role[]>(() => {
+    const savedRoles = localStorage.getItem('gadgetshob_roles');
+    return savedRoles ? JSON.parse(savedRoles) : [
+      { id: 'manager', name: 'Store Manager', description: 'Can manage products and orders', permissions: ['view_dashboard', 'manage_orders', 'view_orders', 'manage_products', 'view_products'] },
+      { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: ['view_dashboard', 'view_orders'] }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gadgetshob_roles', JSON.stringify(roles));
+  }, [roles]);
 
   // Apply Theme Side Effects
   useEffect(() => {
@@ -223,6 +237,22 @@ const App = () => {
     localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
   };
 
+  // Role Handlers
+  const handleAddRole = (newRole: Role) => {
+    setRoles([...roles, newRole]);
+  };
+  const handleUpdateRole = (updatedRole: Role) => {
+    setRoles(roles.map(r => r.id === updatedRole.id ? updatedRole : r));
+  };
+  const handleDeleteRole = (roleId: string) => {
+    setRoles(roles.filter(r => r.id !== roleId));
+  };
+  const handleUpdateUserRole = (userEmail: string, roleId: string) => {
+    const updatedUsers = users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u);
+    setUsers(updatedUsers);
+    localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
+  };
+
   // Product Handlers
   const handleAddProduct = (newProduct: Product) => {
     setProducts([...products, newProduct]);
@@ -234,6 +264,15 @@ const App = () => {
 
   const handleDeleteProduct = (id: number) => {
     setProducts(products.filter(p => p.id !== id));
+  };
+
+  // Bulk Product Handlers
+  const handleBulkDeleteProducts = (ids: number[]) => {
+    setProducts(products.filter(p => !ids.includes(p.id)));
+  };
+
+  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => {
+    setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p));
   };
 
   // Logo Handler
@@ -357,6 +396,8 @@ const App = () => {
               onAddProduct={handleAddProduct}
               onUpdateProduct={handleUpdateProduct}
               onDeleteProduct={handleDeleteProduct}
+              onBulkDelete={handleBulkDeleteProducts}
+              onBulkUpdate={handleBulkUpdateProducts}
             />
           ) : adminSection === 'customization' ? (
             <AdminCustomization 
@@ -369,6 +410,15 @@ const App = () => {
             />
           ) : adminSection === 'settings' ? (
             <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} />
+          ) : adminSection === 'admin' ? (
+            <AdminControl 
+              users={users}
+              roles={roles}
+              onAddRole={handleAddRole}
+              onUpdateRole={handleUpdateRole}
+              onDeleteRole={handleDeleteRole}
+              onUpdateUserRole={handleUpdateUserRole}
+            />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <div className="text-center">

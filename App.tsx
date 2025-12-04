@@ -12,12 +12,12 @@ import AdminCustomization from './pages/AdminCustomization';
 import AdminSettings from './pages/AdminSettings';
 import AdminControl from './pages/AdminControl';
 import AdminCatalog from './pages/AdminCatalog';
-import AdminDeliverySettings from './pages/AdminDeliverySettings'; // Imported
+import AdminDeliverySettings from './pages/AdminDeliverySettings';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
-import { Monitor, LayoutDashboard } from 'lucide-react';
+import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
-import { RECENT_ORDERS, PRODUCTS } from './constants';
 import { LoginModal } from './components/StoreComponents';
+import { DataService } from './services/DataService';
 
 // Wrapper layout for Admin pages
 interface AdminLayoutProps {
@@ -39,7 +39,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   user,
   onLogout
 }) => {
-  // Highlight settings parent if in sub-settings
   const highlightPage = activePage.startsWith('settings') ? 'settings' : activePage;
 
   return (
@@ -57,7 +56,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
 type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin';
 
-// Helper to convert Hex to RGB for Tailwind variables
 const hexToRgb = (hex: string) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result 
@@ -66,256 +64,129 @@ const hexToRgb = (hex: string) => {
 };
 
 const App = () => {
-  // Global Data State
-  const [orders, setOrders] = useState<Order[]>(() => {
-    const savedOrders = localStorage.getItem('gadgetshob_orders');
-    return savedOrders ? JSON.parse(savedOrders) : RECENT_ORDERS;
+  const [isLoading, setIsLoading] = useState(true);
+
+  // --- STATE ---
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [logo, setLogo] = useState<string | null>(null);
+  const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
+    primaryColor: '#22c55e', secondaryColor: '#ec4899', tertiaryColor: '#9333ea', darkMode: false
   });
-
-  // Persist Orders
-  useEffect(() => {
-    localStorage.setItem('gadgetshob_orders', JSON.stringify(orders));
-  }, [orders]);
-  
-  // Products State with LocalStorage Persistence (Simulating Database)
-  const [products, setProducts] = useState<Product[]>(() => {
-    const savedProducts = localStorage.getItem('gadgetshob_products');
-    return savedProducts ? JSON.parse(savedProducts) : PRODUCTS;
-  });
-
-  // Logo State Persistence
-  const [logo, setLogo] = useState<string | null>(() => {
-    return localStorage.getItem('gadgetshob_logo');
-  });
-
-  // Theme Config Persistence
-  const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => {
-    const savedTheme = localStorage.getItem('gadgetshob_theme');
-    return savedTheme ? JSON.parse(savedTheme) : {
-      primaryColor: '#22c55e',   // Green-500
-      secondaryColor: '#ec4899', // Pink-500
-      tertiaryColor: '#9333ea',  // Purple-600
-      darkMode: false
-    };
-  });
-
-  // Delivery Config Persistence
-  const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>(() => {
-    const saved = localStorage.getItem('gadgetshob_delivery_config');
-    return saved ? JSON.parse(saved) : [
-      { type: 'Regular', isEnabled: true, division: 'Dhaka', insideCharge: 60, outsideCharge: 120, freeThreshold: 0, note: 'Standard delivery time 2-3 days' },
-      { type: 'Express', isEnabled: true, division: 'Dhaka', insideCharge: 100, outsideCharge: 200, freeThreshold: 5000, note: 'Next day delivery available' },
-      { type: 'Free', isEnabled: false, division: 'Dhaka', insideCharge: 0, outsideCharge: 0, freeThreshold: 0, note: 'Promotional free shipping' }
-    ];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('gadgetshob_delivery_config', JSON.stringify(deliveryConfig));
-  }, [deliveryConfig]);
-
-  // CATALOG STATE
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('gadgetshob_categories');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Phones', icon: '', status: 'Active' },
-      { id: '2', name: 'Watches', icon: '', status: 'Active' }
-    ];
-  });
-  const [subCategories, setSubCategories] = useState<SubCategory[]>(() => {
-    const saved = localStorage.getItem('gadgetshob_subcategories');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' },
-      { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }
-    ];
-  });
-  const [childCategories, setChildCategories] = useState<ChildCategory[]>(() => {
-    const saved = localStorage.getItem('gadgetshob_childcategories');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [brands, setBrands] = useState<Brand[]>(() => {
-    const saved = localStorage.getItem('gadgetshob_brands');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Apple', logo: '', status: 'Active' },
-      { id: '2', name: 'Samsung', logo: '', status: 'Active' }
-    ];
-  });
-  const [tags, setTags] = useState<Tag[]>(() => {
-    const saved = localStorage.getItem('gadgetshob_tags');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Flash Deal', status: 'Active' },
-      { id: '2', name: 'New Arrival', status: 'Active' }
-    ];
-  });
-
-  // Persist Catalog
-  useEffect(() => localStorage.setItem('gadgetshob_categories', JSON.stringify(categories)), [categories]);
-  useEffect(() => localStorage.setItem('gadgetshob_subcategories', JSON.stringify(subCategories)), [subCategories]);
-  useEffect(() => localStorage.setItem('gadgetshob_childcategories', JSON.stringify(childCategories)), [childCategories]);
-  useEffect(() => localStorage.setItem('gadgetshob_brands', JSON.stringify(brands)), [brands]);
-  useEffect(() => localStorage.setItem('gadgetshob_tags', JSON.stringify(tags)), [tags]);
-
-  // Catalog Handlers (Refactored to use functional updates for safety)
-  const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>) => ({
-    add: (item: any) => setter(prev => [...prev, item]),
-    update: (item: any) => setter(prev => prev.map(i => i.id === item.id ? item : i)),
-    delete: (id: string) => setter(prev => prev.filter(i => i.id !== id))
-  });
-
-  const catHandlers = createCrudHandler(setCategories);
-  const subCatHandlers = createCrudHandler(setSubCategories);
-  const childCatHandlers = createCrudHandler(setChildCategories);
-  const brandHandlers = createCrudHandler(setBrands);
-  const tagHandlers = createCrudHandler(setTags);
-
-
-  // Website Config Persistence (New)
-  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig>(() => {
-    const savedConfig = localStorage.getItem('gadgetshob_website_config');
-    const defaultConfig: WebsiteConfig = {
-      websiteName: 'Overseas Products',
-      shortDescription: 'Get the best for less',
-      whatsappNumber: '+8801615332701',
-      favicon: null,
-      addresses: ['D-14/3, Bank Colony, Savar, Dhaka'],
-      emails: ['opbd.shop@gmail.com', 'lunik.hasan@gmail.com'],
-      phones: ['+8801615332701', '+8801611053430'],
-      socialLinks: [
-        { id: '1', platform: 'Facebook', url: 'https://facebook.com' },
-        { id: '2', platform: 'Instagram', url: 'https://instagram.com' }
-      ],
-      showMobileHeaderCategory: true,
-      showNewsSlider: true,
-      headerSliderText: 'Easy return policy and complete cash on delivery, ease of shopping!',
-      hideCopyright: false,
-      hideCopyrightText: false,
-      showPoweredBy: false,
-      brandingText: 'Overseas Products',
-      carouselItems: [
-        { id: '1', name: 'Mobile Holder', image: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&q=80&w=400', url: '/magnetic-suction-vacuum', urlType: 'Internal', serial: 3, status: 'Publish' },
-        { id: '2', name: 'Main', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=400', url: '/Product-categories', urlType: 'Internal', serial: 1, status: 'Publish' },
-        { id: '3', name: 'Gift', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=gift', urlType: 'External', serial: 7, status: 'Publish' },
-        { id: '4', name: 'Gadget', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=gadget', urlType: 'External', serial: 5, status: 'Publish' },
-        { id: '5', name: 'Toy', image: 'https://images.unsplash.com/photo-1558877385-844da7858812?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=toy', urlType: 'External', serial: 6, status: 'Publish' },
-        { id: '6', name: 'Sfw', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=sfw', urlType: 'External', serial: 8, status: 'Publish' },
-        { id: '7', name: 'Plane', image: 'https://images.unsplash.com/photo-1483304528321-0674f0040030?auto=format&fit=crop&q=80&w=400', url: '/Airplane-launcher-toy', urlType: 'Internal', serial: 4, status: 'Publish' },
-        { id: '8', name: '4', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400', url: '', urlType: 'Internal', serial: 9, status: 'Draft' },
-        { id: '9', name: '2', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400', url: '', urlType: 'Internal', serial: 10, status: 'Draft' }
-      ],
-      searchHints: 'gadget item, gift, educational toy, mobile accessories',
-      orderLanguage: 'English',
-      productCardStyle: 'style1'
-    };
-    return savedConfig ? { ...defaultConfig, ...JSON.parse(savedConfig) } : defaultConfig;
-  });
-
-  // Roles Persistence
-  const [roles, setRoles] = useState<Role[]>(() => {
-    const savedRoles = localStorage.getItem('gadgetshob_roles');
-    return savedRoles ? JSON.parse(savedRoles) : [
-      { id: 'manager', name: 'Store Manager', description: 'Can manage products and orders', permissions: ['view_dashboard', 'manage_orders', 'view_orders', 'manage_products', 'view_products'] },
-      { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: ['view_dashboard', 'view_orders'] }
-    ];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('gadgetshob_roles', JSON.stringify(roles));
-  }, [roles]);
-
-  // Apply Theme Side Effects
-  useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
-    root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
-    root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
-
-    if (themeConfig.darkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    
-    localStorage.setItem('gadgetshob_theme', JSON.stringify(themeConfig));
-  }, [themeConfig]);
-
-  // Apply Favicon Side Effect
-  useEffect(() => {
-    if (websiteConfig.favicon) {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
-      }
-      link.href = websiteConfig.favicon;
-    }
-    // Also save to local storage on change
-    localStorage.setItem('gadgetshob_website_config', JSON.stringify(websiteConfig));
-  }, [websiteConfig]);
-
-  // Courier Config State Persistence
-  const [courierConfig, setCourierConfig] = useState({ apiKey: '', secretKey: '' });
-  
-  useEffect(() => {
-    const savedCourier = localStorage.getItem('gadgetshob_courier');
-    if (savedCourier) {
-      setCourierConfig(JSON.parse(savedCourier));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('gadgetshob_products', JSON.stringify(products));
-  }, [products]);
-  
-  const [wishlist, setWishlist] = useState<number[]>([]);
-  
-  // Auth State
+  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(undefined);
+  const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  
+  // Catalog State
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [childCategories, setChildCategories] = useState<ChildCategory[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+
+  // Courier Config
+  const [courierConfig, setCourierConfig] = useState({ apiKey: '', secretKey: '' });
+
+  // Auth & Navigation
   const [user, setUser] = useState<User | null>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  
-  // Navigation State
   const [currentView, setCurrentView] = useState<ViewState>('store');
   const [adminSection, setAdminSection] = useState('dashboard');
-  
-  // Transaction State
+  const [wishlist, setWishlist] = useState<number[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
 
-  // Initialize from LocalStorage
+  // --- INITIAL DATA LOADING ---
   useEffect(() => {
-    const storedUsers = localStorage.getItem('gadgetshob_users');
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    }
-    const storedSession = localStorage.getItem('gadgetshob_session');
-    if (storedSession) {
-      setUser(JSON.parse(storedSession));
-    } else {
-      // Mock Admin User if not exists for demo
-      const mockAdmin: User = { 
-        name: 'H M Liakat', 
-        email: 'opbd.shop@gmail.com', 
-        role: 'admin', 
-        username: 'Opbd01', 
-        phone: '01715332701',
-        createdAt: 'Sep 6, 2025',
-        updatedAt: 'Dec 4, 2025'
-      };
-      if (currentView === 'admin' && !user) setUser(mockAdmin);
-    }
-  }, [currentView]);
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        setProducts(await DataService.getProducts());
+        setOrders(await DataService.getOrders());
+        setUsers(await DataService.getUsers());
+        setRoles(await DataService.getRoles());
+        
+        setLogo(await DataService.get<string | null>('logo', null));
+        setThemeConfig(await DataService.getThemeConfig());
+        setWebsiteConfig(await DataService.getWebsiteConfig());
+        setDeliveryConfig(await DataService.getDeliveryConfig());
+        setCourierConfig(await DataService.get('courier', { apiKey: '', secretKey: '' }));
 
-  // Auth Handlers
-  const handleRegister = (newUser: User) => {
-    // Check if email exists
-    if (users.some(u => u.email === newUser.email)) {
-      return false;
+        // Catalog
+        setCategories(await DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]));
+        setSubCategories(await DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]));
+        setChildCategories(await DataService.getCatalog('childcategories', []));
+        setBrands(await DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]));
+        setTags(await DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }]));
+
+        // Session
+        const storedSession = localStorage.getItem('gadgetshob_session');
+        if (storedSession) setUser(JSON.parse(storedSession));
+
+      } catch (error) {
+        console.error("Failed to load data", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
+  
+  // Note: In a real app, you wouldn't use useEffect to autosave on every state change.
+  // You would call DataService.save() inside the specific handler (e.g., handleAddProduct).
+  // Keeping this pattern for now to minimize refactoring risk while enabling "DataService" architecture.
+
+  useEffect(() => { if(!isLoading) DataService.save('orders', orders); }, [orders, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('products', products); }, [products, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('roles', roles); }, [roles, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('users', users); }, [users, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('logo', logo); }, [logo, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('delivery_config', deliveryConfig); }, [deliveryConfig, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('courier', courierConfig); }, [courierConfig, isLoading]);
+  
+  useEffect(() => { if(!isLoading) DataService.save('categories', categories); }, [categories, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('subcategories', subCategories); }, [subCategories, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('childcategories', childCategories); }, [childCategories, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('brands', brands); }, [brands, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('tags', tags); }, [tags, isLoading]);
+
+  useEffect(() => { 
+    if(!isLoading && themeConfig) {
+      DataService.save('theme', themeConfig);
+      const root = document.documentElement;
+      root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
+      root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
+      root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
+      if (themeConfig.darkMode) root.classList.add('dark');
+      else root.classList.remove('dark');
     }
+  }, [themeConfig, isLoading]);
+
+  useEffect(() => { 
+    if(!isLoading && websiteConfig) {
+      DataService.save('website_config', websiteConfig);
+      if (websiteConfig.favicon) {
+        let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        link.href = websiteConfig.favicon;
+      }
+    }
+  }, [websiteConfig, isLoading]);
+
+
+  // --- HANDLERS ---
+
+  const handleRegister = (newUser: User) => {
+    if (users.some(u => u.email === newUser.email)) return false;
     const updatedUsers = [...users, newUser];
     setUsers(updatedUsers);
-    localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
-    
-    // Auto login after register
     setUser(newUser);
     localStorage.setItem('gadgetshob_session', JSON.stringify(newUser));
     setIsLoginOpen(false);
@@ -324,7 +195,6 @@ const App = () => {
 
   const handleLogin = (email: string, pass: string) => {
     const foundUser = users.find(u => u.email === email && u.password === pass);
-    // Backdoor for demo admin
     if (email === 'admin' && pass === 'admin') {
        const admin: User = { name: 'Super Admin', email: 'admin@gadgetshob.com', role: 'admin' };
        setUser(admin);
@@ -348,113 +218,37 @@ const App = () => {
   };
 
   const handleUpdateProfile = (updatedUser: User) => {
-    // Update local state
     setUser(updatedUser);
     localStorage.setItem('gadgetshob_session', JSON.stringify(updatedUser));
-    
-    // Update users list
-    const updatedUsers = users.map(u => u.email === updatedUser.email ? updatedUser : u);
-    setUsers(updatedUsers);
-    localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
+    setUsers(users.map(u => u.email === updatedUser.email ? updatedUser : u));
   };
 
-  // Role Handlers
-  const handleAddRole = (newRole: Role) => {
-    setRoles([...roles, newRole]);
-  };
-  const handleUpdateRole = (updatedRole: Role) => {
-    setRoles(roles.map(r => r.id === updatedRole.id ? updatedRole : r));
-  };
-  const handleDeleteRole = (roleId: string) => {
-    setRoles(roles.filter(r => r.id !== roleId));
-  };
+  const handleAddRole = (newRole: Role) => setRoles([...roles, newRole]);
+  const handleUpdateRole = (updatedRole: Role) => setRoles(roles.map(r => r.id === updatedRole.id ? updatedRole : r));
+  const handleDeleteRole = (roleId: string) => setRoles(roles.filter(r => r.id !== roleId));
   const handleUpdateUserRole = (userEmail: string, roleId: string) => {
-    const updatedUsers = users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u);
-    setUsers(updatedUsers);
-    localStorage.setItem('gadgetshob_users', JSON.stringify(updatedUsers));
+    setUsers(users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u));
   };
 
-  // Product Handlers
-  const handleAddProduct = (newProduct: Product) => {
-    setProducts([...products, newProduct]);
-  };
+  const handleAddProduct = (newProduct: Product) => setProducts([...products, newProduct]);
+  const handleUpdateProduct = (updatedProduct: Product) => setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+  const handleDeleteProduct = (id: number) => setProducts(products.filter(p => p.id !== id));
+  const handleBulkDeleteProducts = (ids: number[]) => setProducts(products.filter(p => !ids.includes(p.id)));
+  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p));
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
-    setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-  };
+  const handleUpdateLogo = (newLogo: string | null) => setLogo(newLogo);
+  const handleUpdateTheme = (newConfig: ThemeConfig) => setThemeConfig(newConfig);
+  const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
+  const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => setCourierConfig(config);
+  const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => setDeliveryConfig(configs);
+  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
 
-  const handleDeleteProduct = (id: number) => {
-    setProducts(products.filter(p => p.id !== id));
-  };
-
-  // Bulk Product Handlers
-  const handleBulkDeleteProducts = (ids: number[]) => {
-    setProducts(products.filter(p => !ids.includes(p.id)));
-  };
-
-  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => {
-    setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p));
-  };
-
-  // Logo Handler
-  const handleUpdateLogo = (newLogo: string | null) => {
-    setLogo(newLogo);
-    if (newLogo) {
-      localStorage.setItem('gadgetshob_logo', newLogo);
-    } else {
-      localStorage.removeItem('gadgetshob_logo');
-    }
-  };
-
-  // Theme Handler
-  const handleUpdateTheme = (newConfig: ThemeConfig) => {
-    setThemeConfig(newConfig);
-  };
-
-  // Website Config Handler
-  const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => {
-    setWebsiteConfig(newConfig);
-  };
-
-  // Courier Config Handler
-  const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => {
-    setCourierConfig(config);
-    localStorage.setItem('gadgetshob_courier', JSON.stringify(config));
-  };
-  
-  // Delivery Config Handler
-  const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => {
-    setDeliveryConfig(configs);
-  };
-
-  // Order Status Handler
-  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
-  };
-
-  // Wishlist Handlers
-  const addToWishlist = (id: number) => {
-    if (!wishlist.includes(id)) setWishlist([...wishlist, id]);
-  };
-  const removeFromWishlist = (id: number) => {
-    setWishlist(wishlist.filter(wId => wId !== id));
-  };
+  const addToWishlist = (id: number) => { if (!wishlist.includes(id)) setWishlist([...wishlist, id]); };
+  const removeFromWishlist = (id: number) => { setWishlist(wishlist.filter(wId => wId !== id)); };
   const isInWishlist = (id: number) => wishlist.includes(id);
 
-  // Navigation Handlers
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-    setCurrentView('detail');
-    window.scrollTo(0,0);
-  };
-
-  const handleCheckoutStart = (product: Product, quantity: number = 1) => {
-    setSelectedProduct(product);
-    setCheckoutQuantity(quantity);
-    setCurrentView('checkout');
-    window.scrollTo(0,0);
-  };
-
+  const handleProductClick = (product: Product) => { setSelectedProduct(product); setCurrentView('detail'); window.scrollTo(0,0); };
+  const handleCheckoutStart = (product: Product, quantity: number = 1) => { setSelectedProduct(product); setCheckoutQuantity(quantity); setCurrentView('checkout'); window.scrollTo(0,0); };
   const handlePlaceOrder = (formData: any) => {
     const newOrder: Order = {
       id: `#${Math.floor(1000 + Math.random() * 9000)}`,
@@ -465,233 +259,71 @@ const App = () => {
       status: 'Pending',
       email: formData.email
     };
-    
     setOrders([newOrder, ...orders]);
     setCurrentView('success');
     window.scrollTo(0,0);
   };
 
+  const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>) => ({
+    add: (item: any) => setter(prev => [...prev, item]),
+    update: (item: any) => setter(prev => prev.map(i => i.id === item.id ? item : i)),
+    delete: (id: string) => setter(prev => prev.filter(i => i.id !== id))
+  });
+
+  const catHandlers = createCrudHandler(setCategories);
+  const subCatHandlers = createCrudHandler(setSubCategories);
+  const childCatHandlers = createCrudHandler(setChildCategories);
+  const brandHandlers = createCrudHandler(setBrands);
+  const tagHandlers = createCrudHandler(setTags);
+
   const toggleView = () => {
     const nextView = currentView.startsWith('admin') ? 'store' : 'admin';
     setCurrentView(nextView);
     setSelectedProduct(null);
-    // Ensure an admin user is set when switching to admin for demo
     if (nextView === 'admin' && !user) {
-        setUser({ 
-           name: 'H M Liakat', 
-           email: 'opbd.shop@gmail.com', 
-           role: 'admin', 
-           username: 'Opbd01', 
-           phone: '01715332701',
-           createdAt: 'Sep 6, 2025',
-           updatedAt: 'Dec 4, 2025'
-        });
+        setUser({ name: 'H M Liakat', email: 'opbd.shop@gmail.com', role: 'admin', username: 'Opbd01', phone: '01715332701' });
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
+        <Loader2 size={48} className="animate-spin text-purple-600" />
+        <p className="font-medium animate-pulse">Loading Application Data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
-      {/* Login Modal Overlay */}
-      {isLoginOpen && (
-        <LoginModal 
-          onClose={() => setIsLoginOpen(false)} 
-          onLogin={handleLogin} 
-          onRegister={handleRegister} 
-        />
-      )}
+      {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
 
-      {/* Floating Toggle Button for Demo Purposes */}
       <div className="fixed bottom-6 right-6 z-[100]">
-        <button 
-          onClick={toggleView}
-          className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700"
-          title={currentView.startsWith('admin') ? "Switch to Storefront" : "Switch to Admin Dashboard"}
-        >
+        <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
           {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
-          <span className="font-bold hidden md:inline">
-            {currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}
-          </span>
+          <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
         </button>
       </div>
 
       {currentView === 'admin' ? (
-        <AdminLayout 
-          onSwitchView={() => setCurrentView('store')}
-          activePage={adminSection}
-          onNavigate={(page) => setAdminSection(page)}
-          logo={logo}
-          user={user}
-          onLogout={handleLogout}
-        >
-          {adminSection === 'dashboard' ? (
-            <AdminDashboard orders={orders} />
-          ) : adminSection === 'orders' ? (
-            <AdminOrders 
-              orders={orders} 
-              courierConfig={courierConfig}
-              onUpdateStatus={handleUpdateOrderStatus}
-            />
-          ) : adminSection === 'products' ? (
-            <AdminProducts 
-              products={products}
-              categories={categories}
-              subCategories={subCategories}
-              childCategories={childCategories}
-              brands={brands}
-              tags={tags}
-              onAddProduct={handleAddProduct}
-              onUpdateProduct={handleUpdateProduct}
-              onDeleteProduct={handleDeleteProduct}
-              onBulkDelete={handleBulkDeleteProducts}
-              onBulkUpdate={handleBulkUpdateProducts}
-            />
-          ) : adminSection === 'customization' || adminSection === 'carousel' || adminSection === 'banner' || adminSection === 'popup' || adminSection === 'website_info' || adminSection === 'theme_view' || adminSection === 'theme_colors' ? (
-            <AdminCustomization 
-              logo={logo} 
-              onUpdateLogo={handleUpdateLogo} 
-              themeConfig={themeConfig}
-              onUpdateTheme={handleUpdateTheme}
-              websiteConfig={websiteConfig}
-              onUpdateWebsiteConfig={handleUpdateWebsiteConfig}
-              initialTab={adminSection === 'customization' ? 'website_info' : adminSection}
-            />
-          ) : adminSection === 'settings' ? (
-            <AdminSettings 
-              courierConfig={courierConfig} 
-              onUpdateCourierConfig={handleUpdateCourierConfig} 
-              onNavigate={(page) => setAdminSection(page)}
-            />
-          ) : adminSection === 'settings_delivery' ? (
-            <AdminDeliverySettings 
-              configs={deliveryConfig}
-              onSave={handleUpdateDeliveryConfig}
-              onBack={() => setAdminSection('settings')}
-            />
-          ) : adminSection === 'settings_courier' ? (
-             <div className="bg-white rounded-xl p-6">
-                <h2 className="text-2xl font-bold mb-4">Courier Configuration</h2>
-                {/* Reusing logic from previous simple settings if needed, or redirecting logic */}
-             </div>
-          ) : adminSection === 'admin' ? (
-            <AdminControl 
-              users={users}
-              roles={roles}
-              onAddRole={handleAddRole}
-              onUpdateRole={handleUpdateRole}
-              onDeleteRole={handleDeleteRole}
-              onUpdateUserRole={handleUpdateUserRole}
-            />
-          ) : adminSection.startsWith('catalog_') ? (
-            <AdminCatalog
-              view={adminSection}
-              categories={categories}
-              subCategories={subCategories}
-              childCategories={childCategories}
-              brands={brands}
-              tags={tags}
-              
-              onAddCategory={catHandlers.add}
-              onUpdateCategory={catHandlers.update}
-              onDeleteCategory={catHandlers.delete}
-
-              onAddSubCategory={subCatHandlers.add}
-              onUpdateSubCategory={subCatHandlers.update}
-              onDeleteSubCategory={subCatHandlers.delete}
-
-              onAddChildCategory={childCatHandlers.add}
-              onUpdateChildCategory={childCatHandlers.update}
-              onDeleteChildCategory={childCatHandlers.delete}
-
-              onAddBrand={brandHandlers.add}
-              onUpdateBrand={brandHandlers.update}
-              onDeleteBrand={brandHandlers.delete}
-
-              onAddTag={tagHandlers.add}
-              onUpdateTag={tagHandlers.update}
-              onDeleteTag={tagHandlers.delete}
-            />
-          ) : (
-             <AdminDashboard orders={orders} />
-          )}
+        <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout}>
+          {adminSection === 'dashboard' ? <AdminDashboard orders={orders} /> :
+           adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateStatus={handleUpdateOrderStatus} /> :
+           adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
+           adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
+           adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
+           adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
+           adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
+           <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
+          }
         </AdminLayout>
       ) : (
-        // Storefront Views
         <>
-          {currentView === 'store' && (
-             <StoreHome 
-                products={products}
-                orders={orders}
-                onProductClick={handleProductClick} 
-                wishlistCount={wishlist.length}
-                wishlist={wishlist}
-                onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)}
-                user={user}
-                onLoginClick={() => setIsLoginOpen(true)}
-                onLogoutClick={handleLogout}
-                onProfileClick={() => setCurrentView('profile')}
-                logo={logo}
-                websiteConfig={websiteConfig}
-             />
-          )}
-          
-          {currentView === 'detail' && selectedProduct && (
-            <StoreProductDetail 
-              product={selectedProduct} 
-              orders={orders}
-              onBack={() => setCurrentView('store')}
-              onProductClick={handleProductClick}
-              wishlistCount={wishlist.length}
-              isWishlisted={isInWishlist(selectedProduct.id)}
-              onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)}
-              onCheckout={(prod, qty) => handleCheckoutStart(prod, qty)}
-              user={user}
-              onLoginClick={() => setIsLoginOpen(true)}
-              onLogoutClick={handleLogout}
-              onProfileClick={() => setCurrentView('profile')}
-              logo={logo}
-              websiteConfig={websiteConfig}
-            />
-          )}
-
-          {currentView === 'checkout' && selectedProduct && (
-            <StoreCheckout 
-              product={selectedProduct} 
-              quantity={checkoutQuantity}
-              onBack={() => setCurrentView('detail')}
-              onConfirmOrder={handlePlaceOrder}
-              user={user}
-              onLoginClick={() => setIsLoginOpen(true)}
-              onLogoutClick={handleLogout}
-              onProfileClick={() => setCurrentView('profile')}
-              logo={logo}
-              websiteConfig={websiteConfig}
-            />
-          )}
-
-          {currentView === 'success' && (
-            <StoreOrderSuccess 
-              onHome={() => setCurrentView('store')}
-              user={user}
-              onLoginClick={() => setIsLoginOpen(true)}
-              onLogoutClick={handleLogout}
-              onProfileClick={() => setCurrentView('profile')} 
-              logo={logo}
-              websiteConfig={websiteConfig}
-            />
-          )}
-
-          {currentView === 'profile' && user && (
-            <StoreProfile 
-              user={user}
-              onUpdateProfile={handleUpdateProfile}
-              orders={orders}
-              onHome={() => setCurrentView('store')}
-              onLoginClick={() => setIsLoginOpen(true)}
-              onLogoutClick={handleLogout}
-              logo={logo}
-              websiteConfig={websiteConfig}
-            />
-          )}
+          {currentView === 'store' && <StoreHome products={products} orders={orders} onProductClick={handleProductClick} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+          {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+          {currentView === 'checkout' && selectedProduct && <StoreCheckout product={selectedProduct} quantity={checkoutQuantity} onBack={() => setCurrentView('detail')} onConfirmOrder={handlePlaceOrder} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+          {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+          {currentView === 'profile' && user && <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} />}
         </>
       )}
     </div>

@@ -27,36 +27,36 @@ export const MobileBottomNav: React.FC<{
   
   const style = websiteConfig?.bottomNavStyle || 'style1';
 
-  // Style 2: Floating Center Home Button (Pink Circle)
+  // Style 2: Floating Center Home Button (Light Pink Circle with Dark Pink Icon)
   if (style === 'style2') {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-[70px] flex items-end justify-between px-2 md:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-1">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-[65px] flex items-end px-2 md:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         
         {/* Left Side */}
-        <div className="flex-1 flex justify-around items-center h-full pb-1">
+        <div className="flex-1 flex justify-around items-center h-full pb-1 pr-8">
            <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
-              <MessageSquare size={22} strokeWidth={1.5} className="group-hover:fill-pink-50" />
+              <MessageSquare size={20} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Chat</span>
            </button>
            <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
-              <List size={24} strokeWidth={1.5} />
+              <List size={22} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Categories</span>
            </button>
         </div>
 
         {/* Floating Home Button */}
-        <div className="relative -top-6 mx-2">
+        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
            <button 
              onClick={onHomeClick}
-             className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[6px] border-white shadow-xl transform active:scale-95 transition-transform"
+             className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[5px] border-white shadow-lg transform active:scale-95 transition-transform"
            >
-              <Home size={26} strokeWidth={2} className="mb-0.5" />
+              <Home size={24} strokeWidth={2.5} className="mb-0.5" />
               <span className="text-[9px] font-bold">Home</span>
            </button>
         </div>
 
         {/* Right Side */}
-        <div className="flex-1 flex justify-around items-center h-full pb-1">
+        <div className="flex-1 flex justify-around items-center h-full pb-1 pl-8">
            <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
               <User size={22} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Account</span>
@@ -70,7 +70,7 @@ export const MobileBottomNav: React.FC<{
     );
   }
 
-  // Style 3: Clean 4 Columns (Outline Style)
+  // Style 3: Clean 4 Columns
   if (style === 'style3') {
     return (
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-lg pb-safe">
@@ -98,27 +98,27 @@ export const MobileBottomNav: React.FC<{
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2.5 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe">
       <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <MessageCircle size={22} strokeWidth={1.5} />
+        <MessageCircle size={22} strokeWidth={1.5} className="fill-gray-100 stroke-gray-600" />
         <span className="text-[10px] font-medium text-gray-600">Messenger</span>
       </button>
       
       <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <Phone size={22} strokeWidth={1.5} />
+        <Phone size={22} strokeWidth={1.5} className="stroke-gray-600" />
         <span className="text-[10px] font-medium text-gray-600">Call</span>
       </button>
       
       <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-600 transition w-1/5">
-        <Home size={26} strokeWidth={2.5} className="fill-pink-100" />
+        <Home size={26} strokeWidth={2.5} className="fill-pink-600 text-pink-600" />
         <span className="text-[10px] font-bold">Home</span>
       </button>
       
       <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <Facebook size={22} strokeWidth={1.5} />
+        <Facebook size={22} strokeWidth={1.5} className="stroke-gray-600" />
         <span className="text-[10px] font-medium text-gray-600">Page</span>
       </button>
       
       <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <User size={22} strokeWidth={1.5} />
+        <User size={22} strokeWidth={1.5} className="fill-gray-600 text-gray-600" />
         <span className="text-[10px] font-medium text-gray-600">Account</span>
       </button>
     </div>
@@ -132,7 +132,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   wishlistCount, 
   user, 
   onLoginClick, 
-  onLogoutClick,
+  onLogoutClick, 
   onProfileClick,
   logo,
   websiteConfig

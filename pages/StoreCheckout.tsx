@@ -82,7 +82,7 @@ const StoreCheckout = ({
         websiteConfig={websiteConfig}
       />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Left Column: Delivery & Payment */}

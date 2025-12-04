@@ -27,7 +27,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         websiteConfig={websiteConfig}
       />
       
-      <main className="flex-1 container mx-auto px-4 flex items-center justify-center py-12">
+      <main className="flex-1 max-w-7xl mx-auto px-4 flex items-center justify-center py-12">
         <div className="bg-white rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 max-w-lg w-full text-center animate-in fade-in zoom-in-95 duration-500">
            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle size={48} className="text-green-600" />

@@ -64,7 +64,7 @@ const StoreProfile = ({
         websiteConfig={websiteConfig}
       />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-800 mb-8">My Account</h1>
 

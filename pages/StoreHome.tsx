@@ -111,7 +111,7 @@ const StoreHome = ({
       {/* Hero Section */}
       <HeroSection carouselItems={websiteConfig?.carouselItems} />
 
-      <main className="container mx-auto px-4 space-y-12 pb-12">
+      <main className="max-w-7xl mx-auto px-4 space-y-12 pb-12">
         
         {/* Categories */}
         {websiteConfig?.categorySectionStyle === 'style2' ? (

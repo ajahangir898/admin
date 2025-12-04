@@ -994,7 +994,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
       <footer className="bg-white border-t border-gray-100 font-sans">
         {/* Contact Bar */}
         <div className="bg-gray-50 border-b border-gray-100 py-6">
-           <div className="container mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+           <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
               <div className="flex items-center gap-3">
                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-gray-100">
                     <Mail size={18} />
@@ -1026,7 +1026,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
         </div>
 
         {/* Main Footer */}
-        <div className="container mx-auto px-4 py-12">
+        <div className="max-w-7xl mx-auto px-4 py-12">
            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
               <div className="flex flex-col items-center md:items-start">
                  <div className="flex flex-col leading-none mb-4">
@@ -1088,7 +1088,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
   // Default Footer
   return (
     <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300">
-      <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         {!websiteConfig?.hideCopyright && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div>

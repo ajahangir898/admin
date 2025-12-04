@@ -72,7 +72,7 @@ const App = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
-    primaryColor: '#22c55e', secondaryColor: '#ec4899', tertiaryColor: '#9333ea', darkMode: false
+    primaryColor: '#ec4899', secondaryColor: '#a855f7', tertiaryColor: '#c026d3', darkMode: false
   });
   const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(undefined);
   const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>([]);

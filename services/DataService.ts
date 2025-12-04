@@ -1,71 +1,147 @@
 
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from '../types';
 import { PRODUCTS, RECENT_ORDERS } from '../constants';
-
-// Set this to TRUE when your PHP/Node backend is ready
-const USE_API = false;
-const API_BASE_URL = 'http://localhost/api'; // Update with your actual API URL
+import { db } from './firebaseConfig';
+import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 class DataServiceImpl {
   
-  // --- Generic Helpers ---
+  // --- Generic Firestore Helpers ---
   
-  async get<T>(key: string, defaultValue: T): Promise<T> {
-    if (USE_API) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/${key}`);
-        if (!res.ok) throw new Error('Network response was not ok');
-        return await res.json();
-      } catch (error) {
-        console.error(`API Error fetching ${key}:`, error);
+  /**
+   * Fetch a single document by ID from a collection.
+   * If not found, returns the defaultValue.
+   */
+  async getDocument<T>(collectionName: string, docId: string, defaultValue: T): Promise<T> {
+    try {
+      const docRef = doc(db, collectionName, docId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data() as T;
+      } else {
+        // If it doesn't exist, initialize it with default value
+        await setDoc(docRef, defaultValue as any);
         return defaultValue;
       }
-    } else {
-      // LocalStorage Fallback
-      const stored = localStorage.getItem(`gadgetshob_${key}`);
-      return stored ? JSON.parse(stored) : defaultValue;
+    } catch (error) {
+      console.error(`Error fetching document ${collectionName}/${docId}:`, error);
+      return defaultValue;
     }
+  }
+
+  /**
+   * Save (Overwrite) a single document.
+   */
+  async saveDocument<T>(collectionName: string, docId: string, data: T): Promise<void> {
+    try {
+      await setDoc(doc(db, collectionName, docId), data as any);
+    } catch (error) {
+      console.error(`Error saving document ${collectionName}/${docId}:`, error);
+    }
+  }
+
+  /**
+   * Fetch all documents from a collection as an array.
+   * If empty, returns defaultValue.
+   */
+  async getCollection<T>(collectionName: string, defaultValue: T[]): Promise<T[]> {
+    try {
+      const querySnapshot = await getDocs(collection(db, collectionName));
+      const items: T[] = [];
+      querySnapshot.forEach((doc) => {
+        // We assume the ID is part of the data or we inject it
+        items.push({ id: doc.id, ...doc.data() } as any);
+      });
+      return items.length > 0 ? items : defaultValue;
+    } catch (error) {
+      console.error(`Error fetching collection ${collectionName}:`, error);
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Overwrite an entire collection (used for syncing array state to DB).
+   * Note: In a real app, you'd use add/update/delete individual docs.
+   * For this migration, we are syncing the whole list for simplicity matching the previous architecture.
+   */
+  async saveCollection<T extends { id: string | number }>(collectionName: string, data: T[]): Promise<void> {
+    try {
+      // 1. Get all existing docs to find deletions
+      const snapshot = await getDocs(collection(db, collectionName));
+      const batchPromises = [];
+
+      // 2. Update or Create docs
+      for (const item of data) {
+        const id = String(item.id);
+        const docRef = doc(db, collectionName, id);
+        batchPromises.push(setDoc(docRef, item));
+      }
+
+      // 3. Delete docs that are no longer in the data array
+      snapshot.forEach((docSnap) => {
+        if (!data.find(d => String(d.id) === docSnap.id)) {
+          batchPromises.push(deleteDoc(doc(db, collectionName, docSnap.id)));
+        }
+      });
+
+      await Promise.all(batchPromises);
+    } catch (error) {
+      console.error(`Error saving collection ${collectionName}:`, error);
+    }
+  }
+
+  // --- Wrapper for older key-value style calls (Compatibility) ---
+  // We map the old "keys" to Firestore Collections or Documents
+  
+  async get<T>(key: string, defaultValue: T): Promise<T> {
+    // Configs are usually single documents
+    if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
+      return this.getDocument('configurations', key, defaultValue);
+    }
+    // Lists are collections
+    if (Array.isArray(defaultValue)) {
+        return this.getCollection(key, defaultValue) as any;
+    }
+    return defaultValue;
   }
 
   async save<T>(key: string, data: T): Promise<void> {
-    if (USE_API) {
-      try {
-        await fetch(`${API_BASE_URL}/${key}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-      } catch (error) {
-        console.error(`API Error saving ${key}:`, error);
-      }
-    } else {
-      localStorage.setItem(`gadgetshob_${key}`, JSON.stringify(data));
+    if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
+      return this.saveDocument('configurations', key, data);
+    }
+    if (Array.isArray(data)) {
+        return this.saveCollection(key, data as any[]);
     }
   }
 
-  // --- Specific Data Loaders ---
+  // --- Specific Data Loaders (Optimized for Firestore) ---
 
   async getProducts(): Promise<Product[]> {
-    return this.get<Product[]>('products', PRODUCTS);
+    return this.getCollection<Product>('products', PRODUCTS);
   }
 
   async getOrders(): Promise<Order[]> {
-    return this.get<Order[]>('orders', RECENT_ORDERS);
+    return this.getCollection<Order>('orders', RECENT_ORDERS);
   }
 
   async getUsers(): Promise<User[]> {
+    // For users, we might want to key them by email in a real app, 
+    // but for this structure, we'll use the collection approach.
+    // We need to generate IDs for users if they don't have one, or use email as ID.
+    // The current Type has no ID, so we might need to handle that.
+    // For now, we fall back to the compatibility layer.
     return this.get<User[]>('users', []);
   }
 
   async getRoles(): Promise<Role[]> {
-    return this.get<Role[]>('roles', [
+    return this.getCollection<Role>('roles', [
       { id: 'manager', name: 'Store Manager', description: 'Can manage products and orders', permissions: ['view_dashboard', 'manage_orders', 'view_orders', 'manage_products', 'view_products'] },
       { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: ['view_dashboard', 'view_orders'] }
     ]);
   }
 
   async getThemeConfig(): Promise<ThemeConfig> {
-    return this.get<ThemeConfig>('theme', {
+    return this.getDocument<ThemeConfig>('configurations', 'theme', {
       primaryColor: '#22c55e',
       secondaryColor: '#ec4899',
       tertiaryColor: '#9333ea',
@@ -74,7 +150,6 @@ class DataServiceImpl {
   }
 
   async getWebsiteConfig(): Promise<WebsiteConfig> {
-    // Default config logic from App.tsx moved here
     const defaultConfig: WebsiteConfig = {
       websiteName: 'Overseas Products',
       shortDescription: 'Get the best for less',
@@ -109,11 +184,14 @@ class DataServiceImpl {
       orderLanguage: 'English',
       productCardStyle: 'style1'
     };
-    return this.get<WebsiteConfig>('website_config', defaultConfig);
+    return this.getDocument<WebsiteConfig>('configurations', 'website_config', defaultConfig);
   }
 
   async getDeliveryConfig(): Promise<DeliveryConfig[]> {
-    return this.get<DeliveryConfig[]>('delivery_config', [
+    // Delivery config is a list, but we can store it as a single doc for simpler management in this app structure,
+    // or as a collection. Given the App.tsx usage, let's treat it as a collection or a doc array.
+    // For consistency with how we handle 'delivery_config' key in App.tsx:
+    return this.getDocument<DeliveryConfig[]>('configurations', 'delivery_config', [
       { type: 'Regular', isEnabled: true, division: 'Dhaka', insideCharge: 60, outsideCharge: 120, freeThreshold: 0, note: 'Standard delivery time 2-3 days' },
       { type: 'Express', isEnabled: true, division: 'Dhaka', insideCharge: 100, outsideCharge: 200, freeThreshold: 5000, note: 'Next day delivery available' },
       { type: 'Free', isEnabled: false, division: 'Dhaka', insideCharge: 0, outsideCharge: 0, freeThreshold: 0, note: 'Promotional free shipping' }
@@ -122,7 +200,7 @@ class DataServiceImpl {
 
   // Catalog
   async getCatalog(type: string, defaults: any[]): Promise<any[]> {
-    return this.get<any[]>(type, defaults);
+    return this.getCollection<any>(type, defaults);
   }
 }
 

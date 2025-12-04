@@ -137,7 +137,7 @@ const StoreHome = ({
                  {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
                     <div key={`${cat.name}-${idx}`} className="inline-flex items-center gap-3 p-1.5 pr-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer hover:border-blue-400 transition group flex-shrink-0">
                        <div className="w-10 h-10 rounded-full bg-white border border-blue-100 dark:bg-slate-700 dark:border-slate-600 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition shadow-sm">
-                          {React.cloneElement(iconMap[cat.icon] as React.ReactElement, { size: 20, strokeWidth: 1.5 })}
+                          {React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 1.5 })}
                        </div>
                        <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400">{cat.name}</span>
                     </div>

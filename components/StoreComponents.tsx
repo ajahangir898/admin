@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
@@ -793,9 +793,9 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + displaySlides.length) % displaySlides.length);
 
   return (
-    <div className="relative w-full group">
+    <div className="w-full max-w-7xl mx-auto px-4 mt-4">
        {/* Container for aspect ratio. Using a common banner ratio like 21:9 */}
-       <div className="relative w-full overflow-hidden aspect-[16/9] md:aspect-[21/9] max-h-[500px] mx-auto md:max-w-7xl md:rounded-xl shadow-sm">
+       <div className="relative w-full group rounded-xl overflow-hidden aspect-[16/9] md:aspect-[21/9] max-h-[500px] shadow-sm">
           {displaySlides.map((slide, index) => (
             <div 
               key={slide.id || index}
@@ -811,7 +811,6 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                </a>
             </div>
           ))}
-       </div>
 
        {/* Navigation Buttons - Style match: White circle, gray icon */}
        {displaySlides.length > 1 && (
@@ -843,6 +842,7 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
             ))}
          </div>
       )}
+       </div>
     </div>
   );
 };
@@ -1107,7 +1107,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
               </p>
               <div className="flex gap-4">
                 {websiteConfig?.socialLinks.map(link => (
-                  <a href={link.url} key={link.id} className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-500 hover:text-white transition">
+                  <a href={link.url} key={link.id} className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-50 hover:text-white transition">
                     {socialIcons[link.platform] || <Globe size={18}/>}
                   </a>
                 ))}
@@ -1161,6 +1161,3 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
     </footer>
   );
 };
-
-// Helper for Footer Style 2
-import { MessageCircle } from 'lucide-react';

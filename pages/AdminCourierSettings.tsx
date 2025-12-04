@@ -1,0 +1,179 @@
+
+import React, { useState, useEffect } from 'react';
+import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft, Truck } from 'lucide-react';
+
+interface CourierConfig {
+  apiKey: string;
+  secretKey: string;
+}
+
+interface AdminCourierSettingsProps {
+  config: CourierConfig;
+  onSave: (config: CourierConfig) => void;
+  onBack: () => void;
+}
+
+const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onSave, onBack }) => {
+  const [activeTab, setActiveTab] = useState<'Steadfast' | 'Pathao'>('Steadfast');
+  const [formData, setFormData] = useState({
+    apiKey: '',
+    secretKey: '',
+    instruction: ''
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Load initial config
+  useEffect(() => {
+    if (activeTab === 'Steadfast') {
+      setFormData(prev => ({
+        ...prev,
+        apiKey: config.apiKey || '',
+        secretKey: config.secretKey || ''
+      }));
+    }
+  }, [config, activeTab]);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (activeTab === 'Steadfast') {
+        onSave({
+            apiKey: formData.apiKey,
+            secretKey: formData.secretKey
+        });
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+    } else {
+        alert("Pathao Courier integration coming soon!");
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in w-full max-w-4xl mx-auto">
+      <div className="flex items-center gap-4 mb-6">
+        <button onClick={onBack} className="p-2 hover:bg-gray-200 rounded-full transition">
+           <ArrowLeft size={20} className="text-gray-600"/>
+        </button>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Courier Configuration</h2>
+          <p className="text-sm text-gray-500">Manage third-party logistics integrations.</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {['Steadfast', 'Pathao'].map((provider) => {
+          const isActive = activeTab === provider;
+          const isConfigured = provider === 'Steadfast' && config.apiKey && config.secretKey;
+
+          return (
+            <div 
+              key={provider}
+              onClick={() => setActiveTab(provider as any)}
+              className={`
+                relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between h-24
+                ${isActive ? 'border-purple-600 bg-purple-50' : 'border-gray-200 bg-white hover:border-purple-200'}
+              `}
+            >
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                   {isConfigured ? (
+                     <CheckCircle size={22} className="text-green-500 fill-green-100" />
+                   ) : (
+                     <Circle size={22} className="text-gray-300" />
+                   )}
+                   <div>
+                       <span className={`font-bold block ${isActive ? 'text-purple-700' : 'text-gray-700'}`}>
+                         {provider} Courier
+                       </span>
+                   </div>
+                </div>
+              </div>
+              
+              {isActive && (
+                <div className="text-xs text-purple-600 font-medium flex items-center gap-1 mt-2">
+                   Show Setting Form <ChevronDown size={12} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Configuration Form */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden animate-in slide-in-from-top-2">
+         <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+               <Truck size={20} className="text-purple-600"/>
+               <h3 className="font-bold text-gray-800 text-lg">{activeTab} Integration</h3>
+            </div>
+         </div>
+
+         <form onSubmit={handleSave} className="p-8">
+            
+            {showSuccess && (
+              <div className="bg-green-50 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 border border-green-100 mb-6 animate-in fade-in slide-in-from-top-1">
+                 <CheckCircle size={18} /> Credentials saved successfully!
+              </div>
+            )}
+
+            <div className="space-y-6">
+               <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Select Provider*</label>
+                  <select 
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-gray-50"
+                    value={`${activeTab} Courier`}
+                    disabled
+                  >
+                     <option>{activeTab} Courier</option>
+                  </select>
+               </div>
+
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Api Key</label>
+                  <input 
+                    type="text" 
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
+                    placeholder="Enter API Key"
+                    value={formData.apiKey}
+                    onChange={(e) => setFormData({...formData, apiKey: e.target.value})}
+                  />
+               </div>
+
+               <div>
+                  <label className="block text-sm font-medium text-purple-600 mb-1">Secret Key</label>
+                  <input 
+                    type="text" 
+                    className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none transition bg-purple-50/30"
+                    placeholder="Enter Secret Key"
+                    value={formData.secretKey}
+                    onChange={(e) => setFormData({...formData, secretKey: e.target.value})}
+                  />
+               </div>
+
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Special Instruction</label>
+                  <input 
+                    type="text" 
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
+                    placeholder="e.g. Handle fragile items with care"
+                    value={formData.instruction}
+                    onChange={(e) => setFormData({...formData, instruction: e.target.value})}
+                  />
+               </div>
+            </div>
+
+            <div className="pt-6 mt-6">
+               <button 
+                 type="submit"
+                 className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
+               >
+                 <Save size={18} /> Save Changes
+               </button>
+            </div>
+         </form>
+      </div>
+    </div>
+  );
+};
+
+export default AdminCourierSettings;

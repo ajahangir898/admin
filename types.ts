@@ -17,6 +17,7 @@ export interface Product {
   childCategory?: string; // Added
   brand?: string; // Added
   tags?: string[];
+  status?: 'Active' | 'Draft'; // Added for filtering
 }
 
 export interface Order {
@@ -163,4 +164,12 @@ export interface Tag {
   id: string;
   name: string;
   status: 'Active' | 'Inactive';
+}
+
+export interface GalleryItem {
+  id: number;
+  title: string;
+  category: string;
+  imageUrl: string;
+  dateAdded: string;
 }

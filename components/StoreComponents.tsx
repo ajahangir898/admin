@@ -1,18 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
-// Safe price formatter to avoid rendering crashes when values are undefined/null
-export const formatPrice = (value?: number | null) => {
-  if (value === undefined || value === null || Number.isNaN(Number(value))) return '0';
-  try { return Number(value).toLocaleString(); } catch { return String(value); }
-};
-
-// Small reusable spinner component using lucide's Loader2
-export const Spinner: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => {
-  return <Loader2 size={size} className={`animate-spin ${className}`} />;
-};
 
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
@@ -27,6 +17,115 @@ interface StoreHeaderProps {
   websiteConfig?: WebsiteConfig;
 }
 
+export const MobileBottomNav: React.FC<{
+  onHomeClick: () => void;
+  onCartClick: () => void;
+  onAccountClick: () => void;
+  cartCount?: number;
+  websiteConfig?: WebsiteConfig;
+  activeTab?: string;
+}> = ({ onHomeClick, onCartClick, onAccountClick, cartCount, websiteConfig, activeTab = 'home' }) => {
+  
+  const style = websiteConfig?.bottomNavStyle || 'style1';
+
+  // Style 2: Floating Center Home Button (Light Pink Circle with Dark Pink Icon)
+  if (style === 'style2') {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-[70px] flex items-end px-2 md:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-1">
+        
+        {/* Left Side */}
+        <div className="flex-1 flex justify-around items-center h-full pb-2 pr-10">
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+              <MessageSquare size={20} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Chat</span>
+           </button>
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+              <List size={22} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Categories</span>
+           </button>
+        </div>
+
+        {/* Floating Home Button */}
+        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+           <button 
+             onClick={onHomeClick}
+             className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[4px] border-white shadow-lg transform active:scale-95 transition-transform"
+           >
+              <Home size={24} strokeWidth={2.5} className="mb-0.5" />
+              <span className="text-[10px] font-bold">Home</span>
+           </button>
+        </div>
+
+        {/* Right Side */}
+        <div className="flex-1 flex justify-around items-center h-full pb-2 pl-10">
+           <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition group ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}>
+              <User size={22} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Account</span>
+           </button>
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+              <Menu size={22} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Menu</span>
+           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Style 3: Clean 4 Columns
+  if (style === 'style3') {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2.5 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-lg pb-safe">
+        <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
+          <Home size={22} strokeWidth={2} className={activeTab === 'home' ? 'fill-pink-100' : ''} />
+          <span className="text-[10px] font-medium">Home</span>
+        </button>
+        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+          <List size={22} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Categories</span>
+        </button>
+        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+          <MessageSquare size={22} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Chat</span>
+        </button>
+        <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
+          <User size={22} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Account</span>
+        </button>
+      </div>
+    );
+  }
+
+  // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <MessageCircle size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Messenger</span>
+      </button>
+      
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <Phone size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Call</span>
+      </button>
+      
+      <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
+        <Home size={24} strokeWidth={2.5} className={activeTab === 'home' ? 'fill-pink-600 text-pink-600' : 'text-gray-500'} />
+        <span className="text-[10px] font-bold">Home</span>
+      </button>
+      
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <Facebook size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Page</span>
+      </button>
+      
+      <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
+        <User size={20} strokeWidth={2} className={activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'} />
+        <span className="text-[10px] font-medium">Account</span>
+      </button>
+    </div>
+  );
+};
+
 export const StoreHeader: React.FC<StoreHeaderProps> = ({ 
   onTrackOrder, 
   onOpenAIStudio, 
@@ -34,13 +133,12 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   wishlistCount, 
   user, 
   onLoginClick, 
-  onLogoutClick,
+  onLogoutClick, 
   onProfileClick,
   logo,
   websiteConfig
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [logoError, setLogoError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +156,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     return (
       <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans">
         {/* Top Bar */}
-        <div className="bg-white border-b border-gray-100 dark:bg-slate-900 dark:border-slate-800">
+        <div className="bg-white border-b border-gray-100 dark:bg-slate-900 dark:border-slate-800 hidden md:block">
           <div className="max-w-7xl mx-auto px-4 py-2 text-[11px] md:text-xs font-medium text-gray-600 dark:text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
             <div className="flex items-center gap-4 md:gap-6">
                <div className="flex items-center gap-1.5">
@@ -88,13 +186,13 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         </div>
 
         {/* Main Header */}
-        <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-5">
            <div className="flex items-center justify-between gap-4 md:gap-8">
               
               {/* Logo */}
-              <div className="cursor-pointer shrink-0 hover:opacity-80 transition" onClick={onHomeClick}>
-                {logo && !logoError ? (
-                  <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" onError={() => setLogoError(true)} loading="lazy" />
+              <div className="cursor-pointer shrink-0" onClick={onHomeClick}>
+                {logo ? (
+                  <img src={logo} alt="Store Logo" className="h-8 md:h-12 object-contain" />
                 ) : (
                   <div className="flex flex-col leading-none">
                      <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
@@ -116,14 +214,14 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
               </div>
 
               {/* Right Actions */}
-              <div className="flex items-center gap-6 md:gap-8 shrink-0">
+              <div className="flex items-center gap-4 md:gap-8 shrink-0">
                  {/* Mobile Search Icon */}
                  <button className="md:hidden text-gray-600 dark:text-gray-300">
                     <Search size={24} />
                  </button>
 
                  {/* Cart */}
-                 <div className="relative cursor-pointer group">
+                 <div className="relative cursor-pointer group hidden md:block">
                     <ShoppingCart size={28} className="text-gray-700 dark:text-gray-200 group-hover:text-blue-600 transition" strokeWidth={1.5} />
                     <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
                        0
@@ -131,7 +229,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                  </div>
 
                  {/* User / Login */}
-                 <div className="relative" ref={menuRef}>
+                 <div className="relative hidden md:block" ref={menuRef}>
                     <div 
                       className="flex items-center gap-2 cursor-pointer group"
                       onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
@@ -153,7 +251,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                        </div>
                     </div>
 
-                    {/* User Dropdown (Same as Style 1) */}
+                    {/* User Dropdown */}
                     {user && isMenuOpen && (
                       <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
                          <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
@@ -181,148 +279,180 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     );
   }
 
-  // Default Style 1
+  // Default Style 1 (GadgetShob)
   return (
     <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
-      {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
-        <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium overflow-hidden whitespace-nowrap">
-           <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
-        </div>
-      )}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Logo */}
-          <div className="flex items-center cursor-pointer hover:opacity-80 transition" onClick={onHomeClick}>
-            {logo && !logoError ? (
-              <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" onError={() => setLogoError(true)} loading="lazy" />
-            ) : (
-              <h1 className="text-2xl font-bold tracking-tighter">
-                {websiteConfig?.brandingText ? (
-                   <span className="text-gray-800 dark:text-white">{websiteConfig.brandingText}</span>
-                ) : (
-                   <>
-                    <span className="text-gray-800 dark:text-white">GADGET</span>
+      
+      {/* MOBILE HEADER SPECIFIC LAYOUT */}
+      <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3">
+        {/* Logo Row */}
+        <div className="flex justify-center mb-3" onClick={onHomeClick}>
+        {logo ? (
+            <img src={logo} alt="Store Logo" className="h-8 object-contain" />
+        ) : (
+            <div className="flex flex-col items-center leading-none">
+                <Smartphone size={24} className="text-gray-800 dark:text-white mb-1" strokeWidth={2.5}/>
+                <h1 className="text-xl font-bold tracking-tighter flex items-center gap-0.5">
+                    <span className="text-gray-900 dark:text-white">GADGET</span>
                     <span className="text-pink-500">SHOB</span>
-                   </>
-                )}
-              </h1>
-            )}
-          </div>
+                </h1>
+            </div>
+        )}
+        </div>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-2xl relative">
-            <input
-              type="text"
-              placeholder={websiteConfig?.searchHints || "Search product..."}
-              className="w-full border-2 border-green-500 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600"
-            />
-            <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-6 rounded-r-full hover:bg-green-600 transition flex items-center justify-center">
-              <Search size={20} />
+        {/* Action Row */}
+        <div className="flex items-center gap-3">
+            <button className="text-gray-800 dark:text-white">
+                <Menu size={28} strokeWidth={2} />
             </button>
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition">
-              <div className="relative">
-                <Heart size={24} />
-                {wishlistCount !== undefined && wishlistCount > 0 && (
-                   <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistCount}</span>
-                )}
-              </div>
-              <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
+            <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800" size={18} strokeWidth={2.5} />
+                <input 
+                type="text" 
+                placeholder={websiteConfig?.searchHints || "gadget"} 
+                className="w-full pl-10 pr-20 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-gray-500 font-medium text-gray-700"
+                />
+                <button className="absolute right-1 top-1 bottom-1 bg-black text-white text-xs font-bold px-4 rounded-md hover:bg-gray-800 transition">
+                Search
+                </button>
             </div>
-            
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition">
-              <div className="relative">
-                <ShoppingCart size={24} />
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
-              </div>
-              <span className="hidden sm:inline text-sm font-medium">Cart</span>
+
+            <div className="relative cursor-pointer">
+                <ShoppingCart size={26} className="text-gray-800 dark:text-white" strokeWidth={2} />
+                <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">0</span>
             </div>
-            
-            <div className="relative" ref={menuRef}>
-              <div 
-                className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition" 
-                onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
-              >
-                <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-full">
-                  <User size={20} />
-                </div>
-                {user ? (
-                   <div className="hidden sm:flex flex-col items-start leading-tight">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Hello,</span>
-                      <span className="text-sm font-bold flex items-center gap-1 dark:text-white">
-                        {user.name.split(' ')[0]} 
-                        <ChevronDown size={12} />
-                      </span>
-                   </div>
+        </div>
+      </div>
+
+      {/* DESKTOP HEADER (Hidden on Mobile) */}
+      <div className="hidden md:block">
+        {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
+            <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium overflow-hidden whitespace-nowrap">
+            <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
+            </div>
+        )}
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
+            <div className="flex items-center justify-between gap-4">
+            {/* Logo */}
+            <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
+                {logo ? (
+                <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
                 ) : (
-                   <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
+                <h1 className="text-2xl font-bold tracking-tighter">
+                    {websiteConfig?.brandingText ? (
+                    <span className="text-gray-800 dark:text-white">{websiteConfig.brandingText}</span>
+                    ) : (
+                    <>
+                        <span className="text-gray-800 dark:text-white">GADGET</span>
+                        <span className="text-pink-500">SHOB</span>
+                    </>
+                    )}
+                </h1>
                 )}
-              </div>
-
-              {/* User Dropdown */}
-              {user && isMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                   <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                   </div>
-                   <button 
-                      onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
-                   >
-                      <UserCircle size={16} /> My Profile
-                   </button>
-                   <button 
-                      onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
-                   >
-                      <Truck size={16} /> My Orders
-                   </button>
-                   <div className="border-t border-gray-50 dark:border-slate-700 mt-1">
-                     <button 
-                        onClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                     >
-                        <LogOut size={16} /> Logout
-                     </button>
-                   </div>
-                </div>
-              )}
             </div>
-          </div>
+
+            {/* Search Bar */}
+            <div className="hidden md:flex flex-1 max-w-2xl relative">
+                <input
+                type="text"
+                placeholder={websiteConfig?.searchHints || "Search product..."}
+                className="w-full border-2 border-green-500 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600"
+                />
+                <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-6 rounded-r-full hover:bg-green-600 transition flex items-center justify-center">
+                <Search size={20} />
+                </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
+                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                <div className="relative">
+                    <Heart size={24} />
+                    {wishlistCount !== undefined && wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistCount}</span>
+                    )}
+                </div>
+                <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
+                </div>
+                
+                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                <div className="relative">
+                    <ShoppingCart size={24} />
+                    <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                </div>
+                <span className="hidden sm:inline text-sm font-medium">Cart</span>
+                </div>
+                
+                <div className="relative hidden md:block" ref={menuRef}>
+                <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition" 
+                    onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
+                >
+                    <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-full">
+                    <User size={20} />
+                    </div>
+                    {user ? (
+                    <div className="hidden sm:flex flex-col items-start leading-tight">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Hello,</span>
+                        <span className="text-sm font-bold flex items-center gap-1 dark:text-white">
+                            {user.name.split(' ')[0]} 
+                            <ChevronDown size={12} />
+                        </span>
+                    </div>
+                    ) : (
+                    <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
+                    )}
+                </div>
+
+                {/* User Dropdown */}
+                {user && isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <button 
+                        onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
+                    >
+                        <UserCircle size={16} /> My Profile
+                    </button>
+                    <button 
+                        onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
+                    >
+                        <Truck size={16} /> My Orders
+                    </button>
+                    <div className="border-t border-gray-50 dark:border-slate-700 mt-1">
+                        <button 
+                            onClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                        >
+                            <LogOut size={16} /> Logout
+                        </button>
+                    </div>
+                    </div>
+                )}
+                </div>
+            </div>
+            </div>
         </div>
-      </div>
-      
-      {/* Mobile Search */}
-      <div className="md:hidden px-4 pb-4">
-        <div className="relative">
-          <input
-             type="text"
-             placeholder={websiteConfig?.searchHints || "Search product..."}
-             className="w-full border border-green-500 rounded-lg py-2 px-3 focus:outline-none dark:bg-slate-800 dark:text-white dark:border-green-600"
-          />
-          <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-3 rounded-r-lg">
-            <Search size={18} />
-          </button>
-        </div>
-      </div>
-      
-      {/* Navigation Bar */}
-      <div className="border-t border-gray-100 dark:border-slate-800 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
-             <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
-             {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
-             <a href="#" className="hover:text-green-500 transition">Products</a>
-             <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
-             <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
-               <Sparkles size={16} /> AI Image Studio
-             </button>
-             <a href="#" className="hover:text-green-500 transition">Wishlist</a>
-          </nav>
+        
+        {/* Navigation Bar */}
+        <div className="border-t border-gray-100 dark:border-slate-800 hidden md:block">
+            <div className="max-w-7xl mx-auto px-4">
+            <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
+                <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
+                {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
+                <a href="#" className="hover:text-green-500 transition">Products</a>
+                <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
+                <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
+                <Sparkles size={16} /> AI Image Studio
+                </button>
+                <a href="#" className="hover:text-green-500 transition">Wishlist</a>
+            </nav>
+            </div>
         </div>
       </div>
     </header>
@@ -477,7 +607,7 @@ export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => 
               </div>
               <div className="flex-1">
                  <h4 className="font-bold text-gray-800 dark:text-white text-sm line-clamp-2">{product.name}</h4>
-                 <p className="text-orange-500 font-bold mt-1">৳ {formatPrice(product.price)}</p>
+                 <p className="text-orange-500 font-bold mt-1">৳ {product.price.toLocaleString()}</p>
               </div>
            </div>
            
@@ -744,7 +874,7 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
                      </div>
                      <div>
                        <p className="text-xs text-gray-500 dark:text-gray-400">Amount</p>
-                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {formatPrice(result.amount)}</p>
+                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {result.amount.toLocaleString()}</p>
                      </div>
                      <div className="col-span-2">
                        <p className="text-xs text-gray-500 dark:text-gray-400">Date</p>
@@ -859,20 +989,25 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 };
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-  <div className="flex flex-col items-center gap-1 group cursor-pointer min-w-[72px] transition-all duration-300 hover:-translate-y-1">
-    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-white group-hover:bg-green-500 transition-all duration-300 group-hover:shadow-green-200 group-hover:shadow-lg relative overflow-hidden">
+  <div className="flex flex-col items-center gap-3 group cursor-pointer min-w-[90px] transition-all duration-300 hover:-translate-y-1">
+    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-white group-hover:bg-green-500 transition-all duration-300 group-hover:shadow-green-200 group-hover:shadow-lg relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-tr from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300">
         {icon}
       </div>
     </div>
+<<<<<<< HEAD
     <span className="text-[10px] md:text-[11px] font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-none max-w-[90px]">  <div class="**font-bold**">{name}
   This entire div's text will be bold.
 </div>  </span>
+=======
+    <span className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-tight max-w-[100px]">{name}</span>
+>>>>>>> 999ea05795474c47f61d6cf233f74416a970612b
   </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+<<<<<<< HEAD
   <div className="inline-flex items-center gap-1 pl-2 pr-4 py-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
     <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
       <div className="transform group-hover:rotate-12 transition-transform duration-300">
@@ -881,97 +1016,62 @@ export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = (
       </div>
     </div>
      <span className="font-medium text-gray-700 dark:text-gray-200 text-[10px] leading-none group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
+=======
+  <div className="inline-flex items-center gap-3 pl-2 pr-6 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
+     <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
+        <div className="transform group-hover:rotate-12 transition-transform duration-300">
+           {icon}
+        </div>
+     </div>
+     <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
+>>>>>>> 999ea05795474c47f61d6cf233f74416a970612b
   </div>
 );
 
 export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void, variant?: string }> = ({ product, onClick, variant = 'style1' }) => {
   
-  // Style 2: Flash Sale (Pink/Blue Theme) - Enhanced layout matching screenshot
+  // Style 2: Flash Sale (Pink/Blue Theme)
   if (variant === 'style2') {
      return (
         <div 
-          className="bg-white rounded-lg border border-gray-200 hover:border-pink-300 overflow-hidden hover:shadow-2xl transition-all duration-300 group relative flex flex-col h-full cursor-pointer"
+          className="bg-white rounded-xl border border-gray-100 hover:border-pink-200 overflow-hidden hover:shadow-xl transition-all duration-300 group relative flex flex-col h-full cursor-pointer"
           onClick={() => onClick && onClick(product)}
         >
-           {/* Image Container */}
-           <div className="relative h-40 md:h-48 flex items-center justify-center bg-gray-50 overflow-hidden">
-               {/* Heart Icon - Top Left */}
-               <button 
-                   className="absolute top-3 left-3 text-gray-300 hover:text-red-500 transition z-10 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-sm"
-                   onClick={(e) => { e.stopPropagation(); }}
-               >
-                   <Heart size={18} className="stroke-2" />
+           <div className="relative p-4 pb-0 h-48 flex items-center justify-center bg-white">
+               <button className="absolute top-3 left-3 text-gray-300 hover:text-pink-500 transition z-10">
+                   <Heart size={20} />
                </button>
-               
-               {/* SALE Badge - Top Right */}
                {product.discount && (
-                   <span className="absolute top-3 right-3 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-sm z-10 shadow-md">
+                   <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
                        SALE
                    </span>
                )}
-               
-               {/* Product Image */}
-               <img 
-                   src={product.image} 
-                   alt={product.name} 
-                   className="h-full w-full object-cover group-hover:scale-110 transition duration-500" 
-               />
+               <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain transform group-hover:scale-110 transition duration-500" />
            </div>
            
-           {/* Content Container */}
-           <div className="p-3 md:p-4 flex flex-col flex-1">
-               {/* Rating and Sold Info */}
-               <div className="flex items-center gap-2 mb-2">
-                   <div className="flex gap-0.5">
-                       {[1,2,3,4,5].map(s => (
-                           <Star 
-                               key={s} 
-                               size={14} 
-                               className={s <= (product.rating || 0) ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} 
-                           />
-                       ))}
-                   </div>
-                   <span className="text-xs text-gray-500">({product.reviews || 0})</span>
-                   <span className="text-xs text-gray-400 ml-auto">{product.sold || 0} Sold</span>
+           <div className="p-4 flex flex-col flex-1">
+               <div className="flex gap-1 mb-2">
+                   {[1,2,3,4,5].map(s => <Star key={s} size={12} className={s <= (product.rating||0) ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} />)}
+                   <span className="text-xs text-gray-400 ml-1">({product.reviews})</span>
                </div>
+               <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition" title={product.name}>{product.name}</h3>
+               <p className="text-xs text-gray-500 line-clamp-2 mb-3 h-8 overflow-hidden">{product.description || "Premium quality product."}</p>
                
-               {/* Product Name */}
-               <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition" title={product.name}>
-                   {product.name}
-               </h3>
-               
-               {/* Description */}
-               <p className="text-xs text-gray-500 line-clamp-2 mb-3 h-8 overflow-hidden flex-shrink-0">
-                   {product.description || "Premium quality product."}
-               </p>
-               
-               {/* Pricing Section */}
                <div className="mt-auto">
-                   <div className="flex items-center gap-2 mb-2">
-                       <span className="text-pink-600 font-bold text-lg">৳{formatPrice(product.price)}</span>
+                   <div className="flex items-center gap-2 mb-1">
+                       <span className="text-pink-600 font-bold text-lg">৳ {product.price.toLocaleString()}</span>
                        {product.originalPrice && (
-                           <span className="text-gray-400 text-xs line-through">৳{formatPrice(product.originalPrice)}</span>
+                           <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice.toLocaleString()}</span>
                        )}
                    </div>
+                   <div className="text-[10px] text-blue-500 font-bold mb-3">Get 50 Coins</div>
                    
-                   {/* Coins Reward */}
-                   <div className="text-xs text-cyan-500 font-bold mb-3">
-                       Get {Math.floor((product.price || 0) / 100)} Coins
-                   </div>
-                   
-                   {/* Action Buttons */}
                    <div className="flex gap-2">
-                       <button 
-                           className="flex-1 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded text-xs font-bold transition shadow-md hover:shadow-lg active:scale-95"
-                           onClick={(e) => { e.stopPropagation(); onClick && onClick(product); }}
-                       >
+                       <button className="flex-1 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded text-xs font-bold transition shadow-md shadow-pink-200">
                            Buy Now
                        </button>
-                       <button 
-                           className="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2.5 rounded transition active:scale-95"
-                           onClick={(e) => { e.stopPropagation(); }}
-                       >
-                           <ShoppingCart size={18} className="stroke-2" />
+                       <button className="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded transition">
+                           <ShoppingCart size={18} />
                        </button>
                    </div>
                </div>
@@ -1005,72 +1105,8 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
         <div className="flex flex-col flex-1">
           <h3 className="text-sm text-gray-700 line-clamp-2 mb-1 group-hover:text-green-600 transition" title={product.name}>{product.name}</h3>
           <div className="mt-auto pt-2 flex justify-between items-center border-t border-gray-100">
-             <span className="font-bold text-gray-900">৳{formatPrice(product.price)}</span>
+             <span className="font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
              <button className="text-green-600 hover:bg-green-50 p-1 rounded-full"><ShoppingCart size={18} /></button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Compact variant for Deal of The Day (reduced padding/height)
-  if (variant === 'deal' || variant === 'compact') {
-    return (
-      <div
-        className="bg-white dark:bg-slate-800 rounded-2xl p-2 shadow-sm hover:shadow-md transition-all duration-200 relative flex flex-col h-full cursor-pointer border border-gray-100"
-        onClick={() => onClick && onClick(product)}
-      >
-        {/* Heart (top-left) */}
-        <button
-          onClick={(e) => { e.stopPropagation(); }}
-          className="absolute top-3 left-3 bg-white rounded-full p-1.5 text-pink-500 hover:text-red-500 shadow-sm z-20 border border-gray-100"
-          aria-label="Favorite"
-        >
-          <Heart size={18} />
-        </button>
-
-        {/* SALE badge */}
-        {product.discount && (
-          <span className="absolute top-3 right-3 bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full z-20 shadow-sm">SALE</span>
-        )}
-
-        {/* Image panel */}
-        <div className="relative bg-white p-4 rounded-lg flex items-center justify-center h-40 md:h-44 overflow-hidden">
-          <img src={product.image} alt={product.name} className="max-h-28 md:max-h-32 w-auto object-contain transition-transform group-hover:scale-105" />
-        </div>
-
-        <div className="mt-3 flex flex-col flex-1">
-          <div className="flex items-center gap-2 text-[13px]">
-            <Star size={14} className="text-blue-500" />
-            <span className="text-blue-600 text-xs">({product.reviews || 0})</span>
-            <span className="text-gray-400 text-xs ml-2">|</span>
-            <span className="text-gray-400 text-xs ml-2">{product.sold || 0} Sold</span>
-          </div>
-
-          <h3 className="text-sm font-semibold text-[#e72960] line-clamp-2 my-2" title={product.name}>{product.name}</h3>
-
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-blue-700 font-extrabold text-lg">৳{formatPrice(product.price)}</span>
-            {product.originalPrice && (
-              <span className="text-gray-400 text-xs line-through">৳{formatPrice(product.originalPrice)}</span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={(e) => { e.stopPropagation(); onClick && onClick(product); }}
-              className="flex-1 bg-[#e72960] hover:bg-[#d11b56] text-white py-2 rounded-lg text-sm font-bold transition shadow-md"
-              style={{ boxShadow: '0 6px 18px rgba(231,41,96,0.12)' }}
-            >
-              Buy Now
-            </button>
-
-            <button
-              onClick={(e) => { e.stopPropagation(); }}
-              className="w-10 h-10 bg-blue-100 text-blue-600 rounded-md flex items-center justify-center shadow-sm hover:bg-blue-200 transition"
-            >
-              <ShoppingCart size={18} />
-            </button>
           </div>
         </div>
       </div>
@@ -1080,64 +1116,41 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
   // Style 1: Default (Classic Green)
   return (
     <div 
-      className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-2xl hover:border-green-300 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
+      className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
       onClick={() => onClick && onClick(product)}
     >
       {product.discount && (
-        <span className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-sm z-10 shadow-md">
+        <span className="absolute top-3 left-3 bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-md">
           {product.discount}
         </span>
       )}
-      <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-lg bg-gray-50 dark:bg-slate-700">
+      <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-md bg-gray-50 dark:bg-slate-700">
         <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
       </div>
-      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
+      <h3 className="text-sm font-medium text-gray-800 dark:text-gray-100 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
         {product.name}
       </h3>
       <div className="flex items-center gap-2 mb-4 mt-auto">
-        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{formatPrice(product.price)}</span>
+        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{product.price.toLocaleString()}</span>
         {product.originalPrice && (
-          <span className="text-gray-400 text-xs line-through decoration-red-400">৳{formatPrice(product.originalPrice)}</span>
+          <span className="text-gray-400 text-xs line-through decoration-red-400">৳{product.originalPrice.toLocaleString()}</span>
         )}
       </div>
-      <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 active:scale-95 shadow-md hover:shadow-lg">
+      <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded text-sm font-bold transition flex items-center justify-center gap-2 active:bg-green-700 shadow-sm hover:shadow">
         অর্ডার করুন
       </button>
     </div>
   );
 };
 
-export const SectionHeader: React.FC<{ title: string; linkText?: string; showLink?: boolean }> = ({ title, linkText = "View All", showLink = true }) => (
+export const SectionHeader: React.FC<{ title: string; linkText?: string }> = ({ title, linkText = "View All" }) => (
   <div className="flex justify-between items-center mb-6">
     <h2 className="text-lg md:text-2xl font-bold text-gray-800 dark:text-white">{title}</h2>
-    {showLink && (
-      <a href="#" className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 flex items-center gap-1 transition">
-        {linkText} <span>&rsaquo;</span>
-      </a>
-    )}
+    <a href="#" className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 flex items-center gap-1 transition">
+      {linkText} <span>&rsaquo;</span>
+    </a>
   </div>
 );
-
-export const Toast: React.FC<{ toast: { message: string; type?: 'success' | 'error' } | null; onClose: () => void }> = ({ toast, onClose }) => {
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => onClose(), 3500);
-    return () => clearTimeout(t);
-  }, [toast, onClose]);
-
-  if (!toast) return null;
-
-  return (
-    <div className={`fixed right-6 bottom-6 z-[9999] max-w-sm w-full pointer-events-auto`}>
-      <div className={`rounded-lg px-4 py-3 shadow-lg ring-1 ring-black/5 ${toast.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-        <div className="flex items-start gap-3">
-          <div className="flex-1 text-sm font-medium">{toast.message}</div>
-          <button onClick={onClose} className="text-sm opacity-70 hover:opacity-100">✕</button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
   const socialIcons: Record<string, React.ReactNode> = {
@@ -1150,7 +1163,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
 
   if (websiteConfig?.footerStyle === 'style2') {
     return (
-      <footer className="bg-white border-t border-gray-100 font-sans container mx-auto max-w-7xl">
+      <footer className="bg-white border-t border-gray-100 font-sans container mx-auto max-w-7xl pb-20 md:pb-0">
         {/* Contact Bar */}
         <div className="bg-gray-50 border-b border-gray-100 py-6">
            <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
@@ -1237,7 +1250,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
         </div>
 
         {/* Floating Chat Button */}
-        <button className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40 animate-bounce-slow">
+        <button className="fixed bottom-20 md:bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40 animate-bounce-slow">
            <MessageCircle size={28} />
         </button>
       </footer>
@@ -1246,7 +1259,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
 
   // Default Footer
   return (
-    <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300 container mx-auto max-w-7xl">
+    <footer className="bg-white dark:bg-slate-900 pt-16 pb-24 md:pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300 container mx-auto max-w-7xl">
       <div className="max-w-7xl mx-auto px-4">
         {!websiteConfig?.hideCopyright && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">

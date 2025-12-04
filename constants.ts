@@ -1,5 +1,5 @@
 
-import { Product, Order, ChartData } from './types';
+import { Product, Order, ChartData, GalleryItem } from './types';
 
 export const CATEGORIES = [
   { name: 'Phones', icon: 'smartphone' },
@@ -106,4 +106,19 @@ export const AVAILABLE_PERMISSIONS = [
   { id: 'manage_settings', label: 'Manage Settings', category: 'System' },
   { id: 'manage_customization', label: 'Theme Customization', category: 'System' },
   { id: 'manage_users', label: 'Manage Users & Roles', category: 'System' },
+];
+
+export const GALLERY_IMAGES: GalleryItem[] = [
+  { id: 101, title: 'GadgetShob Logo', category: 'Branding', imageUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400', dateAdded: '2025-01-01' },
+  { id: 102, title: 'Congratulations Banner', category: 'Banners', imageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400', dateAdded: '2025-01-02' },
+  { id: 103, title: 'Winner Roksana', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', dateAdded: '2025-01-03' },
+  { id: 104, title: 'Diamond Winner', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400', dateAdded: '2025-01-04' },
+  { id: 105, title: 'Imran Hossain', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', dateAdded: '2025-01-05' },
+  { id: 106, title: 'Misty Roy', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400', dateAdded: '2025-01-06' },
+  { id: 107, title: 'T-Shirt Combo', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', dateAdded: '2025-01-07' },
+  { id: 108, title: 'Sunglass + Wallet', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400', dateAdded: '2025-01-08' },
+  { id: 109, title: 'Leather Wallet', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1627123424574-18bd75847b47?w=400', dateAdded: '2025-01-09' },
+  { id: 110, title: 'Women Smart Purse', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400', dateAdded: '2025-01-10' },
+  { id: 111, title: 'Vip-kem cot combo', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1556228720-1957be83d2bf?w=400', dateAdded: '2025-01-11' },
+  { id: 112, title: 'Mega Campaign', category: 'Banners', imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400', dateAdded: '2025-01-12' },
 ];

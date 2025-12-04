@@ -15,7 +15,6 @@ import AdminCatalog from './pages/AdminCatalog';
 import AdminDeliverySettings from './pages/AdminDeliverySettings';
 import AdminCourierSettings from './pages/AdminCourierSettings';
 import AdminGallery from './pages/AdminGallery';
-import AdminFacebookPixel from './pages/AdminFacebookPixel';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
@@ -46,7 +45,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
+    <div className="flex h-screen bg-gray-50 font-sans text-slate-800">\
       <AdminSidebar 
         activePage={highlightPage} 
         onNavigate={onNavigate} 
@@ -115,38 +114,71 @@ const App = () => {
 
   // --- INITIAL DATA LOADING ---
   useEffect(() => {
+    const storedSession = localStorage.getItem('gadgetshob_session');
+    if (storedSession) {
+      try { setUser(JSON.parse(storedSession)); } catch (err) { console.warn('Invalid session cache', err); }
+    }
+
+    let isMounted = true;
     const loadData = async () => {
       setIsLoading(true);
       try {
-        setProducts(await DataService.getProducts());
-        setOrders(await DataService.getOrders());
-        setUsers(await DataService.getUsers());
-        setRoles(await DataService.getRoles());
-        
-        setLogo(await DataService.get<string | null>('logo', null));
-        setThemeConfig(await DataService.getThemeConfig());
-        setWebsiteConfig(await DataService.getWebsiteConfig());
-        setDeliveryConfig(await DataService.getDeliveryConfig());
-        setCourierConfig(await DataService.get('courier', { apiKey: '', secretKey: '' }));
+        const [
+          productsData,
+          ordersData,
+          usersData,
+          rolesData,
+          logoData,
+          themeData,
+          websiteData,
+          deliveryData,
+          courierData,
+          categoriesData,
+          subCategoriesData,
+          childCategoriesData,
+          brandsData,
+          tagsData
+        ] = await Promise.all([
+          DataService.getProducts(),
+          DataService.getOrders(),
+          DataService.getUsers(),
+          DataService.getRoles(),
+          DataService.get<string | null>('logo', null),
+          DataService.getThemeConfig(),
+          DataService.getWebsiteConfig(),
+          DataService.getDeliveryConfig(),
+          DataService.get('courier', { apiKey: '', secretKey: '' }),
+          DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]),
+          DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]),
+          DataService.getCatalog('childcategories', []),
+          DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]),
+          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }])
+        ]);
 
-        // Catalog
-        setCategories(await DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]));
-        setSubCategories(await DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]));
-        setChildCategories(await DataService.getCatalog('childcategories', []));
-        setBrands(await DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]));
-        setTags(await DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }]));
-
-        // Session
-        const storedSession = localStorage.getItem('gadgetshob_session');
-        if (storedSession) setUser(JSON.parse(storedSession));
-
+        if (!isMounted) return;
+        setProducts(productsData);
+        setOrders(ordersData);
+        setUsers(usersData);
+        setRoles(rolesData);
+        setLogo(logoData);
+        setThemeConfig(themeData);
+        setWebsiteConfig(websiteData);
+        setDeliveryConfig(deliveryData);
+        setCourierConfig(courierData);
+        setCategories(categoriesData);
+        setSubCategories(subCategoriesData);
+        setChildCategories(childCategoriesData);
+        setBrands(brandsData);
+        setTags(tagsData);
       } catch (error) {
-        console.error("Failed to load data", error);
+        console.error('Failed to load data', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
+
     loadData();
+    return () => { isMounted = false; };
   }, []);
 
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
@@ -330,7 +362,6 @@ const App = () => {
            adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
            adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
            adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
-           adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel onBack={() => setAdminSection('settings')} /> :
            adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
            adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
            <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />

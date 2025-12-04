@@ -111,12 +111,12 @@ const StoreHome = ({
       {/* Hero Section */}
       <HeroSection carouselItems={websiteConfig?.carouselItems} />
 
-      <main className="max-w-7xl mx-auto px-4 space-y-12 pb-12">
+      <main className="max-w-7xl mx-auto px-4 space-y-8 pb-12">
         
         {/* Categories */}
         {websiteConfig?.categorySectionStyle === 'style2' ? (
-           <div className="mt-12 mb-10">
-              <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-2">
+           <div className="mt-6 mb-8">
+              <div className="flex justify-between items-end mb-2 border-b border-gray-100 pb-2">
                  <div className="relative pb-2">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
                     <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
@@ -129,7 +129,7 @@ const StoreHome = ({
               {/* Auto Scrolling Container */}
               <div 
                  ref={categoryScrollRef}
-                 className="flex gap-6 overflow-x-hidden py-2 whitespace-nowrap scrollbar-hide"
+                 className="flex gap-6 overflow-x-hidden py-1 whitespace-nowrap scrollbar-hide"
                  style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
               >
                  {/* Render multiple times for infinite seamless loop */}
@@ -143,7 +143,7 @@ const StoreHome = ({
               </div>
            </div>
         ) : (
-           <div className="mt-12 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
+           <div className="mt-6 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
                <SectionHeader title="Categories" />
                <div className="flex flex-wrap gap-x-8 gap-y-8 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide pt-2">
                {CATEGORIES.map((cat, idx) => (
@@ -198,7 +198,7 @@ const StoreHome = ({
         </section>
 
          {/* OMG Fashion Banner */}
-        <section className="bg-purple-900 rounded-2xl overflow-hidden relative h-48 md:h-72 flex items-center px-8 md:px-16 text-white shadow-2xl my-16 transform hover:scale-[1.01] transition-transform duration-500">
+        <section className="bg-purple-900 rounded-2xl overflow-hidden relative h-48 md:h-72 flex items-center px-8 md:px-16 text-white shadow-2xl my-8 transform hover:scale-[1.01] transition-transform duration-500">
              <div className="z-10 relative max-w-lg">
                  <span className="bg-white/20 text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block backdrop-blur-sm border border-white/10">NEW ARRIVAL</span>
                  <h2 className="text-3xl md:text-6xl font-black mb-4 tracking-tight leading-tight">OMG FASHION</h2>

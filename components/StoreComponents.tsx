@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
@@ -23,17 +23,18 @@ export const MobileBottomNav: React.FC<{
   onAccountClick: () => void;
   cartCount?: number;
   websiteConfig?: WebsiteConfig;
-}> = ({ onHomeClick, onCartClick, onAccountClick, cartCount, websiteConfig }) => {
+  activeTab?: string;
+}> = ({ onHomeClick, onCartClick, onAccountClick, cartCount, websiteConfig, activeTab = 'home' }) => {
   
   const style = websiteConfig?.bottomNavStyle || 'style1';
 
   // Style 2: Floating Center Home Button (Light Pink Circle with Dark Pink Icon)
   if (style === 'style2') {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-[65px] flex items-end px-2 md:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-[70px] flex items-end px-2 md:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-1">
         
         {/* Left Side */}
-        <div className="flex-1 flex justify-around items-center h-full pb-1 pr-8">
+        <div className="flex-1 flex justify-around items-center h-full pb-2 pr-10">
            <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
               <MessageSquare size={20} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Chat</span>
@@ -48,16 +49,16 @@ export const MobileBottomNav: React.FC<{
         <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
            <button 
              onClick={onHomeClick}
-             className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[5px] border-white shadow-lg transform active:scale-95 transition-transform"
+             className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[4px] border-white shadow-lg transform active:scale-95 transition-transform"
            >
               <Home size={24} strokeWidth={2.5} className="mb-0.5" />
-              <span className="text-[9px] font-bold">Home</span>
+              <span className="text-[10px] font-bold">Home</span>
            </button>
         </div>
 
         {/* Right Side */}
-        <div className="flex-1 flex justify-around items-center h-full pb-1 pl-8">
-           <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+        <div className="flex-1 flex justify-around items-center h-full pb-2 pl-10">
+           <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition group ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}>
               <User size={22} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Account</span>
            </button>
@@ -73,22 +74,22 @@ export const MobileBottomNav: React.FC<{
   // Style 3: Clean 4 Columns
   if (style === 'style3') {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-lg pb-safe">
-        <button onClick={onHomeClick} className="flex flex-col items-center gap-1.5 text-pink-600 transition">
-          <Home size={24} strokeWidth={2} />
-          <span className="text-[11px] font-medium">Home</span>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2.5 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-lg pb-safe">
+        <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
+          <Home size={22} strokeWidth={2} className={activeTab === 'home' ? 'fill-pink-100' : ''} />
+          <span className="text-[10px] font-medium">Home</span>
         </button>
-        <button className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
-          <List size={24} strokeWidth={1.5} />
-          <span className="text-[11px] font-medium">Categories</span>
+        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+          <List size={22} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Categories</span>
         </button>
-        <button className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
-          <MessageSquare size={24} strokeWidth={1.5} />
-          <span className="text-[11px] font-medium">Chat</span>
+        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+          <MessageSquare size={22} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Chat</span>
         </button>
-        <button onClick={onAccountClick} className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
-          <User size={24} strokeWidth={1.5} />
-          <span className="text-[11px] font-medium">Account</span>
+        <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
+          <User size={22} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Account</span>
         </button>
       </div>
     );
@@ -96,30 +97,30 @@ export const MobileBottomNav: React.FC<{
 
   // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2.5 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
       <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <MessageCircle size={22} strokeWidth={1.5} className="fill-gray-100 stroke-gray-600" />
-        <span className="text-[10px] font-medium text-gray-600">Messenger</span>
+        <MessageCircle size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Messenger</span>
       </button>
       
       <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <Phone size={22} strokeWidth={1.5} className="stroke-gray-600" />
-        <span className="text-[10px] font-medium text-gray-600">Call</span>
+        <Phone size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Call</span>
       </button>
       
-      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-600 transition w-1/5">
-        <Home size={26} strokeWidth={2.5} className="fill-pink-600 text-pink-600" />
+      <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
+        <Home size={24} strokeWidth={2.5} className={activeTab === 'home' ? 'fill-pink-600 text-pink-600' : 'text-gray-500'} />
         <span className="text-[10px] font-bold">Home</span>
       </button>
       
       <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <Facebook size={22} strokeWidth={1.5} className="stroke-gray-600" />
-        <span className="text-[10px] font-medium text-gray-600">Page</span>
+        <Facebook size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Page</span>
       </button>
       
-      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <User size={22} strokeWidth={1.5} className="fill-gray-600 text-gray-600" />
-        <span className="text-[10px] font-medium text-gray-600">Account</span>
+      <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
+        <User size={20} strokeWidth={2} className={activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'} />
+        <span className="text-[10px] font-medium">Account</span>
       </button>
     </div>
   );
@@ -250,7 +251,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                        </div>
                     </div>
 
-                    {/* User Dropdown (Same as Style 1) */}
+                    {/* User Dropdown */}
                     {user && isMenuOpen && (
                       <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
                          <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
@@ -278,139 +279,180 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     );
   }
 
-  // Default Style 1
+  // Default Style 1 (GadgetShob)
   return (
     <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
-      {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
-        <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium overflow-hidden whitespace-nowrap hidden md:block">
-           <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
-        </div>
-      )}
-      <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Logo */}
-          <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-            {logo ? (
-              <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
-            ) : (
-              <h1 className="text-2xl font-bold tracking-tighter">
-                {websiteConfig?.brandingText ? (
-                   <span className="text-gray-800 dark:text-white">{websiteConfig.brandingText}</span>
-                ) : (
-                   <>
-                    <span className="text-gray-800 dark:text-white">GADGET</span>
+      
+      {/* MOBILE HEADER SPECIFIC LAYOUT */}
+      <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3">
+        {/* Logo Row */}
+        <div className="flex justify-center mb-3" onClick={onHomeClick}>
+        {logo ? (
+            <img src={logo} alt="Store Logo" className="h-8 object-contain" />
+        ) : (
+            <div className="flex flex-col items-center leading-none">
+                <Smartphone size={24} className="text-gray-800 dark:text-white mb-1" strokeWidth={2.5}/>
+                <h1 className="text-xl font-bold tracking-tighter flex items-center gap-0.5">
+                    <span className="text-gray-900 dark:text-white">GADGET</span>
                     <span className="text-pink-500">SHOB</span>
-                   </>
-                )}
-              </h1>
-            )}
-          </div>
+                </h1>
+            </div>
+        )}
+        </div>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-2xl relative">
-            <input
-              type="text"
-              placeholder={websiteConfig?.searchHints || "Search product..."}
-              className="w-full border-2 border-green-500 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600"
-            />
-            <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-6 rounded-r-full hover:bg-green-600 transition flex items-center justify-center">
-              <Search size={20} />
+        {/* Action Row */}
+        <div className="flex items-center gap-3">
+            <button className="text-gray-800 dark:text-white">
+                <Menu size={28} strokeWidth={2} />
             </button>
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
-              <div className="relative">
-                <Heart size={24} />
-                {wishlistCount !== undefined && wishlistCount > 0 && (
-                   <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistCount}</span>
-                )}
-              </div>
-              <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
+            <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800" size={18} strokeWidth={2.5} />
+                <input 
+                type="text" 
+                placeholder={websiteConfig?.searchHints || "gadget"} 
+                className="w-full pl-10 pr-20 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-gray-500 font-medium text-gray-700"
+                />
+                <button className="absolute right-1 top-1 bottom-1 bg-black text-white text-xs font-bold px-4 rounded-md hover:bg-gray-800 transition">
+                Search
+                </button>
             </div>
-            
-            <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
-              <div className="relative">
-                <ShoppingCart size={24} />
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
-              </div>
-              <span className="hidden sm:inline text-sm font-medium">Cart</span>
-            </div>
-            
-            <div className="relative hidden md:block" ref={menuRef}>
-              <div 
-                className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition" 
-                onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
-              >
-                <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-full">
-                  <User size={20} />
-                </div>
-                {user ? (
-                   <div className="hidden sm:flex flex-col items-start leading-tight">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Hello,</span>
-                      <span className="text-sm font-bold flex items-center gap-1 dark:text-white">
-                        {user.name.split(' ')[0]} 
-                        <ChevronDown size={12} />
-                      </span>
-                   </div>
-                ) : (
-                   <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
-                )}
-              </div>
 
-              {/* User Dropdown */}
-              {user && isMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                   <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                   </div>
-                   <button 
-                      onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
-                   >
-                      <UserCircle size={16} /> My Profile
-                   </button>
-                   <button 
-                      onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
-                   >
-                      <Truck size={16} /> My Orders
-                   </button>
-                   <div className="border-t border-gray-50 dark:border-slate-700 mt-1">
-                     <button 
-                        onClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                     >
-                        <LogOut size={16} /> Logout
-                     </button>
-                   </div>
-                </div>
-              )}
+            <div className="relative cursor-pointer">
+                <ShoppingCart size={26} className="text-gray-800 dark:text-white" strokeWidth={2} />
+                <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">0</span>
             </div>
-            
-            {/* Mobile Search Trigger */}
-            <button className="md:hidden text-gray-600 dark:text-gray-300">
-                <Search size={24} />
-            </button>
-          </div>
         </div>
       </div>
-      
-      {/* Navigation Bar */}
-      <div className="border-t border-gray-100 dark:border-slate-800 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
-             <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
-             {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
-             <a href="#" className="hover:text-green-500 transition">Products</a>
-             <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
-             <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
-               <Sparkles size={16} /> AI Image Studio
-             </button>
-             <a href="#" className="hover:text-green-500 transition">Wishlist</a>
-          </nav>
+
+      {/* DESKTOP HEADER (Hidden on Mobile) */}
+      <div className="hidden md:block">
+        {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
+            <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium overflow-hidden whitespace-nowrap">
+            <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
+            </div>
+        )}
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
+            <div className="flex items-center justify-between gap-4">
+            {/* Logo */}
+            <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
+                {logo ? (
+                <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
+                ) : (
+                <h1 className="text-2xl font-bold tracking-tighter">
+                    {websiteConfig?.brandingText ? (
+                    <span className="text-gray-800 dark:text-white">{websiteConfig.brandingText}</span>
+                    ) : (
+                    <>
+                        <span className="text-gray-800 dark:text-white">GADGET</span>
+                        <span className="text-pink-500">SHOB</span>
+                    </>
+                    )}
+                </h1>
+                )}
+            </div>
+
+            {/* Search Bar */}
+            <div className="hidden md:flex flex-1 max-w-2xl relative">
+                <input
+                type="text"
+                placeholder={websiteConfig?.searchHints || "Search product..."}
+                className="w-full border-2 border-green-500 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600"
+                />
+                <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-6 rounded-r-full hover:bg-green-600 transition flex items-center justify-center">
+                <Search size={20} />
+                </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
+                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                <div className="relative">
+                    <Heart size={24} />
+                    {wishlistCount !== undefined && wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistCount}</span>
+                    )}
+                </div>
+                <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
+                </div>
+                
+                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                <div className="relative">
+                    <ShoppingCart size={24} />
+                    <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                </div>
+                <span className="hidden sm:inline text-sm font-medium">Cart</span>
+                </div>
+                
+                <div className="relative hidden md:block" ref={menuRef}>
+                <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition" 
+                    onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}
+                >
+                    <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-full">
+                    <User size={20} />
+                    </div>
+                    {user ? (
+                    <div className="hidden sm:flex flex-col items-start leading-tight">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Hello,</span>
+                        <span className="text-sm font-bold flex items-center gap-1 dark:text-white">
+                            {user.name.split(' ')[0]} 
+                            <ChevronDown size={12} />
+                        </span>
+                    </div>
+                    ) : (
+                    <span className="hidden sm:inline text-sm font-medium">Login/Register</span>
+                    )}
+                </div>
+
+                {/* User Dropdown */}
+                {user && isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-100 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="px-4 py-3 border-b border-gray-50 dark:border-slate-700">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <button 
+                        onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
+                    >
+                        <UserCircle size={16} /> My Profile
+                    </button>
+                    <button 
+                        onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-green-600 flex items-center gap-2"
+                    >
+                        <Truck size={16} /> My Orders
+                    </button>
+                    <div className="border-t border-gray-50 dark:border-slate-700 mt-1">
+                        <button 
+                            onClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                        >
+                            <LogOut size={16} /> Logout
+                        </button>
+                    </div>
+                    </div>
+                )}
+                </div>
+            </div>
+            </div>
+        </div>
+        
+        {/* Navigation Bar */}
+        <div className="border-t border-gray-100 dark:border-slate-800 hidden md:block">
+            <div className="max-w-7xl mx-auto px-4">
+            <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
+                <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
+                {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
+                <a href="#" className="hover:text-green-500 transition">Products</a>
+                <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
+                <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
+                <Sparkles size={16} /> AI Image Studio
+                </button>
+                <a href="#" className="hover:text-green-500 transition">Wishlist</a>
+            </nav>
+            </div>
         </div>
       </div>
     </header>

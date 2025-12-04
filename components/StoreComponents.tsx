@@ -996,27 +996,11 @@ export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> =
         {icon}
       </div>
     </div>
-<<<<<<< HEAD
-    <span className="text-[10px] md:text-[11px] font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-none max-w-[90px]">  <div class="**font-bold**">{name}
-  This entire div's text will be bold.
-</div>  </span>
-=======
     <span className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-tight max-w-[100px]">{name}</span>
->>>>>>> 999ea05795474c47f61d6cf233f74416a970612b
   </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-<<<<<<< HEAD
-  <div className="inline-flex items-center gap-1 pl-2 pr-4 py-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
-    <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
-      <div className="transform group-hover:rotate-12 transition-transform duration-300">
-       
-        {icon}
-      </div>
-    </div>
-     <span className="font-medium text-gray-700 dark:text-gray-200 text-[10px] leading-none group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
-=======
   <div className="inline-flex items-center gap-3 pl-2 pr-6 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
      <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
         <div className="transform group-hover:rotate-12 transition-transform duration-300">
@@ -1024,7 +1008,6 @@ export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = (
         </div>
      </div>
      <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
->>>>>>> 999ea05795474c47f61d6cf233f74416a970612b
   </div>
 );
 

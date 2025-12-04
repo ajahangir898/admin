@@ -2,151 +2,104 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from '../types';
 import { PRODUCTS, RECENT_ORDERS } from '../constants';
 import { db } from './firebaseConfig';
-import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 class DataServiceImpl {
   
-  // --- Generic Firestore Helpers ---
+  // --- Generic Helpers with Fallback ---
   
-  /**
-   * Fetch a single document by ID from a collection.
-   * If not found, returns the defaultValue.
-   */
-  async getDocument<T>(collectionName: string, docId: string, defaultValue: T): Promise<T> {
+  private async safeFirebaseCall<T>(operation: () => Promise<T>, fallback: T, key?: string): Promise<T> {
     try {
-      const docRef = doc(db, collectionName, docId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        return docSnap.data() as T;
-      } else {
-        // If it doesn't exist, initialize it with default value
-        await setDoc(docRef, defaultValue as any);
-        return defaultValue;
-      }
+      if (!db) throw new Error("Firebase DB not initialized");
+      return await operation();
     } catch (error) {
-      console.error(`Error fetching document ${collectionName}/${docId}:`, error);
-      return defaultValue;
-    }
-  }
-
-  /**
-   * Save (Overwrite) a single document.
-   */
-  async saveDocument<T>(collectionName: string, docId: string, data: T): Promise<void> {
-    try {
-      await setDoc(doc(db, collectionName, docId), data as any);
-    } catch (error) {
-      console.error(`Error saving document ${collectionName}/${docId}:`, error);
-    }
-  }
-
-  /**
-   * Fetch all documents from a collection as an array.
-   * If empty, returns defaultValue.
-   */
-  async getCollection<T>(collectionName: string, defaultValue: T[]): Promise<T[]> {
-    try {
-      const querySnapshot = await getDocs(collection(db, collectionName));
-      const items: T[] = [];
-      querySnapshot.forEach((doc) => {
-        // We assume the ID is part of the data or we inject it
-        items.push({ id: doc.id, ...doc.data() } as any);
-      });
-      return items.length > 0 ? items : defaultValue;
-    } catch (error) {
-      console.error(`Error fetching collection ${collectionName}:`, error);
-      return defaultValue;
-    }
-  }
-
-  /**
-   * Overwrite an entire collection (used for syncing array state to DB).
-   * Note: In a real app, you'd use add/update/delete individual docs.
-   * For this migration, we are syncing the whole list for simplicity matching the previous architecture.
-   */
-  async saveCollection<T extends { id: string | number }>(collectionName: string, data: T[]): Promise<void> {
-    try {
-      // 1. Get all existing docs to find deletions
-      const snapshot = await getDocs(collection(db, collectionName));
-      const batchPromises = [];
-
-      // 2. Update or Create docs
-      for (const item of data) {
-        const id = String(item.id);
-        const docRef = doc(db, collectionName, id);
-        batchPromises.push(setDoc(docRef, item));
-      }
-
-      // 3. Delete docs that are no longer in the data array
-      snapshot.forEach((docSnap) => {
-        if (!data.find(d => String(d.id) === docSnap.id)) {
-          batchPromises.push(deleteDoc(doc(db, collectionName, docSnap.id)));
+      console.warn(`Firebase operation failed, falling back to local storage/defaults.`, error);
+      // Attempt Local Storage Fallback
+      if (key) {
+        const local = localStorage.getItem(`gadgetshob_${key}`);
+        if (local) {
+            try { return JSON.parse(local); } catch(e) {}
         }
-      });
-
-      await Promise.all(batchPromises);
-    } catch (error) {
-      console.error(`Error saving collection ${collectionName}:`, error);
+      }
+      return fallback;
     }
   }
 
-  // --- Wrapper for older key-value style calls (Compatibility) ---
-  // We map the old "keys" to Firestore Collections or Documents
-  
-  async get<T>(key: string, defaultValue: T): Promise<T> {
-    // Configs are usually single documents
-    if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
-      return this.getDocument('configurations', key, defaultValue);
-    }
-    // Lists are collections
-    if (Array.isArray(defaultValue)) {
-        return this.getCollection(key, defaultValue) as any;
-    }
-    return defaultValue;
-  }
-
-  async save<T>(key: string, data: T): Promise<void> {
-    if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
-      return this.saveDocument('configurations', key, data);
-    }
-    if (Array.isArray(data)) {
-        return this.saveCollection(key, data as any[]);
+  private saveToLocal(key: string, data: any) {
+    try {
+        localStorage.setItem(`gadgetshob_${key}`, JSON.stringify(data));
+    } catch (e) {
+        console.error("Local storage save failed", e);
     }
   }
 
-  // --- Specific Data Loaders (Optimized for Firestore) ---
+  // --- Data Access Methods ---
 
   async getProducts(): Promise<Product[]> {
-    return this.getCollection<Product>('products', PRODUCTS);
+    return this.safeFirebaseCall(async () => {
+      const snapshot = await getDocs(collection(db, 'products'));
+      return snapshot.docs.map(d => ({ id: Number(d.id), ...d.data() } as any));
+    }, PRODUCTS, 'products');
   }
 
   async getOrders(): Promise<Order[]> {
-    return this.getCollection<Order>('orders', RECENT_ORDERS);
+    return this.safeFirebaseCall(async () => {
+      const snapshot = await getDocs(collection(db, 'orders'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
+    }, RECENT_ORDERS, 'orders');
   }
 
   async getUsers(): Promise<User[]> {
-    // For users, we might want to key them by email in a real app, 
-    // but for this structure, we'll use the collection approach.
-    // We need to generate IDs for users if they don't have one, or use email as ID.
-    // The current Type has no ID, so we might need to handle that.
-    // For now, we fall back to the compatibility layer.
-    return this.get<User[]>('users', []);
+    return this.safeFirebaseCall(async () => {
+      const snapshot = await getDocs(collection(db, 'users'));
+      return snapshot.docs.map(d => d.data() as User);
+    }, [], 'users');
   }
 
   async getRoles(): Promise<Role[]> {
-    return this.getCollection<Role>('roles', [
+    const defaultRoles: Role[] = [
       { id: 'manager', name: 'Store Manager', description: 'Can manage products and orders', permissions: ['view_dashboard', 'manage_orders', 'view_orders', 'manage_products', 'view_products'] },
       { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: ['view_dashboard', 'view_orders'] }
-    ]);
+    ];
+    return this.safeFirebaseCall(async () => {
+      const snapshot = await getDocs(collection(db, 'roles'));
+      const roles = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      return roles.length ? roles : defaultRoles;
+    }, defaultRoles, 'roles');
   }
 
+  async get<T>(key: string, defaultValue: T): Promise<T> {
+    // Determine if we should look for a Doc or a Collection based on default value type
+    const isArray = Array.isArray(defaultValue);
+    
+    return this.safeFirebaseCall(async () => {
+      if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
+        const docRef = doc(db, 'configurations', key);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? (docSnap.data() as T) : defaultValue;
+      }
+      
+      // Fallback for generic collections
+      if (isArray) {
+         const snapshot = await getDocs(collection(db, key));
+         const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+         return items.length > 0 ? items as unknown as T : defaultValue;
+      }
+      
+      return defaultValue;
+    }, defaultValue, key);
+  }
+
+  // --- Config Specific Loaders ---
+
   async getThemeConfig(): Promise<ThemeConfig> {
-    return this.getDocument<ThemeConfig>('configurations', 'theme', {
+    const defaults: ThemeConfig = {
       primaryColor: '#22c55e',
       secondaryColor: '#ec4899',
       tertiaryColor: '#9333ea',
       darkMode: false
-    });
+    };
+    return this.get<ThemeConfig>('theme', defaults);
   }
 
   async getWebsiteConfig(): Promise<WebsiteConfig> {
@@ -173,34 +126,62 @@ class DataServiceImpl {
         { id: '1', name: 'Mobile Holder', image: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&q=80&w=400', url: '/magnetic-suction-vacuum', urlType: 'Internal', serial: 3, status: 'Publish' },
         { id: '2', name: 'Main', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=400', url: '/Product-categories', urlType: 'Internal', serial: 1, status: 'Publish' },
         { id: '3', name: 'Gift', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=gift', urlType: 'External', serial: 7, status: 'Publish' },
-        { id: '4', name: 'Gadget', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=gadget', urlType: 'External', serial: 5, status: 'Publish' },
-        { id: '5', name: 'Toy', image: 'https://images.unsplash.com/photo-1558877385-844da7858812?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=toy', urlType: 'External', serial: 6, status: 'Publish' },
-        { id: '6', name: 'Sfw', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=sfw', urlType: 'External', serial: 8, status: 'Publish' },
-        { id: '7', name: 'Plane', image: 'https://images.unsplash.com/photo-1483304528321-0674f0040030?auto=format&fit=crop&q=80&w=400', url: '/Airplane-launcher-toy', urlType: 'Internal', serial: 4, status: 'Publish' },
-        { id: '8', name: '4', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400', url: '', urlType: 'Internal', serial: 9, status: 'Draft' },
-        { id: '9', name: '2', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400', url: '', urlType: 'Internal', serial: 10, status: 'Draft' }
       ],
       searchHints: 'gadget item, gift, educational toy, mobile accessories',
       orderLanguage: 'English',
       productCardStyle: 'style1'
     };
-    return this.getDocument<WebsiteConfig>('configurations', 'website_config', defaultConfig);
+    return this.get<WebsiteConfig>('website_config', defaultConfig);
   }
 
   async getDeliveryConfig(): Promise<DeliveryConfig[]> {
-    // Delivery config is a list, but we can store it as a single doc for simpler management in this app structure,
-    // or as a collection. Given the App.tsx usage, let's treat it as a collection or a doc array.
-    // For consistency with how we handle 'delivery_config' key in App.tsx:
-    return this.getDocument<DeliveryConfig[]>('configurations', 'delivery_config', [
+    const defaults: DeliveryConfig[] = [
       { type: 'Regular', isEnabled: true, division: 'Dhaka', insideCharge: 60, outsideCharge: 120, freeThreshold: 0, note: 'Standard delivery time 2-3 days' },
       { type: 'Express', isEnabled: true, division: 'Dhaka', insideCharge: 100, outsideCharge: 200, freeThreshold: 5000, note: 'Next day delivery available' },
       { type: 'Free', isEnabled: false, division: 'Dhaka', insideCharge: 0, outsideCharge: 0, freeThreshold: 0, note: 'Promotional free shipping' }
-    ]);
+    ];
+    // Try to get from 'configurations/delivery_config' doc first, if fail, check if it's a collection? 
+    // Stick to doc for configs
+    return this.get<DeliveryConfig[]>('delivery_config', defaults);
   }
 
-  // Catalog
+  // --- Saving Methods ---
+
+  async save<T>(key: string, data: T): Promise<void> {
+    // Save to local storage first for immediate UI feedback / offline capability
+    this.saveToLocal(key, data);
+
+    try {
+        if (!db) return;
+
+        // Configs -> Single Doc
+        if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
+            await setDoc(doc(db, 'configurations', key), data as any);
+            return;
+        }
+
+        // Arrays -> Collection (Sync Strategy: Overwrite items)
+        if (Array.isArray(data)) {
+            const batchPromises = [];
+            // We iterate and save each item as a doc
+            for (const item of data) {
+                if (item && (item.id || item.id === 0)) {
+                    const id = String(item.id);
+                    batchPromises.push(setDoc(doc(db, key, id), item));
+                }
+            }
+            // Note: In a real app, handling deletions is complex with this pattern.
+            // For now, we assume this is an upsert.
+            await Promise.all(batchPromises);
+        }
+    } catch (e) {
+        console.error(`Failed to sync ${key} to Firebase`, e);
+    }
+  }
+
+  // Helper for Catalog which shares same logic
   async getCatalog(type: string, defaults: any[]): Promise<any[]> {
-    return this.getCollection<any>(type, defaults);
+    return this.get<any[]>(type, defaults);
   }
 }
 

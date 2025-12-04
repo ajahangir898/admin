@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
-import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
+import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, User, WebsiteConfig, Order } from '../types';
 
 // Helper map for dynamic icons
@@ -55,6 +55,20 @@ const StoreHome = ({
   // Category Auto Scroll Logic for Style 2
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
+  // derive deal products (filter by tag or tags)
+  const dealProducts = (displayProducts || []).filter(p => {
+    if (!p) return false;
+    const tag = (p.tag || '').toString().toLowerCase();
+    const tags = (p.tags || []).map(t => t.toString().toLowerCase());
+    return tag.includes('deal') || tags.some(t => t.includes('deal')) || tags.some(t => t.includes('flash')) || tag.includes('flash');
+  });
+
+
+  // Deal carousel refs & state
+  const dealCarouselRef = useRef<HTMLDivElement>(null);
+  const autoplayRef = useRef<number | null>(null);
+  const isAutoplayPausedRef = useRef(false);
+
   useEffect(() => {
     if (websiteConfig?.categorySectionStyle === 'style2') {
       const el = categoryScrollRef.current;
@@ -91,6 +105,54 @@ const StoreHome = ({
     }
   }, [websiteConfig?.categorySectionStyle]);
 
+  // Autoplay for Deal carousel
+  useEffect(() => {
+    const el = dealCarouselRef.current;
+    if (!el) return;
+
+    const interval = 3000;
+    const step = () => {
+      if (isAutoplayPausedRef.current) return;
+      // scroll by one item width (approx)
+      const item = el.querySelector<HTMLElement>('.deal-item');
+      if (!item) return;
+      const gap = 24; // approximate gap
+      const offset = item.offsetWidth + gap;
+      el.scrollBy({ left: offset, behavior: 'smooth' });
+      // if reached end, reset to start smoothly
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+        setTimeout(() => { el.scrollTo({ left: 0, behavior: 'smooth' }); }, 400);
+      }
+    };
+
+    autoplayRef.current = window.setInterval(step, interval);
+    return () => { if (autoplayRef.current) window.clearInterval(autoplayRef.current); };
+  }, [displayProducts]);
+
+  // Pause autoplay on hover for deal carousel
+  useEffect(() => {
+    const el = dealCarouselRef.current;
+    if (!el) return;
+    const pause = () => { isAutoplayPausedRef.current = true; };
+    const resume = () => { isAutoplayPausedRef.current = false; };
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('mouseleave', resume);
+    return () => { el.removeEventListener('mouseenter', pause); el.removeEventListener('mouseleave', resume); };
+  }, []);
+
+  // helpers for manual navigation
+  const scrollDealBy = (dir: number) => {
+    const el = dealCarouselRef.current;
+    if (!el) return;
+    const item = el.querySelector<HTMLElement>('.deal-item');
+    if (!item) return;
+    const gap = 24;
+    const offset = (item.offsetWidth + gap) * dir;
+    el.scrollBy({ left: offset, behavior: 'smooth' });
+  };
+  const prevDeal = () => scrollDealBy(-1);
+  const nextDeal = () => scrollDealBy(1);
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
       <StoreHeader 
@@ -111,7 +173,7 @@ const StoreHome = ({
       {/* Hero Section */}
       <HeroSection carouselItems={websiteConfig?.carouselItems} />
 
-      <main className="max-w-7xl mx-auto px-4 space-y-12 pb-12">
+      <main className="max-w-7xl mx-auto px-3 space-y-12 pb-12">
         
         {/* Categories */}
         {websiteConfig?.categorySectionStyle === 'style2' ? (
@@ -127,11 +189,11 @@ const StoreHome = ({
               </div>
               
               {/* Auto Scrolling Container */}
-              <div 
-                 ref={categoryScrollRef}
-                 className="flex gap-6 overflow-x-hidden py-2 whitespace-nowrap scrollbar-hide"
-                 style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
-              >
+                <div 
+                  ref={categoryScrollRef}
+                  className="flex gap-3 overflow-x-hidden py-1 whitespace-nowrap scrollbar-hide"
+                  style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
+                >
                  {/* Render multiple times for infinite seamless loop */}
                  {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
                     <CategoryPill 
@@ -145,7 +207,7 @@ const StoreHome = ({
         ) : (
            <div className="mt-12 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
                <SectionHeader title="Categories" />
-               <div className="flex flex-wrap gap-x-8 gap-y-8 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide pt-2">
+               <div className="flex flex-wrap gap-x-4 gap-y-4 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide pt-2">
                {CATEGORIES.map((cat, idx) => (
                    <CategoryCircle 
                      key={idx} 
@@ -157,8 +219,51 @@ const StoreHome = ({
            </div>
         )}
 
-        {/* Flash Deals */}
-        <section>
+        {/* Deal of The Day - inserted after Categories */}
+        {/* <section className="py-0">
+          <div className="rounded-3xl p-1 mx-0 shadow-xl" style={{ background: 'linear-gradient(135deg,#3b82f6 0%,#8b5cf6 50%,#a855f7 100%)' }}>
+            <div className="bg-white dark:bg-slate-800 rounded-3xl px-6 py-6 max-w-7xl mx-auto relative overflow-hidden">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-2">Deal of The Day</h2>
+                  <p className="text-base text-gray-600 dark:text-gray-400 font-medium">Best Price, Top Products</p>
+                </div>
+                <div>
+                  <a href="#" className="hidden md:inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg transition-shadow">
+                    View All →
+                  </a>
+                </div>
+              </div>
+
+              <div className="relative group">
+                {/* Prev Button */}
+                {/* <button onClick={prevDeal} aria-label="Previous" className="hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg absolute -left-6 top-1/2 -translate-y-1/2 z-20 hover:shadow-xl hover:bg-gray-50 transition">
+                  <ChevronLeft size={20} className="text-gray-700" />
+                </button>
+
+                {/* Carousel */}
+                {/* <div ref={dealCarouselRef} className="flex gap-6 overflow-x-auto py-6 px-2 scrollbar-hide snap-x snap-mandatory scroll-smooth">
+                  {(dealProducts.length > 0 ? dealProducts : displayProducts.slice(0, 10)).map((product) => (
+                    <div key={`deal-${product.id}`} className="deal-item snap-start min-w-[300px] max-w-[300px]">
+                      <div className="bg-white dark:bg-slate-700 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 h-full border border-gray-100 dark:border-slate-600">
+                        <ProductCard product={product} onClick={onProductClick} variant={"deal"} />
+                      </div>
+                    </div>
+                  ))}
+                </div> */}
+
+                {/* Next Button */}
+                {/* <button onClick={nextDeal} aria-label="Next" className="hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg absolute -right-6 top-1/2 -translate-y-1/2 z-20 hover:shadow-xl hover:bg-gray-50 transition">
+                  <ChevronRight size={20} className="text-gray-700" />
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </section>          Flash Deals */}
+        
+        {/* flash deals */}
+        <section> 
           <div className="flex items-center gap-3 mb-6">
              <div className="h-8 w-1.5 bg-pink-500 rounded-full"></div>
                <SectionHeader title="Flash Deals" showLink={false} />

@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Spinner } from '../components/StoreComponents';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem } from '../types';
 
 interface AdminCustomizationProps {
@@ -67,6 +68,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     tertiary: '#9333ea'
   });
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Carousel State
   const [carouselFilter, setCarouselFilter] = useState<'All' | 'Publish' | 'Draft' | 'Trash'>('All');
@@ -149,23 +151,35 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     setConfig(prev => ({ ...prev, socialLinks: prev.socialLinks.filter((_, i) => i !== index) }));
   };
 
-  const handleSave = () => {
-    // Save Website Config
-    if (onUpdateWebsiteConfig) {
-      onUpdateWebsiteConfig(config);
-    }
-    
-    // Save Theme
-    if (onUpdateTheme) {
-      onUpdateTheme({
-        primaryColor: colors.primary,
-        secondaryColor: colors.secondary,
-        tertiaryColor: colors.tertiary,
-        darkMode: isDarkMode
-      });
-    }
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const pending: Promise<any>[] = [];
+      if (onUpdateWebsiteConfig) {
+        const res = onUpdateWebsiteConfig(config) as any;
+        if (res && typeof res.then === 'function') pending.push(res);
+      }
 
-    alert('Settings saved successfully!');
+      if (onUpdateTheme) {
+        const res = onUpdateTheme({
+          primaryColor: colors.primary,
+          secondaryColor: colors.secondary,
+          tertiaryColor: colors.tertiary,
+          darkMode: isDarkMode
+        }) as any;
+        if (res && typeof res.then === 'function') pending.push(res);
+      }
+
+      if (pending.length) await Promise.all(pending);
+
+      alert('Settings saved successfully!');
+    } catch (e) {
+      console.warn('Failed to save customization', e);
+      alert('Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Carousel Logic
@@ -244,11 +258,21 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
            <h2 className="text-2xl font-bold text-gray-800">Customization</h2>
            <p className="text-sm text-gray-500">Manage appearance and content</p>
         </div>
-        <button 
+        <button
            onClick={handleSave}
-           className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
+           disabled={isSaving}
+           className={`flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg font-bold transition shadow-lg shadow-purple-200 ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-purple-700'}`}
         >
-           <Save size={18} /> Save Changes
+           {isSaving ? (
+             <>
+                <Spinner size={16} className="text-white" />
+                <span>Saving...</span>
+             </>
+           ) : (
+             <>
+               <Save size={18} /> Save Changes
+             </>
+           )}
         </button>
       </div>
 

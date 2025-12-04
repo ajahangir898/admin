@@ -17,7 +17,7 @@ import AdminCourierSettings from './pages/AdminCourierSettings';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
-import { LoginModal } from './components/StoreComponents';
+import { LoginModal, Toast } from './components/StoreComponents';
 import { DataService } from './services/DataService';
 
 // Wrapper layout for Admin pages
@@ -66,6 +66,7 @@ const hexToRgb = (hex: string) => {
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // --- STATE ---
   const [orders, setOrders] = useState<Order[]>([]);
@@ -92,6 +93,12 @@ const App = () => {
   // Auth & Navigation
   const [user, setUser] = useState<User | null>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    // auto-clear handled by Toast component too
+  };
   const [currentView, setCurrentView] = useState<ViewState>('store');
   const [adminSection, setAdminSection] = useState('dashboard');
   const [wishlist, setWishlist] = useState<number[]>([]);
@@ -103,7 +110,6 @@ const App = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-<<<<<<< HEAD
         console.log('[App] loadData start');
         setLoadError(null);
 
@@ -164,81 +170,18 @@ const App = () => {
         console.log('[App] getCatalog brands OK');
         setTags(tagsRes as any);
         console.log('[App] getCatalog tags OK');
-=======
-        setProducts(await DataService.getProducts());
-        setOrders(await DataService.getOrders());
-        setUsers(await DataService.getUsers());
-        setRoles(await DataService.getRoles());
-        
-        setLogo(await DataService.get<string | null>('logo', null));
-        setThemeConfig(await DataService.getThemeConfig());
-        setWebsiteConfig(await DataService.getWebsiteConfig());
-        setDeliveryConfig(await DataService.getDeliveryConfig());
-        setCourierConfig(await DataService.get('courier', { apiKey: '', secretKey: '' }));
-
-        // Catalog
-        setCategories(await DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]));
-        setSubCategories(await DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]));
-        setChildCategories(await DataService.getCatalog('childcategories', []));
-        setBrands(await DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]));
-        setTags(await DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }]));
->>>>>>> b699e9b423e4df64fc49a591467d90f8d8a3bea0
-
-        // Session
-        const storedSession = localStorage.getItem('gadgetshob_session');
-        if (storedSession) setUser(JSON.parse(storedSession));
-
-      } catch (error) {
-        console.error("Failed to load data", error);
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+        link.href = websiteRes?.favicon || '';
+      } catch (err: any) {
+        setLoadError(err?.message || 'Failed to load data');
       } finally {
         setIsLoading(false);
       }
     };
     loadData();
   }, []);
-
-  // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
-  
-  useEffect(() => { if(!isLoading) DataService.save('orders', orders); }, [orders, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('products', products); }, [products, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('roles', roles); }, [roles, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('users', users); }, [users, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('logo', logo); }, [logo, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('delivery_config', deliveryConfig); }, [deliveryConfig, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('courier', courierConfig); }, [courierConfig, isLoading]);
-  
-  useEffect(() => { if(!isLoading) DataService.save('categories', categories); }, [categories, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('subcategories', subCategories); }, [subCategories, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('childcategories', childCategories); }, [childCategories, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('brands', brands); }, [brands, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('tags', tags); }, [tags, isLoading]);
-
-  useEffect(() => { 
-    if(!isLoading && themeConfig) {
-      DataService.save('theme', themeConfig);
-      const root = document.documentElement;
-      root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
-      root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
-      root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
-      if (themeConfig.darkMode) root.classList.add('dark');
-      else root.classList.remove('dark');
-    }
-  }, [themeConfig, isLoading]);
-
-  useEffect(() => { 
-    if(!isLoading && websiteConfig) {
-      DataService.save('website_config', websiteConfig);
-      if (websiteConfig.favicon) {
-        let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.getElementsByTagName('head')[0].appendChild(link);
-        }
-        link.href = websiteConfig.favicon;
-      }
-    }
-  }, [websiteConfig, isLoading]);
 
 
   // --- HANDLERS ---
@@ -290,15 +233,69 @@ const App = () => {
     setUsers(users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u));
   };
 
-  const handleAddProduct = (newProduct: Product) => setProducts([...products, newProduct]);
-  const handleUpdateProduct = (updatedProduct: Product) => setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-  const handleDeleteProduct = (id: number) => setProducts(products.filter(p => p.id !== id));
-  const handleBulkDeleteProducts = (ids: number[]) => setProducts(products.filter(p => !ids.includes(p.id)));
-  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p));
+  const handleAddProduct = (newProduct: Product) => {
+    const updated = [...products, newProduct];
+    setProducts(updated);
+    // Persist asynchronously
+    DataService.save('products', updated).catch(e => console.warn('Failed to save products after add', e));
+  };
 
-  const handleUpdateLogo = (newLogo: string | null) => setLogo(newLogo);
-  const handleUpdateTheme = (newConfig: ThemeConfig) => setThemeConfig(newConfig);
-  const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    const updated = products.map(p => p.id === updatedProduct.id ? updatedProduct : p);
+    setProducts(updated);
+    DataService.save('products', updated).catch(e => console.warn('Failed to save products after update', e));
+  };
+
+  const handleDeleteProduct = (id: number) => {
+    const updated = products.filter(p => p.id !== id);
+    setProducts(updated);
+    DataService.save('products', updated).catch(e => console.warn('Failed to save products after delete', e));
+  };
+
+  const handleBulkDeleteProducts = (ids: number[]) => {
+    const updated = products.filter(p => !ids.includes(p.id));
+    setProducts(updated);
+    DataService.save('products', updated).catch(e => console.warn('Failed to save products after bulk delete', e));
+  };
+
+  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => {
+    const updated = products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p);
+    setProducts(updated);
+    DataService.save('products', updated).catch(e => console.warn('Failed to save products after bulk update', e));
+  };
+
+  const handleUpdateLogo = async (newLogo: string | null) => {
+    setLogo(newLogo);
+    try {
+      await DataService.save('logo', newLogo);
+      showToast('Logo saved successfully', 'success');
+    } catch (e) {
+      console.warn('Failed to save logo', e);
+      showToast('Failed to save logo', 'error');
+    }
+  };
+
+  const handleUpdateTheme = async (newConfig: ThemeConfig) => {
+    setThemeConfig(newConfig);
+    try {
+      await DataService.save('theme', newConfig);
+      showToast('Theme saved', 'success');
+    } catch (e) {
+      console.warn('Failed to save theme config', e);
+      showToast('Failed to save theme', 'error');
+    }
+  };
+
+  const handleUpdateWebsiteConfig = async (newConfig: WebsiteConfig) => {
+    setWebsiteConfig(newConfig);
+    try {
+      await DataService.save('website_config', newConfig);
+      showToast('Website settings saved', 'success');
+    } catch (e) {
+      console.warn('Failed to save website config', e);
+      showToast('Failed to save website settings', 'error');
+    }
+  };
   const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => setCourierConfig(config);
   const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => setDeliveryConfig(configs);
   
@@ -391,8 +388,12 @@ const App = () => {
           {currentView === 'profile' && user && <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} />}
         </>
       )}
+
+      {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
     </div>
   );
 };
 
 export default App;
+ 
+  // Render Toast at root by importing and placing in App's JSX - add near end of render

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Product, User, WebsiteConfig, Order } from '../types';
-import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, formatPrice } from '../components/StoreComponents';
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 
@@ -156,9 +156,9 @@ const StoreProductDetail = ({
                  </div>
 
                  <div className="flex items-end gap-3 mb-6">
-                    <span className="text-4xl font-bold text-orange-500">৳ {product.price.toLocaleString()}</span>
+                    <span className="text-4xl font-bold text-orange-500">৳ {formatPrice(product.price)}</span>
                     {product.originalPrice && (
-                      <span className="text-lg text-gray-400 line-through mb-1">৳ {product.originalPrice.toLocaleString()}</span>
+                      <span className="text-lg text-gray-400 line-through mb-1">৳ {formatPrice(product.originalPrice)}</span>
                     )}
                  </div>
 
@@ -251,7 +251,7 @@ const StoreProductDetail = ({
                        <div className="flex-1">
                           <h4 className="text-sm font-medium text-gray-800 line-clamp-2 group-hover:text-orange-500 transition mb-1">{p.name}</h4>
                           <div className="flex items-center justify-between">
-                            <span className="text-orange-500 font-bold text-sm">৳ {p.price}</span>
+                            <span className="text-orange-500 font-bold text-sm">৳ {formatPrice(p.price)}</span>
                             <StarRating rating={4} />
                           </div>
                        </div>

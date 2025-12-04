@@ -3,6 +3,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
+// Safe price formatter to avoid rendering crashes when values are undefined/null
+export const formatPrice = (value?: number | null) => {
+  if (value === undefined || value === null || Number.isNaN(Number(value))) return '0';
+  try { return Number(value).toLocaleString(); } catch { return String(value); }
+};
+
+// Small reusable spinner component using lucide's Loader2
+export const Spinner: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => {
+  return <Loader2 size={size} className={`animate-spin ${className}`} />;
+};
 
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
@@ -30,6 +40,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   websiteConfig
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,9 +92,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
            <div className="flex items-center justify-between gap-4 md:gap-8">
               
               {/* Logo */}
-              <div className="cursor-pointer shrink-0" onClick={onHomeClick}>
-                {logo ? (
-                  <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" />
+              <div className="cursor-pointer shrink-0 hover:opacity-80 transition" onClick={onHomeClick}>
+                {logo && !logoError ? (
+                  <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" onError={() => setLogoError(true)} loading="lazy" />
                 ) : (
                   <div className="flex flex-col leading-none">
                      <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
@@ -181,9 +192,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-            {logo ? (
-              <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
+          <div className="flex items-center cursor-pointer hover:opacity-80 transition" onClick={onHomeClick}>
+            {logo && !logoError ? (
+              <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" onError={() => setLogoError(true)} loading="lazy" />
             ) : (
               <h1 className="text-2xl font-bold tracking-tighter">
                 {websiteConfig?.brandingText ? (
@@ -466,7 +477,7 @@ export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => 
               </div>
               <div className="flex-1">
                  <h4 className="font-bold text-gray-800 dark:text-white text-sm line-clamp-2">{product.name}</h4>
-                 <p className="text-orange-500 font-bold mt-1">৳ {product.price.toLocaleString()}</p>
+                 <p className="text-orange-500 font-bold mt-1">৳ {formatPrice(product.price)}</p>
               </div>
            </div>
            
@@ -733,7 +744,7 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
                      </div>
                      <div>
                        <p className="text-xs text-gray-500 dark:text-gray-400">Amount</p>
-                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {result.amount.toLocaleString()}</p>
+                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {formatPrice(result.amount)}</p>
                      </div>
                      <div className="col-span-2">
                        <p className="text-xs text-gray-500 dark:text-gray-400">Date</p>
@@ -848,72 +859,116 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 };
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-  <div className="flex flex-col items-center gap-3 group cursor-pointer min-w-[90px] transition-all duration-300 hover:-translate-y-1">
-    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-white group-hover:bg-green-500 transition-all duration-300 group-hover:shadow-green-200 group-hover:shadow-lg relative overflow-hidden">
+  <div className="flex flex-col items-center gap-1 group cursor-pointer min-w-[72px] transition-all duration-300 hover:-translate-y-1">
+    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-white group-hover:bg-green-500 transition-all duration-300 group-hover:shadow-green-200 group-hover:shadow-lg relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-tr from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300">
         {icon}
       </div>
     </div>
-    <span className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-tight max-w-[100px]">{name}</span>
+    <span className="text-[10px] md:text-[11px] font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-none max-w-[90px]">{name}</span>
   </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-  <div className="inline-flex items-center gap-3 pl-2 pr-6 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
-     <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
-        <div className="transform group-hover:rotate-12 transition-transform duration-300">
-           {icon}
-        </div>
-     </div>
-     <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
+  <div className="inline-flex items-center gap-1 pl-2 pr-4 py-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
+    <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
+      <div className="transform group-hover:rotate-12 transition-transform duration-300">
+        {icon}
+      </div>
+    </div>
+     <span className="font-medium text-gray-700 dark:text-gray-200 text-[10px] leading-none group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
   </div>
 );
 
 export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void, variant?: string }> = ({ product, onClick, variant = 'style1' }) => {
   
-  // Style 2: Flash Sale (Pink/Blue Theme)
+  // Style 2: Flash Sale (Pink/Blue Theme) - Enhanced layout matching screenshot
   if (variant === 'style2') {
      return (
         <div 
-          className="bg-white rounded-xl border border-gray-100 hover:border-pink-200 overflow-hidden hover:shadow-xl transition-all duration-300 group relative flex flex-col h-full cursor-pointer"
+          className="bg-white rounded-lg border border-gray-200 hover:border-pink-300 overflow-hidden hover:shadow-2xl transition-all duration-300 group relative flex flex-col h-full cursor-pointer"
           onClick={() => onClick && onClick(product)}
         >
-           <div className="relative p-4 pb-0 h-48 flex items-center justify-center bg-white">
-               <button className="absolute top-3 left-3 text-gray-300 hover:text-pink-500 transition z-10">
-                   <Heart size={20} />
+           {/* Image Container */}
+           <div className="relative h-40 md:h-48 flex items-center justify-center bg-gray-50 overflow-hidden">
+               {/* Heart Icon - Top Left */}
+               <button 
+                   className="absolute top-3 left-3 text-gray-300 hover:text-red-500 transition z-10 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-sm"
+                   onClick={(e) => { e.stopPropagation(); }}
+               >
+                   <Heart size={18} className="stroke-2" />
                </button>
+               
+               {/* SALE Badge - Top Right */}
                {product.discount && (
-                   <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                   <span className="absolute top-3 right-3 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-sm z-10 shadow-md">
                        SALE
                    </span>
                )}
-               <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain transform group-hover:scale-110 transition duration-500" />
+               
+               {/* Product Image */}
+               <img 
+                   src={product.image} 
+                   alt={product.name} 
+                   className="h-full w-full object-cover group-hover:scale-110 transition duration-500" 
+               />
            </div>
            
-           <div className="p-4 flex flex-col flex-1">
-               <div className="flex gap-1 mb-2">
-                   {[1,2,3,4,5].map(s => <Star key={s} size={12} className={s <= (product.rating||0) ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} />)}
-                   <span className="text-xs text-gray-400 ml-1">({product.reviews})</span>
+           {/* Content Container */}
+           <div className="p-3 md:p-4 flex flex-col flex-1">
+               {/* Rating and Sold Info */}
+               <div className="flex items-center gap-2 mb-2">
+                   <div className="flex gap-0.5">
+                       {[1,2,3,4,5].map(s => (
+                           <Star 
+                               key={s} 
+                               size={14} 
+                               className={s <= (product.rating || 0) ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} 
+                           />
+                       ))}
+                   </div>
+                   <span className="text-xs text-gray-500">({product.reviews || 0})</span>
+                   <span className="text-xs text-gray-400 ml-auto">{product.sold || 0} Sold</span>
                </div>
-               <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition" title={product.name}>{product.name}</h3>
-               <p className="text-xs text-gray-500 line-clamp-2 mb-3 h-8 overflow-hidden">{product.description || "Premium quality product."}</p>
                
+               {/* Product Name */}
+               <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition" title={product.name}>
+                   {product.name}
+               </h3>
+               
+               {/* Description */}
+               <p className="text-xs text-gray-500 line-clamp-2 mb-3 h-8 overflow-hidden flex-shrink-0">
+                   {product.description || "Premium quality product."}
+               </p>
+               
+               {/* Pricing Section */}
                <div className="mt-auto">
-                   <div className="flex items-center gap-2 mb-1">
-                       <span className="text-pink-600 font-bold text-lg">৳ {product.price.toLocaleString()}</span>
+                   <div className="flex items-center gap-2 mb-2">
+                       <span className="text-pink-600 font-bold text-lg">৳{formatPrice(product.price)}</span>
                        {product.originalPrice && (
-                           <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice.toLocaleString()}</span>
+                           <span className="text-gray-400 text-xs line-through">৳{formatPrice(product.originalPrice)}</span>
                        )}
                    </div>
-                   <div className="text-[10px] text-blue-500 font-bold mb-3">Get 50 Coins</div>
                    
+                   {/* Coins Reward */}
+                   <div className="text-xs text-cyan-500 font-bold mb-3">
+                       Get {Math.floor((product.price || 0) / 100)} Coins
+                   </div>
+                   
+                   {/* Action Buttons */}
                    <div className="flex gap-2">
-                       <button className="flex-1 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded text-xs font-bold transition shadow-md shadow-pink-200">
+                       <button 
+                           className="flex-1 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded text-xs font-bold transition shadow-md hover:shadow-lg active:scale-95"
+                           onClick={(e) => { e.stopPropagation(); onClick && onClick(product); }}
+                       >
                            Buy Now
                        </button>
-                       <button className="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded transition">
-                           <ShoppingCart size={18} />
+                       <button 
+                           className="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2.5 rounded transition active:scale-95"
+                           onClick={(e) => { e.stopPropagation(); }}
+                       >
+                           <ShoppingCart size={18} className="stroke-2" />
                        </button>
                    </div>
                </div>
@@ -947,8 +1002,72 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
         <div className="flex flex-col flex-1">
           <h3 className="text-sm text-gray-700 line-clamp-2 mb-1 group-hover:text-green-600 transition" title={product.name}>{product.name}</h3>
           <div className="mt-auto pt-2 flex justify-between items-center border-t border-gray-100">
-             <span className="font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
+             <span className="font-bold text-gray-900">৳{formatPrice(product.price)}</span>
              <button className="text-green-600 hover:bg-green-50 p-1 rounded-full"><ShoppingCart size={18} /></button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Compact variant for Deal of The Day (reduced padding/height)
+  if (variant === 'deal' || variant === 'compact') {
+    return (
+      <div
+        className="bg-white dark:bg-slate-800 rounded-2xl p-2 shadow-sm hover:shadow-md transition-all duration-200 relative flex flex-col h-full cursor-pointer border border-gray-100"
+        onClick={() => onClick && onClick(product)}
+      >
+        {/* Heart (top-left) */}
+        <button
+          onClick={(e) => { e.stopPropagation(); }}
+          className="absolute top-3 left-3 bg-white rounded-full p-1.5 text-pink-500 hover:text-red-500 shadow-sm z-20 border border-gray-100"
+          aria-label="Favorite"
+        >
+          <Heart size={18} />
+        </button>
+
+        {/* SALE badge */}
+        {product.discount && (
+          <span className="absolute top-3 right-3 bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full z-20 shadow-sm">SALE</span>
+        )}
+
+        {/* Image panel */}
+        <div className="relative bg-white p-4 rounded-lg flex items-center justify-center h-40 md:h-44 overflow-hidden">
+          <img src={product.image} alt={product.name} className="max-h-28 md:max-h-32 w-auto object-contain transition-transform group-hover:scale-105" />
+        </div>
+
+        <div className="mt-3 flex flex-col flex-1">
+          <div className="flex items-center gap-2 text-[13px]">
+            <Star size={14} className="text-blue-500" />
+            <span className="text-blue-600 text-xs">({product.reviews || 0})</span>
+            <span className="text-gray-400 text-xs ml-2">|</span>
+            <span className="text-gray-400 text-xs ml-2">{product.sold || 0} Sold</span>
+          </div>
+
+          <h3 className="text-sm font-semibold text-[#e72960] line-clamp-2 my-2" title={product.name}>{product.name}</h3>
+
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-blue-700 font-extrabold text-lg">৳{formatPrice(product.price)}</span>
+            {product.originalPrice && (
+              <span className="text-gray-400 text-xs line-through">৳{formatPrice(product.originalPrice)}</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={(e) => { e.stopPropagation(); onClick && onClick(product); }}
+              className="flex-1 bg-[#e72960] hover:bg-[#d11b56] text-white py-2 rounded-lg text-sm font-bold transition shadow-md"
+              style={{ boxShadow: '0 6px 18px rgba(231,41,96,0.12)' }}
+            >
+              Buy Now
+            </button>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); }}
+              className="w-10 h-10 bg-blue-100 text-blue-600 rounded-md flex items-center justify-center shadow-sm hover:bg-blue-200 transition"
+            >
+              <ShoppingCart size={18} />
+            </button>
           </div>
         </div>
       </div>
@@ -958,27 +1077,27 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
   // Style 1: Default (Classic Green)
   return (
     <div 
-      className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
+      className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-2xl hover:border-green-300 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
       onClick={() => onClick && onClick(product)}
     >
       {product.discount && (
-        <span className="absolute top-3 left-3 bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-md">
+        <span className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-sm z-10 shadow-md">
           {product.discount}
         </span>
       )}
-      <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-md bg-gray-50 dark:bg-slate-700">
+      <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-lg bg-gray-50 dark:bg-slate-700">
         <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
       </div>
-      <h3 className="text-sm font-medium text-gray-800 dark:text-gray-100 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
         {product.name}
       </h3>
       <div className="flex items-center gap-2 mb-4 mt-auto">
-        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{product.price.toLocaleString()}</span>
+        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{formatPrice(product.price)}</span>
         {product.originalPrice && (
-          <span className="text-gray-400 text-xs line-through decoration-red-400">৳{product.originalPrice.toLocaleString()}</span>
+          <span className="text-gray-400 text-xs line-through decoration-red-400">৳{formatPrice(product.originalPrice)}</span>
         )}
       </div>
-      <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded text-sm font-bold transition flex items-center justify-center gap-2 active:bg-green-700 shadow-sm hover:shadow">
+      <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 active:scale-95 shadow-md hover:shadow-lg">
         অর্ডার করুন
       </button>
     </div>
@@ -995,6 +1114,27 @@ export const SectionHeader: React.FC<{ title: string; linkText?: string; showLin
     )}
   </div>
 );
+
+export const Toast: React.FC<{ toast: { message: string; type?: 'success' | 'error' } | null; onClose: () => void }> = ({ toast, onClose }) => {
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => onClose(), 3500);
+    return () => clearTimeout(t);
+  }, [toast, onClose]);
+
+  if (!toast) return null;
+
+  return (
+    <div className={`fixed right-6 bottom-6 z-[9999] max-w-sm w-full pointer-events-auto`}>
+      <div className={`rounded-lg px-4 py-3 shadow-lg ring-1 ring-black/5 ${toast.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+        <div className="flex items-start gap-3">
+          <div className="flex-1 text-sm font-medium">{toast.message}</div>
+          <button onClick={onClose} className="text-sm opacity-70 hover:opacity-100">✕</button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
   const socialIcons: Record<string, React.ReactNode> = {

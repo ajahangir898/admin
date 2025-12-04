@@ -10,17 +10,33 @@ class DataServiceImpl {
   
   private async safeFirebaseCall<T>(operation: () => Promise<T>, fallback: T, key?: string): Promise<T> {
     try {
-      if (!db) throw new Error("Firebase DB not initialized");
-      return await operation();
+      if (!db) {
+        throw new Error("Firebase DB not initialized - check firebaseConfig.ts");
+      }
+      const result = await operation();
+      if (key) {
+        console.log(`✓ Firebase: Successfully loaded ${key}`);
+      }
+      return result;
     } catch (error) {
-      console.warn(`Firebase operation failed, falling back to local storage/defaults.`, error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn(`⚠ Firebase operation failed for '${key}': ${errorMsg}`);
+      console.warn('Falling back to local storage/defaults', error);
+      
       // Attempt Local Storage Fallback
       if (key) {
         const local = localStorage.getItem(`gadgetshob_${key}`);
         if (local) {
-            try { return JSON.parse(local); } catch(e) {}
+            try { 
+              const parsed = JSON.parse(local);
+              console.log(`✓ Loaded '${key}' from localStorage (offline mode)`);
+              return parsed;
+            } catch(e) {
+              console.error(`Failed to parse cached ${key} from localStorage`, e);
+            }
         }
       }
+      console.log(`↪ Using fallback data for '${key}'`);
       return fallback;
     }
   }
@@ -73,10 +89,18 @@ class DataServiceImpl {
     const isArray = Array.isArray(defaultValue);
     
     return this.safeFirebaseCall(async () => {
-      if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
+      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
         const docRef = doc(db, 'configurations', key);
         const docSnap = await getDoc(docRef);
-        return docSnap.exists() ? (docSnap.data() as T) : defaultValue;
+        if (docSnap.exists()) {
+          const raw = docSnap.data();
+          // If stored as { value: primitive } unwrap it for backward compatibility
+          if (raw && Object.prototype.hasOwnProperty.call(raw, 'value') && Object.keys(raw).length === 1) {
+            return (raw.value as unknown) as T;
+          }
+          return raw as T;
+        }
+        return defaultValue;
       }
       
       // Fallback for generic collections
@@ -165,24 +189,45 @@ class DataServiceImpl {
 
         // Configs -> Single Doc
         if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
-            await setDoc(doc(db, 'configurations', key), data as any);
-            return;
+          // Firestore documents must be objects; wrap primitives in { value: ... }
+          let payload: any = data;
+          if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+            payload = { value: data };
+          }
+          await setDoc(doc(db, 'configurations', key), payload);
+          return;
         }
 
         // Arrays -> Collection (Sync Strategy: Overwrite items)
-        if (Array.isArray(data)) {
-            const batchPromises = [];
-            // We iterate and save each item as a doc
+          if (Array.isArray(data)) {
+            const batchPromises: Promise<any>[] = [];
+            // We iterate and save each item as a doc (upsert)
+            const idsToKeep: string[] = [];
             for (const item of data) {
-                if (item && (item.id || item.id === 0)) {
-                    const id = String(item.id);
-                    batchPromises.push(setDoc(doc(db, key, id), item));
-                }
+              if (item && (item.id || item.id === 0)) {
+                const id = String(item.id);
+                idsToKeep.push(id);
+                batchPromises.push(setDoc(doc(db, key, id), item));
+              }
             }
-            // Note: In a real app, handling deletions is complex with this pattern.
-            // For now, we assume this is an upsert.
             await Promise.all(batchPromises);
-        }
+
+            // Cleanup: remove any documents in the Firestore collection that are not in idsToKeep
+            try {
+              const snapshot = await getDocs(collection(db, key));
+              const deletePromises: Promise<any>[] = [];
+              snapshot.docs.forEach(d => {
+                if (!idsToKeep.includes(d.id)) {
+                  deletePromises.push(deleteDoc(doc(db, key, d.id)));
+                }
+              });
+              if (deletePromises.length) {
+                await Promise.all(deletePromises);
+              }
+            } catch (e) {
+              console.warn(`Failed to cleanup removed docs in collection '${key}'`, e);
+            }
+          }
     } catch (e) {
         console.error(`Failed to sync ${key} to Firebase`, e);
     }

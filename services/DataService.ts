@@ -105,9 +105,9 @@ class DataServiceImpl {
 
   async getThemeConfig(): Promise<ThemeConfig> {
     const defaults: ThemeConfig = {
-      primaryColor: '#22c55e',
-      secondaryColor: '#ec4899',
-      tertiaryColor: '#9333ea',
+      primaryColor: '#ec4899', // Pink-500
+      secondaryColor: '#a855f7', // Purple-500
+      tertiaryColor: '#c026d3', // Fuchsia-600
       darkMode: false
     };
     return this.get<ThemeConfig>('theme', defaults);
@@ -160,6 +160,15 @@ class DataServiceImpl {
 
   async save<T>(key: string, data: T): Promise<void> {
     // Save to local storage first for immediate UI feedback / offline capability
+    // Simple debounce check to avoid spamming (optional optimization)
+    const now = Date.now();
+    const lastSave = parseInt(localStorage.getItem(`last_save_${key}`) || '0');
+    if (now - lastSave < 1000) {
+        // Skip if saved less than 1 second ago
+        return; 
+    }
+    localStorage.setItem(`last_save_${key}`, now.toString());
+
     this.saveToLocal(key, data);
 
     try {

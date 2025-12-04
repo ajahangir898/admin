@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { Product, User, WebsiteConfig, Order } from '../types';
@@ -115,41 +115,43 @@ const StoreHome = ({
         
         {/* Categories */}
         {websiteConfig?.categorySectionStyle === 'style2' ? (
-           <div className="mt-8 mb-8">
-              <div className="flex justify-between items-end mb-6 border-b border-gray-100 pb-2">
-                 <div className="relative">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-white pb-2">Categories</h2>
-                    <div className="absolute bottom-0 left-0 w-8 h-0.5 bg-pink-500"></div>
-                    <div className="absolute bottom-0 left-8 w-16 h-0.5 bg-blue-400"></div>
+           <div className="mt-12 mb-10">
+              <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-2">
+                 <div className="relative pb-2">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
+                    <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
                  </div>
-                 <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-2 transition mb-2">
-                    View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent"></div>
+                 <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 transition mb-2 group">
+                    View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent transform group-hover:translate-x-1 transition-transform"></div>
                  </a>
               </div>
               
               {/* Auto Scrolling Container */}
               <div 
                  ref={categoryScrollRef}
-                 className="flex gap-4 overflow-x-hidden pb-4 whitespace-nowrap scrollbar-hide"
-                 style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}
+                 className="flex gap-6 overflow-x-hidden py-2 whitespace-nowrap scrollbar-hide"
+                 style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
               >
                  {/* Render multiple times for infinite seamless loop */}
                  {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
-                    <div key={`${cat.name}-${idx}`} className="inline-flex items-center gap-3 p-1.5 pr-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer hover:border-blue-400 transition group flex-shrink-0">
-                       <div className="w-10 h-10 rounded-full bg-white border border-blue-100 dark:bg-slate-700 dark:border-slate-600 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition shadow-sm">
-                          {React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 1.5 })}
-                       </div>
-                       <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400">{cat.name}</span>
-                    </div>
+                    <CategoryPill 
+                      key={`${cat.name}-${idx}`} 
+                      name={cat.name} 
+                      icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })} 
+                    />
                  ))}
               </div>
            </div>
         ) : (
-           <div className="mt-8 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+           <div className="mt-12 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
                <SectionHeader title="Categories" />
-               <div className="flex flex-wrap gap-4 md:gap-8 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide">
+               <div className="flex flex-wrap gap-x-8 gap-y-8 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide pt-2">
                {CATEGORIES.map((cat, idx) => (
-                   <CategoryCircle key={idx} name={cat.name} icon={iconMap[cat.icon]} />
+                   <CategoryCircle 
+                     key={idx} 
+                     name={cat.name} 
+                     icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 32, strokeWidth: 1.5 })} 
+                   />
                ))}
                </div>
            </div>
@@ -162,7 +164,7 @@ const StoreHome = ({
              <SectionHeader title="Flash Deals" />
              <div className="bg-pink-100 text-pink-600 px-3 py-1 rounded text-xs font-bold animate-pulse">Ends in 24h</div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {displayProducts.map((product) => (
               <ProductCard 
                 key={`flash-${product.id}`} 
@@ -184,7 +186,7 @@ const StoreHome = ({
                 <div className="h-8 w-1.5 bg-green-500 rounded-full"></div>
                 <SectionHeader title="Best Sale Products" />
             </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
              {displayProducts.slice().reverse().map((product) => (
               <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
             ))}
@@ -196,15 +198,16 @@ const StoreHome = ({
         </section>
 
          {/* OMG Fashion Banner */}
-        <section className="bg-purple-900 rounded-2xl overflow-hidden relative h-48 md:h-64 flex items-center px-8 md:px-16 text-white shadow-xl">
+        <section className="bg-purple-900 rounded-2xl overflow-hidden relative h-48 md:h-72 flex items-center px-8 md:px-16 text-white shadow-2xl my-16 transform hover:scale-[1.01] transition-transform duration-500">
              <div className="z-10 relative max-w-lg">
-                 <span className="bg-white/20 text-xs font-bold px-2 py-1 rounded mb-2 inline-block">NEW ARRIVAL</span>
-                 <h2 className="text-3xl md:text-5xl font-bold mb-3 tracking-tight">OMG FASHION</h2>
-                 <p className="mb-6 text-purple-200 text-sm md:text-base">Get up to 70% off on all fashion accessories. Limited time offer.</p>
-                 <button className="bg-white text-purple-900 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-100 transition shadow-lg">Explore Collection</button>
+                 <span className="bg-white/20 text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block backdrop-blur-sm border border-white/10">NEW ARRIVAL</span>
+                 <h2 className="text-3xl md:text-6xl font-black mb-4 tracking-tight leading-tight">OMG FASHION</h2>
+                 <p className="mb-8 text-purple-100 text-sm md:text-lg font-medium">Get up to 70% off on all fashion accessories. Limited time offer.</p>
+                 <button className="bg-white text-purple-900 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition shadow-xl hover:shadow-2xl transform hover:-translate-y-1">Explore Collection</button>
              </div>
-             <div className="absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l from-purple-600 to-transparent opacity-60"></div>
-             <div className="absolute -right-20 -bottom-40 w-80 h-80 bg-pink-500 rounded-full blur-[100px] opacity-50"></div>
+             <div className="absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l from-purple-600/80 to-transparent"></div>
+             <div className="absolute -right-20 -bottom-40 w-96 h-96 bg-pink-500 rounded-full blur-[120px] opacity-60 animate-pulse"></div>
+             <div className="absolute left-20 -top-20 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-40"></div>
         </section>
 
         {/* Popular Products */}
@@ -213,7 +216,7 @@ const StoreHome = ({
                 <div className="h-8 w-1.5 bg-purple-500 rounded-full"></div>
                 <SectionHeader title="Popular products" />
             </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {displayProducts.map((product) => (
               <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
             ))}

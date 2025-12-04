@@ -859,11 +859,25 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 };
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-  <div className="flex flex-col items-center gap-3 group cursor-pointer min-w-[80px]">
-    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-gray-100 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-green-500 transition bg-white dark:bg-slate-800 shadow-sm group-hover:shadow-md">
-      {icon}
+  <div className="flex flex-col items-center gap-3 group cursor-pointer min-w-[90px] transition-all duration-300 hover:-translate-y-1">
+    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-white group-hover:bg-green-500 transition-all duration-300 group-hover:shadow-green-200 group-hover:shadow-lg relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-tr from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300">
+        {icon}
+      </div>
     </div>
-    <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-green-600">{name}</span>
+    <span className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-tight max-w-[100px]">{name}</span>
+  </div>
+);
+
+export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+  <div className="inline-flex items-center gap-3 pl-2 pr-6 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
+     <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
+        <div className="transform group-hover:rotate-12 transition-transform duration-300">
+           {icon}
+        </div>
+     </div>
+     <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
   </div>
 );
 
@@ -1002,7 +1016,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
 
   if (websiteConfig?.footerStyle === 'style2') {
     return (
-      <footer className="bg-white border-t border-gray-100 font-sans">
+      <footer className="bg-white border-t border-gray-100 font-sans container mx-auto max-w-7xl">
         {/* Contact Bar */}
         <div className="bg-gray-50 border-b border-gray-100 py-6">
            <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
@@ -1098,7 +1112,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
 
   // Default Footer
   return (
-    <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300">
+    <footer className="bg-white dark:bg-slate-900 pt-16 pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300 container mx-auto max-w-7xl">
       <div className="max-w-7xl mx-auto px-4">
         {!websiteConfig?.hideCopyright && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">

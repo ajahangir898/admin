@@ -13,6 +13,7 @@ import AdminSettings from './pages/AdminSettings';
 import AdminControl from './pages/AdminControl';
 import AdminCatalog from './pages/AdminCatalog';
 import AdminDeliverySettings from './pages/AdminDeliverySettings';
+import AdminCourierSettings from './pages/AdminCourierSettings';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
@@ -72,7 +73,7 @@ const App = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
-    primaryColor: '#22c55e', secondaryColor: '#ec4899', tertiaryColor: '#9333ea', darkMode: false
+    primaryColor: '#ec4899', secondaryColor: '#a855f7', tertiaryColor: '#c026d3', darkMode: false
   });
   const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(undefined);
   const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>([]);
@@ -343,6 +344,7 @@ const App = () => {
            adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
            adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
            adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
+           adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
            adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
            adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
            <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />

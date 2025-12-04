@@ -1,15 +1,15 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, Eye, MoreHorizontal, Download, Calendar, MapPin, DollarSign, RefreshCw, ChevronDown, ChevronUp, Truck, Loader2, CheckCircle } from 'lucide-react';
+import { Search, Filter, Eye, MoreHorizontal, Download, Calendar, MapPin, DollarSign, RefreshCw, ChevronDown, ChevronUp, Truck, Loader2, CheckCircle, ExternalLink } from 'lucide-react';
 import { Order } from '../types';
 
 interface AdminOrdersProps {
   orders: Order[];
   courierConfig?: { apiKey: string, secretKey: string };
-  onUpdateStatus?: (orderId: string, status: Order['status']) => void;
+  onUpdateOrder?: (orderId: string, updates: Partial<Order>) => void;
 }
 
-const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpdateStatus }) => {
+const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpdateOrder }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -83,14 +83,21 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
 
     setProcessingOrder(order.id);
 
-    // Simulate API Call delay
+    // Simulate API Call delay and ID generation
     setTimeout(() => {
-      // Mock Success
       setProcessingOrder(null);
-      if (onUpdateStatus) {
-        onUpdateStatus(order.id, 'Shipped');
+      
+      // Generate a mock Steadfast Tracking ID
+      const mockTrackingId = 'SID-' + Math.floor(100000 + Math.random() * 900000);
+      
+      if (onUpdateOrder) {
+        onUpdateOrder(order.id, { 
+            status: 'Shipped',
+            trackingId: mockTrackingId
+        });
       }
-      alert(`Order ${order.id} successfully sent to Steadfast Courier! Tracking ID generated.`);
+      
+      alert(`Order ${order.id} successfully sent to Steadfast Courier! Tracking ID: ${mockTrackingId}`);
     }, 1500);
   };
 
@@ -276,20 +283,35 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-700">৳ {order.amount.toLocaleString()}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                        order.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                        order.status === 'Confirmed' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                        order.status === 'Shipped' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                        order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 border-gray-200'
-                      }`}>
-                        {order.status}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                            order.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                            order.status === 'Confirmed' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                            order.status === 'Shipped' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                            order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 border-gray-200'
+                        }`}>
+                            {order.status}
+                        </span>
+                        
+                        {/* Display Clickable Tracking ID if available */}
+                        {order.trackingId && (
+                            <a 
+                                href={`https://steadfast.com.bd/t/${order.trackingId}`} 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100"
+                                title="Track on Steadfast"
+                            >
+                                <Truck size={10} /> {order.trackingId} <ExternalLink size={8} />
+                            </a>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                        <div className="flex justify-end gap-2">
                           
-                          {/* Courier Action */}
-                          {(order.status === 'Pending' || order.status === 'Confirmed') && (
+                          {/* Courier Action (Only if NOT already shipped/delivered/has tracking ID) */}
+                          {(!order.trackingId && (order.status === 'Pending' || order.status === 'Confirmed')) && (
                             <button 
                               onClick={() => handleSendToCourier(order)}
                               disabled={processingOrder === order.id}

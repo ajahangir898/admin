@@ -17,6 +17,8 @@ export interface Product {
   childCategory?: string; // Added
   brand?: string; // Added
   tags?: string[];
+  colors?: string[]; // Added: Array of color codes or names
+  sizes?: string[]; // Added: Array of size strings (S, M, L, XL etc)
   status?: 'Active' | 'Draft'; // Added for filtering
 }
 

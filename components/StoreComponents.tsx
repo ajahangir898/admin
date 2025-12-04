@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
@@ -97,30 +96,33 @@ export const MobileBottomNav: React.FC<{
 
   // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <MessageCircle size={20} strokeWidth={2} className="text-gray-500" />
-        <span className="text-[10px] font-medium text-gray-500">Messenger</span>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-1 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+        <div className="relative">
+           {/* Custom Messenger Icon SVG */}
+           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-pink-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+        </div>
+        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Messenger</span>
       </button>
       
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <Phone size={20} strokeWidth={2} className="text-gray-500" />
-        <span className="text-[10px] font-medium text-gray-500">Call</span>
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+        <Phone size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
+        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Call</span>
       </button>
       
-      <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
-        <Home size={24} strokeWidth={2.5} className={activeTab === 'home' ? 'fill-pink-600 text-pink-600' : 'text-gray-500'} />
-        <span className="text-[10px] font-bold">Home</span>
+      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-600 transition w-1/5">
+        <Home size={26} strokeWidth={2.5} className="fill-pink-600 text-pink-600" />
+        <span className="text-[10px] font-bold text-pink-600">Home</span>
       </button>
       
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
-        <Facebook size={20} strokeWidth={2} className="text-gray-500" />
-        <span className="text-[10px] font-medium text-gray-500">Page</span>
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+        <Facebook size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
+        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Page</span>
       </button>
       
-      <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
-        <User size={20} strokeWidth={2} className={activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'} />
-        <span className="text-[10px] font-medium">Account</span>
+      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+        <User size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
+        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Account</span>
       </button>
     </div>
   );
@@ -284,43 +286,48 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       
       {/* MOBILE HEADER SPECIFIC LAYOUT */}
-      <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3">
-        {/* Logo Row */}
-        <div className="flex justify-center mb-3" onClick={onHomeClick}>
+      <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3 border-b border-gray-100">
+        {/* Logo Row - Centered */}
+        <div className="flex justify-center mb-3 items-center h-10" onClick={onHomeClick}>
         {logo ? (
             <img src={logo} alt="Store Logo" className="h-8 object-contain" />
         ) : (
             <div className="flex flex-col items-center leading-none">
-                <Smartphone size={24} className="text-gray-800 dark:text-white mb-1" strokeWidth={2.5}/>
-                <h1 className="text-xl font-bold tracking-tighter flex items-center gap-0.5">
-                    <span className="text-gray-900 dark:text-white">GADGET</span>
-                    <span className="text-pink-500">SHOB</span>
-                </h1>
+                <div className="relative mb-0.5">
+                    <Smartphone size={24} className="text-gray-800 dark:text-white absolute -left-7 top-0.5 opacity-0" strokeWidth={2.5}/> {/* Hidden spacer if needed, or rely on flex col */}
+                    <div className="flex items-center">
+                        <Smartphone size={20} className="text-gray-800 dark:text-white mr-1" strokeWidth={2.5}/>
+                        <h1 className="text-xl font-bold tracking-tight flex items-center">
+                            <span className="text-gray-900 dark:text-white">GADGET</span>
+                            <span className="text-pink-500">SHOB</span>
+                        </h1>
+                    </div>
+                </div>
             </div>
         )}
         </div>
 
         {/* Action Row */}
         <div className="flex items-center gap-3">
-            <button className="text-gray-800 dark:text-white">
-                <Menu size={28} strokeWidth={2} />
+            <button className="text-gray-800 dark:text-white p-1">
+                <Menu size={26} strokeWidth={2} />
             </button>
 
-            <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800" size={18} strokeWidth={2.5} />
+            <div className="flex-1 relative h-10">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} strokeWidth={2} />
                 <input 
                 type="text" 
                 placeholder={websiteConfig?.searchHints || "gadget"} 
-                className="w-full pl-10 pr-20 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-gray-500 font-medium text-gray-700"
+                className="w-full h-full pl-10 pr-20 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-black dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-gray-400 font-normal text-gray-700"
                 />
-                <button className="absolute right-1 top-1 bottom-1 bg-black text-white text-xs font-bold px-4 rounded-md hover:bg-gray-800 transition">
+                <button className="absolute right-1 top-1 bottom-1 bg-black text-white text-xs font-bold px-4 rounded-[4px] hover:bg-gray-800 transition">
                 Search
                 </button>
             </div>
 
-            <div className="relative cursor-pointer">
+            <div className="relative cursor-pointer p-1">
                 <ShoppingCart size={26} className="text-gray-800 dark:text-white" strokeWidth={2} />
-                <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">0</span>
+                <span className="absolute -top-0 -right-0 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">0</span>
             </div>
         </div>
       </div>
@@ -459,860 +466,569 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   );
 };
 
-export const LoginModal: React.FC<{ 
-  onClose: () => void, 
-  onLogin: (email: string, pass: string) => boolean,
-  onRegister: (data: UserType) => boolean 
-}> = ({ onClose, onLogin, onRegister }) => {
-  const [isRegister, setIsRegister] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (isRegister) {
-      if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-      if (formData.password.length < 6) {
-        setError("Password must be at least 6 characters");
-        return;
-      }
-      const success = onRegister({ 
-        name: formData.name, 
-        email: formData.email, 
-        password: formData.password 
-      });
-      if (!success) setError("Email already registered");
-    } else {
-      const success = onLogin(formData.email, formData.password);
-      if (!success) setError("Invalid email or password");
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"><X size={24}/></button>
-        
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              {isRegister ? 'Join us to manage orders and checkout faster' : 'Please enter your details to sign in'}
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg mb-4 text-center border border-red-100">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-                <input 
-                  type="text" 
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                />
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-              <input 
-                type="email" 
-                required
-                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
-                placeholder="mail@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
+export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string }> = ({ product, onClick, variant }) => {
+  // Style 2 (Flash Sale - Pink/Blue)
+  if (variant === 'style2') {
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
+            <div className="relative aspect-square p-4 bg-gray-50">
+                <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
+                {product.discount && (
+                    <span className="absolute top-2 left-2 bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                        {product.discount}
+                    </span>
+                )}
+                <button className="absolute top-2 right-2 text-gray-400 hover:text-pink-500 transition">
+                    <Heart size={18} />
+                </button>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-              <input 
-                type="password" 
-                required
-                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-            </div>
+            <div className="p-3 flex-1 flex flex-col">
+                {/* Rating */}
+                <div className="flex items-center gap-1 text-yellow-400 text-xs mb-1">
+                    <Star size={12} fill="currentColor" />
+                    <span className="text-gray-400">({product.reviews || 0})</span>
+                    <span className="text-gray-400 text-[10px] ml-1">| 0 Sold</span>
+                </div>
 
-            {isRegister && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
-                <input 
-                  type="password" 
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition dark:bg-slate-700 dark:text-white"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                />
-              </div>
-            )}
+                <h3 
+                  className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition"
+                  onClick={() => onClick(product)}
+                >
+                    {product.name}
+                </h3>
+                
+                <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p>
 
-            <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-green-200 dark:shadow-none mt-2 transform active:scale-95">
-              {isRegister ? 'Register' : 'Login'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            {isRegister ? 'Already have an account? ' : "Don't have an account? "}
-            <button 
-              onClick={() => { setIsRegister(!isRegister); setError(''); }}
-              className="text-green-600 dark:text-green-400 font-bold hover:underline"
-            >
-              {isRegister ? 'Login' : 'Register'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => void, onCheckout: () => void }> = ({ product, onClose, onCheckout }) => {
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
-        <div className="bg-green-500 p-4 text-white flex justify-between items-center">
-           <h3 className="font-bold flex items-center gap-2">
-             <CheckCircle size={20} /> Added to Cart
-           </h3>
-           <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full"><X size={20}/></button>
-        </div>
-        <div className="p-6">
-           <div className="flex gap-4 items-center mb-6">
-              <div className="w-16 h-16 bg-gray-50 dark:bg-slate-700 rounded border border-gray-200 dark:border-slate-600 p-1">
-                 <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
-              </div>
-              <div className="flex-1">
-                 <h4 className="font-bold text-gray-800 dark:text-white text-sm line-clamp-2">{product.name}</h4>
-                 <p className="text-orange-500 font-bold mt-1">৳ {product.price.toLocaleString()}</p>
-              </div>
-           </div>
-           
-           <div className="space-y-3">
-              <button onClick={onCheckout} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition">
-                 Checkout Now <ArrowRight size={18} />
-              </button>
-              <button onClick={onClose} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-gray-300 py-3 rounded-lg font-bold transition">
-                 Continue Shopping
-              </button>
-           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const [resultImage, setResultImage] = useState<string>('');
-  const [prompt, setPrompt] = useState('');
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setResultImage(''); // Clear previous result
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleGenerate = async () => {
-    if (!selectedFile || !prompt.trim()) return;
-
-    setLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const base64Data = imagePreview.split(',')[1];
-      const mimeType = selectedFile.type;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                data: base64Data,
-                mimeType: mimeType,
-              },
-            },
-            {
-              text: `Edit this image: ${prompt}`,
-            },
-          ],
-        },
-      });
-
-      let generatedImageBase64 = '';
-      if (response.candidates && response.candidates[0].content.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-             generatedImageBase64 = part.inlineData.data;
-             const resultUrl = `data:image/png;base64,${generatedImageBase64}`;
-             setResultImage(resultUrl);
-             break;
-          }
-        }
-      }
-      
-      if (!generatedImageBase64) {
-          alert("Could not generate image. Please try a different prompt.");
-      }
-
-    } catch (error) {
-      console.error("Error generating image:", error);
-      alert("Something went wrong. Please check your API key and try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-4 flex justify-between items-center text-white shrink-0">
-          <h3 className="font-bold text-xl flex items-center gap-2">
-            <Sparkles size={24} className="text-yellow-300"/> 
-            AI Magic Studio
-          </h3>
-          <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full transition"><X size={24}/></button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-              <div className="flex flex-col gap-4">
-                 <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                   <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
-                   Upload Image
-                 </div>
-                 
-                 <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl h-64 flex flex-col items-center justify-center cursor-pointer transition relative overflow-hidden group dark:border-slate-600 ${imagePreview ? 'border-purple-300 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
-                 >
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
+                <div className="mt-auto">
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-pink-600 font-bold text-lg">৳ {product.price}</span>
+                        {product.originalPrice && (
+                            <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice}</span>
+                        )}
+                        <span className="ml-auto text-[10px] text-blue-500 font-medium">Get 50 Coins</span>
+                    </div>
                     
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-contain p-2" />
-                    ) : (
-                      <div className="text-center text-gray-400 group-hover:text-purple-500 transition">
-                         <Upload size={48} className="mx-auto mb-2" />
-                         <p className="font-medium">Click to upload</p>
-                         <p className="text-xs">JPG, PNG supported</p>
-                      </div>
-                    )}
-                 </div>
-
-                 <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2 mt-2">
-                   <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>
-                   Describe Changes
-                 </div>
-                 <textarea
-                   className="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none h-24"
-                   placeholder="E.g., Change background to a beach at sunset, make it look cinematic..."
-                   value={prompt}
-                   onChange={(e) => setPrompt(e.target.value)}
-                 ></textarea>
-
-                 <button 
-                    onClick={handleGenerate}
-                    disabled={!selectedFile || !prompt || loading}
-                    className={`py-3 rounded-lg font-bold text-white shadow-lg transition flex items-center justify-center gap-2 ${
-                      !selectedFile || !prompt || loading 
-                        ? 'bg-gray-300 dark:bg-slate-600 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-[1.02]'
-                    }`}
-                 >
-                    {loading ? (
-                      <>
-                        <Loader2 size={20} className="animate-spin" /> Generating Magic...
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 size={20} /> Generate
-                      </>
-                    )}
-                 </button>
-              </div>
-
-              <div className="flex flex-col gap-4 border-l border-gray-100 dark:border-slate-700 md:pl-8">
-                 <div className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                   <span className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-6 h-6 rounded-full flex items-center justify-center text-sm">3</span>
-                   Result
-                 </div>
-                 
-                 <div className="bg-gray-100 dark:bg-slate-700 rounded-xl flex-1 flex items-center justify-center min-h-[300px] border border-gray-200 dark:border-slate-600 relative overflow-hidden">
-                    {loading && (
-                      <div className="absolute inset-0 bg-black/10 flex flex-col items-center justify-center backdrop-blur-[1px] z-10">
-                        <Loader2 size={48} className="text-purple-600 animate-spin mb-4" />
-                        <p className="text-purple-800 dark:text-purple-300 font-bold animate-pulse">Processing Image...</p>
-                      </div>
-                    )}
-
-                    {resultImage ? (
-                      <img src={resultImage} alt="Generated Result" className="w-full h-full object-contain" />
-                    ) : (
-                      <div className="text-center text-gray-400">
-                        <ImageIcon size={64} className="mx-auto mb-3 opacity-50" />
-                        <p>Your masterpiece will appear here</p>
-                      </div>
-                    )}
-                 </div>
-                 
-                 {resultImage && (
-                    <a 
-                      href={resultImage} 
-                      download="magic-edit.png"
-                      className="text-center text-purple-600 dark:text-purple-400 font-bold hover:underline py-2"
-                    >
-                      Download Image
-                    </a>
-                 )}
-              </div>
-
-           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }> = ({ onClose, orders = [] }) => {
-  const [orderId, setOrderId] = useState('');
-  const [result, setResult] = useState<Order | null>(null);
-  const [searched, setSearched] = useState(false);
-
-  const handleTrack = () => {
-    if (!orderId.trim()) return;
-    setSearched(true);
-    // Find order in dynamic prop orders
-    const order = orders.find(o => 
-      o.id.toLowerCase() === orderId.toLowerCase() || 
-      o.id.replace('#', '').toLowerCase() === orderId.toLowerCase()
-    );
-    setResult(order || null);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="bg-green-500 p-4 flex justify-between items-center text-white">
-          <h3 className="font-bold text-lg flex items-center gap-2"><Truck size={20}/> Track Your Order</h3>
-          <button onClick={onClose} className="hover:bg-green-600 p-1 rounded transition"><X size={20}/></button>
-        </div>
-        <div className="p-6">
-          <div className="flex gap-2 mb-6">
-            <input 
-              type="text" 
-              placeholder="Enter Order ID (e.g. 0024)" 
-              className="flex-1 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none dark:bg-slate-700 dark:text-white"
-              value={orderId}
-              onChange={(e) => setOrderId(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
-            />
-            <button onClick={handleTrack} className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600 transition">
-              Track
-            </button>
-          </div>
-
-          {searched && (
-            <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 border border-gray-100 dark:border-slate-600 animate-in slide-in-from-top-2">
-              {result ? (
-                <div className="space-y-4">
-                   <div className="flex justify-between items-start border-b border-gray-200 dark:border-slate-600 pb-3">
-                      <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Order ID</p>
-                        <p className="font-bold text-gray-800 dark:text-white text-lg">{result.id}</p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        result.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                        result.status === 'Pending' ? 'bg-orange-100 text-orange-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
-                        {result.status}
-                      </span>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                     <div>
-                       <p className="text-xs text-gray-500 dark:text-gray-400">Customer</p>
-                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{result.customer}</p>
-                     </div>
-                     <div>
-                       <p className="text-xs text-gray-500 dark:text-gray-400">Amount</p>
-                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {result.amount.toLocaleString()}</p>
-                     </div>
-                     <div className="col-span-2">
-                       <p className="text-xs text-gray-500 dark:text-gray-400">Date</p>
-                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{result.date}</p>
-                     </div>
-                   </div>
-                   
-                   {result.status !== 'Delivered' && (
-                     <div className="bg-white dark:bg-slate-600 p-3 rounded border border-gray-100 dark:border-slate-500 flex items-center gap-3">
-                        <div className="bg-green-100 p-2 rounded-full text-green-600">
-                          <CheckCircle size={16} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-gray-700 dark:text-gray-200">Estimated Delivery</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">3-5 Business Days</p>
-                        </div>
-                     </div>
-                   )}
+                    <div className="flex gap-2">
+                        <button 
+                          className="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-1.5 rounded text-sm font-bold transition"
+                          onClick={() => onClick(product)}
+                        >
+                            Buy Now
+                        </button>
+                        <button className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded transition">
+                            <ShoppingCart size={18} />
+                        </button>
+                    </div>
                 </div>
-              ) : (
-                <div className="text-center text-gray-500 dark:text-gray-400 py-4">
-                  <div className="bg-red-50 dark:bg-red-900/20 text-red-500 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Search size={24} />
-                  </div>
-                  <p className="font-bold text-gray-800 dark:text-white mb-1">Order not found</p>
-                  <p className="text-sm">Please check your Order ID and try again.</p>
-                </div>
-              )}
             </div>
-          )}
         </div>
+    );
+  }
+
+  // Default Style (Green)
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 hover:shadow-xl transition duration-300 group overflow-hidden flex flex-col relative">
+      <div className="relative h-48 bg-gray-50 dark:bg-slate-700 p-4 cursor-pointer" onClick={() => onClick(product)}>
+        <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
+        {product.discount && (
+          <span className="absolute top-3 left-3 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+            {product.discount}
+          </span>
+        )}
+        <button className="absolute top-3 right-3 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
+           <Heart size={16} />
+        </button>
+      </div>
+      
+      <div className="p-4 flex-1 flex flex-col">
+        <h3 
+          className="font-bold text-gray-800 dark:text-gray-100 text-sm mb-1 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition line-clamp-2"
+          onClick={() => onClick(product)}
+        >
+          {product.name}
+        </h3>
+        
+        {/* Variants Preview */}
+        {product.colors && product.colors.length > 0 && (
+            <div className="flex gap-1 mb-2">
+                {product.colors.slice(0, 3).map((c, i) => (
+                    <span key={i} className="w-2 h-2 rounded-full border border-gray-200" style={{backgroundColor: c}}></span>
+                ))}
+            </div>
+        )}
+
+        <div className="flex items-center gap-2 mb-3">
+           <span className="text-lg font-bold text-gray-900 dark:text-white">৳ {product.price.toLocaleString()}</span>
+           {product.originalPrice && (
+             <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
+           )}
+        </div>
+
+        <button 
+          onClick={(e) => { e.stopPropagation(); onClick(product); }}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-green-100 dark:shadow-none mt-auto"
+        >
+          অর্ডার করুন
+        </button>
       </div>
     </div>
   );
 };
 
 export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Filter only published items and sort by serial
-  const slides = carouselItems?.filter(i => i.status === 'Publish').sort((a, b) => (a.serial || 0) - (b.serial || 0)) || [];
-  
-  // Default mock slides if no data
-  const displaySlides = slides.length > 0 ? slides : [
-      { id: 'mock1', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200', name: 'Premium Headphones', url: '#', serial: 1, status: 'Publish' },
-      { id: 'mock2', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&q=80&w=1200', name: 'Smart Gadgets', url: '#', serial: 2, status: 'Publish' }
-  ];
+  const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    if (items.length <= 1) return;
     const timer = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % displaySlides.length);
+      setCurrentIndex((prev) => (prev + 1) % items.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [displaySlides.length]);
+  }, [items.length]);
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % displaySlides.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + displaySlides.length) % displaySlides.length);
+  if (items.length === 0) return null;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 mt-4">
-       {/* Container for aspect ratio. Using a common banner ratio like 21:9 */}
-       <div className="relative w-full group rounded-xl overflow-hidden aspect-[16/9] md:aspect-[21/9] max-h-[500px] shadow-sm">
-          {displaySlides.map((slide, index) => (
-            <div 
-              key={slide.id || index}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-            >
-               {/* Clickable Banner Image */}
-               <a href={slide.url || '#'} className="block w-full h-full cursor-pointer">
-                  <img 
-                    src={slide.image} 
-                    alt={slide.name} 
-                    className="w-full h-full object-cover" 
-                  />
-               </a>
-            </div>
-          ))}
-
-       {/* Navigation Buttons - Style match: White circle, gray icon */}
-       {displaySlides.length > 1 && (
-        <>
-          <button 
-            onClick={(e) => { e.preventDefault(); prevSlide(); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/90 text-gray-700 rounded-full shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <button 
-            onClick={(e) => { e.preventDefault(); nextSlide(); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/90 text-gray-700 rounded-full shadow-lg flex items-center justify-center hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </>
-      )}
-
-      {/* Indicators */}
-      {displaySlides.length > 1 && (
-         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
-            {displaySlides.map((_, idx) => (
-                <button 
-                  key={idx} 
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 shadow-sm ${currentSlide === idx ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80 w-2'}`}
-                />
+    <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm">
+            {items.map((item, index) => (
+                <a 
+                href={item.url || '#'}
+                key={item.id}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                </a>
             ))}
-         </div>
-      )}
-       </div>
+            
+            {items.length > 1 && (
+                <>
+                    <button 
+                        onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <button 
+                        onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                        {items.map((_, idx) => (
+                            <button 
+                            key={idx} 
+                            onClick={() => setCurrentIndex(idx)}
+                            className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
     </div>
   );
 };
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-  <div className="flex flex-col items-center gap-3 group cursor-pointer min-w-[90px] transition-all duration-300 hover:-translate-y-1">
-    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:border-green-500 group-hover:text-white group-hover:bg-green-500 transition-all duration-300 group-hover:shadow-green-200 group-hover:shadow-lg relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-tr from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-      <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300">
-        {icon}
-      </div>
+    <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
+            {icon}
+        </div>
+        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
     </div>
-    <span className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-green-600 text-center leading-tight max-w-[100px]">{name}</span>
-  </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-  <div className="inline-flex items-center gap-3 pl-2 pr-6 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full min-w-max cursor-pointer transition-all duration-300 group hover:shadow-md hover:border-blue-300 flex-shrink-0">
-     <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
-        <div className="transform group-hover:rotate-12 transition-transform duration-300">
-           {icon}
+    <div className="flex items-center gap-3 pl-2 pr-6 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
+        <div className="w-8 h-8 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
+            {icon}
         </div>
-     </div>
-     <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-300 tracking-wide">{name}</span>
-  </div>
+        <span className="text-sm font-bold text-gray-700 group-hover:text-pink-600 tracking-wide">{name}</span>
+    </div>
 );
 
-export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) => void, variant?: string }> = ({ product, onClick, variant = 'style1' }) => {
-  
-  // Style 2: Flash Sale (Pink/Blue Theme)
-  if (variant === 'style2') {
-     return (
-        <div 
-          className="bg-white rounded-xl border border-gray-100 hover:border-pink-200 overflow-hidden hover:shadow-xl transition-all duration-300 group relative flex flex-col h-full cursor-pointer"
-          onClick={() => onClick && onClick(product)}
-        >
-           <div className="relative p-4 pb-0 h-48 flex items-center justify-center bg-white">
-               <button className="absolute top-3 left-3 text-gray-300 hover:text-pink-500 transition z-10">
-                   <Heart size={20} />
-               </button>
-               {product.discount && (
-                   <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
-                       SALE
-                   </span>
-               )}
-               <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain transform group-hover:scale-110 transition duration-500" />
-           </div>
-           
-           <div className="p-4 flex flex-col flex-1">
-               <div className="flex gap-1 mb-2">
-                   {[1,2,3,4,5].map(s => <Star key={s} size={12} className={s <= (product.rating||0) ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} />)}
-                   <span className="text-xs text-gray-400 ml-1">({product.reviews})</span>
-               </div>
-               <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition" title={product.name}>{product.name}</h3>
-               <p className="text-xs text-gray-500 line-clamp-2 mb-3 h-8 overflow-hidden">{product.description || "Premium quality product."}</p>
-               
-               <div className="mt-auto">
-                   <div className="flex items-center gap-2 mb-1">
-                       <span className="text-pink-600 font-bold text-lg">৳ {product.price.toLocaleString()}</span>
-                       {product.originalPrice && (
-                           <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice.toLocaleString()}</span>
-                       )}
-                   </div>
-                   <div className="text-[10px] text-blue-500 font-bold mb-3">Get 50 Coins</div>
-                   
-                   <div className="flex gap-2">
-                       <button className="flex-1 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded text-xs font-bold transition shadow-md shadow-pink-200">
-                           Buy Now
-                       </button>
-                       <button className="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded transition">
-                           <ShoppingCart size={18} />
-                       </button>
-                   </div>
-               </div>
-           </div>
-        </div>
-     );
-  }
-
-  // Style 3: Minimalist Bordered
-  if (variant === 'style3') {
-    return (
-      <div 
-        className="bg-white rounded border border-gray-200 p-2 hover:shadow-lg transition-all duration-300 group cursor-pointer h-full flex flex-col"
-        onClick={() => onClick && onClick(product)}
-      >
-        <div className="relative h-40 bg-gray-50 mb-3 overflow-hidden rounded-sm">
-          {product.discount && (
-            <span className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 z-10">
-              {product.discount}
-            </span>
-          )}
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-          
-          {/* Quick Actions Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-2 translate-y-full group-hover:translate-y-0 transition duration-300 flex justify-center gap-4">
-             <button className="text-gray-600 hover:text-green-600"><Eye size={18} /></button>
-             <button className="text-gray-600 hover:text-green-600"><Heart size={18} /></button>
-          </div>
-        </div>
-        
-        <div className="flex flex-col flex-1">
-          <h3 className="text-sm text-gray-700 line-clamp-2 mb-1 group-hover:text-green-600 transition" title={product.name}>{product.name}</h3>
-          <div className="mt-auto pt-2 flex justify-between items-center border-t border-gray-100">
-             <span className="font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
-             <button className="text-green-600 hover:bg-green-50 p-1 rounded-full"><ShoppingCart size={18} /></button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Style 1: Default (Classic Green)
-  return (
-    <div 
-      className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 hover:shadow-xl hover:border-green-400 hover:scale-[1.02] transition-all duration-300 group relative flex flex-col h-full cursor-pointer transform"
-      onClick={() => onClick && onClick(product)}
-    >
-      {product.discount && (
-        <span className="absolute top-3 left-3 bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-sm z-10 shadow-md">
-          {product.discount}
-        </span>
-      )}
-      <div className="relative h-40 md:h-48 mb-3 overflow-hidden rounded-md bg-gray-50 dark:bg-slate-700">
-        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-      </div>
-      <h3 className="text-sm font-medium text-gray-800 dark:text-gray-100 line-clamp-2 mb-2 h-10 leading-snug group-hover:text-green-600 transition" title={product.name}>
-        {product.name}
-      </h3>
-      <div className="flex items-center gap-2 mb-4 mt-auto">
-        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{product.price.toLocaleString()}</span>
-        {product.originalPrice && (
-          <span className="text-gray-400 text-xs line-through decoration-red-400">৳{product.originalPrice.toLocaleString()}</span>
-        )}
-      </div>
-      <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded text-sm font-bold transition flex items-center justify-center gap-2 active:bg-green-700 shadow-sm hover:shadow">
-        অর্ডার করুন
-      </button>
-    </div>
-  );
-};
-
-export const SectionHeader: React.FC<{ title: string; linkText?: string }> = ({ title, linkText = "View All" }) => (
-  <div className="flex justify-between items-center mb-6">
-    <h2 className="text-lg md:text-2xl font-bold text-gray-800 dark:text-white">{title}</h2>
-    <a href="#" className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 flex items-center gap-1 transition">
-      {linkText} <span>&rsaquo;</span>
-    </a>
-  </div>
+export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 relative inline-block">
+        {title}
+        <span className="absolute bottom-0 left-0 w-1/2 h-1 bg-purple-500 rounded-full"></span>
+    </h2>
 );
 
 export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
-  const socialIcons: Record<string, React.ReactNode> = {
-    'Facebook': <Facebook size={18} />,
-    'Instagram': <Instagram size={18} />,
-    'Twitter': <Twitter size={18} />,
-    'YouTube': <Youtube size={18} />,
-    'Daraz': <ShoppingBag size={18} />,
-  };
+    // Style 2 (Coco Kids Footer)
+    if (websiteConfig?.footerStyle === 'style2') {
+        return (
+            <footer className="bg-white border-t border-gray-100 pt-8 pb-4 relative mt-auto">
+                <div className="max-w-7xl mx-auto px-4">
+                    {/* Centered Contact Bar */}
+                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-12 border-b border-gray-100 pb-8">
+                        <div className="flex items-center gap-2">
+                            <Mail size={18} className="text-blue-500" />
+                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.emails?.[0] || 'info@cocokids.com.bd'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Phone size={18} className="text-blue-500" />
+                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.phones?.[0] || '09638-866300'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 max-w-xs text-center md:text-left">
+                            <MapPin size={18} className="text-blue-500 shrink-0" />
+                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.addresses?.[0] || 'Dhaka-1230'}</span>
+                        </div>
+                    </div>
 
-  if (websiteConfig?.footerStyle === 'style2') {
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+                        {/* Logo & Social */}
+                        <div className="flex flex-col items-center md:items-start">
+                            <div className="mb-4">
+                                <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
+                                <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1 block">KIDS</span>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-4">Every Smile Matters</p>
+                            <div className="flex gap-3">
+                                <a href="#" className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
+                                    <Facebook size={16} />
+                                </a>
+                                <a href="#" className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition">
+                                    <MessageCircle size={16} /> {/* WhatsApp placeholder */}
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Columns */}
+                        <div>
+                            <h4 className="font-bold text-gray-800 mb-4">Contact Us</h4>
+                            <ul className="space-y-2 text-sm text-gray-600">
+                                <li>{websiteConfig.emails?.[0]}</li>
+                                <li>{websiteConfig.phones?.[0]}</li>
+                                <li>{websiteConfig.addresses?.[0]}</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-800 mb-4">Quick Links</h4>
+                            <ul className="space-y-2 text-sm text-gray-600">
+                                <li><a href="#" className="hover:text-blue-600">Return & Refund Policy</a></li>
+                                <li><a href="#" className="hover:text-blue-600">Privacy Policy</a></li>
+                                <li><a href="#" className="hover:text-blue-600">Terms and Conditions</a></li>
+                                <li><a href="#" className="hover:text-blue-600">About us</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-800 mb-4">Useful Links</h4>
+                            <ul className="space-y-2 text-sm text-gray-600">
+                                <li><a href="#" className="hover:text-blue-600">Why Shop Online with Us</a></li>
+                                <li><a href="#" className="hover:text-blue-600">Online Payment Methods</a></li>
+                                <li><a href="#" className="hover:text-blue-600">After Sales Support</a></li>
+                                <li><a href="#" className="hover:text-blue-600">Faq</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 mt-12 pt-6 text-center text-xs text-gray-500">
+                        &copy; All Copyrights Reserved by Cocokids
+                    </div>
+                </div>
+
+                {/* Floating Chat Button */}
+                <button className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40">
+                    <MessageSquare size={24} />
+                </button>
+            </footer>
+        );
+    }
+
+    // Default Footer
     return (
-      <footer className="bg-white border-t border-gray-100 font-sans container mx-auto max-w-7xl pb-20 md:pb-0">
-        {/* Contact Bar */}
-        <div className="bg-gray-50 border-b border-gray-100 py-6">
-           <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-gray-100">
-                    <Mail size={18} />
-                 </div>
-                 <div>
-                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Email Support</p>
-                    <p className="text-sm font-medium text-gray-800">{websiteConfig.emails?.[0] || 'support@example.com'}</p>
-                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-gray-100">
-                    <Phone size={18} />
-                 </div>
-                 <div>
-                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Phone Support</p>
-                    <p className="text-sm font-medium text-gray-800">{websiteConfig.phones?.[0] || '+880 1234 567 890'}</p>
-                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-gray-100">
-                    <MapPin size={18} />
-                 </div>
-                 <div>
-                    <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Location</p>
-                    <p className="text-sm font-medium text-gray-800 line-clamp-1 max-w-[200px]">{websiteConfig.addresses?.[0] || 'Dhaka, Bangladesh'}</p>
-                 </div>
-              </div>
-           </div>
-        </div>
-
-        {/* Main Footer */}
-        <div className="max-w-7xl mx-auto px-4 py-12">
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
-              <div className="flex flex-col items-center md:items-start">
-                 <div className="flex flex-col leading-none mb-4">
-                     <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
-                     <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1">KIDS</span>
-                 </div>
-                 <p className="text-sm font-medium text-gray-600 mb-6">Every Smile Matters</p>
-                 <div className="flex gap-3">
-                    <a href="#" className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition"><Facebook size={16}/></a>
-                    <a href="#" className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-600 hover:text-white transition"><MessageCircle size={16}/></a> 
-                    {/* Using MessageCircle as WhatsApp placeholder or import MessageCircle if available, using standard lucide icons */}
-                 </div>
-              </div>
-
-              <div>
-                 <h3 className="font-bold text-gray-800 mb-4 text-lg">Contact Us</h3>
-                 <ul className="space-y-3 text-sm text-gray-600">
-                    <li className="flex items-center gap-2 justify-center md:justify-start"><Mail size={16} className="text-blue-500"/> {websiteConfig.emails?.[0]}</li>
-                    <li className="flex items-center gap-2 justify-center md:justify-start"><Phone size={16} className="text-blue-500"/> {websiteConfig.phones?.[0]}</li>
-                    <li className="flex items-start gap-2 justify-center md:justify-start text-left"><MapPin size={16} className="text-blue-500 shrink-0 mt-0.5"/> {websiteConfig.addresses?.[0]}</li>
-                 </ul>
-              </div>
-
-              <div>
-                 <h3 className="font-bold text-gray-800 mb-4 text-lg">Quick Links</h3>
-                 <ul className="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-blue-600 transition">Return & Refund Policy</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition">Privacy Policy</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition">Terms and Conditions</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition">About us</a></li>
-                 </ul>
-              </div>
-
-              <div>
-                 <h3 className="font-bold text-gray-800 mb-4 text-lg">Useful Links</h3>
-                 <ul className="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-blue-600 transition">Why Shop Online with Us</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition">Online Payment Methods</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition">After Sales Support</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition">FAQ</a></li>
-                 </ul>
-              </div>
-           </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="border-t border-gray-100 py-6 text-center text-sm text-gray-500">
-           <p>© All Copyrights Reserved by {websiteConfig.brandingText || 'Cocokids'}</p>
-        </div>
-
-        {/* Floating Chat Button */}
-        <button className="fixed bottom-20 md:bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40 animate-bounce-slow">
-           <MessageCircle size={28} />
-        </button>
-      </footer>
+        <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 max-w-7xl mx-auto px-4`}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
+                    <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
+                    <div className="flex gap-3">
+                    {websiteConfig?.socialLinks?.map(link => (
+                        <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
+                            <Globe size={16} />
+                        </a>
+                    ))}
+                    </div>
+                </div>
+                <div>
+                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Quick Links</h4>
+                    <ul className="space-y-2 text-sm">
+                        <li><a href="#" className="hover:text-purple-600">About Us</a></li>
+                        <li><a href="#" className="hover:text-purple-600">Contact</a></li>
+                        <li><a href="#" className="hover:text-purple-600">Terms & Conditions</a></li>
+                        <li><a href="#" className="hover:text-purple-600">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Customer Area</h4>
+                    <ul className="space-y-2 text-sm">
+                        <li><a href="#" className="hover:text-purple-600">My Account</a></li>
+                        <li><a href="#" className="hover:text-purple-600">Orders</a></li>
+                        <li><a href="#" className="hover:text-purple-600">Tracking</a></li>
+                        <li><a href="#" className="hover:text-purple-600">Returns</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Contact Us</h4>
+                    <ul className="space-y-3 text-sm">
+                        {websiteConfig?.addresses?.map((addr, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                                <MapPin size={16} className="mt-0.5 shrink-0" />
+                                <span>{addr}</span>
+                            </li>
+                        ))}
+                        {websiteConfig?.phones?.map((phone, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                                <Phone size={16} />
+                                <span>{phone}</span>
+                            </li>
+                        ))}
+                        {websiteConfig?.emails?.map((email, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                                <Mail size={16} />
+                                <span>{email}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+            {!websiteConfig?.hideCopyright && (
+                <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center text-xs">
+                    {!websiteConfig?.hideCopyrightText && (
+                        <p>&copy; {new Date().getFullYear()} {websiteConfig?.websiteName}. All rights reserved.</p>
+                    )}
+                    {websiteConfig?.showPoweredBy && (
+                        <p>Powered by Saleecom</p>
+                    )}
+                </div>
+            )}
+        </footer>
     );
-  }
+};
 
-  // Default Footer
-  return (
-    <footer className="bg-white dark:bg-slate-900 pt-16 pb-24 md:pb-8 border-t border-gray-200 dark:border-slate-800 mt-12 transition-colors duration-300 container mx-auto max-w-7xl">
-      <div className="max-w-7xl mx-auto px-4">
-        {!websiteConfig?.hideCopyright && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <h1 className="text-2xl font-bold mb-4">
-                {websiteConfig?.brandingText ? (
-                  <span className="text-gray-800 dark:text-white">{websiteConfig.brandingText}</span>
-                ) : (
-                  <>
-                    <span className="text-gray-800 dark:text-white">GADGET</span>
-                    <span className="text-pink-500">SHOB</span>
-                  </>
-                )}
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-                {websiteConfig?.shortDescription || "Best Online shop in Bangladesh for authentic gadgets and electronics. Trusted by thousands."}
-              </p>
-              <div className="flex gap-4">
-                {websiteConfig?.socialLinks.map(link => (
-                  <a href={link.url} key={link.id} className="w-9 h-9 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center cursor-pointer hover:bg-green-50 hover:text-white transition">
-                    {socialIcons[link.platform] || <Globe size={18}/>}
-                  </a>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Contact Us</h3>
-              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                {websiteConfig?.emails.map((email, idx) => (
-                  <li key={idx} className="flex items-center gap-2"><Mail size={14} className="text-green-500"/> {email}</li>
-                ))}
-                {websiteConfig?.phones.map((phone, idx) => (
-                  <li key={idx} className="flex items-center gap-2"><Phone size={14} className="text-green-500"/> {phone}</li>
-                ))}
-                {websiteConfig?.addresses.map((addr, idx) => (
-                   <li key={idx} className="flex items-center gap-2"><MapPin size={14} className="text-green-500"/> {addr}</li>
-                ))}
-              </ul>
-            </div>
+export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => boolean, onRegister: (u: UserType) => boolean }> = ({ onClose, onLogin, onRegister }) => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', address: '' });
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isLogin) {
+            if(onLogin(formData.email, formData.password)) {
+                 onClose();
+            } else {
+                 alert("Invalid credentials. Try admin/admin");
+            }
+        } else {
+             if(onRegister({ ...formData, role: 'customer' })) {
+                 onClose();
+             } else {
+                 alert("User already exists!");
+             }
+        }
+    };
 
-            <div>
-              <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Quick Links</h3>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-green-600 transition">Return & Refund Policy</a></li>
-                <li><a href="#" className="hover:text-green-600 transition">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-green-600 transition">Terms and Conditions</a></li>
-                <li><a href="#" className="hover:text-green-600 transition">About us</a></li>
-              </ul>
-            </div>
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+                <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                <div className="p-8">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+                    <p className="text-gray-500 mb-6 text-sm">{isLogin ? 'Login to continue shopping' : 'Sign up to get started'}</p>
+                    
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {!isLogin && (
+                            <>
+                                <input type="text" placeholder="Full Name" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+                                <input type="text" placeholder="Phone" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required />
+                            </>
+                        )}
+                        <input type="email" placeholder="Email Address" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
+                        <input type="password" placeholder="Password" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required />
+                        
+                        <button type="submit" className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200">
+                            {isLogin ? 'Login' : 'Register'}
+                        </button>
+                    </form>
 
-            <div>
-              <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase text-xs tracking-wider">Useful Links</h3>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-green-600 transition">Why Shop Online with Us</a></li>
-                <li><a href="#" className="hover:text-green-600 transition">Online Payment Methods</a></li>
-                <li><a href="#" className="hover:text-green-600 transition">After Sales Support</a></li>
-                <li><a href="#" className="hover:text-green-600 transition">FAQ</a></li>
-              </ul>
+                    <div className="mt-6 text-center text-sm text-gray-600">
+                        {isLogin ? "Don't have an account? " : "Already have an account? "}
+                        <button onClick={() => setIsLogin(!isLogin)} className="text-purple-600 font-bold hover:underline">
+                            {isLogin ? 'Sign Up' : 'Login'}
+                        </button>
+                    </div>
+                </div>
             </div>
-          </div>
-        )}
-        
-        {!websiteConfig?.hideCopyrightText && (
-          <div className="text-center text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800 pt-8">
-            <p>Copyright © 2025 {websiteConfig?.brandingText || 'gadgetshob.com'}</p>
-            {websiteConfig?.showPoweredBy && <p className="mt-1">Powered by Saleecom</p>}
-          </div>
-        )}
-      </div>
-    </footer>
-  );
+        </div>
+    );
+};
+
+export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }> = ({ onClose, orders }) => {
+    const [orderId, setOrderId] = useState('');
+    const [result, setResult] = useState<Order | null>(null);
+    const [searched, setSearched] = useState(false);
+
+    const handleTrack = () => {
+        setSearched(true);
+        const found = orders?.find(o => o.id === orderId);
+        setResult(found || null);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+                <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                <div className="p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <Truck size={28} className="text-purple-600" />
+                        <h2 className="text-2xl font-bold text-gray-800">Track Order</h2>
+                    </div>
+                    
+                    <div className="flex gap-2 mb-6">
+                        <input 
+                          type="text" 
+                          placeholder="Enter Order ID (e.g. #0024)" 
+                          className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          value={orderId}
+                          onChange={e => setOrderId(e.target.value)}
+                        />
+                        <button onClick={handleTrack} className="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-700">Track</button>
+                    </div>
+
+                    {searched && (
+                        <div className="bg-gray-50 rounded-lg p-4 text-center">
+                            {result ? (
+                                <div className="space-y-2">
+                                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 text-green-600">
+                                        <CheckCircle size={24} />
+                                    </div>
+                                    <p className="font-bold text-gray-800">Order Found!</p>
+                                    <p className="text-sm text-gray-600">Status: <span className="font-bold text-purple-600">{result.status}</span></p>
+                                    <p className="text-xs text-gray-500">Date: {result.date}</p>
+                                    <p className="text-xs text-gray-500">Amount: ৳{result.amount}</p>
+                                </div>
+                            ) : (
+                                <div className="text-gray-500">
+                                    <p>Order not found. Please check the ID.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const [prompt, setPrompt] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+    const generateImage = async () => {
+        if (!prompt) return;
+        setLoading(true);
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash-image',
+                contents: { parts: [{ text: prompt }] }
+            });
+
+            if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
+                for (const part of response.candidates[0].content.parts) {
+                    if (part.inlineData) {
+                        const base64EncodeString = part.inlineData.data;
+                        setImageUrl(`data:image/png;base64,${base64EncodeString}`);
+                        break;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("AI Generation failed", error);
+            alert("Failed to generate image. Please check API Key configuration.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex overflow-hidden border border-gray-800">
+                <div className="w-80 bg-gray-800 p-6 flex flex-col border-r border-gray-700">
+                    <div className="flex items-center gap-2 mb-6 text-white">
+                        <Sparkles className="text-purple-400" />
+                        <h2 className="font-bold text-lg">AI Studio</h2>
+                    </div>
+                    
+                    <div className="space-y-4 flex-1">
+                        <div>
+                            <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Prompt</label>
+                            <textarea 
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:outline-none resize-none h-32"
+                                placeholder="Describe the image you want to generate..."
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                            />
+                        </div>
+                        <button 
+                            onClick={generateImage}
+                            disabled={loading || !prompt}
+                            className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2"
+                        >
+                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
+                            Generate
+                        </button>
+                    </div>
+                </div>
+                <div className="flex-1 bg-black flex items-center justify-center relative">
+                    {imageUrl ? (
+                        <img src={imageUrl} alt="Generated" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                        <div className="text-center text-gray-600">
+                            <ImageIcon size={64} className="mx-auto mb-4 opacity-20" />
+                            <p>Generated image will appear here</p>
+                        </div>
+                    )}
+                    <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white">
+                        <X size={24} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => void; onCheckout: () => void }> = ({ product, onClose, onCheckout }) => {
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                    <CheckCircle size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Added to Cart!</h3>
+                <p className="text-gray-600 text-sm mb-6">{product.name} has been added to your cart.</p>
+                
+                <div className="flex gap-3">
+                    <button 
+                        onClick={onClose} 
+                        className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition"
+                    >
+                        Continue Shopping
+                    </button>
+                    <button 
+                        onClick={onCheckout} 
+                        className="flex-1 bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition"
+                    >
+                        Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 };

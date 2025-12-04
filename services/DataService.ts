@@ -33,34 +33,6 @@ class DataServiceImpl {
     }
   }
 
-  private getFromLocal<T>(key: string): T | null {
-    try {
-        const value = localStorage.getItem(`gadgetshob_${key}`);
-        return value ? JSON.parse(value) as T : null;
-    } catch (e) {
-        console.warn("Local storage read failed", e);
-        return null;
-    }
-  }
-
-  private normalizeConfigValue<T>(key: string, data: any, fallback: T): T {
-    if (data === undefined || data === null) return fallback;
-
-    if (key === 'logo') {
-      if (typeof data === 'string') return data as T;
-      if (typeof data === 'object' && 'value' in data) return (data as { value: T }).value;
-      return fallback;
-    }
-
-    if (key === 'delivery_config') {
-      if (Array.isArray(data)) return data as T;
-      if (typeof data === 'object' && 'items' in data) return (data as { items: T }).items ?? fallback;
-      return fallback;
-    }
-
-    return data as T;
-  }
-
   // --- Data Access Methods ---
 
   async getProducts(): Promise<Product[]> {
@@ -97,27 +69,25 @@ class DataServiceImpl {
   }
 
   async get<T>(key: string, defaultValue: T): Promise<T> {
+    // Determine if we should look for a Doc or a Collection based on default value type
     const isArray = Array.isArray(defaultValue);
-    const localValue = this.getFromLocal<T>(key);
-    const fallbackValue = localValue ?? defaultValue;
     
     return this.safeFirebaseCall(async () => {
-      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
+      if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
         const docRef = doc(db, 'configurations', key);
         const docSnap = await getDoc(docRef);
-        return docSnap.exists() 
-          ? this.normalizeConfigValue<T>(key, docSnap.data(), fallbackValue)
-          : fallbackValue;
+        return docSnap.exists() ? (docSnap.data() as T) : defaultValue;
       }
       
+      // Fallback for generic collections
       if (isArray) {
          const snapshot = await getDocs(collection(db, key));
          const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-         return items.length > 0 ? items as unknown as T : fallbackValue;
+         return items.length > 0 ? items as unknown as T : defaultValue;
       }
       
-      return fallbackValue;
-    }, fallbackValue, key);
+      return defaultValue;
+    }, defaultValue, key);
   }
 
   // --- Config Specific Loaders ---
@@ -195,16 +165,7 @@ class DataServiceImpl {
 
         // Configs -> Single Doc
         if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
-            const payload = (() => {
-              if (key === 'logo' && (typeof data === 'string' || data === null)) {
-                return { value: data };
-              }
-              if (key === 'delivery_config' && Array.isArray(data)) {
-                return { items: data };
-              }
-              return data;
-            })();
-            await setDoc(doc(db, 'configurations', key), payload as any);
+            await setDoc(doc(db, 'configurations', key), data as any);
             return;
         }
 

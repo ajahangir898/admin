@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import StoreHome from './pages/StoreHome';
 import StoreProductDetail from './pages/StoreProductDetail';
@@ -342,6 +341,7 @@ const App = () => {
                 onCartClick={() => {}} // Placeholder
                 onAccountClick={() => user ? setCurrentView('profile') : setIsLoginOpen(true)}
                 cartCount={0}
+                websiteConfig={websiteConfig}
               />
             </>
           )}
@@ -356,6 +356,7 @@ const App = () => {
                 onCartClick={() => {}} // Placeholder
                 onAccountClick={() => {}} // Already on profile
                 cartCount={0}
+                websiteConfig={websiteConfig}
               />
             </>
           )}

@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
@@ -22,29 +21,94 @@ export const MobileBottomNav: React.FC<{
   onCartClick: () => void;
   onAccountClick: () => void;
   cartCount?: number;
-}> = ({ onHomeClick, onCartClick, onAccountClick, cartCount }) => {
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-6 flex justify-between items-center md:hidden z-50 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.1)] pb-safe">
-      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition">
-        <Home size={22} />
-        <span className="text-[10px] font-medium">Home</span>
-      </button>
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition">
-        <Grid size={22} />
-        <span className="text-[10px] font-medium">Category</span>
-      </button>
-      <button onClick={onCartClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition relative">
-        <div className="relative">
-          <ShoppingCart size={22} />
-          {cartCount !== undefined && cartCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-pink-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
-              {cartCount}
-            </span>
-          )}
+  websiteConfig?: WebsiteConfig;
+}> = ({ onHomeClick, onCartClick, onAccountClick, cartCount, websiteConfig }) => {
+  
+  const style = websiteConfig?.bottomNavStyle || 'style1';
+
+  // Style 2: Floating Center Home Button
+  if (style === 'style2') {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-2 flex justify-between items-end md:hidden z-50 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.1)] pb-safe min-h-[60px]">
+        <div className="flex-1 flex justify-around">
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+              <MessageSquare size={20} />
+              <span className="text-[9px] font-medium">Chat</span>
+           </button>
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+              <List size={20} />
+              <span className="text-[9px] font-medium">Categories</span>
+           </button>
         </div>
-        <span className="text-[10px] font-medium">Cart</span>
+
+        <div className="relative -top-6 px-2">
+           <button 
+             onClick={onHomeClick}
+             className="w-14 h-14 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-4 border-white shadow-lg transform active:scale-95 transition"
+           >
+              <Home size={24} strokeWidth={2.5} className="mb-0.5" />
+              <span className="text-[8px] font-bold">Home</span>
+           </button>
+        </div>
+
+        <div className="flex-1 flex justify-around">
+           <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+              <User size={20} />
+              <span className="text-[9px] font-medium">Account</span>
+           </button>
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+              <Menu size={20} />
+              <span className="text-[9px] font-medium">Menu</span>
+           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Style 3: Clean 4 Columns
+  if (style === 'style3') {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.1)] pb-safe">
+        <button onClick={onHomeClick} className="flex flex-col items-center gap-1.5 text-pink-600 transition">
+          <Home size={22} strokeWidth={2.5} />
+          <span className="text-[10px] font-medium">Home</span>
+        </button>
+        <button className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
+          <List size={22} />
+          <span className="text-[10px] font-medium">Categories</span>
+        </button>
+        <button className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
+          <MessageSquare size={22} />
+          <span className="text-[10px] font-medium">Chat</span>
+        </button>
+        <button onClick={onAccountClick} className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
+          <User size={22} />
+          <span className="text-[10px] font-medium">Account</span>
+        </button>
+      </div>
+    );
+  }
+
+  // Style 1 (Default): 5 Columns
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center md:hidden z-50 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.1)] pb-safe">
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
+        <MessageCircle size={22} />
+        <span className="text-[10px] font-medium">Messenger</span>
       </button>
-      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition">
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
+        <Phone size={22} />
+        <span className="text-[10px] font-medium">Call</span>
+      </button>
+      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-500 transition w-1/5">
+        <Home size={24} strokeWidth={2.5} />
+        <span className="text-[10px] font-bold">Home</span>
+      </button>
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
+        <Facebook size={22} />
+        <span className="text-[10px] font-medium">Page</span>
+      </button>
+      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
         <User size={22} />
         <span className="text-[10px] font-medium">Account</span>
       </button>
@@ -324,22 +388,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
           </div>
         </div>
       </div>
-      
-      {/* Mobile Search (Conditional) */}
-      {/* 
-      <div className="md:hidden px-4 pb-4">
-        <div className="relative">
-          <input
-             type="text"
-             placeholder={websiteConfig?.searchHints || "Search product..."}
-             className="w-full border border-green-500 rounded-lg py-2 px-3 focus:outline-none dark:bg-slate-800 dark:text-white dark:border-green-600"
-          />
-          <button className="absolute right-0 top-0 h-full bg-green-500 text-white px-3 rounded-r-lg">
-            <Search size={18} />
-          </button>
-        </div>
-      </div>
-      */}
       
       {/* Navigation Bar */}
       <div className="border-t border-gray-100 dark:border-slate-800 hidden md:block">

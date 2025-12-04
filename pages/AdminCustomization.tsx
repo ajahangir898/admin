@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem } from '../types';
@@ -88,58 +89,24 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     }
   }, [themeConfig]);
 
-  // Image Compression Helper
-  const compressImage = (file: File, maxWidth: number, quality: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target?.result as string;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-
-                if (width > maxWidth) {
-                    height = (maxWidth / width) * height;
-                    width = maxWidth;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-                
-                // Compress to JPEG/PNG
-                const compressedDataUrl = canvas.toDataURL(file.type, quality);
-                resolve(compressedDataUrl);
-            };
-            img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
-    });
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel') => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel') => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-          // Compress image to avoid localStorage quota limits
-          // Max width 800px, 70% quality
-          const compressedImage = await compressImage(file, 800, 0.7);
-          
-          if (type === 'logo') {
-            onUpdateLogo(compressedImage);
-          } else if (type === 'favicon') {
-            setConfig(prev => ({ ...prev, favicon: compressedImage }));
-          } else if (type === 'carousel') {
-            setCarouselFormData(prev => ({ ...prev, image: compressedImage }));
-          }
-      } catch (error) {
-          console.error("Image upload failed", error);
-          alert("Failed to process image. Please try a smaller file.");
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File size is too large. Please upload an image under 2MB.");
+        return;
       }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (type === 'logo') {
+          onUpdateLogo(reader.result as string);
+        } else if (type === 'favicon') {
+          setConfig(prev => ({ ...prev, favicon: reader.result as string }));
+        } else if (type === 'carousel') {
+          setCarouselFormData(prev => ({ ...prev, image: reader.result as string }));
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -183,27 +150,22 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   };
 
   const handleSave = () => {
-    try {
-        // Save Website Config
-        if (onUpdateWebsiteConfig) {
-          onUpdateWebsiteConfig(config);
-        }
-        
-        // Save Theme
-        if (onUpdateTheme) {
-          onUpdateTheme({
-            primaryColor: colors.primary,
-            secondaryColor: colors.secondary,
-            tertiaryColor: colors.tertiary,
-            darkMode: isDarkMode
-          });
-        }
-
-        alert('Settings saved successfully!');
-    } catch (e) {
-        console.error("Save failed", e);
-        alert("Failed to save settings. Local storage might be full.");
+    // Save Website Config
+    if (onUpdateWebsiteConfig) {
+      onUpdateWebsiteConfig(config);
     }
+    
+    // Save Theme
+    if (onUpdateTheme) {
+      onUpdateTheme({
+        primaryColor: colors.primary,
+        secondaryColor: colors.secondary,
+        tertiaryColor: colors.tertiary,
+        darkMode: isDarkMode
+      });
+    }
+
+    alert('Settings saved successfully!');
   };
 
   // Carousel Logic

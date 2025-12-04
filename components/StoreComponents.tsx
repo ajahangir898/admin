@@ -1,55 +1,8 @@
-<<<<<<< HEAD
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  ShoppingCart,
-  Search,
-  User,
-  Heart,
-  Truck,
-  X,
-  Sparkles,
-  Loader2,
-  ChevronDown,
-  UserCircle,
-  Phone,
-  Mail,
-  MapPin,
-  MessageSquare,
-  List,
-  Menu,
-  Home,
-  Facebook,
-  Gift,
-  MessageCircle,
-  Instagram,
-  Twitter,
-  CheckCircle,
-  Upload,
-  Wand2,
-  Image as ImageIcon,
-  ArrowRight,
-  LogOut,
-  Youtube,
-  ShoppingBag,
-  Globe,
-  Star,
-  Eye,
-  Bell,
-  Users,
-  ChevronLeft,
-  ChevronRight,
-  Grid,
-  Smartphone
-} from 'lucide-react';
-=======
 
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone } from 'lucide-react';
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
-
-// Minimal, well-typed store components to restore build/run.
 
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
@@ -506,119 +459,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   );
 };
 
-<<<<<<< HEAD
-export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string }> = ({ product, onClick, variant }) => {
-  // Style 2 (Flash Sale - Pink/Blue)
-  if (variant === 'style2') {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
-        <div className="relative aspect-square p-4 bg-gray-50">
-          <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
-          {product.discount && (
-            <span className="absolute top-2 left-2 bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-              {product.discount}
-            </span>
-          )}
-          <button className="absolute top-2 right-2 text-gray-400 hover:text-pink-500 transition">
-            <Heart size={18} />
-          </button>
-        </div>
-
-        <div className="p-3 flex-1 flex flex-col">
-          {/* Rating */}
-          <div className="flex items-center gap-1 text-yellow-400 text-xs mb-1">
-            <Star size={12} fill="currentColor" />
-            <span className="text-gray-400">({product.reviews || 0})</span>
-            <span className="text-gray-400 text-[10px] ml-1">| 0 Sold</span>
-          </div>
-
-          <h3
-            className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition"
-            onClick={() => onClick(product)}
-          >
-            {product.name}
-          </h3>
-
-          <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p>
-
-          <div className="mt-auto">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-pink-600 font-bold text-lg">৳ {product.price}</span>
-              {product.originalPrice && (
-                <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice}</span>
-              )}
-              <span className="ml-auto text-[10px] text-blue-500 font-medium">Get 50 Coins</span>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                className="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-1.5 rounded text-sm font-bold transition"
-                onClick={() => onClick(product)}
-              >
-                Buy Now
-              </button>
-              <button className="bg-[#fff0f6] hover:bg-[#ffeef4] text-[#e72960] p-1.5 rounded transition">
-                <ShoppingCart size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Default Style (Green)
-  return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 hover:shadow-xl transition duration-300 group overflow-hidden flex flex-col relative">
-      <div className="relative h-48 bg-gray-50 dark:bg-slate-700 p-4 cursor-pointer" onClick={() => onClick(product)}>
-        <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
-        {product.discount && (
-          <span className="absolute top-3 left-3 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
-            {product.discount}
-          </span>
-        )}
-        <button className="absolute top-3 right-3 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
-          <Heart size={16} />
-        </button>
-      </div>
-
-      <div className="p-4 flex-1 flex flex-col">
-        <h3
-          className="font-bold text-gray-800 dark:text-gray-100 text-sm mb-1 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition line-clamp-2"
-          onClick={() => onClick(product)}
-        >
-          {product.name}
-        </h3>
-
-        {/* Variants Preview */}
-        {product.colors && product.colors.length > 0 && (
-          <div className="flex gap-1 mb-2">
-            {product.colors.slice(0, 3).map((c, i) => (
-              <span key={i} className="w-2 h-2 rounded-full border border-gray-200" style={{ backgroundColor: c }}></span>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg font-bold text-gray-900 dark:text-white">৳ {product.price.toLocaleString()}</span>
-          {product.originalPrice && (
-            <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
-          )}
-        </div>
-
-        <button
-          onClick={(e) => { e.stopPropagation(); onClick(product); } }
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-green-100 dark:shadow-none mt-auto"
-        >
-          অর্ডার করুন
-        </button>
-      </div>
-    </div>
-  );
-}
-
-=======
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
 export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
   const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -634,47 +474,6 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
   if (items.length === 0) return null;
 
   return (
-<<<<<<< HEAD
-    <div className="max-w-7xl mx-auto px-4 mt-4">
-        <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm">
-            {items.map((item, index) => (
-                <a 
-                href={item.url || '#'}
-                key={item.id}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                >
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                </a>
-            ))}
-            
-            {items.length > 1 && (
-                <>
-                    <button 
-                        onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <button 
-                        onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-                        {items.map((_, idx) => (
-                            <button 
-                            key={idx} 
-                            onClick={() => setCurrentIndex(idx)}
-                            className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
-                            />
-                        ))}
-                    </div>
-                </>
-            )}
-        </div>
-=======
     <div className="relative w-full h-[200px] md:h-[400px] bg-gray-100 overflow-hidden">
         {items.map((item, index) => (
              <div 
@@ -695,39 +494,23 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                 ))}
             </div>
         )}
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
     </div>
   );
 };
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
     <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
-<<<<<<< HEAD
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
-            {icon}
-        </div>
-        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
-=======
         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 group-hover:border-purple-500 group-hover:text-purple-600 group-hover:bg-purple-50 transition duration-300 shadow-sm">
             {icon}
         </div>
         <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-purple-600 text-center">{name}</span>
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
     </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-<<<<<<< HEAD
-    <div className="flex items-center gap-3 pl-2 pr-6 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
-        <div className="w-8 h-8 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
-            {icon}
-        </div>
-        <span className="text-sm font-bold text-gray-700 group-hover:text-pink-600 tracking-wide">{name}</span>
-=======
     <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:text-pink-600 cursor-pointer transition whitespace-nowrap">
         {icon}
         <span className="text-sm font-bold">{name}</span>
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
     </div>
 );
 
@@ -738,160 +521,6 @@ export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
     </h2>
 );
 
-<<<<<<< HEAD
-export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
-    // Style 2 (Coco Kids Footer)
-    if (websiteConfig?.footerStyle === 'style2') {
-        return (
-            <footer className="bg-white border-t border-gray-100 pt-8 pb-4 relative mt-auto">
-                <div className="max-w-7xl mx-auto px-4">
-                    {/* Centered Contact Bar */}
-                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-12 border-b border-gray-100 pb-8">
-                        <div className="flex items-center gap-2">
-                            <Mail size={18} className="text-blue-500" />
-                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.emails?.[0] || 'info@cocokids.com.bd'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Phone size={18} className="text-blue-500" />
-                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.phones?.[0] || '09638-866300'}</span>
-                        </div>
-                        <div className="flex items-center gap-2 max-w-xs text-center md:text-left">
-                            <MapPin size={18} className="text-blue-500 shrink-0" />
-                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.addresses?.[0] || 'Dhaka-1230'}</span>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
-                        {/* Logo & Social */}
-                        <div className="flex flex-col items-center md:items-start">
-                            <div className="mb-4">
-                                <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
-                                <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1 block">KIDS</span>
-                            </div>
-                            <p className="text-sm text-gray-500 mb-4">Every Smile Matters</p>
-                            <div className="flex gap-3">
-                                <a href="#" className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
-                                    <Facebook size={16} />
-                                </a>
-                                <a href="#" className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition">
-                                    <MessageCircle size={16} /> {/* WhatsApp placeholder */}
-                                </a>
-                            </div>
-                        </div>
-
-                        {/* Columns */}
-                        <div>
-                            <h4 className="font-bold text-gray-800 mb-4">Contact Us</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
-                                <li>{websiteConfig.emails?.[0]}</li>
-                                <li>{websiteConfig.phones?.[0]}</li>
-                                <li>{websiteConfig.addresses?.[0]}</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-gray-800 mb-4">Quick Links</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
-                                <li><a href="#" className="hover:text-blue-600">Return & Refund Policy</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Privacy Policy</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Terms and Conditions</a></li>
-                                <li><a href="#" className="hover:text-blue-600">About us</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-gray-800 mb-4">Useful Links</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
-                                <li><a href="#" className="hover:text-blue-600">Why Shop Online with Us</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Online Payment Methods</a></li>
-                                <li><a href="#" className="hover:text-blue-600">After Sales Support</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Faq</a></li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-100 mt-12 pt-6 text-center text-xs text-gray-500">
-                        &copy; All Copyrights Reserved by Cocokids
-                    </div>
-                </div>
-
-                {/* Floating Chat Button */}
-                <button className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40">
-                    <MessageSquare size={24} />
-                </button>
-            </footer>
-        );
-    }
-
-    // Default Footer
-    return (
-        <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 max-w-7xl mx-auto px-4`}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
-                    <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
-                    <div className="flex gap-3">
-                    {websiteConfig?.socialLinks?.map(link => (
-                        <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
-                            <Globe size={16} />
-                        </a>
-                    ))}
-                    </div>
-                </div>
-                <div>
-                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Quick Links</h4>
-                    <ul className="space-y-2 text-sm">
-                        <li><a href="#" className="hover:text-purple-600">About Us</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Contact</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Terms & Conditions</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Privacy Policy</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Customer Area</h4>
-                    <ul className="space-y-2 text-sm">
-                        <li><a href="#" className="hover:text-purple-600">My Account</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Orders</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Tracking</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Returns</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Contact Us</h4>
-                    <ul className="space-y-3 text-sm">
-                        {websiteConfig?.addresses?.map((addr, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                                <MapPin size={16} className="mt-0.5 shrink-0" />
-                                <span>{addr}</span>
-                            </li>
-                        ))}
-                        {websiteConfig?.phones?.map((phone, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                                <Phone size={16} />
-                                <span>{phone}</span>
-                            </li>
-                        ))}
-                        {websiteConfig?.emails?.map((email, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                                <Mail size={16} />
-                                <span>{email}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-            {!websiteConfig?.hideCopyright && (
-                <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center text-xs">
-                    {!websiteConfig?.hideCopyrightText && (
-                        <p>&copy; {new Date().getFullYear()} {websiteConfig?.websiteName}. All rights reserved.</p>
-                    )}
-                    {websiteConfig?.showPoweredBy && (
-                        <p>Powered by Saleecom</p>
-                    )}
-                </div>
-            )}
-        </footer>
-    );
-};
-=======
 export const ProductCard: React.FC<{ 
   product: Product; 
   onClick: (p: Product) => void;
@@ -1086,7 +715,6 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
         )}
     </footer>
 );
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
 
 export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => boolean, onRegister: (u: UserType) => boolean }> = ({ onClose, onLogin, onRegister }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -1211,13 +839,6 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         setLoading(true);
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-<<<<<<< HEAD
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
-                contents: { parts: [{ text: prompt }] }
-            });
-
-=======
             // Using gemini-2.5-flash-image as per guidelines for general image tasks
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash-image',
@@ -1228,7 +849,6 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
 
             // Extract image from response parts
             // Guidelines say: The output response may contain both image and text parts; you must iterate...
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
             if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
                 for (const part of response.candidates[0].content.parts) {
                     if (part.inlineData) {
@@ -1259,11 +879,7 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                         <div>
                             <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Prompt</label>
                             <textarea 
-<<<<<<< HEAD
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:outline-none resize-none h-32"
-=======
                                 className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-purple-500 h-32 resize-none"
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
                                 placeholder="Describe the image you want to generate..."
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
@@ -1337,8 +953,4 @@ export const AddToCartSuccessModal: React.FC<{
             </div>
         </div>
     );
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd

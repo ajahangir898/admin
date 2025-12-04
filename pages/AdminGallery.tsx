@@ -1,60 +1,14 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, FolderOpen, Upload, CheckCircle, Smartphone, Loader2, AlertTriangle } from 'lucide-react';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import React, { useState, useRef } from 'react';
+import { Search, FolderOpen, Upload, CheckCircle, Smartphone } from 'lucide-react';
 import { GALLERY_IMAGES } from '../constants';
 import { GalleryItem } from '../types';
-import { db } from '../services/firebaseConfig';
 
 const AdminGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-   const [images, setImages] = useState<GalleryItem[]>(GALLERY_IMAGES);
-   const [isLoading, setIsLoading] = useState(true);
-   const [isUploading, setIsUploading] = useState(false);
-   const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<GalleryItem[]>(GALLERY_IMAGES);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-   useEffect(() => {
-      let isMounted = true;
-
-      const loadGallery = async () => {
-         try {
-            setIsLoading(true);
-            const snapshot = await getDocs(collection(db, 'gallery'));
-            const remoteItems = snapshot.docs.map(docSnap => {
-               const data = docSnap.data() as GalleryItem;
-               return {
-                  ...data,
-                  id: typeof data.id === 'number' ? data.id : Number(docSnap.id) || Date.now()
-               } as GalleryItem;
-            });
-
-            if (!isMounted) return;
-            if (remoteItems.length) {
-               const sorted = [...remoteItems].sort((a, b) => b.dateAdded.localeCompare(a.dateAdded));
-               setImages(sorted);
-            } else {
-               setImages(GALLERY_IMAGES);
-            }
-            setError(null);
-         } catch (firebaseError) {
-            console.warn('Failed to load gallery from Firebase; falling back to static data.', firebaseError);
-            if (!isMounted) return;
-            setImages(GALLERY_IMAGES);
-            setError('Showing local gallery items (Firebase unavailable).');
-         } finally {
-            if (isMounted) setIsLoading(false);
-         }
-      };
-
-      loadGallery();
-      return () => { isMounted = false; };
-   }, []);
-
-   const persistGalleryItem = async (item: GalleryItem) => {
-      await setDoc(doc(db, 'gallery', String(item.id)), item);
-   };
 
   const filteredImages = images.filter(img => 
     img.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -69,40 +23,23 @@ const AdminGallery: React.FC = () => {
     }
   };
 
-   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
       const reader = new FileReader();
-      reader.onloadend = async () => {
-         const newItem: GalleryItem = {
-            id: Date.now(),
-            title: file.name.split('.')[0],
-            category: 'Uploads',
-            imageUrl: reader.result as string,
-            dateAdded: new Date().toISOString()
-         };
-
-         setImages(prev => [newItem, ...prev]);
-         setIsUploading(true);
-         try {
-            await persistGalleryItem(newItem);
-            setError(null);
-         } catch (firebaseError) {
-            console.error('Failed to sync gallery item to Firebase', firebaseError);
-            setError('Upload saved locally but failed to sync with Firebase.');
-         } finally {
-            setIsUploading(false);
-         }
+      reader.onloadend = () => {
+        const newItem: GalleryItem = {
+          id: Date.now(),
+          title: file.name.split('.')[0],
+          category: 'Uploads',
+          imageUrl: reader.result as string,
+          dateAdded: new Date().toISOString()
+        };
+        setImages([newItem, ...images]);
       };
-
-      reader.onerror = () => {
-         console.error('File reading failed');
-         setError('Could not read the selected image.');
-      };
-
       reader.readAsDataURL(file);
-   };
+    }
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-fade-in">
@@ -140,19 +77,7 @@ const AdminGallery: React.FC = () => {
 
       {/* Grid Content */}
       <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30">
-         {error && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-amber-700 text-sm">
-              <AlertTriangle size={16} />
-              <span>{error}</span>
-            </div>
-         )}
-
-         {isLoading ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-400">
-              <Loader2 className="mb-3 animate-spin" size={36} />
-              <p className="font-medium">Loading gallery from Firebase...</p>
-            </div>
-         ) : filteredImages.length > 0 ? (
+         {filteredImages.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                {filteredImages.map(item => (
                   <div 
@@ -204,13 +129,9 @@ const AdminGallery: React.FC = () => {
          />
          <button 
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition uppercase tracking-wide text-sm border border-purple-200 ${
-              isUploading ? 'bg-purple-100 text-purple-400 cursor-not-allowed' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-            }`}
+            className="flex items-center gap-2 px-6 py-3 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg font-bold transition uppercase tracking-wide text-sm border border-purple-200"
          >
-            {isUploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
-            {isUploading ? 'Uploading...' : 'Upload New Images'}
+            <Upload size={18} /> Upload New Images
          </button>
          
          <div className="px-6 py-3 border border-purple-600 text-purple-600 rounded-lg font-medium text-sm min-w-[120px] text-center">

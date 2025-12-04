@@ -5,6 +5,9 @@ import { db } from './firebaseConfig';
 import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 class DataServiceImpl {
+  private get canUseLocalStorage() {
+    return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+  }
   
   // --- Generic Helpers with Fallback ---
   
@@ -15,7 +18,7 @@ class DataServiceImpl {
     } catch (error) {
       console.warn(`Firebase operation failed, falling back to local storage/defaults.`, error);
       // Attempt Local Storage Fallback
-      if (key) {
+      if (key && this.canUseLocalStorage) {
         const local = localStorage.getItem(`gadgetshob_${key}`);
         if (local) {
             try { return JSON.parse(local); } catch(e) {}
@@ -26,6 +29,7 @@ class DataServiceImpl {
   }
 
   private saveToLocal(key: string, data: any) {
+    if (!this.canUseLocalStorage) return;
     try {
         localStorage.setItem(`gadgetshob_${key}`, JSON.stringify(data));
     } catch (e) {
@@ -76,7 +80,12 @@ class DataServiceImpl {
       if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
         const docRef = doc(db, 'configurations', key);
         const docSnap = await getDoc(docRef);
-        return docSnap.exists() ? (docSnap.data() as T) : defaultValue;
+        if (!docSnap.exists()) return defaultValue;
+        if (key === 'logo') {
+          const data = docSnap.data() as { value?: T };
+          return (data?.value ?? defaultValue) as T;
+        }
+        return docSnap.data() as T;
       }
       
       // Fallback for generic collections
@@ -151,12 +160,14 @@ class DataServiceImpl {
     // Save to local storage first for immediate UI feedback / offline capability
     // Simple debounce check to avoid spamming (optional optimization)
     const now = Date.now();
-    const lastSave = parseInt(localStorage.getItem(`last_save_${key}`) || '0');
-    if (now - lastSave < 1000) {
+    const lastSave = this.canUseLocalStorage ? parseInt(localStorage.getItem(`last_save_${key}`) || '0') : 0;
+    if (this.canUseLocalStorage && now - lastSave < 1000) {
         // Skip if saved less than 1 second ago
         return; 
     }
-    localStorage.setItem(`last_save_${key}`, now.toString());
+    if (this.canUseLocalStorage) {
+      localStorage.setItem(`last_save_${key}`, now.toString());
+    }
 
     this.saveToLocal(key, data);
 
@@ -165,8 +176,13 @@ class DataServiceImpl {
 
         // Configs -> Single Doc
         if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
-            await setDoc(doc(db, 'configurations', key), data as any);
-            return;
+          const docRef = doc(db, 'configurations', key);
+          if (key === 'logo') {
+            await setDoc(docRef, { value: data ?? null });
+          } else {
+            await setDoc(docRef, data as any);
+          }
+          return;
         }
 
         // Arrays -> Collection (Sync Strategy: Overwrite items)

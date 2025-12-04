@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
@@ -14,15 +14,6 @@ const SEARCH_HINT_ANIMATION = `
     display: inline-block;
 }
 `;
-
-=======
-
-import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
-import { GoogleGenAI } from "@google/genai";
-
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
   onOpenAIStudio?: () => void;
@@ -762,7 +753,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   );
 };
 
-<<<<<<< HEAD
+
 export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string }> = ({ product, onClick, variant }) => {
   // Style 2 (Flash Sale - Pink/Blue)
   if (variant === 'style2') {
@@ -873,8 +864,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
   );
 };
 
-=======
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
+
 export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
   const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -889,101 +879,66 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 
   if (items.length === 0) return null;
 
-  return (
-<<<<<<< HEAD
-    <div className="max-w-7xl mx-auto px-4 mt-4">
-        <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm">
-            {items.map((item, index) => (
-                <a 
-                href={item.url || '#'}
-                key={item.id}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                >
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                </a>
-            ))}
-            
-            {items.length > 1 && (
-                <>
-                    <button 
-                        onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+    return (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+            <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm group">
+                {items.map((item, index) => (
+                    <a
+                        href={item.url || '#'}
+                        key={item.id}
+                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                     >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <button 
-                        onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-                        {items.map((_, idx) => (
-                            <button 
-                            key={idx} 
-                            onClick={() => setCurrentIndex(idx)}
-                            className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
-                            />
-                        ))}
-                    </div>
-                </>
-            )}
-        </div>
-=======
-    <div className="relative w-full h-[200px] md:h-[400px] bg-gray-100 overflow-hidden">
-        {items.map((item, index) => (
-             <div 
-               key={item.id}
-               className={`absolute inset-0 transition-opacity duration-1000 ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}
-             >
-                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-             </div>
-        ))}
-        {items.length > 1 && (
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                {items.map((_, idx) => (
-                    <button 
-                      key={idx} 
-                      onClick={() => setCurrentIndex(idx)}
-                      className={`w-2 h-2 rounded-full transition ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50'}`}
-                    />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    </a>
                 ))}
-            </div>
-        )}
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
-    </div>
-  );
-};
 
+                {items.length > 1 && (
+                    <>
+                        <button
+                            onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                        <button
+                            onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                        >
+                            <ChevronRight size={20} />
+                        </button>
+
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                            {items.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setCurrentIndex(idx)}
+                                    className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
     <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
-<<<<<<< HEAD
+
         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
             {icon}
         </div>
         <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
-=======
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 group-hover:border-purple-500 group-hover:text-purple-600 group-hover:bg-purple-50 transition duration-300 shadow-sm">
-            {icon}
-        </div>
-        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-purple-600 text-center">{name}</span>
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
     </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-<<<<<<< HEAD
+
     <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
         <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
             {icon}
         </div>
         <span className="text-sm font-semibold text-gray-700 group-hover:text-pink-600 tracking-wide">{name}</span>
-=======
-    <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:text-pink-600 cursor-pointer transition whitespace-nowrap">
-        {icon}
-        <span className="text-sm font-bold">{name}</span>
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
     </div>
 );
 
@@ -994,7 +949,7 @@ export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
     </h2>
 );
 
-<<<<<<< HEAD
+
 export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
     // Style 2 (Coco Kids Footer)
     if (websiteConfig?.footerStyle === 'style2') {
@@ -1147,202 +1102,6 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
         </footer>
     );
 };
-=======
-export const ProductCard: React.FC<{ 
-  product: Product; 
-  onClick: (p: Product) => void;
-  variant?: string;
-}> = ({ product, onClick, variant = 'style1' }) => {
-  // Style 2: Minimalist Borderless
-  if (variant === 'style2') {
-    return (
-      <div 
-        className="group cursor-pointer"
-        onClick={() => onClick(product)}
-      >
-        <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100 mb-3">
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="w-full h-full object-cover group-hover:scale-110 transition duration-500 mix-blend-multiply" 
-          />
-          {product.discount && (
-            <span className="absolute top-2 left-2 bg-black text-white text-[10px] font-bold px-2 py-1 rounded">
-              {product.discount}
-            </span>
-          )}
-          <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
-            <button className="bg-white p-2 rounded-full shadow-lg hover:bg-black hover:text-white transition">
-              <ShoppingCart size={16} />
-            </button>
-          </div>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1 group-hover:text-blue-600 transition">{product.name}</h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
-            {product.originalPrice && (
-              <span className="text-xs text-gray-400 line-through">৳{product.originalPrice.toLocaleString()}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Style 3: Bordered with Quick Actions
-  if (variant === 'style3') {
-     return (
-        <div 
-           className="group border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-lg transition duration-300 relative cursor-pointer"
-           onClick={() => onClick(product)}
-        >
-           <div className="relative aspect-square bg-gray-50 p-4">
-               <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-300 group-hover:scale-105" />
-               {product.discount && (
-                   <span className="absolute top-2 left-0 bg-red-500 text-white text-xs font-bold px-2 py-0.5">
-                       -{product.discount}
-                   </span>
-               )}
-               {/* Quick Actions Overlay */}
-               <div className="absolute top-2 right-2 flex flex-col gap-2 transform translate-x-10 group-hover:translate-x-0 transition duration-300">
-                   <button className="p-2 bg-white rounded-full shadow hover:bg-purple-600 hover:text-white transition" title="Add to Wishlist">
-                       <Heart size={16} />
-                   </button>
-                   <button className="p-2 bg-white rounded-full shadow hover:bg-purple-600 hover:text-white transition" title="Quick View">
-                       <Eye size={16} />
-                   </button>
-               </div>
-           </div>
-           <div className="p-3">
-               <div className="text-xs text-gray-500 mb-1">{product.category}</div>
-               <h3 className="text-sm font-bold text-gray-800 line-clamp-2 mb-2 h-10 group-hover:text-purple-600 transition">{product.name}</h3>
-               <div className="flex justify-between items-end">
-                   <div>
-                       <span className="text-sm font-bold text-purple-600 block">৳ {product.price.toLocaleString()}</span>
-                       {product.originalPrice && (
-                           <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
-                       )}
-                   </div>
-                   <button className="bg-purple-100 text-purple-600 p-2 rounded-lg hover:bg-purple-600 hover:text-white transition">
-                       <ShoppingCart size={16} />
-                   </button>
-               </div>
-           </div>
-        </div>
-     );
-  }
-
-  // Style 1 (Default): Card with hover lift
-  return (
-    <div 
-      className="group bg-white rounded-2xl p-3 cursor-pointer hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 relative"
-      onClick={() => onClick(product)}
-    >
-      <div className="relative aspect-square bg-gray-50 rounded-xl mb-3 overflow-hidden">
-        <img 
-          src={product.image} 
-          alt={product.name} 
-          className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition duration-500" 
-        />
-        {product.discount && (
-          <span className="absolute top-2 left-2 bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-            {product.discount}
-          </span>
-        )}
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-           <button className="bg-white p-2 rounded-full shadow-md text-gray-800 hover:text-pink-600">
-             <ShoppingCart size={18} />
-           </button>
-        </div>
-      </div>
-      <div>
-        <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition">{product.name}</h3>
-        <div className="flex items-center gap-1 mb-2">
-           <Star size={12} className="text-yellow-400 fill-yellow-400" />
-           <span className="text-xs text-gray-500 font-bold">{product.rating}</span>
-           <span className="text-xs text-gray-400">({product.reviews})</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-green-600">৳ {product.price.toLocaleString()}</span>
-          {product.originalPrice && (
-            <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => (
-    <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 ${websiteConfig?.footerStyle === 'style2' ? 'dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400' : ''}`}>
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
-                <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
-                <div className="flex gap-3">
-                   {websiteConfig?.socialLinks?.map(link => (
-                       <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
-                           <Globe size={16} />
-                       </a>
-                   ))}
-                </div>
-            </div>
-            <div>
-                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Quick Links</h4>
-                <ul className="space-y-2 text-sm">
-                    <li><a href="#" className="hover:text-purple-600">About Us</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Contact</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Terms & Conditions</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Privacy Policy</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Customer Area</h4>
-                <ul className="space-y-2 text-sm">
-                    <li><a href="#" className="hover:text-purple-600">My Account</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Orders</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Tracking</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Returns</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Contact Us</h4>
-                <ul className="space-y-3 text-sm">
-                    {websiteConfig?.addresses?.map((addr, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                            <MapPin size={16} className="mt-0.5 shrink-0" />
-                            <span>{addr}</span>
-                        </li>
-                    ))}
-                    {websiteConfig?.phones?.map((phone, i) => (
-                         <li key={i} className="flex items-center gap-2">
-                             <Phone size={16} />
-                             <span>{phone}</span>
-                         </li>
-                    ))}
-                    {websiteConfig?.emails?.map((email, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                            <Mail size={16} />
-                            <span>{email}</span>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-        {!websiteConfig?.hideCopyright && (
-            <div className="max-w-7xl mx-auto px-4 border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center text-xs">
-                {!websiteConfig?.hideCopyrightText && (
-                    <p>&copy; {new Date().getFullYear()} {websiteConfig?.websiteName}. All rights reserved.</p>
-                )}
-                {websiteConfig?.showPoweredBy && (
-                    <p>Powered by Saleecom</p>
-                )}
-            </div>
-        )}
-    </footer>
-);
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
 
 export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => boolean, onRegister: (u: UserType) => boolean }> = ({ onClose, onLogin, onRegister }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -1467,24 +1226,14 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         setLoading(true);
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-<<<<<<< HEAD
+
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash-image',
                 contents: { parts: [{ text: prompt }] }
             });
 
-=======
-            // Using gemini-2.5-flash-image as per guidelines for general image tasks
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
-                contents: {
-                    parts: [{ text: prompt }]
-                }
-            });
-
             // Extract image from response parts
             // Guidelines say: The output response may contain both image and text parts; you must iterate...
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
             if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
                 for (const part of response.candidates[0].content.parts) {
                     if (part.inlineData) {
@@ -1514,12 +1263,8 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                     <div className="space-y-4 flex-1">
                         <div>
                             <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Prompt</label>
-                            <textarea 
-<<<<<<< HEAD
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:outline-none resize-none h-32"
-=======
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-purple-500 h-32 resize-none"
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
+                            <textarea
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 focus:outline-none resize-none h-32"
                                 placeholder="Describe the image you want to generate..."
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
@@ -1580,8 +1325,5 @@ export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => 
             </div>
         </div>
     );
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> a3eef5822d61f4102b39d59f87f4c8a1e2a86ef6
+

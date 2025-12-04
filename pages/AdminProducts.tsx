@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw } from 'lucide-react';
 
 interface AdminProductsProps {
   products: Product[];
@@ -34,9 +34,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  // Filter State
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterBrand, setFilterBrand] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   // Selection State
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [bulkAction, setBulkAction] = useState<'category' | 'discount' | null>(null);
+  const [bulkAction, setBulkAction] = useState<'category' | 'discount' | 'status' | null>(null);
   const [bulkValue, setBulkValue] = useState('');
 
   // Form State
@@ -51,7 +56,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     description: '',
     image: '',
     discount: '',
-    tags: []
+    tags: [],
+    status: 'Active'
   });
   const [initialFormData, setInitialFormData] = useState<Partial<Product> | null>(null); // To track dirty state
   const [tagInput, setTagInput] = useState('');
@@ -60,10 +66,22 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Derived State for filtering
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = filterCategory ? p.category === filterCategory : true;
+    const matchesBrand = filterBrand ? p.brand === filterBrand : true;
+    const matchesStatus = filterStatus ? (p.status || 'Active') === filterStatus : true;
+
+    return matchesSearch && matchesCategory && matchesBrand && matchesStatus;
+  });
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setFilterCategory('');
+    setFilterBrand('');
+    setFilterStatus('');
+  };
 
   // Filtered dropdown options based on selection
   const availableSubCategories = subCategories.filter(s => {
@@ -80,7 +98,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     let initialData: Partial<Product>;
     if (product) {
       setEditingProduct(product);
-      initialData = { ...product };
+      initialData = { ...product, status: product.status || 'Active' };
     } else {
       setEditingProduct(null);
       initialData = {
@@ -94,7 +112,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         description: '',
         image: '',
         discount: '',
-        tags: []
+        tags: [],
+        status: 'Active'
       };
     }
     setFormData(initialData);
@@ -128,7 +147,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       price: Number(formData.price),
       originalPrice: Number(formData.originalPrice),
       rating: editingProduct ? editingProduct.rating : 5.0, // Default rating for new products
-      reviews: editingProduct ? editingProduct.reviews : 0
+      reviews: editingProduct ? editingProduct.reviews : 0,
+      status: formData.status || 'Active'
     } as Product;
 
     if (editingProduct) {
@@ -220,6 +240,9 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       onBulkUpdate(selectedIds, { category: bulkValue });
     } else if (bulkAction === 'discount') {
       onBulkUpdate(selectedIds, { discount: bulkValue }); // Allow empty to clear discount
+    } else if (bulkAction === 'status') {
+      if (!bulkValue) return alert("Please select a status");
+      onBulkUpdate(selectedIds, { status: bulkValue as 'Active' | 'Draft' });
     }
     
     // Reset
@@ -251,32 +274,81 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         </button>
       </div>
 
-      {/* Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center sticky top-0 z-20">
-        <div className="flex items-center gap-4 w-full sm:w-auto">
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
-              checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
-              onChange={selectAll}
-            />
-            <span className="text-sm text-gray-600">Select All</span>
+      {/* Toolbar & Filters */}
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-4 sticky top-0 z-20">
+        
+        {/* Top Row: Search & Select All */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <div className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+                checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+                onChange={selectAll}
+              />
+              <span className="text-sm text-gray-600">Select All</span>
+            </div>
+            <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block"></div>
+            <div className="relative flex-1 w-full sm:max-w-xs">
+               <input 
+                 type="text" 
+                 placeholder="Search products..." 
+                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+               />
+               <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+            </div>
           </div>
-          <div className="h-6 w-px bg-gray-200 mx-2"></div>
-          <div className="relative flex-1 w-full sm:max-w-xs">
-             <input 
-               type="text" 
-               placeholder="Search products..." 
-               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-             />
-             <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+          <div className="text-sm text-gray-500 whitespace-nowrap">
+             Showing <span className="font-bold text-gray-800">{filteredProducts.length}</span> products
           </div>
         </div>
-        <div className="text-sm text-gray-500">
-           Showing <span className="font-bold text-gray-800">{filteredProducts.length}</span> products
+
+        {/* Bottom Row: Filters */}
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
+           <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Filter size={16} />
+              <span className="font-medium">Filters:</span>
+           </div>
+           
+           <select 
+             className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-gray-700"
+             value={filterCategory}
+             onChange={(e) => setFilterCategory(e.target.value)}
+           >
+             <option value="">All Categories</option>
+             {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+           </select>
+
+           <select 
+             className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-gray-700"
+             value={filterBrand}
+             onChange={(e) => setFilterBrand(e.target.value)}
+           >
+             <option value="">All Brands</option>
+             {brands.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+           </select>
+
+           <select 
+             className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-gray-700"
+             value={filterStatus}
+             onChange={(e) => setFilterStatus(e.target.value)}
+           >
+             <option value="">All Status</option>
+             <option value="Active">Active</option>
+             <option value="Draft">Draft</option>
+           </select>
+
+           {(searchTerm || filterCategory || filterBrand || filterStatus) && (
+             <button 
+               onClick={resetFilters}
+               className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 font-medium ml-auto"
+             >
+               <RefreshCw size={14} /> Reset
+             </button>
+           )}
         </div>
       </div>
 
@@ -299,6 +371,12 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                 className="flex items-center gap-2 hover:text-purple-300 transition text-sm font-medium"
               >
                 <Percent size={16} /> Discount
+              </button>
+              <button 
+                onClick={() => setBulkAction('status')}
+                className="flex items-center gap-2 hover:text-purple-300 transition text-sm font-medium"
+              >
+                <CheckCircle size={16} /> Status
               </button>
               <button 
                 onClick={executeBulkDelete}
@@ -324,7 +402,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
              }`}
            >
               {/* Selection Checkbox Overlay */}
-              <div className="absolute top-3 left-3 z-10">
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                 <input 
                   type="checkbox" 
                   checked={selectedIds.includes(product.id)}
@@ -332,11 +410,22 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                   className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 shadow-sm cursor-pointer"
                 />
               </div>
+              
+              {/* Status Badge */}
+              <div className="absolute top-3 right-3 z-10">
+                 <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase shadow-sm ${
+                    (product.status || 'Active') === 'Active' 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-gray-100 text-gray-600'
+                 }`}>
+                    {product.status || 'Active'}
+                 </span>
+              </div>
 
               <div className="relative h-48 bg-gray-100">
                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                  {product.discount && (
-                   <span className="absolute top-2 right-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+                   <span className="absolute bottom-2 right-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
                      {product.discount}
                    </span>
                  )}
@@ -381,6 +470,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
               </div>
            </div>
          ))}
+         {filteredProducts.length === 0 && (
+            <div className="col-span-full py-12 text-center text-gray-500 flex flex-col items-center justify-center">
+                <Search size={48} className="text-gray-300 mb-4" />
+                <p className="font-medium text-lg">No products found</p>
+                <p className="text-sm mb-4">Try adjusting your search or filters</p>
+                <button onClick={resetFilters} className="text-purple-600 font-bold hover:underline">Clear Filters</button>
+            </div>
+         )}
       </div>
 
       {/* Add/Edit Modal */}
@@ -498,6 +595,18 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                             value={formData.originalPrice || ''}
                             onChange={e => setFormData({...formData, originalPrice: Number(e.target.value)})}
                           />
+                       </div>
+
+                       <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Status</label>
+                          <select 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                            value={formData.status || 'Active'}
+                            onChange={e => setFormData({...formData, status: e.target.value as any})}
+                          >
+                             <option value="Active">Active</option>
+                             <option value="Draft">Draft</option>
+                          </select>
                        </div>
                     </div>
 
@@ -638,7 +747,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
               <div className="p-4 bg-gray-900 text-white font-bold flex justify-between items-center">
-                 <h3>Bulk Action: {bulkAction === 'category' ? 'Change Category' : 'Apply Discount'}</h3>
+                 <h3>Bulk Action: {bulkAction === 'category' ? 'Change Category' : bulkAction === 'status' ? 'Update Status' : 'Apply Discount'}</h3>
                  <button onClick={() => setBulkAction(null)} className="hover:text-gray-300"><X size={18}/></button>
               </div>
               <div className="p-6">
@@ -654,6 +763,16 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                    >
                       <option value="">Select New Category</option>
                       {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                   </select>
+                 ) : bulkAction === 'status' ? (
+                   <select 
+                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                     value={bulkValue}
+                     onChange={(e) => setBulkValue(e.target.value)}
+                   >
+                      <option value="">Select New Status</option>
+                      <option value="Active">Active</option>
+                      <option value="Draft">Draft</option>
                    </select>
                  ) : (
                    <input 

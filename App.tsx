@@ -17,7 +17,7 @@ import AdminCourierSettings from './pages/AdminCourierSettings';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
-import { LoginModal, Toast } from './components/StoreComponents';
+import { LoginModal, MobileBottomNav } from './components/StoreComponents';
 import { DataService } from './services/DataService';
 
 // Wrapper layout for Admin pages
@@ -41,12 +41,25 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   onLogout
 }) => {
   const highlightPage = activePage.startsWith('settings') ? 'settings' : activePage;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
-      <AdminSidebar activePage={highlightPage} onNavigate={onNavigate} logo={logo} />
+      <AdminSidebar 
+        activePage={highlightPage} 
+        onNavigate={onNavigate} 
+        logo={logo} 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)}
+      />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <AdminHeader onSwitchView={onSwitchView} user={user} onLogout={onLogout} logo={logo} />
+        <AdminHeader 
+          onSwitchView={onSwitchView} 
+          user={user} 
+          onLogout={onLogout} 
+          logo={logo}
+          onMenuClick={() => setIsSidebarOpen(true)} 
+        />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gray-50/50">
           {children}
         </main>
@@ -66,7 +79,6 @@ const hexToRgb = (hex: string) => {
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   // --- STATE ---
   const [orders, setOrders] = useState<Order[]>([]);
@@ -93,12 +105,6 @@ const App = () => {
   // Auth & Navigation
   const [user, setUser] = useState<User | null>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type });
-    // auto-clear handled by Toast component too
-  };
   const [currentView, setCurrentView] = useState<ViewState>('store');
   const [adminSection, setAdminSection] = useState('dashboard');
   const [wishlist, setWishlist] = useState<number[]>([]);
@@ -110,78 +116,79 @@ const App = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        console.log('[App] loadData start');
-        setLoadError(null);
+        setProducts(await DataService.getProducts());
+        setOrders(await DataService.getOrders());
+        setUsers(await DataService.getUsers());
+        setRoles(await DataService.getRoles());
+        
+        setLogo(await DataService.get<string | null>('logo', null));
+        setThemeConfig(await DataService.getThemeConfig());
+        setWebsiteConfig(await DataService.getWebsiteConfig());
+        setDeliveryConfig(await DataService.getDeliveryConfig());
+        setCourierConfig(await DataService.get('courier', { apiKey: '', secretKey: '' }));
 
-        // Prepare defaults used for catalogs
-        const categoriesDefaults = [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }];
-        const subCategoriesDefaults = [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }];
-        const brandsDefaults = [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }];
-        const tagsDefaults = [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }];
+        // Catalog
+        setCategories(await DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]));
+        setSubCategories(await DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]));
+        setChildCategories(await DataService.getCatalog('childcategories', []));
+        setBrands(await DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]));
+        setTags(await DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }]));
 
-        // Kick off independent fetches in parallel
-        const pProducts = DataService.getProducts();
-        const pOrders = DataService.getOrders();
-        const pUsers = DataService.getUsers();
-        const pRoles = DataService.getRoles();
-        const pLogo = DataService.get<string | null>('logo', null);
-        const pTheme = DataService.getThemeConfig();
-        const pWebsite = DataService.getWebsiteConfig();
-        const pDelivery = DataService.getDeliveryConfig();
-        const pCourier = DataService.get('courier', { apiKey: '', secretKey: '' });
-        const pCategories = DataService.getCatalog('categories', categoriesDefaults);
-        const pSubCategories = DataService.getCatalog('subcategories', subCategoriesDefaults);
-        const pChildCategories = DataService.getCatalog('childcategories', []);
-        const pBrands = DataService.getCatalog('brands', brandsDefaults);
-        const pTags = DataService.getCatalog('tags', tagsDefaults);
+        // Session
+        const storedSession = localStorage.getItem('gadgetshob_session');
+        if (storedSession) setUser(JSON.parse(storedSession));
 
-        const [productsRes, ordersRes, usersRes, rolesRes, logoRes, themeRes, websiteRes, deliveryRes, courierRes, categoriesRes, subCategoriesRes, childCategoriesRes, brandsRes, tagsRes] = await Promise.all([
-          pProducts, pOrders, pUsers, pRoles, pLogo, pTheme, pWebsite, pDelivery, pCourier, pCategories, pSubCategories, pChildCategories, pBrands, pTags
-        ]);
-
-        setProducts(productsRes);
-        console.log('[App] getProducts OK');
-        setOrders(ordersRes);
-        console.log('[App] getOrders OK');
-        setUsers(usersRes);
-        console.log('[App] getUsers OK');
-        setRoles(rolesRes);
-        console.log('[App] getRoles OK');
-
-        setLogo(logoRes);
-        console.log('[App] get logo OK');
-        setThemeConfig(themeRes);
-        console.log('[App] getThemeConfig OK');
-        setWebsiteConfig(websiteRes);
-        console.log('[App] getWebsiteConfig OK');
-        setDeliveryConfig(deliveryRes);
-        console.log('[App] getDeliveryConfig OK');
-        setCourierConfig(courierRes);
-        console.log('[App] get courier OK');
-
-        // Catalogs
-        setCategories(categoriesRes as any);
-        console.log('[App] getCatalog categories OK');
-        setSubCategories(subCategoriesRes as any);
-        console.log('[App] getCatalog subcategories OK');
-        setChildCategories(childCategoriesRes as any);
-        console.log('[App] getCatalog childcategories OK');
-        setBrands(brandsRes as any);
-        console.log('[App] getCatalog brands OK');
-        setTags(tagsRes as any);
-        console.log('[App] getCatalog tags OK');
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
-        link.href = websiteRes?.favicon || '';
-      } catch (err: any) {
-        setLoadError(err?.message || 'Failed to load data');
+      } catch (error) {
+        console.error("Failed to load data", error);
       } finally {
         setIsLoading(false);
       }
     };
     loadData();
   }, []);
+
+  // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
+  
+  useEffect(() => { if(!isLoading) DataService.save('orders', orders); }, [orders, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('products', products); }, [products, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('roles', roles); }, [roles, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('users', users); }, [users, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('logo', logo); }, [logo, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('delivery_config', deliveryConfig); }, [deliveryConfig, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('courier', courierConfig); }, [courierConfig, isLoading]);
+  
+  useEffect(() => { if(!isLoading) DataService.save('categories', categories); }, [categories, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('subcategories', subCategories); }, [subCategories, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('childcategories', childCategories); }, [childCategories, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('brands', brands); }, [brands, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('tags', tags); }, [tags, isLoading]);
+
+  useEffect(() => { 
+    if(!isLoading && themeConfig) {
+      DataService.save('theme', themeConfig);
+      const root = document.documentElement;
+      root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
+      root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
+      root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
+      if (themeConfig.darkMode) root.classList.add('dark');
+      else root.classList.remove('dark');
+    }
+  }, [themeConfig, isLoading]);
+
+  useEffect(() => { 
+    if(!isLoading && websiteConfig) {
+      DataService.save('website_config', websiteConfig);
+      if (websiteConfig.favicon) {
+        let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        link.href = websiteConfig.favicon;
+      }
+    }
+  }, [websiteConfig, isLoading]);
 
 
   // --- HANDLERS ---
@@ -233,69 +240,15 @@ const App = () => {
     setUsers(users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u));
   };
 
-  const handleAddProduct = (newProduct: Product) => {
-    const updated = [...products, newProduct];
-    setProducts(updated);
-    // Persist asynchronously
-    DataService.save('products', updated).catch(e => console.warn('Failed to save products after add', e));
-  };
+  const handleAddProduct = (newProduct: Product) => setProducts([...products, newProduct]);
+  const handleUpdateProduct = (updatedProduct: Product) => setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+  const handleDeleteProduct = (id: number) => setProducts(products.filter(p => p.id !== id));
+  const handleBulkDeleteProducts = (ids: number[]) => setProducts(products.filter(p => !ids.includes(p.id)));
+  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p));
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
-    const updated = products.map(p => p.id === updatedProduct.id ? updatedProduct : p);
-    setProducts(updated);
-    DataService.save('products', updated).catch(e => console.warn('Failed to save products after update', e));
-  };
-
-  const handleDeleteProduct = (id: number) => {
-    const updated = products.filter(p => p.id !== id);
-    setProducts(updated);
-    DataService.save('products', updated).catch(e => console.warn('Failed to save products after delete', e));
-  };
-
-  const handleBulkDeleteProducts = (ids: number[]) => {
-    const updated = products.filter(p => !ids.includes(p.id));
-    setProducts(updated);
-    DataService.save('products', updated).catch(e => console.warn('Failed to save products after bulk delete', e));
-  };
-
-  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => {
-    const updated = products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p);
-    setProducts(updated);
-    DataService.save('products', updated).catch(e => console.warn('Failed to save products after bulk update', e));
-  };
-
-  const handleUpdateLogo = async (newLogo: string | null) => {
-    setLogo(newLogo);
-    try {
-      await DataService.save('logo', newLogo);
-      showToast('Logo saved successfully', 'success');
-    } catch (e) {
-      console.warn('Failed to save logo', e);
-      showToast('Failed to save logo', 'error');
-    }
-  };
-
-  const handleUpdateTheme = async (newConfig: ThemeConfig) => {
-    setThemeConfig(newConfig);
-    try {
-      await DataService.save('theme', newConfig);
-      showToast('Theme saved', 'success');
-    } catch (e) {
-      console.warn('Failed to save theme config', e);
-      showToast('Failed to save theme', 'error');
-    }
-  };
-
-  const handleUpdateWebsiteConfig = async (newConfig: WebsiteConfig) => {
-    setWebsiteConfig(newConfig);
-    try {
-      await DataService.save('website_config', newConfig);
-      showToast('Website settings saved', 'success');
-    } catch (e) {
-      console.warn('Failed to save website config', e);
-      showToast('Failed to save website settings', 'error');
-    }
-  };
+  const handleUpdateLogo = (newLogo: string | null) => setLogo(newLogo);
+  const handleUpdateTheme = (newConfig: ThemeConfig) => setThemeConfig(newConfig);
+  const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
   const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => setCourierConfig(config);
   const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => setDeliveryConfig(configs);
   
@@ -359,7 +312,7 @@ const App = () => {
     <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
       {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
 
-      <div className="fixed bottom-6 right-6 z-[100]">
+      <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
         <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
           {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
           <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
@@ -381,19 +334,35 @@ const App = () => {
         </AdminLayout>
       ) : (
         <>
-          {currentView === 'store' && <StoreHome products={products} orders={orders} onProductClick={handleProductClick} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+          {currentView === 'store' && (
+            <>
+              <StoreHome products={products} orders={orders} onProductClick={handleProductClick} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />
+              <MobileBottomNav 
+                onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
+                onCartClick={() => {}} // Placeholder
+                onAccountClick={() => user ? setCurrentView('profile') : setIsLoginOpen(true)}
+                cartCount={0}
+              />
+            </>
+          )}
           {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
           {currentView === 'checkout' && selectedProduct && <StoreCheckout product={selectedProduct} quantity={checkoutQuantity} onBack={() => setCurrentView('detail')} onConfirmOrder={handlePlaceOrder} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
           {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
-          {currentView === 'profile' && user && <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} />}
+          {currentView === 'profile' && user && (
+            <>
+              <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} />
+              <MobileBottomNav 
+                onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
+                onCartClick={() => {}} // Placeholder
+                onAccountClick={() => {}} // Already on profile
+                cartCount={0}
+              />
+            </>
+          )}
         </>
       )}
-
-      {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
     </div>
   );
 };
 
 export default App;
- 
-  // Render Toast at root by importing and placing in App's JSX - add near end of render

@@ -17,6 +17,7 @@ export interface Product {
   childCategory?: string; // Added
   brand?: string; // Added
   tags?: string[];
+  status?: 'Active' | 'Draft'; // Added for filtering
 }
 
 export interface Order {

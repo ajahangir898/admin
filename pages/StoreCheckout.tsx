@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Product, User, WebsiteConfig } from '../types';
-import { StoreHeader, StoreFooter, formatPrice } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { ArrowLeft, Banknote, MapPin, Mail, Phone, User as UserIcon, X } from 'lucide-react';
 
 interface CheckoutProps {
@@ -195,9 +195,9 @@ const StoreCheckout = ({
                             <span className="px-2">{quantity}</span>
                          </div>
                          <div className="flex items-center gap-2">
-                           <span className="font-bold text-gray-800">৳ {formatPrice(product.price)}</span>
+                           <span className="font-bold text-gray-800">৳ {product.price.toLocaleString()}</span>
                            {product.originalPrice && (
-                             <span className="text-xs text-gray-400 line-through">৳ {formatPrice(product.originalPrice)}</span>
+                             <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
                            )}
                          </div>
                       </div>
@@ -208,12 +208,12 @@ const StoreCheckout = ({
                 <div className="space-y-3 border-t border-gray-100 pt-4 text-sm">
                    <div className="flex justify-between text-gray-600">
                       <span>Sub Total:</span>
-                      <span className="font-medium">৳ {formatPrice(subTotal)}</span>
+                      <span className="font-medium">৳ {subTotal.toLocaleString()}</span>
                    </div>
                    {discount > 0 && (
                       <div className="flex justify-between text-gray-600">
                          <span>Discount:</span>
-                         <span className="font-medium text-red-500">-৳ {formatPrice(discount)}</span>
+                         <span className="font-medium text-red-500">-৳ {discount.toLocaleString()}</span>
                       </div>
                    )}
                    <div className="flex justify-between text-gray-600">
@@ -222,7 +222,7 @@ const StoreCheckout = ({
                    </div>
                    <div className="flex justify-between text-gray-800 text-lg font-bold border-t border-dashed border-gray-200 pt-3 mt-2">
                       <span>GrandTotal:</span>
-                      <span>৳ {formatPrice(grandTotal)}</span>
+                      <span>৳ {grandTotal.toLocaleString()}</span>
                    </div>
                 </div>
 

@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { Product, User, WebsiteConfig, Order } from '../types';
-import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, formatPrice } from '../components/StoreComponents';
-import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
+import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
+import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 
 // Helper for stars
@@ -83,7 +83,7 @@ const StoreProductDetail = ({
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900">
+    <div className="min-h-screen bg-white font-sans text-slate-900 pb-20 md:pb-0">
       <StoreHeader 
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
@@ -156,9 +156,9 @@ const StoreProductDetail = ({
                  </div>
 
                  <div className="flex items-end gap-3 mb-6">
-                    <span className="text-4xl font-bold text-orange-500">৳ {formatPrice(product.price)}</span>
+                    <span className="text-4xl font-bold text-orange-500">৳ {product.price.toLocaleString()}</span>
                     {product.originalPrice && (
-                      <span className="text-lg text-gray-400 line-through mb-1">৳ {formatPrice(product.originalPrice)}</span>
+                      <span className="text-lg text-gray-400 line-through mb-1">৳ {product.originalPrice.toLocaleString()}</span>
                     )}
                  </div>
 
@@ -176,7 +176,8 @@ const StoreProductDetail = ({
                     </div>
                  </div>
 
-                 <div className="flex gap-3 mb-8">
+                 {/* Desktop Buttons */}
+                 <div className="hidden md:flex gap-3 mb-8">
                     <button 
                       onClick={handleAddToCart}
                       className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-orange-200 flex items-center justify-center gap-2 transition transform active:scale-95"
@@ -251,7 +252,7 @@ const StoreProductDetail = ({
                        <div className="flex-1">
                           <h4 className="text-sm font-medium text-gray-800 line-clamp-2 group-hover:text-orange-500 transition mb-1">{p.name}</h4>
                           <div className="flex items-center justify-between">
-                            <span className="text-orange-500 font-bold text-sm">৳ {formatPrice(p.price)}</span>
+                            <span className="text-orange-500 font-bold text-sm">৳ {p.price}</span>
                             <StarRating rating={4} />
                           </div>
                        </div>
@@ -279,7 +280,31 @@ const StoreProductDetail = ({
 
         </div>
       </main>
-      <StoreFooter websiteConfig={websiteConfig} />
+      
+      {/* Mobile Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 md:hidden z-50 flex gap-3 shadow-lg">
+         <button onClick={onBack} className="p-3 bg-gray-100 rounded-lg text-gray-600">
+            <ArrowLeft size={24} />
+         </button>
+         <button 
+            onClick={handleAddToCart}
+            className="flex-1 bg-orange-500 text-white font-bold rounded-lg flex flex-col items-center justify-center leading-none"
+         >
+            <span className="text-xs font-normal">Add to</span>
+            <span>Cart</span>
+         </button>
+         <button 
+            onClick={() => onCheckout(product, quantity)}
+            className="flex-1 bg-green-600 text-white font-bold rounded-lg flex flex-col items-center justify-center leading-none"
+         >
+            <span className="text-xs font-normal">Buy</span>
+            <span>Now</span>
+         </button>
+      </div>
+
+      <div className="hidden md:block">
+        <StoreFooter websiteConfig={websiteConfig} />
+      </div>
     </div>
   );
 };

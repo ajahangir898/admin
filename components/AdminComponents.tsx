@@ -8,7 +8,15 @@ import {
 } from 'lucide-react';
 import { StatCardProps, User } from '../types';
 
-export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: string) => void, logo?: string | null }> = ({ activePage, onNavigate, logo }) => {
+interface AdminSidebarProps {
+  activePage?: string;
+  onNavigate?: (page: string) => void;
+  logo?: string | null;
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNavigate, logo, isOpen, onClose }) => {
   const [isCustomizationOpen, setIsCustomizationOpen] = useState(true);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
 
@@ -35,25 +43,29 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
     { id: 'theme_colors', label: 'Theme Colors' },
   ];
 
-  return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen overflow-y-auto hidden lg:flex flex-col sticky top-0 scrollbar-hide">
-      <div className="p-6 border-b border-gray-100 flex items-center justify-center">
+  const SidebarContent = () => (
+    <>
+      <div className="p-6 border-b border-gray-100 flex items-center justify-between">
         {logo ? (
-          <img src={logo} alt="Admin Logo" className="h-10 object-contain" />
+          <img src={logo} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
         ) : (
           <h2 className="text-2xl font-bold tracking-tighter">
             <span className="text-gray-800">GADGET</span>
             <span className="text-pink-500">SHOB</span>
           </h2>
         )}
+        {/* Mobile Close Button */}
+        <button onClick={onClose} className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+          <X size={20} />
+        </button>
       </div>
       
-      <div className="p-4 space-y-1 flex-1">
+      <div className="p-4 space-y-1 flex-1 overflow-y-auto scrollbar-hide">
         <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-2">Main Menu</div>
         {menuItems.map((item) => (
           <div 
             key={item.id} 
-            onClick={() => onNavigate && onNavigate(item.id)}
+            onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
               activePage === item.id
                 ? 'bg-purple-50 text-purple-600 font-bold shadow-sm' 
@@ -85,7 +97,7 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
               {catalogItems.map(item => (
                 <div
                   key={item.id}
-                  onClick={() => onNavigate && onNavigate(item.id)}
+                  onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
                   className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition flex items-center gap-2 ${
                      activePage === item.id ? 'text-purple-600 font-bold bg-white shadow-sm border border-gray-100' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                   }`}
@@ -116,7 +128,7 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
               {customizationItems.map(item => (
                 <div
                   key={item.id}
-                  onClick={() => onNavigate && onNavigate(item.id)}
+                  onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
                   className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${
                      activePage === item.id ? 'text-purple-600 font-bold bg-purple-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                   }`}
@@ -133,7 +145,7 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
 
         <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-6">System</div>
         <div 
-            onClick={() => onNavigate && onNavigate('settings')}
+            onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
               activePage === 'settings'
                 ? 'bg-purple-50 text-purple-600 font-bold shadow-sm' 
@@ -144,7 +156,7 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
             <span>Settings</span>
         </div>
         <div 
-            onClick={() => onNavigate && onNavigate('admin')}
+            onClick={() => { onNavigate && onNavigate('admin'); onClose && onClose(); }}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
               activePage === 'admin'
                 ? 'bg-purple-50 text-purple-600 font-bold shadow-sm' 
@@ -162,18 +174,49 @@ export const AdminSidebar: React.FC<{ activePage?: string, onNavigate?: (page: s
            </div>
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex w-64 bg-white border-r border-gray-200 h-screen flex-col sticky top-0 scrollbar-hide">
+        <SidebarContent />
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={onClose}
+        ></div>
+      )}
+
+      {/* Mobile Sidebar Drawer */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <SidebarContent />
+      </div>
+    </>
   );
 };
 
-export const AdminHeader: React.FC<{ onSwitchView: () => void, user?: User | null, onLogout?: () => void, logo?: string | null }> = ({ onSwitchView, user, onLogout, logo }) => {
+export const AdminHeader: React.FC<{ 
+  onSwitchView: () => void, 
+  user?: User | null, 
+  onLogout?: () => void, 
+  logo?: string | null,
+  onMenuClick?: () => void 
+}> = ({ onSwitchView, user, onLogout, logo, onMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
+    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 shadow-sm">
       <div className="flex items-center gap-4">
-        <button className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded">
-          <Menu size={20} />
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+        >
+          <Menu size={24} />
         </button>
         <h2 className="text-xl font-bold text-gray-800 hidden md:block">Dashboard</h2>
         <button onClick={onSwitchView} className="hidden md:flex items-center gap-2 text-xs font-medium text-purple-600 bg-purple-50 px-4 py-1.5 rounded-full border border-purple-100 hover:bg-purple-100 transition">
@@ -182,7 +225,7 @@ export const AdminHeader: React.FC<{ onSwitchView: () => void, user?: User | nul
         </button>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 md:gap-6">
          <div className="bg-red-50 border border-red-100 text-red-500 text-xs font-bold px-3 py-1 rounded hidden md:block animate-pulse">
            Admin Mode
          </div>
@@ -197,7 +240,7 @@ export const AdminHeader: React.FC<{ onSwitchView: () => void, user?: User | nul
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
-                 <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-purple-200">
+                 <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-purple-200">
                     <img src={user?.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100"} alt="Admin" className="w-full h-full object-cover" />
                  </div>
               </div>

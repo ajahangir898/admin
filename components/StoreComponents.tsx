@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
@@ -26,91 +27,99 @@ export const MobileBottomNav: React.FC<{
   
   const style = websiteConfig?.bottomNavStyle || 'style1';
 
-  // Style 2: Floating Center Home Button
+  // Style 2: Floating Center Home Button (Pink Circle)
   if (style === 'style2') {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-2 flex justify-between items-end md:hidden z-50 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.1)] pb-safe min-h-[60px]">
-        <div className="flex-1 flex justify-around">
-           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-              <MessageSquare size={20} />
-              <span className="text-[9px] font-medium">Chat</span>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-[70px] flex items-end justify-between px-2 md:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-1">
+        
+        {/* Left Side */}
+        <div className="flex-1 flex justify-around items-center h-full pb-1">
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+              <MessageSquare size={22} strokeWidth={1.5} className="group-hover:fill-pink-50" />
+              <span className="text-[10px] font-medium">Chat</span>
            </button>
-           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-              <List size={20} />
-              <span className="text-[9px] font-medium">Categories</span>
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+              <List size={24} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Categories</span>
            </button>
         </div>
 
-        <div className="relative -top-6 px-2">
+        {/* Floating Home Button */}
+        <div className="relative -top-6 mx-2">
            <button 
              onClick={onHomeClick}
-             className="w-14 h-14 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-4 border-white shadow-lg transform active:scale-95 transition"
+             className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[6px] border-white shadow-xl transform active:scale-95 transition-transform"
            >
-              <Home size={24} strokeWidth={2.5} className="mb-0.5" />
-              <span className="text-[8px] font-bold">Home</span>
+              <Home size={26} strokeWidth={2} className="mb-0.5" />
+              <span className="text-[9px] font-bold">Home</span>
            </button>
         </div>
 
-        <div className="flex-1 flex justify-around">
-           <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-              <User size={20} />
-              <span className="text-[9px] font-medium">Account</span>
+        {/* Right Side */}
+        <div className="flex-1 flex justify-around items-center h-full pb-1">
+           <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+              <User size={22} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Account</span>
            </button>
-           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-              <Menu size={20} />
-              <span className="text-[9px] font-medium">Menu</span>
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+              <Menu size={22} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Menu</span>
            </button>
         </div>
       </div>
     );
   }
 
-  // Style 3: Clean 4 Columns
+  // Style 3: Clean 4 Columns (Outline Style)
   if (style === 'style3') {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.1)] pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-lg pb-safe">
         <button onClick={onHomeClick} className="flex flex-col items-center gap-1.5 text-pink-600 transition">
-          <Home size={22} strokeWidth={2.5} />
-          <span className="text-[10px] font-medium">Home</span>
+          <Home size={24} strokeWidth={2} />
+          <span className="text-[11px] font-medium">Home</span>
         </button>
         <button className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
-          <List size={22} />
-          <span className="text-[10px] font-medium">Categories</span>
+          <List size={24} strokeWidth={1.5} />
+          <span className="text-[11px] font-medium">Categories</span>
         </button>
         <button className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
-          <MessageSquare size={22} />
-          <span className="text-[10px] font-medium">Chat</span>
+          <MessageSquare size={24} strokeWidth={1.5} />
+          <span className="text-[11px] font-medium">Chat</span>
         </button>
         <button onClick={onAccountClick} className="flex flex-col items-center gap-1.5 text-gray-500 hover:text-pink-600 transition">
-          <User size={22} />
-          <span className="text-[10px] font-medium">Account</span>
+          <User size={24} strokeWidth={1.5} />
+          <span className="text-[11px] font-medium">Account</span>
         </button>
       </div>
     );
   }
 
-  // Style 1 (Default): 5 Columns
+  // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-between items-center md:hidden z-50 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.1)] pb-safe">
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
-        <MessageCircle size={22} />
-        <span className="text-[10px] font-medium">Messenger</span>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2.5 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe">
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <MessageCircle size={22} strokeWidth={1.5} />
+        <span className="text-[10px] font-medium text-gray-600">Messenger</span>
       </button>
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
-        <Phone size={22} />
-        <span className="text-[10px] font-medium">Call</span>
+      
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <Phone size={22} strokeWidth={1.5} />
+        <span className="text-[10px] font-medium text-gray-600">Call</span>
       </button>
-      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-500 transition w-1/5">
-        <Home size={24} strokeWidth={2.5} />
+      
+      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-600 transition w-1/5">
+        <Home size={26} strokeWidth={2.5} className="fill-pink-100" />
         <span className="text-[10px] font-bold">Home</span>
       </button>
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
-        <Facebook size={22} />
-        <span className="text-[10px] font-medium">Page</span>
+      
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <Facebook size={22} strokeWidth={1.5} />
+        <span className="text-[10px] font-medium text-gray-600">Page</span>
       </button>
-      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-500 transition w-1/5">
-        <User size={22} />
-        <span className="text-[10px] font-medium">Account</span>
+      
+      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <User size={22} strokeWidth={1.5} />
+        <span className="text-[10px] font-medium text-gray-600">Account</span>
       </button>
     </div>
   );

@@ -103,6 +103,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ courierConfig, onNavigate
           title="Facebook Pixel" 
           icon={<Facebook size={24} className="text-blue-700"/>} 
           colorClass="bg-blue-50 border-blue-100 hover:border-blue-300"
+          onClick={() => onNavigate('settings_facebook_pixel')}
         />
 
         {/* Analytics */}

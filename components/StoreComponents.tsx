@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ShoppingCart,
@@ -40,6 +41,11 @@ import {
   Grid,
   Smartphone
 } from 'lucide-react';
+=======
+
+import React, { useState, useRef, useEffect } from 'react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone } from 'lucide-react';
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
@@ -138,33 +144,30 @@ export const MobileBottomNav: React.FC<{
 
   // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-1 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <div className="relative">
-           {/* Custom Messenger Icon SVG */}
-           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-pink-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
-        </div>
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Messenger</span>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <MessageCircle size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Messenger</span>
       </button>
       
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <Phone size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Call</span>
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <Phone size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Call</span>
       </button>
       
-      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-600 transition w-1/5">
-        <Home size={26} strokeWidth={2.5} className="fill-pink-600 text-pink-600" />
-        <span className="text-[10px] font-bold text-pink-600">Home</span>
+      <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
+        <Home size={24} strokeWidth={2.5} className={activeTab === 'home' ? 'fill-pink-600 text-pink-600' : 'text-gray-500'} />
+        <span className="text-[10px] font-bold">Home</span>
       </button>
       
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <Facebook size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Page</span>
+      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5">
+        <Facebook size={20} strokeWidth={2} className="text-gray-500" />
+        <span className="text-[10px] font-medium text-gray-500">Page</span>
       </button>
       
-      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <User size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Account</span>
+      <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition w-1/5 ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
+        <User size={20} strokeWidth={2} className={activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'} />
+        <span className="text-[10px] font-medium">Account</span>
       </button>
     </div>
   );
@@ -328,48 +331,43 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       
       {/* MOBILE HEADER SPECIFIC LAYOUT */}
-      <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3 border-b border-gray-100">
-        {/* Logo Row - Centered */}
-        <div className="flex justify-center mb-3 items-center h-10" onClick={onHomeClick}>
+      <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3">
+        {/* Logo Row */}
+        <div className="flex justify-center mb-3" onClick={onHomeClick}>
         {logo ? (
             <img src={logo} alt="Store Logo" className="h-8 object-contain" />
         ) : (
             <div className="flex flex-col items-center leading-none">
-                <div className="relative mb-0.5">
-                    <Smartphone size={24} className="text-gray-800 dark:text-white absolute -left-7 top-0.5 opacity-0" strokeWidth={2.5}/> {/* Hidden spacer if needed, or rely on flex col */}
-                    <div className="flex items-center">
-                        <Smartphone size={20} className="text-gray-800 dark:text-white mr-1" strokeWidth={2.5}/>
-                        <h1 className="text-xl font-bold tracking-tight flex items-center">
-                            <span className="text-gray-900 dark:text-white">GADGET</span>
-                            <span className="text-pink-500">SHOB</span>
-                        </h1>
-                    </div>
-                </div>
+                <Smartphone size={24} className="text-gray-800 dark:text-white mb-1" strokeWidth={2.5}/>
+                <h1 className="text-xl font-bold tracking-tighter flex items-center gap-0.5">
+                    <span className="text-gray-900 dark:text-white">GADGET</span>
+                    <span className="text-pink-500">SHOB</span>
+                </h1>
             </div>
         )}
         </div>
 
         {/* Action Row */}
         <div className="flex items-center gap-3">
-            <button className="text-gray-800 dark:text-white p-1">
-                <Menu size={26} strokeWidth={2} />
+            <button className="text-gray-800 dark:text-white">
+                <Menu size={28} strokeWidth={2} />
             </button>
 
-            <div className="flex-1 relative h-10">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} strokeWidth={2} />
+            <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800" size={18} strokeWidth={2.5} />
                 <input 
                 type="text" 
                 placeholder={websiteConfig?.searchHints || "gadget"} 
-                className="w-full h-full pl-10 pr-20 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-black dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-gray-400 font-normal text-gray-700"
+                className="w-full pl-10 pr-20 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-gray-500 font-medium text-gray-700"
                 />
-                <button className="absolute right-1 top-1 bottom-1 bg-black text-white text-xs font-bold px-4 rounded-[4px] hover:bg-gray-800 transition">
+                <button className="absolute right-1 top-1 bottom-1 bg-black text-white text-xs font-bold px-4 rounded-md hover:bg-gray-800 transition">
                 Search
                 </button>
             </div>
 
-            <div className="relative cursor-pointer p-1">
+            <div className="relative cursor-pointer">
                 <ShoppingCart size={26} className="text-gray-800 dark:text-white" strokeWidth={2} />
-                <span className="absolute -top-0 -right-0 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">0</span>
+                <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">0</span>
             </div>
         </div>
       </div>
@@ -508,6 +506,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   );
 };
 
+<<<<<<< HEAD
 export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string }> = ({ product, onClick, variant }) => {
   // Style 2 (Flash Sale - Pink/Blue)
   if (variant === 'style2') {
@@ -618,6 +617,8 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
   );
 }
 
+=======
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
 export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
   const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -633,6 +634,7 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
   if (items.length === 0) return null;
 
   return (
+<<<<<<< HEAD
     <div className="max-w-7xl mx-auto px-4 mt-4">
         <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm">
             {items.map((item, index) => (
@@ -672,25 +674,60 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                 </>
             )}
         </div>
+=======
+    <div className="relative w-full h-[200px] md:h-[400px] bg-gray-100 overflow-hidden">
+        {items.map((item, index) => (
+             <div 
+               key={item.id}
+               className={`absolute inset-0 transition-opacity duration-1000 ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}
+             >
+                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+             </div>
+        ))}
+        {items.length > 1 && (
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                {items.map((_, idx) => (
+                    <button 
+                      key={idx} 
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`w-2 h-2 rounded-full transition ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50'}`}
+                    />
+                ))}
+            </div>
+        )}
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
     </div>
   );
 };
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
     <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
+<<<<<<< HEAD
         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
             {icon}
         </div>
         <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
+=======
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 group-hover:border-purple-500 group-hover:text-purple-600 group-hover:bg-purple-50 transition duration-300 shadow-sm">
+            {icon}
+        </div>
+        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-purple-600 text-center">{name}</span>
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
     </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+<<<<<<< HEAD
     <div className="flex items-center gap-3 pl-2 pr-6 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
         <div className="w-8 h-8 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
             {icon}
         </div>
         <span className="text-sm font-bold text-gray-700 group-hover:text-pink-600 tracking-wide">{name}</span>
+=======
+    <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:text-pink-600 cursor-pointer transition whitespace-nowrap">
+        {icon}
+        <span className="text-sm font-bold">{name}</span>
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
     </div>
 );
 
@@ -701,6 +738,7 @@ export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
     </h2>
 );
 
+<<<<<<< HEAD
 export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
     // Style 2 (Coco Kids Footer)
     if (websiteConfig?.footerStyle === 'style2') {
@@ -853,6 +891,202 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
         </footer>
     );
 };
+=======
+export const ProductCard: React.FC<{ 
+  product: Product; 
+  onClick: (p: Product) => void;
+  variant?: string;
+}> = ({ product, onClick, variant = 'style1' }) => {
+  // Style 2: Minimalist Borderless
+  if (variant === 'style2') {
+    return (
+      <div 
+        className="group cursor-pointer"
+        onClick={() => onClick(product)}
+      >
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100 mb-3">
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className="w-full h-full object-cover group-hover:scale-110 transition duration-500 mix-blend-multiply" 
+          />
+          {product.discount && (
+            <span className="absolute top-2 left-2 bg-black text-white text-[10px] font-bold px-2 py-1 rounded">
+              {product.discount}
+            </span>
+          )}
+          <div className="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
+            <button className="bg-white p-2 rounded-full shadow-lg hover:bg-black hover:text-white transition">
+              <ShoppingCart size={16} />
+            </button>
+          </div>
+        </div>
+        <div>
+          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1 group-hover:text-blue-600 transition">{product.name}</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
+            {product.originalPrice && (
+              <span className="text-xs text-gray-400 line-through">৳{product.originalPrice.toLocaleString()}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Style 3: Bordered with Quick Actions
+  if (variant === 'style3') {
+     return (
+        <div 
+           className="group border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-lg transition duration-300 relative cursor-pointer"
+           onClick={() => onClick(product)}
+        >
+           <div className="relative aspect-square bg-gray-50 p-4">
+               <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-300 group-hover:scale-105" />
+               {product.discount && (
+                   <span className="absolute top-2 left-0 bg-red-500 text-white text-xs font-bold px-2 py-0.5">
+                       -{product.discount}
+                   </span>
+               )}
+               {/* Quick Actions Overlay */}
+               <div className="absolute top-2 right-2 flex flex-col gap-2 transform translate-x-10 group-hover:translate-x-0 transition duration-300">
+                   <button className="p-2 bg-white rounded-full shadow hover:bg-purple-600 hover:text-white transition" title="Add to Wishlist">
+                       <Heart size={16} />
+                   </button>
+                   <button className="p-2 bg-white rounded-full shadow hover:bg-purple-600 hover:text-white transition" title="Quick View">
+                       <Eye size={16} />
+                   </button>
+               </div>
+           </div>
+           <div className="p-3">
+               <div className="text-xs text-gray-500 mb-1">{product.category}</div>
+               <h3 className="text-sm font-bold text-gray-800 line-clamp-2 mb-2 h-10 group-hover:text-purple-600 transition">{product.name}</h3>
+               <div className="flex justify-between items-end">
+                   <div>
+                       <span className="text-sm font-bold text-purple-600 block">৳ {product.price.toLocaleString()}</span>
+                       {product.originalPrice && (
+                           <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
+                       )}
+                   </div>
+                   <button className="bg-purple-100 text-purple-600 p-2 rounded-lg hover:bg-purple-600 hover:text-white transition">
+                       <ShoppingCart size={16} />
+                   </button>
+               </div>
+           </div>
+        </div>
+     );
+  }
+
+  // Style 1 (Default): Card with hover lift
+  return (
+    <div 
+      className="group bg-white rounded-2xl p-3 cursor-pointer hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 relative"
+      onClick={() => onClick(product)}
+    >
+      <div className="relative aspect-square bg-gray-50 rounded-xl mb-3 overflow-hidden">
+        <img 
+          src={product.image} 
+          alt={product.name} 
+          className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition duration-500" 
+        />
+        {product.discount && (
+          <span className="absolute top-2 left-2 bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+            {product.discount}
+          </span>
+        )}
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+           <button className="bg-white p-2 rounded-full shadow-md text-gray-800 hover:text-pink-600">
+             <ShoppingCart size={18} />
+           </button>
+        </div>
+      </div>
+      <div>
+        <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-1 group-hover:text-pink-600 transition">{product.name}</h3>
+        <div className="flex items-center gap-1 mb-2">
+           <Star size={12} className="text-yellow-400 fill-yellow-400" />
+           <span className="text-xs text-gray-500 font-bold">{product.rating}</span>
+           <span className="text-xs text-gray-400">({product.reviews})</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-green-600">৳ {product.price.toLocaleString()}</span>
+          {product.originalPrice && (
+            <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => (
+    <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 ${websiteConfig?.footerStyle === 'style2' ? 'dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400' : ''}`}>
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
+                <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
+                <div className="flex gap-3">
+                   {websiteConfig?.socialLinks?.map(link => (
+                       <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
+                           <Globe size={16} />
+                       </a>
+                   ))}
+                </div>
+            </div>
+            <div>
+                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Quick Links</h4>
+                <ul className="space-y-2 text-sm">
+                    <li><a href="#" className="hover:text-purple-600">About Us</a></li>
+                    <li><a href="#" className="hover:text-purple-600">Contact</a></li>
+                    <li><a href="#" className="hover:text-purple-600">Terms & Conditions</a></li>
+                    <li><a href="#" className="hover:text-purple-600">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Customer Area</h4>
+                <ul className="space-y-2 text-sm">
+                    <li><a href="#" className="hover:text-purple-600">My Account</a></li>
+                    <li><a href="#" className="hover:text-purple-600">Orders</a></li>
+                    <li><a href="#" className="hover:text-purple-600">Tracking</a></li>
+                    <li><a href="#" className="hover:text-purple-600">Returns</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Contact Us</h4>
+                <ul className="space-y-3 text-sm">
+                    {websiteConfig?.addresses?.map((addr, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                            <MapPin size={16} className="mt-0.5 shrink-0" />
+                            <span>{addr}</span>
+                        </li>
+                    ))}
+                    {websiteConfig?.phones?.map((phone, i) => (
+                         <li key={i} className="flex items-center gap-2">
+                             <Phone size={16} />
+                             <span>{phone}</span>
+                         </li>
+                    ))}
+                    {websiteConfig?.emails?.map((email, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                            <Mail size={16} />
+                            <span>{email}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+        {!websiteConfig?.hideCopyright && (
+            <div className="max-w-7xl mx-auto px-4 border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center text-xs">
+                {!websiteConfig?.hideCopyrightText && (
+                    <p>&copy; {new Date().getFullYear()} {websiteConfig?.websiteName}. All rights reserved.</p>
+                )}
+                {websiteConfig?.showPoweredBy && (
+                    <p>Powered by Saleecom</p>
+                )}
+            </div>
+        )}
+    </footer>
+);
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
 
 export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => boolean, onRegister: (u: UserType) => boolean }> = ({ onClose, onLogin, onRegister }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -977,11 +1211,24 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         setLoading(true);
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+<<<<<<< HEAD
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash-image',
                 contents: { parts: [{ text: prompt }] }
             });
 
+=======
+            // Using gemini-2.5-flash-image as per guidelines for general image tasks
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash-image',
+                contents: {
+                    parts: [{ text: prompt }]
+                }
+            });
+
+            // Extract image from response parts
+            // Guidelines say: The output response may contain both image and text parts; you must iterate...
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
             if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
                 for (const part of response.candidates[0].content.parts) {
                     if (part.inlineData) {
@@ -1012,65 +1259,86 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                         <div>
                             <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Prompt</label>
                             <textarea 
+<<<<<<< HEAD
                                 className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:outline-none resize-none h-32"
+=======
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-purple-500 h-32 resize-none"
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd
                                 placeholder="Describe the image you want to generate..."
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                            />
+                            ></textarea>
                         </div>
                         <button 
                             onClick={generateImage}
                             disabled={loading || !prompt}
-                            className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2"
+                            className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
+                            {loading ? <Loader2 className="animate-spin" size={18} /> : <Wand2 size={18} />}
                             Generate
                         </button>
                     </div>
+
+                    <button onClick={onClose} className="mt-auto w-full border border-gray-700 text-gray-400 py-3 rounded-lg font-medium hover:bg-gray-700 transition">
+                        Close Studio
+                    </button>
                 </div>
-                <div className="flex-1 bg-black flex items-center justify-center relative">
+
+                <div className="flex-1 bg-gray-950 flex items-center justify-center relative">
                     {imageUrl ? (
-                        <img src={imageUrl} alt="Generated" className="max-w-full max-h-full object-contain" />
+                        <div className="relative w-full h-full flex items-center justify-center p-8">
+                             <img src={imageUrl} alt="Generated" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl border border-gray-800" />
+                             <a href={imageUrl} download="generated-image.png" className="absolute bottom-8 right-8 bg-white text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition flex items-center gap-2">
+                                <Upload size={18} /> Download
+                             </a>
+                        </div>
                     ) : (
                         <div className="text-center text-gray-600">
                             <ImageIcon size={64} className="mx-auto mb-4 opacity-20" />
-                            <p>Generated image will appear here</p>
+                            <p>Enter a prompt to start generating images</p>
                         </div>
                     )}
-                    <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white">
-                        <X size={24} />
-                    </button>
                 </div>
             </div>
         </div>
     );
 };
 
-export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => void; onCheckout: () => void }> = ({ product, onClose, onCheckout }) => {
+export const AddToCartSuccessModal: React.FC<{ 
+    product: Product; 
+    onClose: () => void; 
+    onCheckout: () => void; 
+}> = ({ product, onClose, onCheckout }) => {
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-                    <CheckCircle size={32} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative p-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle size={32} className="text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Added to Cart!</h3>
-                <p className="text-gray-600 text-sm mb-6">{product.name} has been added to your cart.</p>
+                <p className="text-sm text-gray-500 mb-6">
+                    <span className="font-bold text-gray-800">{product.name}</span> has been added to your shopping cart.
+                </p>
                 
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-3">
                     <button 
-                        onClick={onClose} 
-                        className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition"
+                        onClick={onCheckout}
+                        className="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition shadow-lg shadow-green-200"
                     >
-                        Continue Shopping
+                        Proceed to Checkout
                     </button>
                     <button 
-                        onClick={onCheckout} 
-                        className="flex-1 bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition"
+                        onClick={onClose}
+                        className="w-full bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
                     >
-                        Checkout
+                        Continue Shopping
                     </button>
                 </div>
             </div>
         </div>
     );
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> d0aaff8659a2d4a747de7f79a33fae56c332d3cd

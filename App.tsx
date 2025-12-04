@@ -66,7 +66,6 @@ const hexToRgb = (hex: string) => {
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   // --- STATE ---
   const [orders, setOrders] = useState<Order[]>([]);
@@ -104,6 +103,7 @@ const App = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
+<<<<<<< HEAD
         console.log('[App] loadData start');
         setLoadError(null);
 
@@ -164,19 +164,34 @@ const App = () => {
         console.log('[App] getCatalog brands OK');
         setTags(tagsRes as any);
         console.log('[App] getCatalog tags OK');
+=======
+        setProducts(await DataService.getProducts());
+        setOrders(await DataService.getOrders());
+        setUsers(await DataService.getUsers());
+        setRoles(await DataService.getRoles());
+        
+        setLogo(await DataService.get<string | null>('logo', null));
+        setThemeConfig(await DataService.getThemeConfig());
+        setWebsiteConfig(await DataService.getWebsiteConfig());
+        setDeliveryConfig(await DataService.getDeliveryConfig());
+        setCourierConfig(await DataService.get('courier', { apiKey: '', secretKey: '' }));
+
+        // Catalog
+        setCategories(await DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]));
+        setSubCategories(await DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]));
+        setChildCategories(await DataService.getCatalog('childcategories', []));
+        setBrands(await DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]));
+        setTags(await DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }]));
+>>>>>>> b699e9b423e4df64fc49a591467d90f8d8a3bea0
 
         // Session
         const storedSession = localStorage.getItem('gadgetshob_session');
-        if (storedSession) {
-          try { setUser(JSON.parse(storedSession)); console.log('[App] restored session'); } catch(e) { console.warn('[App] failed to parse stored session', e); }
-        }
+        if (storedSession) setUser(JSON.parse(storedSession));
 
       } catch (error) {
         console.error("Failed to load data", error);
-        try { setLoadError((error as any)?.message || String(error)); } catch(e) { setLoadError('Unknown error'); }
       } finally {
         setIsLoading(false);
-        console.log('[App] loadData finished, isLoading=false');
       }
     };
     loadData();
@@ -184,10 +199,6 @@ const App = () => {
 
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
   
-  // Note: In a real app, you wouldn't use useEffect to autosave on every state change.
-  // You would call DataService.save() inside the specific handler (e.g., handleAddProduct).
-  // Keeping this pattern for now to minimize refactoring risk while enabling "DataService" architecture.
-
   useEffect(() => { if(!isLoading) DataService.save('orders', orders); }, [orders, isLoading]);
   useEffect(() => { if(!isLoading) DataService.save('products', products); }, [products, isLoading]);
   useEffect(() => { if(!isLoading) DataService.save('roles', roles); }, [roles, isLoading]);
@@ -290,7 +301,11 @@ const App = () => {
   const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
   const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => setCourierConfig(config);
   const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => setDeliveryConfig(configs);
-  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
+  
+  // Updated to handle partial updates including trackingId
+  const handleUpdateOrder = (orderId: string, updates: Partial<Order>) => {
+    setOrders(orders.map(o => o.id === orderId ? { ...o, ...updates } : o));
+  };
 
   const addToWishlist = (id: number) => { if (!wishlist.includes(id)) setWishlist([...wishlist, id]); };
   const removeFromWishlist = (id: number) => { setWishlist(wishlist.filter(wId => wId !== id)); };
@@ -343,16 +358,6 @@ const App = () => {
     );
   }
 
-  if (loadError) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-white text-red-600 gap-4 p-6">
-        <h2 className="text-xl font-bold">Application failed to load</h2>
-        <pre className="text-sm whitespace-pre-wrap max-w-xl overflow-auto text-left">{loadError}</pre>
-        <button className="mt-4 px-4 py-2 bg-slate-800 text-white rounded" onClick={() => window.location.reload()}>Reload</button>
-      </div>
-    );
-  }
-
   return (
     <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
       {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
@@ -367,7 +372,7 @@ const App = () => {
       {currentView === 'admin' ? (
         <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout}>
           {adminSection === 'dashboard' ? <AdminDashboard orders={orders} /> :
-           adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateStatus={handleUpdateOrderStatus} /> :
+           adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
            adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
            adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
            adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :

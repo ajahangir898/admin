@@ -27,6 +27,7 @@ export interface Order {
   date: string;
   status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
   email?: string; // To link with registered user
+  trackingId?: string; // Added for Courier Integration
 }
 
 export interface User {

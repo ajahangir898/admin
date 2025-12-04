@@ -9,11 +9,17 @@ class DataServiceImpl {
   // --- Generic Helpers with Fallback ---
   
   private async safeFirebaseCall<T>(operation: () => Promise<T>, fallback: T, key?: string): Promise<T> {
+    const TIMEOUT_MS = 6000; // failover timeout for firebase calls
     try {
       if (!db) throw new Error("Firebase DB not initialized");
-      return await operation();
+      // Race the firebase operation against a timeout so the app doesn't hang
+      const result = await Promise.race([
+        operation(),
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase operation timed out')), TIMEOUT_MS))
+      ] as unknown as Promise<T>[]);
+      return result;
     } catch (error) {
-      console.warn(`Firebase operation failed, falling back to local storage/defaults.`, error);
+      console.warn(`Firebase operation failed or timed out, falling back to local storage/defaults.`, error);
       // Attempt Local Storage Fallback
       if (key) {
         const local = localStorage.getItem(`gadgetshob_${key}`);
@@ -73,10 +79,15 @@ class DataServiceImpl {
     const isArray = Array.isArray(defaultValue);
     
     return this.safeFirebaseCall(async () => {
-      if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
+      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
         const docRef = doc(db, 'configurations', key);
         const docSnap = await getDoc(docRef);
-        return docSnap.exists() ? (docSnap.data() as T) : defaultValue;
+        if (!docSnap.exists()) return defaultValue;
+        const raw = docSnap.data() as any;
+        // Support wrapped values stored as { value: ... } or { items: [...] }
+        if (raw && Object.prototype.hasOwnProperty.call(raw, 'value')) return raw.value as T;
+        if (raw && Object.prototype.hasOwnProperty.call(raw, 'items')) return raw.items as T;
+        return raw as T;
       }
       
       // Fallback for generic collections
@@ -156,8 +167,15 @@ class DataServiceImpl {
 
         // Configs -> Single Doc
         if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
-            await setDoc(doc(db, 'configurations', key), data as any);
-            return;
+          // Firestore documents must be objects. If caller passed a primitive (null/string/number)
+          // or an array, wrap it so setDoc receives an object. When reading, get() will unwrap.
+          let payload: any = data;
+          if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+            if (Array.isArray(data)) payload = { items: data };
+            else payload = { value: data };
+          }
+          await setDoc(doc(db, 'configurations', key), payload as any);
+          return;
         }
 
         // Arrays -> Collection (Sync Strategy: Overwrite items)

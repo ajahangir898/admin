@@ -4,6 +4,17 @@ import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, Che
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
+// Safe price formatter: ensures we don't call toLocaleString on undefined/null
+const formatPrice = (v?: number | string | null) => {
+  try {
+    const n = typeof v === 'number' ? v : Number(v || 0);
+    if (Number.isNaN(n)) return '0';
+    return n.toLocaleString();
+  } catch (e) {
+    return '0';
+  }
+};
+
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
   onOpenAIStudio?: () => void;
@@ -466,7 +477,7 @@ export const AddToCartSuccessModal: React.FC<{ product: Product, onClose: () => 
               </div>
               <div className="flex-1">
                  <h4 className="font-bold text-gray-800 dark:text-white text-sm line-clamp-2">{product.name}</h4>
-                 <p className="text-orange-500 font-bold mt-1">৳ {product.price.toLocaleString()}</p>
+                 <p className="text-orange-500 font-bold mt-1">৳ {formatPrice(product.price)}</p>
               </div>
            </div>
            
@@ -733,7 +744,7 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
                      </div>
                      <div>
                        <p className="text-xs text-gray-500 dark:text-gray-400">Amount</p>
-                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {result.amount.toLocaleString()}</p>
+                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">৳ {formatPrice(result.amount)}</p>
                      </div>
                      <div className="col-span-2">
                        <p className="text-xs text-gray-500 dark:text-gray-400">Date</p>
@@ -887,10 +898,10 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
                
                <div className="mt-auto">
                    <div className="flex items-center gap-2 mb-1">
-                       <span className="text-pink-600 font-bold text-lg">৳ {product.price.toLocaleString()}</span>
-                       {product.originalPrice && (
-                           <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice.toLocaleString()}</span>
-                       )}
+                         <span className="text-pink-600 font-bold text-lg">৳ {formatPrice(product.price)}</span>
+                         {product.originalPrice && (
+                           <span className="text-gray-400 text-xs line-through">৳ {formatPrice(product.originalPrice)}</span>
+                         )}
                    </div>
                    <div className="text-[10px] text-blue-500 font-bold mb-3">Get 50 Coins</div>
                    
@@ -933,7 +944,7 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
         <div className="flex flex-col flex-1">
           <h3 className="text-sm text-gray-700 line-clamp-2 mb-1 group-hover:text-green-600 transition" title={product.name}>{product.name}</h3>
           <div className="mt-auto pt-2 flex justify-between items-center border-t border-gray-100">
-             <span className="font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
+             <span className="font-bold text-gray-900">৳{formatPrice(product.price)}</span>
              <button className="text-green-600 hover:bg-green-50 p-1 rounded-full"><ShoppingCart size={18} /></button>
           </div>
         </div>
@@ -959,9 +970,9 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
         {product.name}
       </h3>
       <div className="flex items-center gap-2 mb-4 mt-auto">
-        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{product.price.toLocaleString()}</span>
+        <span className="text-green-600 dark:text-green-400 font-bold text-lg">৳{formatPrice(product.price)}</span>
         {product.originalPrice && (
-          <span className="text-gray-400 text-xs line-through decoration-red-400">৳{product.originalPrice.toLocaleString()}</span>
+          <span className="text-gray-400 text-xs line-through decoration-red-400">৳{formatPrice(product.originalPrice)}</span>
         )}
       </div>
       <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded text-sm font-bold transition flex items-center justify-center gap-2 active:bg-green-700 shadow-sm hover:shadow">

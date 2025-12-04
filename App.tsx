@@ -65,6 +65,7 @@ const hexToRgb = (hex: string) => {
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // --- STATE ---
   const [orders, setOrders] = useState<Order[]>([]);
@@ -102,32 +103,52 @@ const App = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
+        console.log('[App] loadData start');
+        setLoadError(null);
         setProducts(await DataService.getProducts());
+        console.log('[App] getProducts OK');
         setOrders(await DataService.getOrders());
+        console.log('[App] getOrders OK');
         setUsers(await DataService.getUsers());
+        console.log('[App] getUsers OK');
         setRoles(await DataService.getRoles());
+        console.log('[App] getRoles OK');
         
         setLogo(await DataService.get<string | null>('logo', null));
+        console.log('[App] get logo OK');
         setThemeConfig(await DataService.getThemeConfig());
+        console.log('[App] getThemeConfig OK');
         setWebsiteConfig(await DataService.getWebsiteConfig());
+        console.log('[App] getWebsiteConfig OK');
         setDeliveryConfig(await DataService.getDeliveryConfig());
+        console.log('[App] getDeliveryConfig OK');
         setCourierConfig(await DataService.get('courier', { apiKey: '', secretKey: '' }));
+        console.log('[App] get courier OK');
 
         // Catalog
         setCategories(await DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]));
+        console.log('[App] getCatalog categories OK');
         setSubCategories(await DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]));
+        console.log('[App] getCatalog subcategories OK');
         setChildCategories(await DataService.getCatalog('childcategories', []));
+        console.log('[App] getCatalog childcategories OK');
         setBrands(await DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]));
+        console.log('[App] getCatalog brands OK');
         setTags(await DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }]));
+        console.log('[App] getCatalog tags OK');
 
         // Session
         const storedSession = localStorage.getItem('gadgetshob_session');
-        if (storedSession) setUser(JSON.parse(storedSession));
+        if (storedSession) {
+          try { setUser(JSON.parse(storedSession)); console.log('[App] restored session'); } catch(e) { console.warn('[App] failed to parse stored session', e); }
+        }
 
       } catch (error) {
         console.error("Failed to load data", error);
+        try { setLoadError((error as any)?.message || String(error)); } catch(e) { setLoadError('Unknown error'); }
       } finally {
         setIsLoading(false);
+        console.log('[App] loadData finished, isLoading=false');
       }
     };
     loadData();
@@ -290,6 +311,16 @@ const App = () => {
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
         <Loader2 size={48} className="animate-spin text-purple-600" />
         <p className="font-medium animate-pulse">Loading Application Data...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-white text-red-600 gap-4 p-6">
+        <h2 className="text-xl font-bold">Application failed to load</h2>
+        <pre className="text-sm whitespace-pre-wrap max-w-xl overflow-auto text-left">{loadError}</pre>
+        <button className="mt-4 px-4 py-2 bg-slate-800 text-white rounded" onClick={() => window.location.reload()}>Reload</button>
       </div>
     );
   }

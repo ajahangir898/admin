@@ -996,12 +996,14 @@ export const ProductCard: React.FC<{ product: Product, onClick?: (p: Product) =>
   );
 };
 
-export const SectionHeader: React.FC<{ title: string; linkText?: string }> = ({ title, linkText = "View All" }) => (
+export const SectionHeader: React.FC<{ title: string; linkText?: string; showLink?: boolean }> = ({ title, linkText = "View All", showLink = true }) => (
   <div className="flex justify-between items-center mb-6">
     <h2 className="text-lg md:text-2xl font-bold text-gray-800 dark:text-white">{title}</h2>
-    <a href="#" className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 flex items-center gap-1 transition">
-      {linkText} <span>&rsaquo;</span>
-    </a>
+    {showLink && (
+      <a href="#" className="text-xs md:text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 flex items-center gap-1 transition">
+        {linkText} <span>&rsaquo;</span>
+      </a>
+    )}
   </div>
 );
 

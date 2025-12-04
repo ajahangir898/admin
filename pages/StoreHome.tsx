@@ -161,7 +161,7 @@ const StoreHome = ({
         <section>
           <div className="flex items-center gap-3 mb-6">
              <div className="h-8 w-1.5 bg-pink-500 rounded-full"></div>
-             <SectionHeader title="Flash Deals" />
+               <SectionHeader title="Flash Deals" showLink={false} />
              <div className="bg-pink-100 text-pink-600 px-3 py-1 rounded text-xs font-bold animate-pulse">Ends in 24h</div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">

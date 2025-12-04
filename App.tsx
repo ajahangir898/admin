@@ -106,36 +106,63 @@ const App = () => {
       try {
         console.log('[App] loadData start');
         setLoadError(null);
-        setProducts(await DataService.getProducts());
+
+        // Prepare defaults used for catalogs
+        const categoriesDefaults = [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }];
+        const subCategoriesDefaults = [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }];
+        const brandsDefaults = [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }];
+        const tagsDefaults = [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }];
+
+        // Kick off independent fetches in parallel
+        const pProducts = DataService.getProducts();
+        const pOrders = DataService.getOrders();
+        const pUsers = DataService.getUsers();
+        const pRoles = DataService.getRoles();
+        const pLogo = DataService.get<string | null>('logo', null);
+        const pTheme = DataService.getThemeConfig();
+        const pWebsite = DataService.getWebsiteConfig();
+        const pDelivery = DataService.getDeliveryConfig();
+        const pCourier = DataService.get('courier', { apiKey: '', secretKey: '' });
+        const pCategories = DataService.getCatalog('categories', categoriesDefaults);
+        const pSubCategories = DataService.getCatalog('subcategories', subCategoriesDefaults);
+        const pChildCategories = DataService.getCatalog('childcategories', []);
+        const pBrands = DataService.getCatalog('brands', brandsDefaults);
+        const pTags = DataService.getCatalog('tags', tagsDefaults);
+
+        const [productsRes, ordersRes, usersRes, rolesRes, logoRes, themeRes, websiteRes, deliveryRes, courierRes, categoriesRes, subCategoriesRes, childCategoriesRes, brandsRes, tagsRes] = await Promise.all([
+          pProducts, pOrders, pUsers, pRoles, pLogo, pTheme, pWebsite, pDelivery, pCourier, pCategories, pSubCategories, pChildCategories, pBrands, pTags
+        ]);
+
+        setProducts(productsRes);
         console.log('[App] getProducts OK');
-        setOrders(await DataService.getOrders());
+        setOrders(ordersRes);
         console.log('[App] getOrders OK');
-        setUsers(await DataService.getUsers());
+        setUsers(usersRes);
         console.log('[App] getUsers OK');
-        setRoles(await DataService.getRoles());
+        setRoles(rolesRes);
         console.log('[App] getRoles OK');
-        
-        setLogo(await DataService.get<string | null>('logo', null));
+
+        setLogo(logoRes);
         console.log('[App] get logo OK');
-        setThemeConfig(await DataService.getThemeConfig());
+        setThemeConfig(themeRes);
         console.log('[App] getThemeConfig OK');
-        setWebsiteConfig(await DataService.getWebsiteConfig());
+        setWebsiteConfig(websiteRes);
         console.log('[App] getWebsiteConfig OK');
-        setDeliveryConfig(await DataService.getDeliveryConfig());
+        setDeliveryConfig(deliveryRes);
         console.log('[App] getDeliveryConfig OK');
-        setCourierConfig(await DataService.get('courier', { apiKey: '', secretKey: '' }));
+        setCourierConfig(courierRes);
         console.log('[App] get courier OK');
 
-        // Catalog
-        setCategories(await DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]));
+        // Catalogs
+        setCategories(categoriesRes as any);
         console.log('[App] getCatalog categories OK');
-        setSubCategories(await DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]));
+        setSubCategories(subCategoriesRes as any);
         console.log('[App] getCatalog subcategories OK');
-        setChildCategories(await DataService.getCatalog('childcategories', []));
+        setChildCategories(childCategoriesRes as any);
         console.log('[App] getCatalog childcategories OK');
-        setBrands(await DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]));
+        setBrands(brandsRes as any);
         console.log('[App] getCatalog brands OK');
-        setTags(await DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }]));
+        setTags(tagsRes as any);
         console.log('[App] getCatalog tags OK');
 
         // Session

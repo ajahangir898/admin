@@ -165,3 +165,11 @@ export interface Tag {
   name: string;
   status: 'Active' | 'Inactive';
 }
+
+export interface GalleryItem {
+  id: number;
+  title: string;
+  category: string;
+  imageUrl: string;
+  dateAdded: string;
+}

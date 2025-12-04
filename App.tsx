@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import StoreHome from './pages/StoreHome';
 import StoreProductDetail from './pages/StoreProductDetail';
@@ -13,6 +14,7 @@ import AdminControl from './pages/AdminControl';
 import AdminCatalog from './pages/AdminCatalog';
 import AdminDeliverySettings from './pages/AdminDeliverySettings';
 import AdminCourierSettings from './pages/AdminCourierSettings';
+import AdminGallery from './pages/AdminGallery';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
@@ -323,6 +325,7 @@ const App = () => {
           {adminSection === 'dashboard' ? <AdminDashboard orders={orders} /> :
            adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
            adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
+           adminSection === 'gallery' ? <AdminGallery /> :
            adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
            adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
            adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :

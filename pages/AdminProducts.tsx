@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler } from 'lucide-react';
 
 interface AdminProductsProps {
   products: Product[];
@@ -57,10 +57,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     image: '',
     discount: '',
     tags: [],
+    colors: [],
+    sizes: [],
     status: 'Active'
   });
   const [initialFormData, setInitialFormData] = useState<Partial<Product> | null>(null); // To track dirty state
   const [tagInput, setTagInput] = useState('');
+  const [colorInput, setColorInput] = useState('');
+  const [sizeInput, setSizeInput] = useState('');
   
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +102,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     let initialData: Partial<Product>;
     if (product) {
       setEditingProduct(product);
-      initialData = { ...product, status: product.status || 'Active' };
+      initialData = { ...product, status: product.status || 'Active', colors: product.colors || [], sizes: product.sizes || [] };
     } else {
       setEditingProduct(null);
       initialData = {
@@ -113,6 +117,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         image: '',
         discount: '',
         tags: [],
+        colors: [],
+        sizes: [],
         status: 'Active'
       };
     }
@@ -188,6 +194,40 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     setFormData({
       ...formData,
       tags: formData.tags?.filter(t => t !== tagToRemove)
+    });
+  };
+
+  const addColor = () => {
+    if (colorInput.trim() && !formData.colors?.includes(colorInput.trim())) {
+      setFormData({
+        ...formData,
+        colors: [...(formData.colors || []), colorInput.trim()]
+      });
+      setColorInput('');
+    }
+  };
+
+  const removeColor = (colorToRemove: string) => {
+    setFormData({
+      ...formData,
+      colors: formData.colors?.filter(c => c !== colorToRemove)
+    });
+  };
+
+  const addSize = () => {
+    if (sizeInput.trim() && !formData.sizes?.includes(sizeInput.trim())) {
+      setFormData({
+        ...formData,
+        sizes: [...(formData.sizes || []), sizeInput.trim()]
+      });
+      setSizeInput('');
+    }
+  };
+
+  const removeSize = (sizeToRemove: string) => {
+    setFormData({
+      ...formData,
+      sizes: formData.sizes?.filter(s => s !== sizeToRemove)
     });
   };
 
@@ -458,7 +498,16 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                     )}
                  </div>
                  <h3 className="font-bold text-gray-800 line-clamp-1 mb-1" title={product.name}>{product.name}</h3>
-                 <div className="flex justify-between items-center mt-3">
+                 
+                 {/* Variants preview */}
+                 <div className="flex gap-1 mb-2">
+                    {product.colors?.slice(0, 3).map((c, i) => (
+                        <span key={i} className="w-2.5 h-2.5 rounded-full border border-gray-300" style={{backgroundColor: c}} title={c}></span>
+                    ))}
+                    {product.colors && product.colors.length > 3 && <span className="text-[10px] text-gray-400">+{product.colors.length - 3}</span>}
+                 </div>
+
+                 <div className="flex justify-between items-center mt-2">
                     <div className="flex flex-col">
                        <span className="font-bold text-gray-900">৳ {product.price.toLocaleString()}</span>
                        {product.originalPrice && (
@@ -667,6 +716,56 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                          value={formData.description}
                          onChange={e => setFormData({...formData, description: e.target.value})}
                        ></textarea>
+                    </div>
+
+                    {/* Variant Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Palette size={16}/> Colors</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    placeholder="Color (Name or Hex)"
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                                    value={colorInput}
+                                    onChange={e => setColorInput(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addColor())}
+                                />
+                                <button type="button" onClick={addColor} className="bg-purple-100 text-purple-700 px-3 rounded-lg font-bold hover:bg-purple-200">+</button>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {formData.colors?.map(c => (
+                                    <span key={c} className="flex items-center gap-1 bg-white border border-gray-200 pl-1 pr-2 py-1 rounded-full text-xs shadow-sm">
+                                        <span className="w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: c}}></span>
+                                        {c}
+                                        <button type="button" onClick={() => removeColor(c)} className="ml-1 text-gray-400 hover:text-red-500"><X size={12}/></button>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Ruler size={16}/> Sizes</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    placeholder="Size (e.g. XL, 42)"
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                                    value={sizeInput}
+                                    onChange={e => setSizeInput(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSize())}
+                                />
+                                <button type="button" onClick={addSize} className="bg-purple-100 text-purple-700 px-3 rounded-lg font-bold hover:bg-purple-200">+</button>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {formData.sizes?.map(s => (
+                                    <span key={s} className="bg-white border border-gray-200 px-2 py-1 rounded text-xs font-bold text-gray-600 flex items-center gap-1 shadow-sm">
+                                        {s}
+                                        <button type="button" onClick={() => removeSize(s)} className="text-gray-400 hover:text-red-500"><X size={12}/></button>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

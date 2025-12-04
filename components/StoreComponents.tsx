@@ -1,7 +1,49 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  ShoppingCart,
+  Search,
+  User,
+  Heart,
+  Truck,
+  X,
+  Sparkles,
+  Loader2,
+  ChevronDown,
+  UserCircle,
+  Phone,
+  Mail,
+  MapPin,
+  MessageSquare,
+  List,
+  Menu,
+  Home,
+  Facebook,
+  Gift,
+  MessageCircle,
+  Instagram,
+  Twitter,
+  CheckCircle,
+  Upload,
+  Wand2,
+  Image as ImageIcon,
+  ArrowRight,
+  LogOut,
+  Youtube,
+  ShoppingBag,
+  Globe,
+  Star,
+  Eye,
+  Bell,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  Grid,
+  Smartphone
+} from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
 import { GoogleGenAI } from "@google/genai";
+
+// Minimal, well-typed store components to restore build/run.
 
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
@@ -466,64 +508,63 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   );
 };
 
-<<<<<<< HEAD
 export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string }> = ({ product, onClick, variant }) => {
   // Style 2 (Flash Sale - Pink/Blue)
   if (variant === 'style2') {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
-            <div className="relative aspect-square p-4 bg-gray-50">
-                <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
-                {product.discount && (
-                    <span className="absolute top-2 left-2 bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                        {product.discount}
-                    </span>
-                )}
-                <button className="absolute top-2 right-2 text-gray-400 hover:text-pink-500 transition">
-                    <Heart size={18} />
-                </button>
-            </div>
-            
-            <div className="p-3 flex-1 flex flex-col">
-                {/* Rating */}
-                <div className="flex items-center gap-1 text-yellow-400 text-xs mb-1">
-                    <Star size={12} fill="currentColor" />
-                    <span className="text-gray-400">({product.reviews || 0})</span>
-                    <span className="text-gray-400 text-[10px] ml-1">| 0 Sold</span>
-                </div>
-
-                <h3 
-                  className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition"
-                  onClick={() => onClick(product)}
-                >
-                    {product.name}
-                </h3>
-                
-                <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p>
-
-                <div className="mt-auto">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-pink-600 font-bold text-lg">৳ {product.price}</span>
-                        {product.originalPrice && (
-                            <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice}</span>
-                        )}
-                        <span className="ml-auto text-[10px] text-blue-500 font-medium">Get 50 Coins</span>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                        <button 
-                          className="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-1.5 rounded text-sm font-bold transition"
-                          onClick={() => onClick(product)}
-                        >
-                            Buy Now
-                        </button>
-                        <button className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded transition">
-                            <ShoppingCart size={18} />
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
+        <div className="relative aspect-square p-4 bg-gray-50">
+          <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
+          {product.discount && (
+            <span className="absolute top-2 left-2 bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+              {product.discount}
+            </span>
+          )}
+          <button className="absolute top-2 right-2 text-gray-400 hover:text-pink-500 transition">
+            <Heart size={18} />
+          </button>
         </div>
+
+        <div className="p-3 flex-1 flex flex-col">
+          {/* Rating */}
+          <div className="flex items-center gap-1 text-yellow-400 text-xs mb-1">
+            <Star size={12} fill="currentColor" />
+            <span className="text-gray-400">({product.reviews || 0})</span>
+            <span className="text-gray-400 text-[10px] ml-1">| 0 Sold</span>
+          </div>
+
+          <h3
+            className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition"
+            onClick={() => onClick(product)}
+          >
+            {product.name}
+          </h3>
+
+          <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p>
+
+          <div className="mt-auto">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-pink-600 font-bold text-lg">৳ {product.price}</span>
+              {product.originalPrice && (
+                <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice}</span>
+              )}
+              <span className="ml-auto text-[10px] text-blue-500 font-medium">Get 50 Coins</span>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                className="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-1.5 rounded text-sm font-bold transition"
+                onClick={() => onClick(product)}
+              >
+                Buy Now
+              </button>
+              <button className="bg-[#fff0f6] hover:bg-[#ffeef4] text-[#e72960] p-1.5 rounded transition">
+                <ShoppingCart size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -538,36 +579,36 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
           </span>
         )}
         <button className="absolute top-3 right-3 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
-           <Heart size={16} />
+          <Heart size={16} />
         </button>
       </div>
-      
+
       <div className="p-4 flex-1 flex flex-col">
-        <h3 
+        <h3
           className="font-bold text-gray-800 dark:text-gray-100 text-sm mb-1 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition line-clamp-2"
           onClick={() => onClick(product)}
         >
           {product.name}
         </h3>
-        
+
         {/* Variants Preview */}
         {product.colors && product.colors.length > 0 && (
-            <div className="flex gap-1 mb-2">
-                {product.colors.slice(0, 3).map((c, i) => (
-                    <span key={i} className="w-2 h-2 rounded-full border border-gray-200" style={{backgroundColor: c}}></span>
-                ))}
-            </div>
+          <div className="flex gap-1 mb-2">
+            {product.colors.slice(0, 3).map((c, i) => (
+              <span key={i} className="w-2 h-2 rounded-full border border-gray-200" style={{ backgroundColor: c }}></span>
+            ))}
+          </div>
         )}
 
         <div className="flex items-center gap-2 mb-3">
-           <span className="text-lg font-bold text-gray-900 dark:text-white">৳ {product.price.toLocaleString()}</span>
-           {product.originalPrice && (
-             <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
-           )}
+          <span className="text-lg font-bold text-gray-900 dark:text-white">৳ {product.price.toLocaleString()}</span>
+          {product.originalPrice && (
+            <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
+          )}
         </div>
 
-        <button 
-          onClick={(e) => { e.stopPropagation(); onClick(product); }}
+        <button
+          onClick={(e) => { e.stopPropagation(); onClick(product); } }
           className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-green-100 dark:shadow-none mt-auto"
         >
           অর্ডার করুন
@@ -575,10 +616,8 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
       </div>
     </div>
   );
-};
+}
 
-=======
->>>>>>> 660216b3dee21a70237a57c1d7c4183f8541ab7e
 export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
   const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -594,7 +633,6 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
   if (items.length === 0) return null;
 
   return (
-<<<<<<< HEAD
     <div className="max-w-7xl mx-auto px-4 mt-4">
         <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm">
             {items.map((item, index) => (
@@ -634,50 +672,20 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                 </>
             )}
         </div>
-=======
-    <div className="relative w-full h-[200px] md:h-[400px] bg-gray-100 overflow-hidden">
-        {items.map((item, index) => (
-             <div 
-               key={item.id}
-               className={`absolute inset-0 transition-opacity duration-1000 ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}
-             >
-                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-             </div>
-        ))}
-        {items.length > 1 && (
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                {items.map((_, idx) => (
-                    <button 
-                      key={idx} 
-                      onClick={() => setCurrentIndex(idx)}
-                      className={`w-2 h-2 rounded-full transition ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50'}`}
-                    />
-                ))}
-            </div>
-        )}
->>>>>>> 660216b3dee21a70237a57c1d7c4183f8541ab7e
     </div>
   );
 };
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
     <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
-<<<<<<< HEAD
         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
             {icon}
         </div>
         <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
-=======
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 group-hover:border-purple-500 group-hover:text-purple-600 group-hover:bg-purple-50 transition duration-300 shadow-sm">
-            {icon}
-        </div>
-        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-purple-600 text-center">{name}</span>
->>>>>>> 660216b3dee21a70237a57c1d7c4183f8541ab7e
     </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-<<<<<<< HEAD
     <div className="flex items-center gap-3 pl-2 pr-6 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
         <div className="w-8 h-8 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
             {icon}
@@ -902,146 +910,6 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p:
     );
 };
 
-=======
-    <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:text-pink-600 cursor-pointer transition whitespace-nowrap">
-        {icon}
-        <span className="text-sm font-bold">{name}</span>
-    </div>
-);
-
-export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
-    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 relative inline-block">
-        {title}
-        <span className="absolute bottom-0 left-0 w-1/2 h-1 bg-purple-500 rounded-full"></span>
-    </h2>
-);
-
-export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => (
-    <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 ${websiteConfig?.footerStyle === 'style2' ? 'dark:bg-slate-900 dark:border-slate-800 dark:text-gray-400' : ''}`}>
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
-                <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
-                <div className="flex gap-3">
-                   {websiteConfig?.socialLinks?.map(link => (
-                       <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
-                           <Globe size={16} />
-                       </a>
-                   ))}
-                </div>
-            </div>
-            <div>
-                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Quick Links</h4>
-                <ul className="space-y-2 text-sm">
-                    <li><a href="#" className="hover:text-purple-600">About Us</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Contact</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Terms & Conditions</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Privacy Policy</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Customer Area</h4>
-                <ul className="space-y-2 text-sm">
-                    <li><a href="#" className="hover:text-purple-600">My Account</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Orders</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Tracking</a></li>
-                    <li><a href="#" className="hover:text-purple-600">Returns</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Contact Us</h4>
-                <ul className="space-y-3 text-sm">
-                    {websiteConfig?.addresses?.map((addr, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                            <MapPin size={16} className="mt-0.5 shrink-0" />
-                            <span>{addr}</span>
-                        </li>
-                    ))}
-                    {websiteConfig?.phones?.map((phone, i) => (
-                         <li key={i} className="flex items-center gap-2">
-                             <Phone size={16} />
-                             <span>{phone}</span>
-                         </li>
-                    ))}
-                    {websiteConfig?.emails?.map((email, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                            <Mail size={16} />
-                            <span>{email}</span>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-        {!websiteConfig?.hideCopyright && (
-            <div className="max-w-7xl mx-auto px-4 border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center text-xs">
-                {!websiteConfig?.hideCopyrightText && (
-                    <p>&copy; {new Date().getFullYear()} {websiteConfig?.websiteName}. All rights reserved.</p>
-                )}
-                {websiteConfig?.showPoweredBy && (
-                    <p>Powered by Saleecom</p>
-                )}
-            </div>
-        )}
-    </footer>
-);
-
-export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => boolean, onRegister: (u: UserType) => boolean }> = ({ onClose, onLogin, onRegister }) => {
-    const [isLogin, setIsLogin] = useState(true);
-    const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', address: '' });
-    
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (isLogin) {
-            if(onLogin(formData.email, formData.password)) {
-                 onClose();
-            } else {
-                 alert("Invalid credentials. Try admin/admin");
-            }
-        } else {
-             if(onRegister({ ...formData, role: 'customer' })) {
-                 onClose();
-             } else {
-                 alert("User already exists!");
-             }
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
-                <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
-                <div className="p-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-                    <p className="text-gray-500 mb-6 text-sm">{isLogin ? 'Login to continue shopping' : 'Sign up to get started'}</p>
-                    
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {!isLogin && (
-                            <>
-                                <input type="text" placeholder="Full Name" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
-                                <input type="text" placeholder="Phone" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required />
-                            </>
-                        )}
-                        <input type="email" placeholder="Email Address" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
-                        <input type="password" placeholder="Password" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required />
-                        
-                        <button type="submit" className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200">
-                            {isLogin ? 'Login' : 'Register'}
-                        </button>
-                    </form>
-
-                    <div className="mt-6 text-center text-sm text-gray-600">
-                        {isLogin ? "Don't have an account? " : "Already have an account? "}
-                        <button onClick={() => setIsLogin(!isLogin)} className="text-purple-600 font-bold hover:underline">
-                            {isLogin ? 'Sign Up' : 'Login'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
->>>>>>> 660216b3dee21a70237a57c1d7c4183f8541ab7e
 export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }> = ({ onClose, orders }) => {
     const [orderId, setOrderId] = useState('');
     const [result, setResult] = useState<Order | null>(null);
@@ -1109,24 +977,11 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         setLoading(true);
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-<<<<<<< HEAD
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash-image',
                 contents: { parts: [{ text: prompt }] }
             });
 
-=======
-            // Using gemini-2.5-flash-image as per guidelines for general image tasks
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
-                contents: {
-                    parts: [{ text: prompt }]
-                }
-            });
-
-            // Extract image from response parts
-            // Guidelines say: The output response may contain both image and text parts; you must iterate...
->>>>>>> 660216b3dee21a70237a57c1d7c4183f8541ab7e
             if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
                 for (const part of response.candidates[0].content.parts) {
                     if (part.inlineData) {
@@ -1157,7 +1012,6 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                         <div>
                             <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Prompt</label>
                             <textarea 
-<<<<<<< HEAD
                                 className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:outline-none resize-none h-32"
                                 placeholder="Describe the image you want to generate..."
                                 value={prompt}
@@ -1220,6 +1074,3 @@ export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => 
         </div>
     );
 };
-=======
-                                className="w-full bg-gray-900 border border-gray-700 rounded-
->>>>>>> 660216b3dee21a70237a57c1d7c4183f8541ab7e

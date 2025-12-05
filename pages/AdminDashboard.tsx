@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DashboardStatCard } from '../components/AdminComponents';
 import { 
   ShoppingBag, Truck, CheckCircle, Clock, PauseCircle, XCircle, PackageCheck, ArchiveRestore,
@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { REVENUE_DATA, CATEGORY_DATA } from '../constants';
 import { Order } from '../types';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const COLORS = [
   'rgb(var(--color-primary-rgb))',
@@ -14,6 +13,44 @@ const COLORS = [
   'rgba(var(--color-primary-rgb), 0.75)',
   'rgba(var(--color-secondary-rgb), 0.6)'
 ];
+
+const buildAreaGeometry = (data: typeof REVENUE_DATA, width = 640, height = 240) => {
+  if (!data.length) {
+    return {
+      width,
+      height,
+      strokePath: '',
+      fillPath: '',
+      points: [] as Array<{ x: number; y: number; label: string; value: number }>
+    };
+  }
+
+  const maxValue = Math.max(...data.map((item) => item.value), 1);
+  const step = data.length > 1 ? width / (data.length - 1) : width;
+  const points = data.map((item, index) => {
+    const x = index * step;
+    const y = height - (item.value / maxValue) * height;
+    return { x, y, label: item.name, value: item.value };
+  });
+
+  const strokePath = points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ');
+  const fillPath = `M 0 ${height} ${strokePath} L ${width} ${height} Z`;
+
+  return { width, height, strokePath, fillPath, points };
+};
+
+const buildPieGradient = (data: typeof CATEGORY_DATA) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0) || 1;
+  let cursor = 0;
+  return data.map((item, index) => {
+    const start = (cursor / total) * 360;
+    cursor += item.value;
+    const end = (cursor / total) * 360;
+    return `${COLORS[index % COLORS.length]} ${start}deg ${end}deg`;
+  }).join(', ');
+};
 
 const AdminDashboard = ({ orders }: { orders: Order[] }) => {
   // Calculate dynamic stats based on props
@@ -26,6 +63,11 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
   // Mock data for others to show UI density
   const courierOrders = 120;
   const cancelledOrders = 12;
+
+  const gradientId = useMemo(() => `revenueGradient-${Math.random().toString(36).slice(2, 10)}`, []);
+  const revenueGeometry = useMemo(() => buildAreaGeometry(REVENUE_DATA), []);
+  const pieGradient = useMemo(() => buildPieGradient(CATEGORY_DATA), []);
+  const totalCategorySales = CATEGORY_DATA.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -87,51 +129,64 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
             </div>
           </div>
           <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={REVENUE_DATA} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#9ca3af'}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#9ca3af'}} />
-                <Tooltip 
-                  contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} 
-                  cursor={{stroke: '#8884d8', strokeWidth: 1}}
-                />
-                <Area type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <svg
+              viewBox={`0 0 ${revenueGeometry.width} ${revenueGeometry.height}`}
+              preserveAspectRatio="none"
+              className="w-full h-full"
+            >
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#7c3aed" stopOpacity="0.35" />
+                  <stop offset="95%" stopColor="#7c3aed" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d={revenueGeometry.fillPath} fill={`url(#${gradientId})`} />
+              <path d={revenueGeometry.strokePath} fill="none" stroke="#7c3aed" strokeWidth="3" strokeLinecap="round" />
+              {revenueGeometry.points.map((point) => (
+                <g key={point.label}>
+                  <circle cx={point.x} cy={point.y} r={5} fill="#fff" stroke="#7c3aed" strokeWidth={2} />
+                  <title>{`${point.label}: ৳ ${point.value.toLocaleString()}`}</title>
+                </g>
+              ))}
+            </svg>
+            <div className="mt-4 grid grid-cols-7 text-xs text-gray-500">
+              {REVENUE_DATA.map((item) => (
+                <span key={item.name} className="text-center font-semibold">
+                  {item.name}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Categories Pie Chart */}
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
            <h3 className="text-lg font-bold text-gray-800 mb-6">Sales by Category</h3>
-           <div className="h-72 w-full">
-             <ResponsiveContainer width="100%" height="100%">
-               <PieChart>
-                 <Pie
-                   data={CATEGORY_DATA}
-                   cx="50%"
-                   cy="50%"
-                   innerRadius={60}
-                   outerRadius={90}
-                   fill="#8884d8"
-                   paddingAngle={5}
-                   dataKey="value"
-                 >
-                   {CATEGORY_DATA.map((entry, index) => (
-                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={0} />
-                   ))}
-                 </Pie>
-                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{fontSize: '12px'}} />
-                 <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-               </PieChart>
-             </ResponsiveContainer>
+           <div className="flex flex-col items-center gap-4">
+             <div
+               className="w-48 h-48 rounded-full relative"
+               style={{ background: `conic-gradient(${pieGradient})` }}
+             >
+               <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center text-center">
+                 <span className="text-xs text-gray-500">Total</span>
+                 <span className="text-xl font-black text-gray-800">৳ {totalCategorySales.toLocaleString()}</span>
+                 <span className="text-[11px] text-gray-400">by category</span>
+               </div>
+             </div>
+             <div className="w-full space-y-3">
+               {CATEGORY_DATA.map((item, index) => (
+                 <div key={item.name} className="flex items-center justify-between text-sm">
+                   <div className="flex items-center gap-2">
+                     <span
+                       className="w-3 h-3 rounded-full"
+                       style={{ background: COLORS[index % COLORS.length] }}
+                     />
+                     <span className="font-semibold text-gray-700">{item.name}</span>
+                   </div>
+                   <span className="text-gray-500 font-bold">৳ {item.value.toLocaleString()}</span>
+                 </div>
+               ))}
+             </div>
            </div>
         </div>
       </div>

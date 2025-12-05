@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler } from 'lucide-react';
+import { convertFileToWebP } from '../services/imageUtils';
 
 interface AdminProductsProps {
   products: Product[];
@@ -231,22 +232,27 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file size (e.g., max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        alert("File size is too large. Please upload an image under 2MB.");
-        return;
-      }
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
 
-      console.log(`Processing upload for ${file.name} (Simulating DB store)`);
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size is too large. Please upload an image under 2MB.");
+      if (input) input.value = '';
+      return;
+    }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+    console.log(`Processing upload for ${file.name} (Simulating DB store)`);
+
+    try {
+      const converted = await convertFileToWebP(file, { quality: 0.82, maxDimension: 1600 });
+      setFormData({ ...formData, image: converted });
+    } catch (error) {
+      console.error('Failed to process product image', error);
+      alert('Unable to process this image. Please try another file.');
+    } finally {
+      if (input) input.value = '';
     }
   };
 

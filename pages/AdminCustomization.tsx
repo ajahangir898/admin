@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink } from '../types';
+import { convertFileToWebP } from '../services/imageUtils';
 
 interface AdminCustomizationProps {
   logo: string | null;
@@ -128,26 +129,37 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         setColorDrafts(colors);
     }, [colors]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel') => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("File size is too large. Please upload an image under 2MB.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (type === 'logo') {
-          onUpdateLogo(reader.result as string);
-        } else if (type === 'favicon') {
-          setConfig(prev => ({ ...prev, favicon: reader.result as string }));
-        } else if (type === 'carousel') {
-          setCarouselFormData(prev => ({ ...prev, image: reader.result as string }));
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel') => {
+        const input = e.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert("File size is too large. Please upload an image under 2MB.");
+            if (input) input.value = '';
+            return;
         }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
+        try {
+            // Convert to WebP before persisting to keep payloads light.
+            const converted = await convertFileToWebP(file, {
+                quality: type === 'favicon' ? 0.9 : 0.82,
+                maxDimension: type === 'favicon' ? 512 : 2000
+            });
+            if (type === 'logo') {
+                onUpdateLogo(converted);
+            } else if (type === 'favicon') {
+                setConfig(prev => ({ ...prev, favicon: converted }));
+            } else if (type === 'carousel') {
+                setCarouselFormData(prev => ({ ...prev, image: converted }));
+            }
+        } catch (error) {
+            console.error('Failed to process image upload', error);
+            alert('Unable to process this image. Please try another file.');
+        } finally {
+            if (input) input.value = '';
+        }
+    };
 
   const handleRemoveImage = (type: 'logo' | 'favicon') => {
     if (type === 'logo') {

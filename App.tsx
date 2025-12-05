@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
 import { LifeLine } from 'react-loading-indicators';
@@ -92,8 +92,8 @@ const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Sta
 
 const SuspenseFallback = () => (
   <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
-    <LifeLine color="#32cd32" size="medium" text="" textColor="#00ff0e" />
-    <p className="font-medium animate-pulse">Welcome in Gadgetshob Admin</p>
+   
+    <p className="font-medium animate-pulse"></p>
   </div>
 );
 
@@ -132,7 +132,7 @@ const App = () => {
   const [tags, setTags] = useState<Tag[]>([]);
 
   // Courier Config
-  const [courierConfig, setCourierConfig] = useState({ apiKey: '', secretKey: '' });
+  const [courierConfig, setCourierConfig] = useState<CourierConfig>({ apiKey: '', secretKey: '', instruction: '' });
 
   // Auth & Navigation
   const [user, setUser] = useState<User | null>(null);
@@ -190,7 +190,7 @@ const App = () => {
           DataService.getThemeConfig(),
           DataService.getWebsiteConfig(),
           DataService.getDeliveryConfig(),
-          DataService.get('courier', { apiKey: '', secretKey: '' }),
+          DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }),
           DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }),
           DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]),
           DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]),
@@ -209,7 +209,11 @@ const App = () => {
         setThemeConfig(themeData);
         setWebsiteConfig(websiteData);
         setDeliveryConfig(deliveryData);
-        setCourierConfig(courierData);
+        setCourierConfig({
+          apiKey: courierData?.apiKey || '',
+          secretKey: courierData?.secretKey || '',
+          instruction: courierData?.instruction || ''
+        });
         setFacebookPixelConfig(facebookPixelData);
         setCategories(categoriesData);
         setSubCategories(subCategoriesData);
@@ -400,7 +404,7 @@ fbq('track', 'PageView');`;
   const handleUpdateLogo = (newLogo: string | null) => setLogo(newLogo);
   const handleUpdateTheme = (newConfig: ThemeConfig) => setThemeConfig(newConfig);
   const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
-  const handleUpdateCourierConfig = (config: { apiKey: string, secretKey: string }) => setCourierConfig(config);
+  const handleUpdateCourierConfig = (config: CourierConfig) => setCourierConfig(config);
   const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => setDeliveryConfig(configs);
   
   // Updated to handle partial updates including trackingId
@@ -434,11 +438,13 @@ fbq('track', 'PageView');`;
       date: new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
       status: 'Pending',
       email: formData.email,
+      phone: formData.phone,
+      division: formData.division,
       variant: ensureVariantSelection(selectedProduct, formData.variant || selectedVariant),
       productId: selectedProduct?.id,
       productName: selectedProduct?.name,
-      quantity: formData.quantity || checkoutQuantity
-      ,deliveryType: formData.deliveryType,
+      quantity: formData.quantity || checkoutQuantity,
+      deliveryType: formData.deliveryType,
       deliveryCharge: formData.deliveryCharge
     };
     setOrders([newOrder, ...orders]);
@@ -453,6 +459,7 @@ fbq('track', 'PageView');`;
       id: `LP-${Math.floor(10000 + Math.random() * 90000)}`,
       customer: payload.fullName,
       location: payload.address,
+      phone: payload.phone,
       amount: product.price * payload.quantity,
       date: new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
       status: 'Pending',

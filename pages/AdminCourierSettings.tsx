@@ -1,11 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft, Truck } from 'lucide-react';
-
-interface CourierConfig {
-  apiKey: string;
-  secretKey: string;
-}
+import { CourierConfig } from '../types';
 
 interface AdminCourierSettingsProps {
   config: CourierConfig;
@@ -28,7 +24,8 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
       setFormData(prev => ({
         ...prev,
         apiKey: config.apiKey || '',
-        secretKey: config.secretKey || ''
+        secretKey: config.secretKey || '',
+        instruction: config.instruction || ''
       }));
     }
   }, [config, activeTab]);
@@ -38,7 +35,8 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
     if (activeTab === 'Steadfast') {
         onSave({
             apiKey: formData.apiKey,
-            secretKey: formData.secretKey
+        secretKey: formData.secretKey,
+        instruction: formData.instruction
         });
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);

@@ -5,11 +5,7 @@ import {
   CreditCard, Facebook, Globe, ShoppingBag, Settings, Search, 
   BarChart, Smartphone, DollarSign, FileText, ArrowRight 
 } from 'lucide-react';
-
-interface CourierConfig {
-  apiKey: string;
-  secretKey: string;
-}
+import { CourierConfig } from '../types';
 
 interface AdminSettingsProps {
   courierConfig: CourierConfig;

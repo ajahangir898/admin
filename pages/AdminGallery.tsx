@@ -4,6 +4,7 @@ import { Search, FolderOpen, Upload, CheckCircle, Smartphone } from 'lucide-reac
 import { GALLERY_IMAGES } from '../constants';
 import { GalleryItem } from '../types';
 import { DataService } from '../services/DataService';
+import { convertFileToWebP } from '../services/imageUtils';
 
 const AdminGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,23 +49,28 @@ const AdminGallery: React.FC = () => {
     }
   };
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newItem: GalleryItem = {
-          id: Date.now(),
-          title: file.name.split('.')[0],
-          category: 'Uploads',
-          imageUrl: reader.result as string,
-          dateAdded: new Date().toISOString()
-        };
-            setImages(prev => [newItem, ...prev]);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      try {
+         const imageUrl = await convertFileToWebP(file, { quality: 0.82, maxDimension: 1600 });
+         const newItem: GalleryItem = {
+            id: Date.now(),
+            title: file.name.split('.')[0],
+            category: 'Uploads',
+            imageUrl,
+            dateAdded: new Date().toISOString()
+         };
+         setImages(prev => [newItem, ...prev]);
+      } catch (error) {
+         console.error('Failed to process gallery upload', error);
+         alert('Unable to process this image. Please try another file.');
+      } finally {
+         if (input) input.value = '';
+      }
+   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-fade-in">

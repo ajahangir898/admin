@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, Eye, MoreHorizontal, Download, Calendar, MapPin, DollarSign, RefreshCw, ChevronDown, ChevronUp, Truck, Loader2, CheckCircle, ExternalLink } from 'lucide-react';
-import { Order } from '../types';
+import { Search, Filter, Eye, MoreHorizontal, Download, Calendar, MapPin, DollarSign, RefreshCw, ChevronDown, ChevronUp, Truck, Loader2, CheckCircle, ExternalLink, AlertCircle } from 'lucide-react';
+import { Order, CourierConfig } from '../types';
 
 interface AdminOrdersProps {
   orders: Order[];
-  courierConfig?: { apiKey: string, secretKey: string };
+  courierConfig?: CourierConfig;
   onUpdateOrder?: (orderId: string, updates: Partial<Order>) => void;
 }
 
@@ -23,6 +23,7 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
 
   // Courier Loading State
   const [processingOrder, setProcessingOrder] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const filteredOrders = orders.filter(order => {
     // 1. Status Filter
@@ -77,28 +78,42 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
       return;
     }
 
+    if (!order.phone) {
+      alert('This order is missing a customer phone number. Please edit the order details before sending to courier.');
+      return;
+    }
+
     if (!window.confirm(`Are you sure you want to send Order ${order.id} to Steadfast Courier?`)) {
       return;
     }
 
+    setSendError(null);
     setProcessingOrder(order.id);
 
-    // Simulate API Call delay and ID generation
-    setTimeout(() => {
-      setProcessingOrder(null);
-      
-      // Generate a mock Steadfast Tracking ID
-      const mockTrackingId = 'SID-' + Math.floor(100000 + Math.random() * 900000);
-      
+    try {
+      const { CourierService } = await import('../services/CourierService');
+      const result = await CourierService.sendToSteadfast(order, courierConfig);
       if (onUpdateOrder) {
-        onUpdateOrder(order.id, { 
-            status: 'Shipped',
-            trackingId: mockTrackingId
+        onUpdateOrder(order.id, {
+          status: 'Shipped',
+          trackingId: result.trackingId,
+          courierProvider: 'Steadfast',
+          courierMeta: {
+            syncedAt: new Date().toISOString(),
+            reference: result.reference,
+            payload: result.payload,
+            response: result.response
+          }
         });
       }
-      
-      alert(`Order ${order.id} successfully sent to Steadfast Courier! Tracking ID: ${mockTrackingId}`);
-    }, 1500);
+      alert(`Order ${order.id} successfully sent to Steadfast Courier! Tracking ID: ${result.trackingId}`);
+    } catch (error: any) {
+      const message = error?.message || 'Failed to send order to Steadfast. Please try again.';
+      setSendError(message);
+      alert(message);
+    } finally {
+      setProcessingOrder(null);
+    }
   };
 
   const activeFilterCount = [
@@ -121,6 +136,22 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
            </button>
         </div>
       </div>
+
+        {sendError && (
+          <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold">{sendError}</p>
+              <button
+                type="button"
+                onClick={() => setSendError(null)}
+                className="text-xs font-bold underline mt-1"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {/* Top Filter Bar */}

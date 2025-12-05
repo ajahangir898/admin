@@ -2,7 +2,7 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, LandingPage } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES } from '../constants';
 import { db } from './firebaseConfig';
-import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore/lite';
 
 class DataServiceImpl {
   private get canUseLocalStorage() {

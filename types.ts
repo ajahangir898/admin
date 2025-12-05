@@ -44,12 +44,16 @@ export interface Order {
   status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
   email?: string; // To link with registered user
   trackingId?: string; // Added for Courier Integration
+  phone?: string;
+  division?: string;
   variant?: ProductVariantSelection;
   productId?: number;
   productName?: string;
   quantity?: number;
   deliveryType?: 'Regular' | 'Express' | 'Free';
   deliveryCharge?: number;
+  courierProvider?: 'Steadfast' | 'Pathao';
+  courierMeta?: Record<string, any>;
 }
 
 export interface User {
@@ -160,6 +164,12 @@ export interface DeliveryConfig {
   outsideCharge: number;
   freeThreshold: number;
   note: string;
+}
+
+export interface CourierConfig {
+  apiKey: string;
+  secretKey: string;
+  instruction?: string;
 }
 
 export interface FacebookPixelConfig {

@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Plus, Search, Edit, Trash2, X, Save, Image as ImageIcon, Upload, CheckCircle, Tag as TagIcon, Layers, Folder } from 'lucide-react';
+import { convertFileToWebP } from '../services/imageUtils';
 
 interface AdminCatalogProps {
   view: string; // 'catalog_categories', 'catalog_subcategories', etc.
@@ -116,17 +117,22 @@ const AdminCatalog: React.FC<AdminCatalogProps> = ({
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const fieldName = view === 'catalog_brands' ? 'logo' : 'icon';
-        setFormData({ ...formData, [fieldName]: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      try {
+         const converted = await convertFileToWebP(file, { quality: 0.8, maxDimension: 600 });
+         const fieldName = view === 'catalog_brands' ? 'logo' : 'icon';
+         setFormData({ ...formData, [fieldName]: converted });
+      } catch (error) {
+         console.error('Failed to process catalog image', error);
+         alert('Unable to process this image. Please try another file.');
+      } finally {
+         if (input) input.value = '';
+      }
+   };
 
   // Filter Data
   let displayData: any[] = [];

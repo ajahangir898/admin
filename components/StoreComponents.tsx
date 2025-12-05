@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection } from '../types';
-import { GoogleGenAI } from "@google/genai";
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -1350,6 +1349,14 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
     );
 };
 
+let cachedGoogleGenAI: any = null;
+const loadGoogleGenAI = async () => {
+    if (cachedGoogleGenAI) return cachedGoogleGenAI;
+    const mod = await import(/* @vite-ignore */ 'https://esm.sh/@google/genai?target=es2022&bundle');
+    cachedGoogleGenAI = mod.GoogleGenAI || mod.GoogleGenerativeAI;
+    return cachedGoogleGenAI;
+};
+
 export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
@@ -1386,6 +1393,11 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         setLoading(true);
         setErrorMessage(null);
         try {
+            const GoogleGenAI = await loadGoogleGenAI();
+            if (!GoogleGenAI) {
+                setErrorMessage('Failed to load Google GenAI SDK. Please refresh and try again.');
+                return;
+            }
             const ai = new GoogleGenAI({ apiKey: activeApiKey });
 
             const response = await ai.models.generateContent({

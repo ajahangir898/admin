@@ -5,44 +5,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GadgetShob E-Commerce</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              // Mapping 'green' to Primary (Action Color) - NOW PINK
-              green: {
-                50: 'rgba(var(--color-primary-rgb), 0.1)',
-                100: 'rgba(var(--color-primary-rgb), 0.2)',
-                200: 'rgba(var(--color-primary-rgb), 0.3)',
-                500: 'rgba(var(--color-primary-rgb), 1)',
-                600: 'rgba(var(--color-primary-rgb), 0.9)',
-                700: 'rgba(var(--color-primary-rgb), 0.8)',
-              },
-              // Mapping 'pink' to Secondary (Brand/Highlight Color) - NOW PURPLE
-              pink: {
-                50: 'rgba(var(--color-secondary-rgb), 0.1)',
-                100: 'rgba(var(--color-secondary-rgb), 0.2)',
-                500: 'rgba(var(--color-secondary-rgb), 1)',
-                600: 'rgba(var(--color-secondary-rgb), 0.9)',
-              },
-              // Mapping 'purple' to Tertiary (Accent/Deep Color) - NOW FUCHSIA
-              purple: {
-                50: 'rgba(var(--color-tertiary-rgb), 0.1)',
-                100: 'rgba(var(--color-tertiary-rgb), 0.2)',
-                200: 'rgba(var(--color-tertiary-rgb), 0.3)',
-                500: 'rgba(var(--color-tertiary-rgb), 0.8)',
-                600: 'rgba(var(--color-tertiary-rgb), 1)',
-                700: 'rgba(var(--color-tertiary-rgb), 0.9)',
-                900: 'rgba(var(--color-tertiary-rgb), 0.6)',
-              }
-            }
-          }
-        }
-      }
-    </script>
     <script type="importmap">
 {
   "imports": {
@@ -60,24 +22,6 @@
   }
 }
 </script>
-    <style>
-      :root {
-        /* Pink Vibe Theme */
-        --color-primary-rgb: 236, 72, 153; /* Pink-500 */
-        --color-secondary-rgb: 168, 85, 247; /* Purple-500 */
-        --color-tertiary-rgb: 192, 38, 211; /* Fuchsia-600 */
-      }
-      .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-      }
-      .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-      }
-      .recharts-wrapper {
-        width: 100% !important;
-      }
-    </style>
   </head>
   <body>
     <div id="root"></div>

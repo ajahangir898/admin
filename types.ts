@@ -97,6 +97,12 @@ export interface SocialLink {
   url: string;
 }
 
+export interface FooterLink {
+  id: string;
+  label: string;
+  url: string;
+}
+
 export interface CarouselItem {
   id: string;
   image: string;
@@ -116,6 +122,8 @@ export interface WebsiteConfig {
   emails: string[];
   phones: string[];
   socialLinks: SocialLink[];
+  footerQuickLinks: FooterLink[];
+  footerUsefulLinks: FooterLink[];
   // Display Toggles
   showMobileHeaderCategory: boolean;
   showNewsSlider: boolean;

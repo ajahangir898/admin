@@ -766,7 +766,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                         {product.discount}
                     </span>
                 )}
-                <button className="absolute top-2 right-2 text-gray-400 hover:text-pink-500 transition">
+                <button className="absolute top-2 right-2 btn-wishlist text-current">
                     <Heart size={18} />
                 </button>
             </div>
@@ -798,10 +798,10 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     </div>
                     
                     <div className="flex gap-2">
-                        <button 
-                          className="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-1.5 rounded text-sm font-bold transition"
-                          onClick={() => onClick(product)}
-                        >
+                                                <button 
+                                                    className="flex-1 btn-order py-1.5 text-sm"
+                                                    onClick={() => onClick(product)}
+                                                >
                             Buy Now
                         </button>
                         <button className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded transition">
@@ -824,7 +824,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
             {product.discount}
           </span>
         )}
-        <button className="absolute top-3 right-3 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
+          <button className="absolute top-3 right-3 btn-wishlist opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
            <Heart size={16} />
         </button>
       </div>
@@ -853,10 +853,10 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
            )}
         </div>
 
-        <button 
-          onClick={(e) => { e.stopPropagation(); onClick(product); }}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-green-100 dark:shadow-none mt-auto"
-        >
+                <button 
+                    onClick={(e) => { e.stopPropagation(); onClick(product); }}
+                    className="w-full btn-order py-2 rounded-lg font-bold text-sm mt-auto"
+                >
           অর্ডার করুন
         </button>
       </div>
@@ -1038,6 +1038,130 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
         );
     }
 
+    if (websiteConfig?.footerStyle === 'style3') {
+        const quickLinksSource = websiteConfig?.footerQuickLinks;
+        const quickLinks = quickLinksSource && quickLinksSource.length
+            ? quickLinksSource
+            : [
+                { id: 'quick-1', label: 'About Us', url: '#' },
+                { id: 'quick-2', label: 'Order Tracking', url: '#' },
+                { id: 'quick-3', label: 'Shipping & Delivery', url: '#' },
+                { id: 'quick-4', label: 'Contact', url: '#' }
+            ];
+        const usefulLinksSource = websiteConfig?.footerUsefulLinks;
+        const usefulLinks = usefulLinksSource && usefulLinksSource.length
+            ? usefulLinksSource
+            : [
+                { id: 'useful-1', label: 'Return & Refund Policy', url: '#' },
+                { id: 'useful-2', label: 'Privacy Policy', url: '#' },
+                { id: 'useful-3', label: 'FAQ', url: '#' },
+                { id: 'useful-4', label: 'Why Shop With Us', url: '#' }
+            ];
+        const socialLinks = websiteConfig?.socialLinks || [];
+        const contactCards = [
+            websiteConfig?.phones?.[0]
+                ? { label: 'Call us', value: websiteConfig.phones[0], icon: <Phone size={16} className="text-[color:var(--color-primary)]" /> }
+                : null,
+            websiteConfig?.emails?.[0]
+                ? { label: 'Mail us', value: websiteConfig.emails[0], icon: <Mail size={16} className="text-[color:var(--color-primary)]" /> }
+                : null,
+            websiteConfig?.addresses?.[0]
+                ? { label: 'Visit us', value: websiteConfig.addresses[0], icon: <MapPin size={16} className="text-[color:var(--color-primary)]" /> }
+                : null
+        ].filter((card): card is { label: string; value: string; icon: React.ReactNode } => Boolean(card));
+
+        return (
+            <footer className="bg-white/95 border-t border-gray-100 mt-auto">
+                <div className="max-w-7xl mx-auto px-4 py-12 space-y-10">
+                    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.2fr,0.8fr,0.8fr]">
+                        <div className="space-y-6">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                {logo ? (
+                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                ) : (
+                                    <div className="text-3xl font-black tracking-tight text-gray-900">
+                                        {websiteConfig?.websiteName || 'Your Store'}
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.4em] text-gray-400">{websiteConfig?.brandingText || 'Stay Inspired'}</p>
+                                    <p className="text-sm text-gray-500 mt-2 max-w-md">{websiteConfig?.shortDescription || 'Discover curated picks and seasonal favorites in one place.'}</p>
+                                </div>
+                            </div>
+                            {contactCards.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {contactCards.map(card => (
+                                        <div key={card.label} className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4 shadow-sm">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
+                                                {card.icon}
+                                                <span>{card.label}</span>
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-900 mt-1 break-words">{card.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {socialLinks.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-3">
+                                    {socialLinks.map(link => (
+                                        <a
+                                            key={link.id}
+                                            href={link.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:text-white hover:bg-[color:var(--color-primary)] transition"
+                                        >
+                                            <Globe size={18} />
+                                        </a>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h4>
+                            <ul className="space-y-2">
+                                {quickLinks.map(link => (
+                                    <li key={link.id}>
+                                        <a href={link.url || '#'} className="flex items-center justify-between gap-4 text-sm text-gray-600 hover:text-[color:var(--color-primary)] transition">
+                                            <span>{link.label}</span>
+                                            <ArrowRight size={16} className="text-gray-400" />
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Useful Links</h4>
+                            <ul className="space-y-2">
+                                {usefulLinks.map(link => (
+                                    <li key={link.id}>
+                                        <a href={link.url || '#'} className="flex items-center justify-between gap-4 text-sm text-gray-600 hover:text-[color:var(--color-secondary)] transition">
+                                            <span>{link.label}</span>
+                                            <ArrowRight size={16} className="text-gray-300" />
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-3 border-t border-gray-100 pt-6 text-xs text-gray-500 md:flex-row md:items-center md:justify-between">
+                        <p>
+                            &copy; {new Date().getFullYear()} {websiteConfig?.websiteName || 'Store'}. All rights reserved.
+                        </p>
+                        <div className="flex flex-wrap gap-4">
+                            {websiteConfig?.addresses?.slice(0, 2).map((addr, idx) => (
+                                <span key={`${addr}-${idx}`} className="inline-flex items-center gap-1">
+                                    <MapPin size={14} className="text-gray-400" />
+                                    <span>{addr}</span>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        );
+    }
+
     // Default Footer
     return (
         <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 max-w-7xl mx-auto px-4`}>
@@ -1145,21 +1269,21 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p:
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {!isLogin && (
                             <>
-                                <input type="text" placeholder="Full Name" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
-                                <input type="text" placeholder="Phone" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required />
+                                <input type="text" placeholder="Full Name" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+                                <input type="text" placeholder="Phone" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required />
                             </>
                         )}
-                        <input type="email" placeholder="Email Address" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
-                        <input type="password" placeholder="Password" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required />
+                        <input type="email" placeholder="Email Address" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
+                        <input type="password" placeholder="Password" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required />
                         
-                        <button type="submit" className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200">
+                        <button type="submit" className="w-full btn-order py-3 rounded-xl font-bold shadow-[0_18px_28px_rgba(var(--color-primary-rgb),0.25)]">
                             {isLogin ? 'Login' : 'Register'}
                         </button>
                     </form>
 
                     <div className="mt-6 text-center text-sm text-gray-600">
                         {isLogin ? "Don't have an account? " : "Already have an account? "}
-                        <button onClick={() => setIsLogin(!isLogin)} className="text-purple-600 font-bold hover:underline">
+                        <button onClick={() => setIsLogin(!isLogin)} className="text-[rgb(var(--color-primary-rgb))] font-bold hover:underline">
                             {isLogin ? 'Sign Up' : 'Login'}
                         </button>
                     </div>

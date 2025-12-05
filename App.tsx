@@ -1,28 +1,34 @@
 
-import React, { useState, useEffect } from 'react';
-import StoreHome from './pages/StoreHome';
-import StoreProductDetail from './pages/StoreProductDetail';
-import StoreCheckout from './pages/StoreCheckout';
-import StoreOrderSuccess from './pages/StoreOrderSuccess';
-import StoreProfile from './pages/StoreProfile';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminOrders from './pages/AdminOrders';
-import AdminProducts from './pages/AdminProducts';
-import AdminCustomization from './pages/AdminCustomization';
-import AdminSettings from './pages/AdminSettings';
-import AdminControl from './pages/AdminControl';
-import AdminCatalog from './pages/AdminCatalog';
-import AdminDeliverySettings from './pages/AdminDeliverySettings';
-import AdminCourierSettings from './pages/AdminCourierSettings';
-import AdminGallery from './pages/AdminGallery';
-import AdminLandingPage from './pages/AdminLandingPage';
-import LandingPagePreview from './pages/LandingPagePreview';
-import { AdminSidebar, AdminHeader } from './components/AdminComponents';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage } from './types';
-import { LoginModal, MobileBottomNav } from './components/StoreComponents';
-import { LandingCheckoutPayload } from './components/LandingPageComponents';
+import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
+import { LifeLine } from 'react-loading-indicators';
+
+const StoreHome = lazy(() => import('./pages/StoreHome'));
+const StoreProductDetail = lazy(() => import('./pages/StoreProductDetail'));
+const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
+const StoreOrderSuccess = lazy(() => import('./pages/StoreOrderSuccess'));
+const StoreProfile = lazy(() => import('./pages/StoreProfile'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminOrders = lazy(() => import('./pages/AdminOrders'));
+const AdminProducts = lazy(() => import('./pages/AdminProducts'));
+const AdminCustomization = lazy(() => import('./pages/AdminCustomization'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const AdminControl = lazy(() => import('./pages/AdminControl'));
+const AdminCatalog = lazy(() => import('./pages/AdminCatalog'));
+const AdminDeliverySettings = lazy(() => import('./pages/AdminDeliverySettings'));
+const AdminCourierSettings = lazy(() => import('./pages/AdminCourierSettings'));
+const AdminGallery = lazy(() => import('./pages/AdminGallery'));
+const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
+const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
+const loadAdminComponents = () => import('./components/AdminComponents');
+const loadStoreComponents = () => import('./components/StoreComponents');
+const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminSidebar })));
+const AdminHeader = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminHeader })));
+const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: module.LoginModal })));
+const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
 
 // Wrapper layout for Admin pages
 interface AdminLayoutProps {
@@ -48,7 +54,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans text-slate-800">\
+    <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
       <AdminSidebar 
         activePage={highlightPage} 
         onNavigate={onNavigate} 
@@ -82,6 +88,13 @@ const hexToRgb = (hex: string) => {
 };
 
 const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
+
+const SuspenseFallback = () => (
+  <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
+    <LifeLine color="#32cd32" size="medium" text="" textColor="#00ff0e" />
+    <p className="font-medium animate-pulse">Welcome in Gadgetshob Admin</p>
+  </div>
+);
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -422,80 +435,84 @@ const App = () => {
   if (isLoading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
-        <Loader2 size={48} className="animate-spin text-purple-600" />
-        <p className="font-medium animate-pulse">Loading Application Data...</p>
+        {/* <Loader2 size={48} className="animate-spin text-purple-600" /> */}
+<LifeLine color="#32cd32" size="medium" text="" textColor="#00ff0e" />
+      
+        <p className="font-medium animate-pulse">Overseas Products.</p>
       </div>
     );
   }
 
   return (
-    <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
-      {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
+    <Suspense fallback={<SuspenseFallback />}>
+      <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
+        {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
 
-      {user?.role === 'admin' && (
-        <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
-          <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
-            {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
-            <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
-          </button>
-        </div>
-      )}
+        {user?.role === 'admin' && (
+          <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
+            <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
+              {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
+              <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
+            </button>
+          </div>
+        )}
 
-      {currentView === 'admin' ? (
-        <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout}>
-          {adminSection === 'dashboard' ? <AdminDashboard orders={orders} /> :
-           adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
-           adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
-           adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
-           adminSection === 'gallery' ? <AdminGallery /> :
-           adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
-           adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
-           adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
-           adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
-           adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
-           <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
-          }
-        </AdminLayout>
-      ) : (
-        <>
-          {currentView === 'store' && (
-            <>
-              <StoreHome products={products} orders={orders} onProductClick={handleProductClick} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />
-              <MobileBottomNav 
-                onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
-                onCartClick={() => {}} // Placeholder
-                onAccountClick={() => user ? setCurrentView('profile') : setIsLoginOpen(true)}
-                cartCount={0}
-                websiteConfig={websiteConfig}
+        {currentView === 'admin' ? (
+          <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout}>
+            {adminSection === 'dashboard' ? <AdminDashboard orders={orders} /> :
+             adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
+             adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
+             adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
+             adminSection === 'gallery' ? <AdminGallery /> :
+             adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
+             adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
+             adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
+             adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
+             adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
+             <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
+            }
+          </AdminLayout>
+        ) : (
+          <>
+            {currentView === 'store' && (
+              <>
+                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />
+                <MobileBottomNav 
+                  onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
+                  onCartClick={() => {}} // Placeholder
+                  onAccountClick={() => user ? setCurrentView('profile') : setIsLoginOpen(true)}
+                  cartCount={0}
+                  websiteConfig={websiteConfig}
+                />
+              </>
+            )}
+            {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+            {currentView === 'checkout' && selectedProduct && <StoreCheckout product={selectedProduct} quantity={checkoutQuantity} variant={selectedVariant || ensureVariantSelection(selectedProduct)} onBack={() => setCurrentView('detail')} onConfirmOrder={handlePlaceOrder} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+            {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+            {currentView === 'profile' && user && (
+              <>
+                <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} />
+                <MobileBottomNav 
+                  onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
+                  onCartClick={() => {}} // Placeholder
+                  onAccountClick={() => {}} // Already on profile
+                  cartCount={0}
+                  websiteConfig={websiteConfig}
+                />
+              </>
+            )}
+            {currentView === 'landing_preview' && selectedLandingPage && (
+              <LandingPagePreview 
+                page={selectedLandingPage}
+                product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}
+                onBack={handleCloseLandingPreview}
+                onSubmitLandingOrder={handleLandingOrderSubmit}
               />
-            </>
-          )}
-          {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
-          {currentView === 'checkout' && selectedProduct && <StoreCheckout product={selectedProduct} quantity={checkoutQuantity} variant={selectedVariant || ensureVariantSelection(selectedProduct)} onBack={() => setCurrentView('detail')} onConfirmOrder={handlePlaceOrder} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
-          {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
-          {currentView === 'profile' && user && (
-            <>
-              <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} />
-              <MobileBottomNav 
-                onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
-                onCartClick={() => {}} // Placeholder
-                onAccountClick={() => {}} // Already on profile
-                cartCount={0}
-                websiteConfig={websiteConfig}
-              />
-            </>
-          )}
-          {currentView === 'landing_preview' && selectedLandingPage && (
-            <LandingPagePreview 
-              page={selectedLandingPage}
-              product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}
-              onBack={handleCloseLandingPreview}
-              onSubmitLandingOrder={handleLandingOrderSubmit}
-            />
-          )}
-        </>
-      )}
-    </div>
+            )}
+          </>
+        )}
+      </div>
+  </Suspense>
   );
 };
 

@@ -8,7 +8,12 @@ import { REVENUE_DATA, CATEGORY_DATA } from '../constants';
 import { Order } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = [
+  'rgb(var(--color-primary-rgb))',
+  'rgba(var(--color-secondary-rgb), 0.9)',
+  'rgba(var(--color-primary-rgb), 0.75)',
+  'rgba(var(--color-secondary-rgb), 0.6)'
+];
 
 const AdminDashboard = ({ orders }: { orders: Order[] }) => {
   // Calculate dynamic stats based on props
@@ -27,14 +32,14 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
       
       {/* Top Stats Grid - Row 1 */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        <DashboardStatCard title="Today Orders" value={Math.floor(totalOrders / 5)} icon={<ShoppingBag />} colorClass="pink" />
-        <DashboardStatCard title="Courier Orders" value={courierOrders} icon={<Truck />} colorClass="purple" />
-        <DashboardStatCard title="Confirmed Orders" value={confirmedOrders} icon={<CheckCircle />} colorClass="green" />
-        <DashboardStatCard title="Pending Orders" value={pendingOrders} icon={<Clock />} colorClass="orange" />
-        <DashboardStatCard title="Hold Orders" value="5" icon={<PauseCircle />} colorClass="red" />
-        <DashboardStatCard title="Cancelled Orders" value={cancelledOrders} icon={<XCircle />} colorClass="cyan" />
-        <DashboardStatCard title="Delivered Orders" value={deliveredOrders} icon={<PackageCheck />} colorClass="teal" />
-        <DashboardStatCard title="Return Orders" value="8" icon={<ArchiveRestore />} colorClass="blue" />
+        <DashboardStatCard title="Today Orders" value={Math.floor(totalOrders / 5)} icon={<ShoppingBag />} colorClass="secondary" />
+        <DashboardStatCard title="Courier Orders" value={courierOrders} icon={<Truck />} colorClass="primary" />
+        <DashboardStatCard title="Confirmed Orders" value={confirmedOrders} icon={<CheckCircle />} colorClass="primary" />
+        <DashboardStatCard title="Pending Orders" value={pendingOrders} icon={<Clock />} colorClass="secondary" />
+        <DashboardStatCard title="Hold Orders" value="5" icon={<PauseCircle />} colorClass="secondary-strong" />
+        <DashboardStatCard title="Cancelled Orders" value={cancelledOrders} icon={<XCircle />} colorClass="secondary" />
+        <DashboardStatCard title="Delivered Orders" value={deliveredOrders} icon={<PackageCheck />} colorClass="primary-strong" />
+        <DashboardStatCard title="Return Orders" value="8" icon={<ArchiveRestore />} colorClass="primary" />
       </div>
 
       {/* Summary Big Cards - Row 2 */}
@@ -54,13 +59,13 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
                  <LayoutGrid size={150} />
              </div>
          </div>
-         <div className="bg-indigo-50 rounded-2xl p-6 flex justify-between items-center border border-indigo-100 shadow-sm relative overflow-hidden">
+         <div className="bg-green-50 rounded-2xl p-6 flex justify-between items-center border border-green-100 shadow-sm relative overflow-hidden">
              <div className="z-10">
                  <p className="text-gray-600 font-semibold mb-2">Total Products</p>
                  <h2 className="text-4xl font-extrabold text-gray-800">19</h2>
                  <p className="text-sm text-gray-500 mt-2">In stock</p>
              </div>
-             <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center text-indigo-500 shadow-lg z-10">
+             <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center text-green-600 shadow-lg z-10">
                  <Layers size={32} />
              </div>
              <div className="absolute left-0 bottom-0 opacity-5 transform translate-y-4 -translate-x-4">
@@ -76,9 +81,9 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-gray-800">Revenue Overview</h3>
             <div className="flex gap-2">
-                <button className="px-3 py-1 text-xs font-medium border rounded hover:bg-gray-50 transition">Yearly</button>
-                <button className="px-3 py-1 text-xs font-medium border rounded hover:bg-gray-50 transition">Monthly</button>
-                <button className="px-3 py-1 text-xs font-medium bg-gray-900 text-white rounded shadow-sm">Last Week</button>
+              <button className="px-3 py-1 text-xs font-medium border border-gray-200 rounded hover:bg-gray-50 transition">Yearly</button>
+              <button className="px-3 py-1 text-xs font-medium border border-gray-200 rounded hover:bg-gray-50 transition">Monthly</button>
+              <button className="px-3 py-1 text-xs font-medium bg-green-600 text-white rounded border border-green-600 shadow-sm">Last Week</button>
             </div>
           </div>
           <div className="h-72 w-full">
@@ -137,7 +142,7 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100 flex justify-between items-center">
                   <h3 className="font-bold text-gray-800">Recent Orders</h3>
-                  <button className="text-xs font-medium text-red-500 border border-red-200 px-3 py-1.5 rounded hover:bg-red-50 transition">View All</button>
+                  <button className="text-xs font-medium text-orange-600 border border-orange-200 px-3 py-1.5 rounded hover:bg-orange-50 transition">View All</button>
               </div>
               <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
@@ -159,12 +164,12 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
                                   </td>
                                   <td className="px-5 py-4 text-gray-600">৳ {order.amount.toLocaleString()}</td>
                                   <td className="px-5 py-4">
-                                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
                                           order.status === 'Pending' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                          order.status === 'Confirmed' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                          order.status === 'Confirmed' ? 'bg-green-50 text-green-600 border-green-100' :
                                           order.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : 
-                                          order.status === 'Shipped' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-gray-50 border-gray-200'
-                                      }`}>
+                                          order.status === 'Shipped' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 text-gray-500 border-gray-200'
+                                        }`}>
                                           {order.status}
                                       </span>
                                   </td>
@@ -179,7 +184,7 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-gray-100 flex justify-between items-center">
                   <h3 className="font-bold text-gray-800">Top Products</h3>
-                  <button className="text-xs font-medium text-red-500 border border-red-200 px-3 py-1.5 rounded hover:bg-red-50 transition">December</button>
+                  <button className="text-xs font-medium text-orange-600 border border-orange-200 px-3 py-1.5 rounded hover:bg-orange-50 transition">December</button>
               </div>
               <div className="divide-y divide-gray-100">
                   <div className="p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer">

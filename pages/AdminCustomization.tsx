@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem } from '../types';
+import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink } from '../types';
 
 interface AdminCustomizationProps {
   logo: string | null;
@@ -38,6 +38,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     emails: [],
     phones: [],
     socialLinks: [],
+    footerQuickLinks: [],
+    footerUsefulLinks: [],
     showMobileHeaderCategory: true,
     showNewsSlider: true,
     headerSliderText: '',
@@ -53,7 +55,12 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   // Initialize config from props
   useEffect(() => {
     if (websiteConfig) {
-      setConfig(websiteConfig);
+            setConfig(prev => ({
+                ...prev,
+                ...websiteConfig,
+                footerQuickLinks: websiteConfig.footerQuickLinks || [],
+                footerUsefulLinks: websiteConfig.footerUsefulLinks || []
+            }));
     }
   }, [websiteConfig]);
 
@@ -61,14 +68,36 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const faviconInputRef = useRef<HTMLInputElement>(null);
   
   // Theme State
-  const [colors, setColors] = useState({
-    primary: '#22c55e',
-    secondary: '#ec4899',
-    tertiary: '#9333ea'
-  });
+    const defaultThemeColors = {
+        primary: '#22c55e',
+        secondary: '#ec4899',
+        tertiary: '#9333ea'
+    };
+
+    const [colors, setColors] = useState({ ...defaultThemeColors });
+    const [colorDrafts, setColorDrafts] = useState({ ...defaultThemeColors });
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Carousel State
+    type ThemeColorKey = 'primary' | 'secondary' | 'tertiary';
+
+    const normalizeHex = (value: string) => {
+        const stripped = value.trim().replace(/[^0-9a-fA-F]/g, '');
+        if (stripped.length === 3) {
+            return `#${stripped.split('').map(char => `${char}${char}`).join('').toUpperCase()}`;
+        }
+        if (stripped.length === 6) {
+            return `#${stripped.toUpperCase()}`;
+        }
+        return '';
+    };
+
+    const updateThemeColor = (key: ThemeColorKey, value: string) => {
+        const normalized = normalizeHex(value);
+        if (!normalized) return;
+        setColors(prev => ({ ...prev, [key]: normalized }));
+    };
+
+    // Carousel State
   const [carouselFilter, setCarouselFilter] = useState<'All' | 'Publish' | 'Draft' | 'Trash'>('All');
   const [carouselSearch, setCarouselSearch] = useState('');
   const [isCarouselModalOpen, setIsCarouselModalOpen] = useState(false);
@@ -88,6 +117,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       setIsDarkMode(themeConfig.darkMode);
     }
   }, [themeConfig]);
+
+    useEffect(() => {
+        setColorDrafts(colors);
+    }, [colors]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel') => {
     const file = e.target.files?.[0];
@@ -148,6 +181,37 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const removeSocial = (index: number) => {
     setConfig(prev => ({ ...prev, socialLinks: prev.socialLinks.filter((_, i) => i !== index) }));
   };
+
+    type FooterLinkField = 'footerQuickLinks' | 'footerUsefulLinks';
+
+    const themeColorGuides: Array<{ key: ThemeColorKey; label: string; helper: string }> = [
+        { key: 'primary', label: 'Primary Accent', helper: 'Sidebar active state, admin CTAs, storefront hero buttons' },
+        { key: 'secondary', label: 'Secondary Accent', helper: 'Warning chips, checkout highlights, floating badges' },
+        { key: 'tertiary', label: 'Depth Accent', helper: 'Charts, outlines, subtle gradients' }
+    ];
+
+    const addFooterLink = (field: FooterLinkField) => {
+        setConfig(prev => {
+            const nextLinks = [
+                ...(((prev[field] as FooterLink[]) || [])),
+                { id: Date.now().toString(), label: '', url: '' }
+            ];
+            return { ...prev, [field]: nextLinks };
+        });
+    };
+
+    const updateFooterLink = (field: FooterLinkField, index: number, key: keyof FooterLink, value: string) => {
+        const current = [...(((config[field] as FooterLink[]) || []))];
+        current[index] = { ...current[index], [key]: value };
+        setConfig(prev => ({ ...prev, [field]: current }));
+    };
+
+    const removeFooterLink = (field: FooterLinkField, index: number) => {
+        setConfig(prev => ({
+            ...prev,
+            [field]: (((prev[field] as FooterLink[]) || []).filter((_, i) => i !== index))
+        }));
+    };
 
   const handleSave = () => {
     // Save Website Config
@@ -225,11 +289,15 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   });
   
   const socialOptions = ['Facebook', 'Instagram', 'YouTube', 'Daraz', 'Twitter', 'LinkedIn'];
+    const footerLinkSections: { field: FooterLinkField; title: string; helper: string }[] = [
+        { field: 'footerQuickLinks', title: 'Footer Quick Links', helper: 'Shown in the Quick Links column of Footer 3' },
+        { field: 'footerUsefulLinks', title: 'Footer Useful Links', helper: 'Shown in the Useful Links column of Footer 3' }
+    ];
 
   const TabButton = ({ id, label, icon }: { id: string, label: string, icon?: React.ReactNode }) => (
       <button 
         onClick={() => setActiveTab(id)}
-        className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition whitespace-nowrap ${activeTab === id ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition whitespace-nowrap ${activeTab === id ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
       >
         {icon} {label}
       </button>
@@ -246,7 +314,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         </div>
         <button 
            onClick={handleSave}
-           className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
+           className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition shadow-lg shadow-green-200"
         >
            <Save size={18} /> Save Changes
         </button>
@@ -273,7 +341,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                                 onClick={() => setCarouselFilter(status as any)}
                                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
                                     carouselFilter === status 
-                                    ? 'bg-white text-purple-600 shadow-sm' 
+                                    ? 'bg-white text-green-600 shadow-sm' 
                                     : 'text-gray-500 hover:text-gray-700'
                                 }`}
                             >
@@ -288,7 +356,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                             <input 
                                 type="text" 
                                 placeholder="Search" 
-                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
                                 value={carouselSearch}
                                 onChange={(e) => setCarouselSearch(e.target.value)}
                             />
@@ -296,7 +364,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         </div>
                         <button 
                             onClick={() => openCarouselModal()} 
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-purple-700 whitespace-nowrap"
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-green-700 whitespace-nowrap"
                         >
                             <Plus size={16}/> Add Carousel
                         </button>
@@ -305,9 +373,9 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 
                 <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-purple-50 text-gray-700 font-semibold text-xs uppercase border-b border-gray-200">
+                        <thead className="bg-green-50 text-gray-700 font-semibold text-xs uppercase border-b border-gray-200">
                             <tr>
-                                <th className="px-4 py-3 w-10"><input type="checkbox" className="rounded text-purple-600 focus:ring-purple-500"/></th>
+                                <th className="px-4 py-3 w-10"><input type="checkbox" className="rounded text-green-600 focus:ring-green-500"/></th>
                                 <th className="px-4 py-3">Image</th>
                                 <th className="px-4 py-3">Name</th>
                                 <th className="px-4 py-3">Url</th>
@@ -320,7 +388,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         <tbody className="divide-y divide-gray-100">
                             {filteredCarouselItems.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50 transition group">
-                                    <td className="px-4 py-3"><input type="checkbox" className="rounded text-purple-600 focus:ring-purple-500"/></td>
+                                    <td className="px-4 py-3"><input type="checkbox" className="rounded text-green-600 focus:ring-green-500"/></td>
                                     <td className="px-4 py-3">
                                         <div className="w-16 h-10 bg-gray-100 rounded border border-gray-200 overflow-hidden relative">
                                             {item.image ? (
@@ -387,7 +455,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                             <p className="text-sm font-bold text-gray-700">Website Logo (Horizontal 256x56px)</p>
                             {logo && <img src={logo} alt="Logo" className="h-10 object-contain my-2"/>}
                             <div className="flex gap-2">
-                                <button onClick={() => logoInputRef.current?.click()} className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
+                                <button onClick={() => logoInputRef.current?.click()} className="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
                                 {logo && <button onClick={() => handleRemoveImage('logo')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}
                             </div>
                             <input type="file" ref={logoInputRef} onChange={(e) => handleImageUpload(e, 'logo')} className="hidden" accept="image/*" />
@@ -401,7 +469,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                             <p className="text-sm font-bold text-gray-700">Favicon (32x32px)</p>
                             {config.favicon && <img src={config.favicon} alt="Favicon" className="w-8 h-8 object-contain my-2"/>}
                              <div className="flex gap-2">
-                                <button onClick={() => faviconInputRef.current?.click()} className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
+                                <button onClick={() => faviconInputRef.current?.click()} className="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
                                 {config.favicon && <button onClick={() => handleRemoveImage('favicon')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}
                             </div>
                             <input type="file" ref={faviconInputRef} onChange={(e) => handleImageUpload(e, 'favicon')} className="hidden" accept="image/*" />
@@ -411,17 +479,17 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                      <div className="space-y-3">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Website Name*</label>
-                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500" 
+                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
                                 value={config.websiteName} onChange={(e) => setConfig({...config, websiteName: e.target.value})} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
-                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500" 
+                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
                                 value={config.shortDescription} onChange={(e) => setConfig({...config, shortDescription: e.target.value})} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Whatsapp Number</label>
-                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-purple-500" 
+                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
                                 value={config.whatsappNumber} onChange={(e) => setConfig({...config, whatsappNumber: e.target.value})} />
                         </div>
                      </div>
@@ -430,7 +498,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                  <div className="space-y-6">
                      {/* Dynamic Addresses */}
                      <div className="space-y-2">
-                         <button onClick={() => addArrayItem('addresses')} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                         <button onClick={() => addArrayItem('addresses')} className="bg-green-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
                              <Plus size={16}/> Add New Address
                          </button>
                          {config.addresses.map((addr, idx) => (
@@ -443,7 +511,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
                      {/* Dynamic Emails */}
                      <div className="space-y-2">
-                         <button onClick={() => addArrayItem('emails')} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                         <button onClick={() => addArrayItem('emails')} className="bg-green-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
                              <Plus size={16}/> Add New Email
                          </button>
                          {config.emails.map((email, idx) => (
@@ -456,7 +524,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
                      {/* Dynamic Phones */}
                      <div className="space-y-2">
-                         <button onClick={() => addArrayItem('phones')} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                         <button onClick={() => addArrayItem('phones')} className="bg-green-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
                              <Plus size={16}/> Add New Phone No
                          </button>
                          {config.phones.map((phone, idx) => (
@@ -469,7 +537,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
                      {/* Dynamic Social Links */}
                      <div className="space-y-2">
-                         <button onClick={addSocial} className="bg-purple-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
+                         <button onClick={addSocial} className="bg-green-600 text-white px-4 py-2 rounded font-bold text-sm w-full flex items-center justify-center gap-2">
                              <Plus size={16}/> Add New Social Link
                          </button>
                          {config.socialLinks.map((link, idx) => (
@@ -484,14 +552,61 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                              </div>
                          ))}
                      </div>
+
+                     {/* Footer Link Groups */}
+                     <div className="space-y-4">
+                        {footerLinkSections.map(section => (
+                            <div key={section.field} className="border border-gray-200 rounded-xl p-4 space-y-3 bg-white/60">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-800">{section.title}</p>
+                                        <p className="text-xs text-gray-500">{section.helper}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => addFooterLink(section.field)}
+                                        className="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold flex items-center gap-1 self-start"
+                                    >
+                                        <Plus size={14}/> Add Link
+                                    </button>
+                                </div>
+                                {((config[section.field] as FooterLink[]) || []).length === 0 && (
+                                    <p className="text-xs text-gray-400">No links added yet.</p>
+                                )}
+                                {((config[section.field] as FooterLink[]) || []).map((link, idx) => (
+                                    <div key={link.id} className="grid grid-cols-1 md:grid-cols-[1fr,1fr,auto] gap-2">
+                                        <input
+                                            type="text"
+                                            value={link.label}
+                                            onChange={(e) => updateFooterLink(section.field, idx, 'label', e.target.value)}
+                                            className="px-3 py-2 border rounded-lg text-sm"
+                                            placeholder="Label"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={link.url}
+                                            onChange={(e) => updateFooterLink(section.field, idx, 'url', e.target.value)}
+                                            className="px-3 py-2 border rounded-lg text-sm"
+                                            placeholder="https://"
+                                        />
+                                        <button
+                                            onClick={() => removeFooterLink(section.field, idx)}
+                                            className="bg-red-500 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                     </div>
                      
                      <div className="space-y-3 pt-4 border-t">
                         <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.showMobileHeaderCategory} onChange={e => setConfig({...config, showMobileHeaderCategory: e.target.checked})}/>
+                            <input type="checkbox" className="w-5 h-5 text-green-600 rounded" checked={config.showMobileHeaderCategory} onChange={e => setConfig({...config, showMobileHeaderCategory: e.target.checked})}/>
                             <span className="text-sm font-medium">isShowMobileHeaderCategoryMenu</span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.showNewsSlider} onChange={e => setConfig({...config, showNewsSlider: e.target.checked})}/>
+                            <input type="checkbox" className="w-5 h-5 text-green-600 rounded" checked={config.showNewsSlider} onChange={e => setConfig({...config, showNewsSlider: e.target.checked})}/>
                             <span className="text-sm font-medium">Is Show News Slider</span>
                         </label>
                         {config.showNewsSlider && (
@@ -501,15 +616,15 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                              </div>
                         )}
                         <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.hideCopyright} onChange={e => setConfig({...config, hideCopyright: e.target.checked})}/>
+                            <input type="checkbox" className="w-5 h-5 text-green-600 rounded" checked={config.hideCopyright} onChange={e => setConfig({...config, hideCopyright: e.target.checked})}/>
                             <span className="text-sm font-medium">Hide Copyright Section in Footer</span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.hideCopyrightText} onChange={e => setConfig({...config, hideCopyrightText: e.target.checked})}/>
+                            <input type="checkbox" className="w-5 h-5 text-green-600 rounded" checked={config.hideCopyrightText} onChange={e => setConfig({...config, hideCopyrightText: e.target.checked})}/>
                             <span className="text-sm font-medium">Hide Copyright Text</span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="w-5 h-5 text-purple-600 rounded" checked={config.showPoweredBy} onChange={e => setConfig({...config, showPoweredBy: e.target.checked})}/>
+                            <input type="checkbox" className="w-5 h-5 text-green-600 rounded" checked={config.showPoweredBy} onChange={e => setConfig({...config, showPoweredBy: e.target.checked})}/>
                             <span className="text-sm font-medium">Powered by Saleecom (Show in footer)</span>
                         </label>
                         <div className="pt-2">
@@ -543,13 +658,13 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                                         <input 
                                           type="radio" 
                                           name={section.title} 
-                                          className="w-5 h-5 text-purple-600"
+                                          className="w-5 h-5 text-green-600"
                                           checked={!config[section.key as keyof WebsiteConfig]}
                                           onChange={() => setConfig({...config, [section.key]: ''})}
                                         />
                                         <span className="font-bold text-gray-700">None</span>
                                     </div>
-                                    <button className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1">
+                                    <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1">
                                         <Eye size={14} /> View demo
                                     </button>
                                 </div>
@@ -565,13 +680,13 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                                             <input 
                                               type="radio" 
                                               name={section.title}
-                                              className="w-5 h-5 text-purple-600"
+                                              className="w-5 h-5 text-green-600"
                                               checked={currentVal === val}
                                               onChange={() => setConfig({...config, [section.key]: val})}
                                             />
                                             <span className="font-bold text-gray-700">{displayTitle}</span>
                                         </div>
-                                        <button className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1">
+                                        <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1">
                                             <Eye size={14} /> View demo
                                         </button>
                                     </div>
@@ -585,24 +700,36 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
         {/* THEME COLORS TAB */}
         {activeTab === 'theme_colors' && (
-            <div className="space-y-8 max-w-xl">
+            <div className="space-y-8 max-w-2xl">
                  <div>
                      <h3 className="font-bold text-xl mb-4">Theme Colors</h3>
-                     <p className="text-gray-500 text-sm mb-6">Enter primary, secondary and tertiary colors</p>
+                     <p className="text-gray-500 text-sm mb-6">Sync storefront and admin palette by choosing two core accents and one depth color.</p>
                      
                      <div className="space-y-4">
-                         <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 rounded border shadow-sm" style={{backgroundColor: colors.primary}}></div>
-                             <input type="text" value={colors.primary} onChange={(e) => setColors({...colors, primary: e.target.value})} className="flex-1 px-4 py-2 border rounded-lg uppercase"/>
-                         </div>
-                         <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 rounded border shadow-sm" style={{backgroundColor: colors.secondary}}></div>
-                             <input type="text" value={colors.secondary} onChange={(e) => setColors({...colors, secondary: e.target.value})} className="flex-1 px-4 py-2 border rounded-lg uppercase"/>
-                         </div>
-                         <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 rounded border shadow-sm" style={{backgroundColor: colors.tertiary}}></div>
-                             <input type="text" value={colors.tertiary} onChange={(e) => setColors({...colors, tertiary: e.target.value})} className="flex-1 px-4 py-2 border rounded-lg uppercase"/>
-                         </div>
+                         {themeColorGuides.map(field => (
+                             <div key={field.key} className="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl bg-white/70 shadow-sm">
+                                 <div className="flex flex-col items-center gap-2">
+                                     <input
+                                         type="color"
+                                         value={colors[field.key]}
+                                         onChange={(e) => updateThemeColor(field.key, e.target.value)}
+                                         className="w-14 h-14 rounded-full border border-white shadow focus:outline-none cursor-pointer"
+                                     />
+                                     <span className="text-[10px] uppercase tracking-[0.25em] text-gray-400">Pick</span>
+                                 </div>
+                                 <div className="flex-1">
+                                     <p className="text-sm font-semibold text-gray-800">{field.label}</p>
+                                     <p className="text-xs text-gray-500 mb-2">{field.helper}</p>
+                                     <input
+                                         type="text"
+                                         value={colorDrafts[field.key]}
+                                         onChange={(e) => setColorDrafts(prev => ({ ...prev, [field.key]: e.target.value }))}
+                                         onBlur={() => updateThemeColor(field.key, colorDrafts[field.key])}
+                                         className="w-full px-3 py-2 border rounded-lg font-mono uppercase focus:outline-none focus:ring-1 focus:ring-green-500"
+                                     />
+                                 </div>
+                             </div>
+                         ))}
                      </div>
                  </div>
 
@@ -612,7 +739,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         type="text" 
                         value={config.searchHints || ''} 
                         onChange={(e) => setConfig({...config, searchHints: e.target.value})}
-                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
                         placeholder="gadget item, gift, educational toy..."
                      />
                  </div>
@@ -621,12 +748,12 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                      <h3 className="font-bold text-xl mb-4">Order Language</h3>
                      <div className="space-y-3">
                          <label className="flex items-center gap-3 border p-4 rounded-lg cursor-pointer hover:bg-gray-50">
-                             <input type="radio" name="lang" className="w-5 h-5 text-purple-600" 
+                             <input type="radio" name="lang" className="w-5 h-5 text-green-600" 
                                checked={config.orderLanguage === 'English'} onChange={() => setConfig({...config, orderLanguage: 'English'})}/>
                              <span className="font-bold">English</span>
                          </label>
                          <label className="flex items-center gap-3 border p-4 rounded-lg cursor-pointer hover:bg-gray-50">
-                             <input type="radio" name="lang" className="w-5 h-5 text-purple-600" 
+                             <input type="radio" name="lang" className="w-5 h-5 text-green-600" 
                                checked={config.orderLanguage === 'Bangla'} onChange={() => setConfig({...config, orderLanguage: 'Bangla'})}/>
                              <span className="font-bold">Bangla</span>
                          </label>
@@ -695,7 +822,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                       </div>
                       <div className="pt-4 flex justify-end gap-3">
                           <button type="button" onClick={() => setIsCarouselModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Cancel</button>
-                          <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700">Save Carousel</button>
+                          <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700">Save Carousel</button>
                       </div>
                   </form>
               </div>

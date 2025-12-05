@@ -91,7 +91,7 @@ const StoreCheckout = ({
           {/* Left Column: Delivery & Payment */}
           <div className="flex-1 space-y-8">
             {/* Delivery Address */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="store-card p-6 rounded-xl">
               <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Delivery Address</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -170,7 +170,7 @@ const StoreCheckout = ({
                      <span className="font-bold text-gray-800">Cash on Delivery</span>
                   </div>
                   {/* Placeholder for other payment methods */}
-                  <div className="border border-gray-200 bg-white rounded-lg p-4 flex flex-col items-center justify-center cursor-not-allowed opacity-50 h-32">
+                  <div className="border border-white/60 bg-white/70 rounded-lg p-4 flex flex-col items-center justify-center cursor-not-allowed opacity-50 h-32 shadow-inner">
                      <span className="font-bold text-gray-400">Online Payment</span>
                      <span className="text-xs text-gray-400">(Coming Soon)</span>
                   </div>
@@ -180,7 +180,7 @@ const StoreCheckout = ({
 
           {/* Right Column: Order Summary */}
           <div className="w-full lg:w-96">
-             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-24">
+             <div className="store-card p-6 rounded-xl sticky top-24">
                 <h2 className="text-lg font-bold text-gray-800 mb-6">Order Items ({quantity} Items)</h2>
                 
                 {/* Item Row */}
@@ -249,7 +249,7 @@ const StoreCheckout = ({
                    </button>
                    <button 
                      onClick={handleSubmit}
-                     className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-orange-200 transition transform active:scale-95 text-sm"
+                     className="btn-order px-6 py-3 text-sm flex items-center justify-center"
                    >
                      Confirm Order
                    </button>

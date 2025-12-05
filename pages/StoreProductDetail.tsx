@@ -148,7 +148,7 @@ const StoreProductDetail = ({
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0">
       <StoreHeader 
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
@@ -180,7 +180,7 @@ const StoreProductDetail = ({
           {/* Main Content: Product Details */}
           <div className="flex-1">
             {/* Product Hero Block */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col md:flex-row gap-8 shadow-sm">
+            <div className="store-card rounded-xl p-6 flex flex-col md:flex-row gap-8">
               
               {/* Image Section */}
               <div className="w-full md:w-1/2 flex flex-col gap-4">
@@ -193,7 +193,7 @@ const StoreProductDetail = ({
                     )}
                     <button 
                       onClick={onToggleWishlist}
-                      className={`absolute top-4 right-4 p-2 rounded-full shadow-md transition ${isWishlisted ? 'bg-pink-50 text-pink-500' : 'bg-white text-gray-400 hover:text-pink-500'}`}
+                      className={`absolute top-4 right-4 btn-wishlist ${isWishlisted ? 'btn-wishlist--active' : ''}`}
                     >
                       <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
                     </button>
@@ -303,14 +303,14 @@ const StoreProductDetail = ({
                     <button 
                       onClick={handleAddToCart}
                       disabled={isOutOfStock}
-                      className={`flex-1 py-3 rounded-lg font-bold shadow-lg shadow-orange-200 flex items-center justify-center gap-2 transition transform active:scale-95 ${isOutOfStock ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}
+                      className={`flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition transform active:scale-95 ${isOutOfStock ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'btn-cart'}`}
                     >
                        <ShoppingCart size={20} /> Add to cart
                     </button>
                     <button 
                       onClick={handleBuyNow}
                       disabled={isOutOfStock}
-                      className={`flex-1 py-3 rounded-lg font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition transform active:scale-95 ${isOutOfStock ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'bg-green-500 hover:bg-green-600 text-white'}`}
+                      className={`flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition transform active:scale-95 ${isOutOfStock ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'btn-order'}`}
                     >
                        <ShoppingBag size={20} /> Buy Now
                     </button>
@@ -330,8 +330,8 @@ const StoreProductDetail = ({
             </div>
 
             {/* Tabs Section */}
-            <div className="mt-8 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-               <div className="flex border-b border-gray-200">
+            <div className="mt-8 store-card rounded-xl overflow-hidden">
+              <div className="flex border-b border-white/30">
                   <button 
                     onClick={() => setActiveTab('description')}
                     className={`px-8 py-4 font-bold text-sm transition ${activeTab === 'description' ? 'text-orange-500 border-b-2 border-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-800'}`}
@@ -365,7 +365,7 @@ const StoreProductDetail = ({
           <aside className="w-full lg:w-80 space-y-8">
             
             {/* Related Products Widget */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="store-card rounded-xl p-5">
                <h3 className="font-bold text-lg text-gray-800 mb-4 pb-2 border-b border-gray-100">Related Products</h3>
                <div className="space-y-4">
                   {relatedProducts.map(p => (
@@ -390,7 +390,7 @@ const StoreProductDetail = ({
             </div>
 
             {/* Category Widget */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="store-card rounded-xl p-5">
                <h3 className="font-bold text-lg text-gray-800 mb-4 pb-2 border-b border-gray-100">Category</h3>
                <div className="space-y-2">
                  {CATEGORIES.slice(0, 6).map((cat, idx) => (
@@ -410,8 +410,8 @@ const StoreProductDetail = ({
       </main>
       
       {/* Mobile Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 md:hidden z-50 flex gap-3 shadow-lg">
-         <button onClick={onBack} className="p-3 bg-gray-100 rounded-lg text-gray-600">
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-sky-50 via-white to-orange-50 border-t border-white/80 p-3 md:hidden z-50 flex gap-3 shadow-lg backdrop-blur">
+        <button onClick={onBack} className="p-3 rounded-lg text-gray-600 border border-white/70 bg-white/70 shadow-sm">
             <ArrowLeft size={24} />
          </button>
          <button 

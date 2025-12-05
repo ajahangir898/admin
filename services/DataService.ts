@@ -156,6 +156,16 @@ class DataServiceImpl {
         { id: '1', platform: 'Facebook', url: 'https://facebook.com' },
         { id: '2', platform: 'Instagram', url: 'https://instagram.com' }
       ],
+      footerQuickLinks: [
+        { id: 'quick-1', label: 'About Us', url: '#' },
+        { id: 'quick-2', label: 'Contact', url: '#' },
+        { id: 'quick-3', label: 'Terms & Conditions', url: '#' }
+      ],
+      footerUsefulLinks: [
+        { id: 'useful-1', label: 'Returns & Refunds', url: '#' },
+        { id: 'useful-2', label: 'Privacy Policy', url: '#' },
+        { id: 'useful-3', label: 'FAQ', url: '#' }
+      ],
       showMobileHeaderCategory: true,
       showNewsSlider: true,
       headerSliderText: 'Easy return policy and complete cash on delivery, ease of shopping!',

@@ -203,7 +203,7 @@ const StoreHome = ({
                  <span className="bg-white/20 text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block backdrop-blur-sm border border-white/10">NEW ARRIVAL</span>
                  <h2 className="text-3xl md:text-6xl font-black mb-4 tracking-tight leading-tight">OMG FASHION</h2>
                  <p className="mb-8 text-purple-100 text-sm md:text-lg font-medium">Get up to 70% off on all fashion accessories. Limited time offer.</p>
-                 <button className="bg-white text-purple-900 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition shadow-xl hover:shadow-2xl transform hover:-translate-y-1">Explore Collection</button>
+                 <button className="btn-order px-8 py-3 rounded-full font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1">Explore Collection</button>
              </div>
              <div className="absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l from-purple-600/80 to-transparent"></div>
              <div className="absolute -right-20 -bottom-40 w-96 h-96 bg-pink-500 rounded-full blur-[120px] opacity-60 animate-pulse"></div>

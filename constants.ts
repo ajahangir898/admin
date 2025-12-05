@@ -1,5 +1,8 @@
 
-import { Product, Order, ChartData, GalleryItem } from './types';
+import { Product, Order, ChartData, GalleryItem, LandingPage, LandingPageTemplate } from './types';
+
+export const DEFAULT_VARIANT_COLOR = 'Default';
+export const DEFAULT_VARIANT_SIZE = 'Standard';
 
 export const CATEGORIES = [
   { name: 'Phones', icon: 'smartphone' },
@@ -13,6 +16,7 @@ export const CATEGORIES = [
 ];
 
 const LOREM_DESC = "Experience premium quality with our latest collection. This product features state-of-the-art technology, ergonomic design for comfort, and durable materials that last. Perfect for daily use or special occasions, it delivers exceptional performance and style. Backed by our standard warranty and customer support.";
+const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 export const PRODUCTS: Product[] = [
   {
@@ -26,7 +30,13 @@ export const PRODUCTS: Product[] = [
     reviews: 120,
     category: 'Charger',
     tags: ['Flash Deals', 'Power'],
-    description: "The Apple 20W USB-C Power Adapter offers fast, efficient charging at home, in the office, or on the go. While the power adapter is compatible with any USB-C–enabled device, Apple recommends pairing it with the iPad Pro and iPad Air for optimal charging performance. You can also pair it with iPhone 8 or later to take advantage of the fast-charging feature."
+    description: "The Apple 20W USB-C Power Adapter offers fast, efficient charging at home, in the office, or on the go. While the power adapter is compatible with any USB-C–enabled device, Apple recommends pairing it with the iPad Pro and iPad Air for optimal charging performance. You can also pair it with iPhone 8 or later to take advantage of the fast-charging feature.",
+    colors: ['White'],
+    variantDefaults: { color: 'White', size: DEFAULT_VARIANT_SIZE },
+    variantStock: [
+      { color: 'White', size: DEFAULT_VARIANT_SIZE, stock: 40 }
+    ],
+    stock: 40
   },
   {
     id: 2,
@@ -39,7 +49,17 @@ export const PRODUCTS: Product[] = [
     reviews: 45,
     category: 'Watches',
     tags: ['Smart', 'Fitness'],
-    description: "Start your everyday wellness journey with Galaxy Watch6. It keeps a watch on your sleep and heart rate, and it's always ready for a workout. The largest screen on a Galaxy Watch yet gives you plenty of room to tap and swipe."
+    description: "Start your everyday wellness journey with Galaxy Watch6. It keeps a watch on your sleep and heart rate, and it's always ready for a workout. The largest screen on a Galaxy Watch yet gives you plenty of room to tap and swipe.",
+    colors: ['Graphite', 'Gold', 'Silver'],
+    sizes: ['40mm', '44mm'],
+    variantDefaults: { color: 'Graphite', size: '44mm' },
+    variantStock: [
+      { color: 'Graphite', size: '44mm', stock: 15 },
+      { color: 'Graphite', size: '40mm', stock: 10 },
+      { color: 'Gold', size: '44mm', stock: 6 },
+      { color: 'Silver', size: '40mm', stock: 8 }
+    ],
+    stock: 39
   },
   {
     id: 3,
@@ -52,7 +72,15 @@ export const PRODUCTS: Product[] = [
     reviews: 89,
     category: 'Gaming',
     tags: ['Audio', 'Pro'],
-    description: "Hear and sound like a pro with the PRO X Gaming Headset. Pro-designed with detachable mic and Blue VO!CE software for professional-sounding voice comms. Featuring next-gen 7.1 surround sound and PRO-G 50 mm drivers for amazingly clear sound imaging."
+    description: "Hear and sound like a pro with the PRO X Gaming Headset. Pro-designed with detachable mic and Blue VO!CE software for professional-sounding voice comms. Featuring next-gen 7.1 surround sound and PRO-G 50 mm drivers for amazingly clear sound imaging.",
+    sizes: ['Small', 'Medium', 'Large'],
+    variantDefaults: { color: DEFAULT_VARIANT_COLOR, size: 'Medium' },
+    variantStock: [
+      { color: DEFAULT_VARIANT_COLOR, size: 'Small', stock: 5 },
+      { color: DEFAULT_VARIANT_COLOR, size: 'Medium', stock: 18 },
+      { color: DEFAULT_VARIANT_COLOR, size: 'Large', stock: 9 }
+    ],
+    stock: 32
   },
   {
     id: 4,
@@ -65,7 +93,16 @@ export const PRODUCTS: Product[] = [
     reviews: 12,
     category: 'Phones',
     tags: ['Flagship', 'Apple'],
-    description: "iPhone 14 Pro Max. Capture incredible detail with a 48MP Main camera. Experience iPhone in a whole new way with Dynamic Island and Always-On display. Crash Detection, a new safety feature, calls for help when you can't."
+    description: "iPhone 14 Pro Max. Capture incredible detail with a 48MP Main camera. Experience iPhone in a whole new way with Dynamic Island and Always-On display. Crash Detection, a new safety feature, calls for help when you can't.",
+    colors: ['Deep Purple', 'Silver', 'Space Black'],
+    sizes: ['128GB', '256GB', '1TB'],
+    variantDefaults: { color: 'Deep Purple', size: '256GB' },
+    variantStock: [
+      { color: 'Deep Purple', size: '256GB', stock: 4 },
+      { color: 'Silver', size: '1TB', stock: 2 },
+      { color: 'Space Black', size: '128GB', stock: 6 }
+    ],
+    stock: 12
   },
 ];
 
@@ -122,3 +159,87 @@ export const GALLERY_IMAGES: GalleryItem[] = [
   { id: 111, title: 'Vip-kem cot combo', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1556228720-1957be83d2bf?w=400', dateAdded: '2025-01-11' },
   { id: 112, title: 'Mega Campaign', category: 'Banners', imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400', dateAdded: '2025-01-12' },
 ];
+
+export const LANDING_PAGE_TEMPLATES: LandingPageTemplate[] = [
+  {
+    id: 'focus-split',
+    name: 'Focused Split Hero',
+    description: 'Two-column hero with sticky checkout and grid-based highlights.',
+    accentColor: '#7c3aed',
+    heroLayout: 'split',
+    featuresLayout: 'grid',
+    buttonShape: 'pill'
+  },
+  {
+    id: 'pulse-center',
+    name: 'Pulse Center Stage',
+    description: 'Centered hero, stacked storytelling blocks, calm gradients.',
+    accentColor: '#f97316',
+    heroLayout: 'center',
+    featuresLayout: 'stacked',
+    buttonShape: 'rounded'
+  }
+];
+
+const firstProduct = PRODUCTS[0];
+
+export const DEFAULT_LANDING_PAGES: LandingPage[] = firstProduct ? [
+  {
+    id: 'lp-ready-1',
+    name: `${firstProduct.name} Instant Page`,
+    mode: 'ready',
+    productId: firstProduct.id,
+    templateId: 'focus-split',
+    status: 'published',
+    urlSlug: `${toSlug(firstProduct.name)}-page`,
+    seo: {
+      metaTitle: `${firstProduct.name} | Buy Online`,
+      metaDescription: firstProduct.description?.slice(0, 140) || 'Instant landing experience.',
+      canonicalUrl: `https://demo.gadgetshob.com/${toSlug(firstProduct.name)}-page`,
+      keywords: ['gadget', 'deal', firstProduct.name]
+    },
+    blocks: [
+      {
+        id: 'hero-1',
+        type: 'hero',
+        title: firstProduct.name,
+        subtitle: 'Fast-charge your day with confidence.',
+        description: firstProduct.description,
+        mediaUrl: firstProduct.image,
+        ctaLabel: 'Checkout in 1 Page',
+        style: { background: '#f5f3ff', layout: 'split', accentColor: '#7c3aed' }
+      },
+      {
+        id: 'features-1',
+        type: 'features',
+        title: 'Why shoppers love it',
+        items: [
+          { id: 'f1', title: 'Official Warranty', description: '12 months service coverage nationwide.' },
+          { id: 'f2', title: 'Next-day Delivery', description: 'Inside Dhaka metro within 24 hours.' },
+          { id: 'f3', title: 'Easy COD', description: 'Pay after inspection at your doorstep.' }
+        ],
+        style: { background: '#ffffff', accentColor: '#7c3aed' }
+      },
+      {
+        id: 'faq-1',
+        type: 'faq',
+        title: 'Questions? We got answers',
+        items: [
+          { id: 'q1', title: 'Is it original?', description: 'Yes, sourced directly from Apple-authorized distributor.' },
+          { id: 'q2', title: 'Return policy?', description: '7-day easy replacement if factory issues appear.' }
+        ]
+      }
+    ],
+    style: {
+      primaryColor: '#7c3aed',
+      accentColor: '#a855f7',
+      background: '#f9f5ff',
+      buttonShape: 'pill',
+      fontFamily: 'Inter, sans-serif'
+    },
+    onePageCheckout: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: new Date().toISOString()
+  }
+] : [];

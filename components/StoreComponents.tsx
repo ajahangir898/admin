@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig, CarouselItem, Order } from '../types';
+import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
 const SEARCH_HINT_ANIMATION = `
@@ -1356,7 +1356,7 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     );
 };
 
-export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => void; onCheckout: () => void }> = ({ product, onClose, onCheckout }) => {
+export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => void; onCheckout: () => void; variant?: ProductVariantSelection | null; quantity?: number }> = ({ product, onClose, onCheckout, variant, quantity }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden text-center p-6">
@@ -1364,7 +1364,10 @@ export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => 
                     <CheckCircle size={32} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Added to Cart!</h3>
-                <p className="text-gray-600 text-sm mb-6">{product.name} has been added to your cart.</p>
+                <p className="text-gray-600 text-sm mb-2">{product.name} has been added to your cart.</p>
+                {variant && (
+                    <p className="text-xs text-gray-500 mb-4">Variant: <span className="font-semibold text-gray-700">{variant.color} / {variant.size}</span>{quantity ? ` • Qty: ${quantity}` : ''}</p>
+                )}
                 
                 <div className="flex gap-3">
                     <button 

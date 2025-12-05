@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Product, User, WebsiteConfig } from '../types';
+import { Product, User, WebsiteConfig, ProductVariantSelection } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { ArrowLeft, Banknote, MapPin, Mail, Phone, User as UserIcon, X } from 'lucide-react';
 
 interface CheckoutProps {
   product: Product;
   quantity: number;
+  variant: ProductVariantSelection;
   onBack: () => void;
   onConfirmOrder: (formData: any) => void;
   user?: User | null;
@@ -20,6 +21,7 @@ interface CheckoutProps {
 const StoreCheckout = ({ 
   product, 
   quantity, 
+  variant,
   onBack, 
   onConfirmOrder,
   user,
@@ -66,7 +68,8 @@ const StoreCheckout = ({
       ...formData,
       amount: grandTotal,
       productName: product.name,
-      quantity
+      quantity,
+      variant
     });
   };
 
@@ -181,7 +184,7 @@ const StoreCheckout = ({
                 <h2 className="text-lg font-bold text-gray-800 mb-6">Order Items ({quantity} Items)</h2>
                 
                 {/* Item Row */}
-                <div className="flex gap-3 mb-6 relative group">
+                 <div className="flex gap-3 mb-6 relative group">
                    <div className="w-16 h-16 bg-gray-50 rounded border border-gray-200 p-1 flex-shrink-0">
                       <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
                    </div>
@@ -190,6 +193,7 @@ const StoreCheckout = ({
                          <h3 className="text-sm font-bold text-gray-800 line-clamp-2 pr-4">{product.name}</h3>
                          <button className="text-gray-400 hover:text-red-500"><X size={16} /></button>
                       </div>
+                     <p className="text-xs text-gray-500 mt-1">Variant: <span className="font-semibold text-gray-700">{variant.color} / {variant.size}</span></p>
                       <div className="flex items-center gap-3 mt-2">
                          <div className="flex items-center border border-gray-200 rounded px-2 py-0.5 text-xs bg-gray-50">
                             <span className="px-2">{quantity}</span>
@@ -204,8 +208,12 @@ const StoreCheckout = ({
                    </div>
                 </div>
 
-                {/* Totals */}
-                <div className="space-y-3 border-t border-gray-100 pt-4 text-sm">
+                 {/* Variant & Totals */}
+                 <div className="space-y-3 border-t border-gray-100 pt-4 text-sm">
+                   <div className="flex justify-between text-gray-600">
+                     <span>Selected Variant:</span>
+                     <span className="font-medium text-gray-800">{variant.color} / {variant.size}</span>
+                   </div>
                    <div className="flex justify-between text-gray-600">
                       <span>Sub Total:</span>
                       <span className="font-medium">৳ {subTotal.toLocaleString()}</span>

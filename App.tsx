@@ -15,10 +15,13 @@ import AdminCatalog from './pages/AdminCatalog';
 import AdminDeliverySettings from './pages/AdminDeliverySettings';
 import AdminCourierSettings from './pages/AdminCourierSettings';
 import AdminGallery from './pages/AdminGallery';
+import AdminLandingPage from './pages/AdminLandingPage';
+import LandingPagePreview from './pages/LandingPagePreview';
 import { AdminSidebar, AdminHeader } from './components/AdminComponents';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage } from './types';
 import { LoginModal, MobileBottomNav } from './components/StoreComponents';
+import { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
 
 // Wrapper layout for Admin pages
@@ -69,7 +72,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   );
 };
 
-type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin';
+type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview';
 
 const hexToRgb = (hex: string) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -77,6 +80,8 @@ const hexToRgb = (hex: string) => {
     ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
     : '0, 0, 0';
 };
+
+const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +116,9 @@ const App = () => {
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariantSelection | null>(null);
+  const [landingPages, setLandingPages] = useState<LandingPage[]>([]);
+  const [selectedLandingPage, setSelectedLandingPage] = useState<LandingPage | null>(null);
 
   // --- INITIAL DATA LOADING ---
   useEffect(() => {
@@ -132,6 +140,7 @@ const App = () => {
         const [
           productsData,
           ordersData,
+          landingPagesData,
           usersData,
           rolesData,
           logoData,
@@ -147,6 +156,7 @@ const App = () => {
         ] = await Promise.all([
           DataService.getProducts(),
           DataService.getOrders(),
+          DataService.getLandingPages(),
           DataService.getUsers(),
           DataService.getRoles(),
           DataService.get<string | null>('logo', null),
@@ -164,6 +174,7 @@ const App = () => {
         if (!isMounted) return;
         setProducts(productsData);
         setOrders(ordersData);
+        setLandingPages(landingPagesData);
         setUsers(usersData);
         setRoles(rolesData);
         setLogo(logoData);
@@ -202,6 +213,7 @@ const App = () => {
   useEffect(() => { if(!isLoading) DataService.save('childcategories', childCategories); }, [childCategories, isLoading]);
   useEffect(() => { if(!isLoading) DataService.save('brands', brands); }, [brands, isLoading]);
   useEffect(() => { if(!isLoading) DataService.save('tags', tags); }, [tags, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('landing_pages', landingPages); }, [landingPages, isLoading]);
 
   useEffect(() => { 
     if(!isLoading && themeConfig) {
@@ -248,7 +260,7 @@ const App = () => {
     const formattedPass = pass.trim();
     const foundUser = users.find(u => u.email === formattedEmail && u.password === formattedPass);
     if (formattedEmail.toLowerCase() === 'admin@systemnextit.com' && formattedPass === 'admin121') {
-      const admin: User = { name: 'Super Admin', email: 'admin@systemnextit.com', role: 'admin' };
+       const admin: User = { name: 'Super Admin', email: 'admin@systemnextit.com', role: 'admin' };
        setUser(admin);
        localStorage.setItem('gadgetshob_session', JSON.stringify(admin));
        setIsLoginOpen(false);
@@ -268,6 +280,7 @@ const App = () => {
     setUser(null);
     localStorage.removeItem('gadgetshob_session');
     setCurrentView('store');
+    setSelectedVariant(null);
   };
 
   const handleUpdateProfile = (updatedUser: User) => {
@@ -289,6 +302,33 @@ const App = () => {
   const handleBulkDeleteProducts = (ids: number[]) => setProducts(products.filter(p => !ids.includes(p.id)));
   const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p));
 
+  const handleCreateLandingPage = (page: LandingPage) => {
+    setLandingPages(prev => [page, ...prev]);
+  };
+
+  const handleUpsertLandingPage = (page: LandingPage) => {
+    setLandingPages(prev => {
+      const exists = prev.some(lp => lp.id === page.id);
+      return exists ? prev.map(lp => lp.id === page.id ? page : lp) : [page, ...prev];
+    });
+  };
+
+  const handleToggleLandingPublish = (pageId: string, status: LandingPage['status']) => {
+    const timestamp = new Date().toISOString();
+    setLandingPages(prev => prev.map(lp => lp.id === pageId ? {
+      ...lp,
+      status,
+      updatedAt: timestamp,
+      publishedAt: status === 'published' ? timestamp : undefined
+    } : lp));
+  };
+
+  const handlePreviewLandingPage = (page: LandingPage) => {
+    setSelectedLandingPage(page);
+    setCurrentView('landing_preview');
+    window.scrollTo(0,0);
+  };
+
   const handleUpdateLogo = (newLogo: string | null) => setLogo(newLogo);
   const handleUpdateTheme = (newConfig: ThemeConfig) => setThemeConfig(newConfig);
   const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
@@ -304,8 +344,19 @@ const App = () => {
   const removeFromWishlist = (id: number) => { setWishlist(wishlist.filter(wId => wId !== id)); };
   const isInWishlist = (id: number) => wishlist.includes(id);
 
-  const handleProductClick = (product: Product) => { setSelectedProduct(product); setCurrentView('detail'); window.scrollTo(0,0); };
-  const handleCheckoutStart = (product: Product, quantity: number = 1) => { setSelectedProduct(product); setCheckoutQuantity(quantity); setCurrentView('checkout'); window.scrollTo(0,0); };
+  const ensureVariantSelection = (product?: Product | null, variant?: ProductVariantSelection | null): ProductVariantSelection => ({
+    color: variant?.color || product?.variantDefaults?.color || product?.colors?.[0] || FALLBACK_VARIANT.color,
+    size: variant?.size || product?.variantDefaults?.size || product?.sizes?.[0] || FALLBACK_VARIANT.size,
+  });
+
+  const handleProductClick = (product: Product) => { setSelectedProduct(product); setSelectedVariant(null); setCurrentView('detail'); window.scrollTo(0,0); };
+  const handleCheckoutStart = (product: Product, quantity: number = 1, variant?: ProductVariantSelection) => {
+    setSelectedProduct(product);
+    setCheckoutQuantity(quantity);
+    setSelectedVariant(ensureVariantSelection(product, variant));
+    setCurrentView('checkout');
+    window.scrollTo(0,0);
+  };
   const handlePlaceOrder = (formData: any) => {
     const newOrder: Order = {
       id: `#${Math.floor(1000 + Math.random() * 9000)}`,
@@ -314,11 +365,39 @@ const App = () => {
       amount: formData.amount,
       date: new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
       status: 'Pending',
-      email: formData.email
+      email: formData.email,
+      variant: ensureVariantSelection(selectedProduct, formData.variant || selectedVariant),
+      productId: selectedProduct?.id,
+      productName: selectedProduct?.name,
+      quantity: formData.quantity || checkoutQuantity
     };
     setOrders([newOrder, ...orders]);
     setCurrentView('success');
     window.scrollTo(0,0);
+  };
+
+  const handleLandingOrderSubmit = async (payload: LandingCheckoutPayload & { pageId: string; productId: number }) => {
+    const product = products.find(p => p.id === payload.productId);
+    if (!product) return;
+    const newOrder: Order = {
+      id: `LP-${Math.floor(10000 + Math.random() * 90000)}`,
+      customer: payload.fullName,
+      location: payload.address,
+      amount: product.price * payload.quantity,
+      date: new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      status: 'Pending',
+      email: payload.email,
+      variant: ensureVariantSelection(product),
+      productId: product.id,
+      productName: product.name,
+      quantity: payload.quantity
+    };
+    setOrders(prev => [newOrder, ...prev]);
+  };
+
+  const handleCloseLandingPreview = () => {
+    setSelectedLandingPage(null);
+    setCurrentView(user?.role === 'admin' ? 'admin' : 'store');
   };
 
   const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>) => ({
@@ -367,6 +446,7 @@ const App = () => {
           {adminSection === 'dashboard' ? <AdminDashboard orders={orders} /> :
            adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
            adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
+           adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
            adminSection === 'gallery' ? <AdminGallery /> :
            adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
            adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
@@ -391,7 +471,7 @@ const App = () => {
             </>
           )}
           {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
-          {currentView === 'checkout' && selectedProduct && <StoreCheckout product={selectedProduct} quantity={checkoutQuantity} onBack={() => setCurrentView('detail')} onConfirmOrder={handlePlaceOrder} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+          {currentView === 'checkout' && selectedProduct && <StoreCheckout product={selectedProduct} quantity={checkoutQuantity} variant={selectedVariant || ensureVariantSelection(selectedProduct)} onBack={() => setCurrentView('detail')} onConfirmOrder={handlePlaceOrder} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
           {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
           {currentView === 'profile' && user && (
             <>
@@ -404,6 +484,14 @@ const App = () => {
                 websiteConfig={websiteConfig}
               />
             </>
+          )}
+          {currentView === 'landing_preview' && selectedLandingPage && (
+            <LandingPagePreview 
+              page={selectedLandingPage}
+              product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}
+              onBack={handleCloseLandingPreview}
+              onSubmitLandingOrder={handleLandingOrderSubmit}
+            />
           )}
         </>
       )}

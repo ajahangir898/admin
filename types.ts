@@ -1,6 +1,16 @@
 
 import React from 'react';
 
+export interface ProductVariantSelection {
+  color: string;
+  size: string;
+}
+
+export interface ProductVariantStock extends ProductVariantSelection {
+  stock: number;
+  sku?: string;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -20,6 +30,9 @@ export interface Product {
   colors?: string[]; // Added: Array of color codes or names
   sizes?: string[]; // Added: Array of size strings (S, M, L, XL etc)
   status?: 'Active' | 'Draft'; // Added for filtering
+  stock?: number;
+  variantDefaults?: Partial<ProductVariantSelection>;
+  variantStock?: ProductVariantStock[];
 }
 
 export interface Order {
@@ -31,6 +44,10 @@ export interface Order {
   status: 'Pending' | 'Confirmed' | 'Shipped' | 'Delivered' | 'Cancelled';
   email?: string; // To link with registered user
   trackingId?: string; // Added for Courier Integration
+  variant?: ProductVariantSelection;
+  productId?: number;
+  productName?: string;
+  quantity?: number;
 }
 
 export interface User {
@@ -174,4 +191,75 @@ export interface GalleryItem {
   category: string;
   imageUrl: string;
   dateAdded: string;
+}
+
+export type LandingPageMode = 'ready' | 'custom';
+export type LandingPageStatus = 'draft' | 'published';
+export type LandingBlockType = 'hero' | 'features' | 'reviews' | 'faq' | 'cta';
+
+export interface LandingBlockItem {
+  id: string;
+  title: string;
+  description?: string;
+  icon?: string;
+}
+
+export interface LandingPageBlock {
+  id: string;
+  type: LandingBlockType;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  mediaUrl?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  items?: LandingBlockItem[];
+  style?: {
+    background?: string;
+    textColor?: string;
+    accentColor?: string;
+    layout?: 'split' | 'stacked';
+  };
+}
+
+export interface LandingPageSEO {
+  metaTitle: string;
+  metaDescription: string;
+  canonicalUrl: string;
+  keywords?: string[];
+}
+
+export interface LandingPageStyle {
+  fontFamily?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  background?: string;
+  buttonShape?: 'pill' | 'rounded' | 'square';
+}
+
+export interface LandingPageTemplate {
+  id: string;
+  name: string;
+  description: string;
+  accentColor: string;
+  heroLayout: 'split' | 'center';
+  featuresLayout: 'grid' | 'stacked';
+  buttonShape: 'pill' | 'rounded' | 'square';
+}
+
+export interface LandingPage {
+  id: string;
+  name: string;
+  mode: LandingPageMode;
+  productId?: number;
+  templateId?: string;
+  status: LandingPageStatus;
+  urlSlug: string;
+  seo: LandingPageSEO;
+  blocks: LandingPageBlock[];
+  style: LandingPageStyle;
+  onePageCheckout: boolean;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
 }

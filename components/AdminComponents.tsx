@@ -24,6 +24,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
     { id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     { id: 'orders', icon: <ShoppingBag size={18} />, label: 'Orders' },
     { id: 'products', icon: <Box size={18} />, label: 'Products' },
+    { id: 'landing_pages', icon: <FileText size={18} />, label: 'Landing page' },
     { id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery' },
   ];
 

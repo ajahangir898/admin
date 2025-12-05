@@ -1,6 +1,6 @@
 
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig } from '../types';
-import { PRODUCTS, RECENT_ORDERS } from '../constants';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, LandingPage } from '../types';
+import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES } from '../constants';
 import { db } from './firebaseConfig';
 import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
@@ -67,6 +67,10 @@ class DataServiceImpl {
       const snapshot = await getDocs(collection(db, 'orders'));
       return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
     }, RECENT_ORDERS, 'orders');
+  }
+
+  async getLandingPages(): Promise<LandingPage[]> {
+    return this.get<LandingPage[]>('landing_pages', DEFAULT_LANDING_PAGES);
   }
 
   async getUsers(): Promise<User[]> {

@@ -1,14 +1,39 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, FolderOpen, Upload, CheckCircle, Smartphone } from 'lucide-react';
 import { GALLERY_IMAGES } from '../constants';
 import { GalleryItem } from '../types';
+import { DataService } from '../services/DataService';
 
 const AdminGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [images, setImages] = useState<GalleryItem[]>(GALLERY_IMAGES);
+   const [images, setImages] = useState<GalleryItem[]>(GALLERY_IMAGES);
+   const [isLoaded, setIsLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+   useEffect(() => {
+      let mounted = true;
+      const loadGallery = async () => {
+         try {
+            const stored = await DataService.get<GalleryItem[]>('gallery', GALLERY_IMAGES);
+            if (mounted) {
+               setImages(stored);
+               setIsLoaded(true);
+            }
+         } catch (error) {
+            console.warn('Failed to load gallery, using defaults', error);
+            if (mounted) setIsLoaded(true);
+         }
+      };
+      loadGallery();
+      return () => { mounted = false; };
+   }, []);
+
+   useEffect(() => {
+      if (!isLoaded) return;
+      DataService.save('gallery', images);
+   }, [images, isLoaded]);
 
   const filteredImages = images.filter(img => 
     img.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -35,7 +60,7 @@ const AdminGallery: React.FC = () => {
           imageUrl: reader.result as string,
           dateAdded: new Date().toISOString()
         };
-        setImages([newItem, ...images]);
+            setImages(prev => [newItem, ...prev]);
       };
       reader.readAsDataURL(file);
     }

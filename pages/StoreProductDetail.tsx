@@ -303,7 +303,7 @@ const StoreProductDetail = ({
       </div>
 
       <div className="hidden md:block">
-        <StoreFooter websiteConfig={websiteConfig} />
+        <StoreFooter websiteConfig={websiteConfig} logo={logo} />
       </div>
     </div>
   );

@@ -950,7 +950,7 @@ export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
 );
 
 
-export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websiteConfig }) => {
+export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: string | null }> = ({ websiteConfig, logo }) => {
     // Style 2 (Coco Kids Footer)
     if (websiteConfig?.footerStyle === 'style2') {
         return (
@@ -975,11 +975,17 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
                         {/* Logo & Social */}
                         <div className="flex flex-col items-center md:items-start">
-                            <div className="mb-4">
-                                <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
-                                <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1 block">KIDS</span>
+                            <div className="mb-4 flex flex-col items-center md:items-start">
+                                {logo ? (
+                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                ) : (
+                                    <>
+                                        <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
+                                        <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1 block">KIDS</span>
+                                    </>
+                                )}
                             </div>
-                            <p className="text-sm text-gray-500 mb-4">Every Smile Matters</p>
+                            <p className="text-sm text-gray-500 mb-4">{websiteConfig?.shortDescription || 'Every Smile Matters'}</p>
                             <div className="flex gap-3">
                                 <a href="#" className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
                                     <Facebook size={16} />
@@ -1037,7 +1043,11 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig }> = ({ websi
         <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 max-w-7xl mx-auto px-4`}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
+                    {logo ? (
+                        <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-10 object-contain mb-4" />
+                    ) : (
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
+                    )}
                     <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
                     <div className="flex gap-3">
                     {websiteConfig?.socialLinks?.map(link => (
@@ -1220,12 +1230,39 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const defaultEnvKey =
+        import.meta.env.VITE_GOOGLE_AI_API_KEY ||
+        import.meta.env.VITE_GOOGLE_API_KEY ||
+        process.env.VITE_GOOGLE_AI_API_KEY ||
+        process.env.VITE_GOOGLE_API_KEY ||
+        process.env.API_KEY ||
+        '';
+    const [customKey, setCustomKey] = useState(() => {
+        if (typeof window === 'undefined') return '';
+        return localStorage.getItem('gadgetshob_ai_key') || defaultEnvKey;
+    });
+    const activeApiKey = customKey || defaultEnvKey;
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (customKey) {
+            localStorage.setItem('gadgetshob_ai_key', customKey);
+        } else {
+            localStorage.removeItem('gadgetshob_ai_key');
+        }
+    }, [customKey]);
 
     const generateImage = async () => {
         if (!prompt) return;
+        if (!activeApiKey) {
+            setErrorMessage('No Google AI API key configured. Add VITE_GOOGLE_AI_API_KEY to your .env or paste a key below.');
+            return;
+        }
         setLoading(true);
+        setErrorMessage(null);
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+            const ai = new GoogleGenAI({ apiKey: activeApiKey });
 
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash-image',
@@ -1243,9 +1280,14 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                     }
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI Generation failed", error);
-            alert("Failed to generate image. Please check API Key configuration.");
+            const status = error?.status || error?.response?.status;
+            if (status === 403 && error?.error?.error?.status !== 'RESOURCE_EXHAUSTED') {
+                setErrorMessage('This API key is blocked from calling the Generative Language API. Enable the API for your Google Cloud project or use a different unrestricted key.');
+            } else {
+                setErrorMessage(`Failed to generate image. ${error?.message || 'Check API key configuration.'}`);
+            }
         } finally {
             setLoading(false);
         }
@@ -1261,6 +1303,17 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                     </div>
                     
                     <div className="space-y-4 flex-1">
+                        <div>
+                            <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Google AI API Key</label>
+                            <input
+                                type="password"
+                                placeholder="Paste VITE_GOOGLE_AI_API_KEY"
+                                value={customKey}
+                                onChange={(e) => setCustomKey(e.target.value.trim())}
+                                className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 focus:outline-none"
+                            />
+                            <p className="text-[11px] text-gray-500 mt-1">Key stays in this browser only (localStorage). Leave blank to use the bundled env key.</p>
+                        </div>
                         <div>
                             <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Prompt</label>
                             <textarea
@@ -1278,6 +1331,11 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                             {loading ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
                             Generate
                         </button>
+                        {errorMessage && (
+                            <div className="text-xs text-red-400 bg-red-950/30 border border-red-500/30 rounded-lg p-3">
+                                {errorMessage}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="flex-1 bg-black flex items-center justify-center relative">

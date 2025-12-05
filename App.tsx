@@ -116,7 +116,13 @@ const App = () => {
   useEffect(() => {
     const storedSession = localStorage.getItem('gadgetshob_session');
     if (storedSession) {
-      try { setUser(JSON.parse(storedSession)); } catch (err) { console.warn('Invalid session cache', err); }
+      try {
+        const parsedUser = JSON.parse(storedSession);
+        setUser(parsedUser);
+        if (parsedUser?.role === 'admin') {
+          setCurrentView('admin');
+        }
+      } catch (err) { console.warn('Invalid session cache', err); }
     }
 
     let isMounted = true;
@@ -238,12 +244,15 @@ const App = () => {
   };
 
   const handleLogin = (email: string, pass: string) => {
-    const foundUser = users.find(u => u.email === email && u.password === pass);
-    if (email === 'admin' && pass === 'admin') {
-       const admin: User = { name: 'Super Admin', email: 'admin@gadgetshob.com', role: 'admin' };
+    const formattedEmail = email.trim();
+    const formattedPass = pass.trim();
+    const foundUser = users.find(u => u.email === formattedEmail && u.password === formattedPass);
+    if (formattedEmail.toLowerCase() === 'admin@systemnextit.com' && formattedPass === 'admin121') {
+      const admin: User = { name: 'Super Admin', email: 'admin@systemnextit.com', role: 'admin' };
        setUser(admin);
        localStorage.setItem('gadgetshob_session', JSON.stringify(admin));
        setIsLoginOpen(false);
+       setCurrentView('admin');
        return true;
     }
     if (foundUser) {
@@ -325,12 +334,10 @@ const App = () => {
   const tagHandlers = createCrudHandler(setTags);
 
   const toggleView = () => {
+    if (user?.role !== 'admin') return;
     const nextView = currentView.startsWith('admin') ? 'store' : 'admin';
     setCurrentView(nextView);
     setSelectedProduct(null);
-    if (nextView === 'admin' && !user) {
-        setUser({ name: 'H M Liakat', email: 'opbd.shop@gmail.com', role: 'admin', username: 'Opbd01', phone: '01715332701' });
-    }
   };
 
   if (isLoading) {
@@ -346,12 +353,14 @@ const App = () => {
     <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
       {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
 
-      <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
-        <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
-          {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
-          <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
-        </button>
-      </div>
+      {user?.role === 'admin' && (
+        <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
+          <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
+            {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
+            <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
+          </button>
+        </div>
+      )}
 
       {currentView === 'admin' ? (
         <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout}>

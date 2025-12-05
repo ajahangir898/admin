@@ -1,10 +1,11 @@
 {
-  "name": "gadgetshob-&-admin",
+  "name": "gadgetshob-admin",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "npm run dev",
     "build": "vite build",
     "preview": "vite preview"
   },

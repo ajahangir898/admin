@@ -229,7 +229,7 @@ const StoreHome = ({
 
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} />
+      <StoreFooter websiteConfig={websiteConfig} logo={logo} />
     </div>
   );
 };

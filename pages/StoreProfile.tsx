@@ -261,7 +261,7 @@ const StoreProfile = ({
         </div>
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} />
+         <StoreFooter websiteConfig={websiteConfig} logo={logo} />
     </div>
   );
 };

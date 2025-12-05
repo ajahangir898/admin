@@ -61,7 +61,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         </div>
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} />
+      <StoreFooter websiteConfig={websiteConfig} logo={logo} />
     </div>
   );
 };

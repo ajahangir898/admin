@@ -8,6 +8,17 @@ class DataServiceImpl {
   private get canUseLocalStorage() {
     return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
   }
+
+  private getFromLocal<T>(key: string): T | null {
+    if (!this.canUseLocalStorage) return null;
+    try {
+        const raw = localStorage.getItem(`gadgetshob_${key}`);
+        return raw ? JSON.parse(raw) as T : null;
+    } catch (err) {
+        console.warn(`Failed to parse local cache for ${key}`, err);
+        return null;
+    }
+  }
   
   // --- Generic Helpers with Fallback ---
   
@@ -42,7 +53,12 @@ class DataServiceImpl {
   async getProducts(): Promise<Product[]> {
     return this.safeFirebaseCall(async () => {
       const snapshot = await getDocs(collection(db, 'products'));
-      return snapshot.docs.map(d => ({ id: Number(d.id), ...d.data() } as any));
+      const items = snapshot.docs.map(d => ({ id: Number(d.id), ...d.data() } as any));
+      if (items.length === 0) {
+        const cached = this.getFromLocal<Product[]>('products');
+        if (cached && cached.length) return cached;
+      }
+      return items.length ? items : PRODUCTS;
     }, PRODUCTS, 'products');
   }
 
@@ -77,13 +93,21 @@ class DataServiceImpl {
     const isArray = Array.isArray(defaultValue);
     
     return this.safeFirebaseCall(async () => {
-      if (['theme', 'website_config', 'logo', 'courier'].includes(key)) {
+      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
         const docRef = doc(db, 'configurations', key);
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) return defaultValue;
         if (key === 'logo') {
           const data = docSnap.data() as { value?: T };
           return (data?.value ?? defaultValue) as T;
+        }
+        if (key === 'delivery_config') {
+          const data = docSnap.data();
+          if (Array.isArray(data)) return data as T; // legacy flat array stored at root
+          if (Array.isArray((data as any)?.items)) {
+            return (data as any).items as T;
+          }
+          return defaultValue;
         }
         return docSnap.data() as T;
       }
@@ -92,7 +116,11 @@ class DataServiceImpl {
       if (isArray) {
          const snapshot = await getDocs(collection(db, key));
          const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-         return items.length > 0 ? items as unknown as T : defaultValue;
+        if (items.length === 0) {
+          const cached = this.getFromLocal<T>(key);
+          if (cached) return cached;
+        }
+        return items.length > 0 ? items as unknown as T : defaultValue;
       }
       
       return defaultValue;
@@ -179,6 +207,8 @@ class DataServiceImpl {
           const docRef = doc(db, 'configurations', key);
           if (key === 'logo') {
             await setDoc(docRef, { value: data ?? null });
+          } else if (key === 'delivery_config') {
+            await setDoc(docRef, { items: Array.isArray(data) ? data : [] });
           } else {
             await setDoc(docRef, data as any);
           }

@@ -97,7 +97,7 @@ class DataServiceImpl {
     const isArray = Array.isArray(defaultValue);
     
     return this.safeFirebaseCall(async () => {
-      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
+      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
         const docRef = doc(db, 'configurations', key);
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) return defaultValue;
@@ -138,9 +138,13 @@ class DataServiceImpl {
       primaryColor: '#ec4899', // Pink-500
       secondaryColor: '#a855f7', // Purple-500
       tertiaryColor: '#c026d3', // Fuchsia-600
+      fontColor: '#0f172a',
+      hoverColor: '#f97316',
+      surfaceColor: '#e2e8f0',
       darkMode: false
     };
-    return this.get<ThemeConfig>('theme', defaults);
+    const config = await this.get<ThemeConfig>('theme', defaults);
+    return { ...defaults, ...config };
   }
 
   async getWebsiteConfig(): Promise<WebsiteConfig> {
@@ -217,7 +221,7 @@ class DataServiceImpl {
         if (!db) return;
 
         // Configs -> Single Doc
-        if (['theme', 'website_config', 'logo', 'courier', 'delivery_config'].includes(key)) {
+        if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
           const docRef = doc(db, 'configurations', key);
           if (key === 'logo') {
             await setDoc(docRef, { value: data ?? null });

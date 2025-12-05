@@ -256,7 +256,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     return (
             <>
                 <style>{SEARCH_HINT_ANIMATION}</style>
-                <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans transition-colors duration-300">
+                <header className="store-header w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans transition-colors duration-300">
          {/* Mobile Header Style 4 */}
          <div className="md:hidden p-3 flex items-center gap-3 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
             <div className="flex-1 relative">
@@ -326,7 +326,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                         <VoiceButton />
-                        <button className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition flex items-center justify-center">
+                                                <button className="btn-search px-6 py-2 rounded-full flex items-center justify-center">
                           <Search size={20} />
                         </button>
                     </div>
@@ -421,7 +421,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     return (
             <>
                 <style>{SEARCH_HINT_ANIMATION}</style>
-                <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans">
+                <header className="store-header w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans">
         {/* Top Bar */}
         <div className="bg-white border-b border-gray-100 dark:bg-slate-900 dark:border-slate-800 hidden md:block">
           <div className="max-w-7xl mx-auto px-4 py-2 text-[11px] md:text-xs font-medium text-gray-600 dark:text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
@@ -481,7 +481,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                  />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                           <VoiceButton variant="light" />
-                          <button className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition flex items-center justify-center">
+                                  <button className="btn-search px-4 py-2 rounded-full flex items-center justify-center">
                              <Search size={20} />
                           </button>
                       </div>
@@ -558,7 +558,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   return (
         <>
             <style>{SEARCH_HINT_ANIMATION}</style>
-            <header className="w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+            <header className="store-header w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       
       {/* MOBILE HEADER SPECIFIC LAYOUT */}
             <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3 border-b border-gray-100 shadow-sm">
@@ -596,7 +596,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         />
                         <div className="absolute right-1 top-1 bottom-1 flex items-center gap-2">
                             <VoiceButton />
-                            <button className="bg-black text-white text-xs font-bold px-4 h-full rounded-md hover:bg-gray-800 transition">
+                            <button className="btn-search text-xs font-bold px-4 h-full rounded-md flex items-center justify-center">
                                 Search
                             </button>
                         </div>
@@ -651,7 +651,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 />
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                     <VoiceButton />
-                                    <button className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition flex items-center justify-center gap-2">
+                                    <button className="btn-search px-6 py-2 rounded-full flex items-center justify-center gap-2">
                                         <Search size={20} />
                                     </button>
                                 </div>
@@ -954,7 +954,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
     // Style 2 (Coco Kids Footer)
     if (websiteConfig?.footerStyle === 'style2') {
         return (
-            <footer className="bg-white border-t border-gray-100 pt-8 pb-4 relative mt-auto max-w-7xl mx-auto px-4">
+            <footer className="store-footer surface-panel bg-white border-t border-gray-100 pt-8 pb-4 relative mt-auto max-w-7xl mx-auto px-4">
                 <div className="max-w-7xl mx-auto px-4">
                     {/* Centered Contact Bar */}
                     <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-12 border-b border-gray-100 pb-8">
@@ -1071,7 +1071,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
         ].filter((card): card is { label: string; value: string; icon: React.ReactNode } => Boolean(card));
 
         return (
-            <footer className="bg-white/95 border-t border-gray-100 mt-auto">
+            <footer className="store-footer surface-panel bg-white/95 border-t border-gray-100 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 py-12 space-y-10">
                     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.2fr,0.8fr,0.8fr]">
                         <div className="space-y-6">
@@ -1164,7 +1164,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
 
     // Default Footer
     return (
-        <footer className={`bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 max-w-7xl mx-auto px-4`}>
+        <footer className={`store-footer surface-panel bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 max-w-7xl mx-auto px-4`}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
                     {logo ? (

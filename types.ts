@@ -48,6 +48,8 @@ export interface Order {
   productId?: number;
   productName?: string;
   quantity?: number;
+  deliveryType?: 'Regular' | 'Express' | 'Free';
+  deliveryCharge?: number;
 }
 
 export interface User {
@@ -88,6 +90,9 @@ export interface ThemeConfig {
   primaryColor: string;
   secondaryColor: string;
   tertiaryColor: string;
+  fontColor: string;
+  hoverColor: string;
+  surfaceColor: string;
   darkMode: boolean;
 }
 
@@ -155,6 +160,13 @@ export interface DeliveryConfig {
   outsideCharge: number;
   freeThreshold: number;
   note: string;
+}
+
+export interface FacebookPixelConfig {
+  pixelId: string;
+  accessToken: string;
+  enableTestEvent: boolean;
+  isEnabled: boolean;
 }
 
 // Catalog Types

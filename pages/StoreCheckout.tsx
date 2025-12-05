@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Product, User, WebsiteConfig, ProductVariantSelection } from '../types';
+import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { ArrowLeft, Banknote, MapPin, Mail, Phone, User as UserIcon, X } from 'lucide-react';
 
@@ -16,6 +16,7 @@ interface CheckoutProps {
   onProfileClick?: () => void;
   logo?: string | null;
   websiteConfig?: WebsiteConfig;
+  deliveryConfigs?: DeliveryConfig[];
 }
 
 const StoreCheckout = ({ 
@@ -29,7 +30,8 @@ const StoreCheckout = ({
   onLogoutClick,
   onProfileClick,
   logo,
-  websiteConfig
+  websiteConfig,
+  deliveryConfigs
 }: CheckoutProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -38,6 +40,16 @@ const StoreCheckout = ({
     email: '',
     address: ''
   });
+  const [selectedDeliveryType, setSelectedDeliveryType] = useState<'Regular' | 'Express' | 'Free'>('Regular');
+
+  useEffect(() => {
+    if (deliveryConfigs && deliveryConfigs.length) {
+      const firstEnabled = deliveryConfigs.find(c => c.isEnabled) || deliveryConfigs[0];
+      if (firstEnabled) {
+        setSelectedDeliveryType(firstEnabled.type);
+      }
+    }
+  }, [deliveryConfigs]);
 
   // Pre-fill if user is logged in
   useEffect(() => {
@@ -54,8 +66,15 @@ const StoreCheckout = ({
 
   const subTotal = product.price * quantity;
   const discount = product.originalPrice ? (product.originalPrice - product.price) * quantity : 0;
-  const deliveryCharge = 0; // Free delivery logic for now
-  const grandTotal = subTotal + deliveryCharge;
+  const activeConfig = deliveryConfigs?.find(c => c.type === selectedDeliveryType) || (deliveryConfigs && deliveryConfigs[0]);
+  const computedDeliveryCharge = React.useMemo(() => {
+    if (!activeConfig || !activeConfig.isEnabled) return 0;
+    if (activeConfig.freeThreshold > 0 && subTotal >= activeConfig.freeThreshold) return 0;
+    const division = formData.division || activeConfig.division;
+    const isInside = division ? division === activeConfig.division : true;
+    return isInside ? activeConfig.insideCharge : activeConfig.outsideCharge;
+  }, [activeConfig, formData.division, subTotal]);
+  const grandTotal = subTotal + computedDeliveryCharge;
 
   const handleSubmit = () => {
     // Basic validation
@@ -69,7 +88,9 @@ const StoreCheckout = ({
       amount: grandTotal,
       productName: product.name,
       quantity,
-      variant
+      variant,
+      deliveryType: selectedDeliveryType,
+      deliveryCharge: computedDeliveryCharge
     });
   };
 
@@ -90,6 +111,34 @@ const StoreCheckout = ({
           
           {/* Left Column: Delivery & Payment */}
           <div className="flex-1 space-y-8">
+            {deliveryConfigs && deliveryConfigs.length > 0 && (
+              <div className="store-card p-6 rounded-xl">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Delivery Options</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {deliveryConfigs.map(config => (
+                    <button
+                      key={config.type}
+                      type="button"
+                      onClick={() => setSelectedDeliveryType(config.type)}
+                      className={`border rounded-xl p-4 text-left transition ${
+                        selectedDeliveryType === config.type ? 'border-green-500 bg-green-50 shadow-lg' : 'border-gray-200 bg-white'
+                      } ${!config.isEnabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      disabled={!config.isEnabled}
+                    >
+                      <p className="font-bold text-gray-800 mb-1">{config.type} Delivery</p>
+                      <p className="text-sm text-gray-500">Inside: ৳ {config.insideCharge}</p>
+                      <p className="text-sm text-gray-500">Outside: ৳ {config.outsideCharge}</p>
+                      {config.freeThreshold > 0 && (
+                        <p className="text-xs text-green-600 mt-2">Free over ৳ {config.freeThreshold}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {activeConfig && (
+                  <p className="text-xs text-gray-500 mt-3">{activeConfig.note}</p>
+                )}
+              </div>
+            )}
             {/* Delivery Address */}
             <div className="store-card p-6 rounded-xl">
               <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Delivery Address</h2>
@@ -225,8 +274,8 @@ const StoreCheckout = ({
                       </div>
                    )}
                    <div className="flex justify-between text-gray-600">
-                      <span>Delivery Charge:</span>
-                      <span className="font-medium">৳ {deliveryCharge}</span>
+                     <span>Delivery Charge ({selectedDeliveryType}):</span>
+                     <span className="font-medium">৳ {computedDeliveryCharge}</span>
                    </div>
                    <div className="flex justify-between text-gray-800 text-lg font-bold border-t border-dashed border-gray-200 pt-3 mt-2">
                       <span>GrandTotal:</span>

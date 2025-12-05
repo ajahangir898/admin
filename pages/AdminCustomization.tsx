@@ -68,17 +68,20 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const faviconInputRef = useRef<HTMLInputElement>(null);
   
   // Theme State
-    const defaultThemeColors = {
+        type ThemeColorKey = 'primary' | 'secondary' | 'tertiary' | 'font' | 'hover' | 'surface';
+
+        const defaultThemeColors: Record<ThemeColorKey, string> = {
         primary: '#22c55e',
         secondary: '#ec4899',
-        tertiary: '#9333ea'
+        tertiary: '#9333ea',
+            font: '#0f172a',
+            hover: '#f97316',
+            surface: '#e2e8f0'
     };
 
     const [colors, setColors] = useState({ ...defaultThemeColors });
     const [colorDrafts, setColorDrafts] = useState({ ...defaultThemeColors });
   const [isDarkMode, setIsDarkMode] = useState(false);
-
-    type ThemeColorKey = 'primary' | 'secondary' | 'tertiary';
 
     const normalizeHex = (value: string) => {
         const stripped = value.trim().replace(/[^0-9a-fA-F]/g, '');
@@ -112,7 +115,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       setColors({
         primary: themeConfig.primaryColor,
         secondary: themeConfig.secondaryColor,
-        tertiary: themeConfig.tertiaryColor
+                tertiary: themeConfig.tertiaryColor,
+                font: themeConfig.fontColor || defaultThemeColors.font,
+                hover: themeConfig.hoverColor || defaultThemeColors.hover,
+                surface: themeConfig.surfaceColor || defaultThemeColors.surface
       });
       setIsDarkMode(themeConfig.darkMode);
     }
@@ -187,7 +193,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     const themeColorGuides: Array<{ key: ThemeColorKey; label: string; helper: string }> = [
         { key: 'primary', label: 'Primary Accent', helper: 'Sidebar active state, admin CTAs, storefront hero buttons' },
         { key: 'secondary', label: 'Secondary Accent', helper: 'Warning chips, checkout highlights, floating badges' },
-        { key: 'tertiary', label: 'Depth Accent', helper: 'Charts, outlines, subtle gradients' }
+        { key: 'tertiary', label: 'Depth Accent', helper: 'Charts, outlines, subtle gradients' },
+        { key: 'font', label: 'Global Font Color', helper: 'Header links, footer text, storefront typography' },
+        { key: 'hover', label: 'Hover Accent', helper: 'Header & footer hover states, interactive link highlights' },
+        { key: 'surface', label: 'Surface Glow', helper: 'Footer background wash, elevated cards, wishlist buttons' }
     ];
 
     const addFooterLink = (field: FooterLinkField) => {
@@ -224,7 +233,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       onUpdateTheme({
         primaryColor: colors.primary,
         secondaryColor: colors.secondary,
-        tertiaryColor: colors.tertiary,
+                tertiaryColor: colors.tertiary,
+                fontColor: colors.font,
+                hoverColor: colors.hover,
+                surfaceColor: colors.surface,
         darkMode: isDarkMode
       });
     }
@@ -703,7 +715,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
             <div className="space-y-8 max-w-2xl">
                  <div>
                      <h3 className="font-bold text-xl mb-4">Theme Colors</h3>
-                     <p className="text-gray-500 text-sm mb-6">Sync storefront and admin palette by choosing two core accents and one depth color.</p>
+                     <p className="text-gray-500 text-sm mb-6">Dial in your storefront + admin palette with core accents, typography, hover states, and surface washes.</p>
                      
                      <div className="space-y-4">
                          {themeColorGuides.map(field => (

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
 import { LifeLine } from 'react-loading-indicators';
@@ -21,6 +21,7 @@ const AdminCatalog = lazy(() => import('./pages/AdminCatalog'));
 const AdminDeliverySettings = lazy(() => import('./pages/AdminDeliverySettings'));
 const AdminCourierSettings = lazy(() => import('./pages/AdminCourierSettings'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
+const AdminFacebookPixel = lazy(() => import('./pages/AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 const loadAdminComponents = () => import('./components/AdminComponents');
@@ -104,10 +105,22 @@ const App = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
-    primaryColor: '#ec4899', secondaryColor: '#a855f7', tertiaryColor: '#c026d3', darkMode: false
+    primaryColor: '#ec4899',
+    secondaryColor: '#a855f7',
+    tertiaryColor: '#c026d3',
+    fontColor: '#0f172a',
+    hoverColor: '#f97316',
+    surfaceColor: '#e2e8f0',
+    darkMode: false
   });
   const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(undefined);
   const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>([]);
+  const [facebookPixelConfig, setFacebookPixelConfig] = useState<FacebookPixelConfig>({
+    pixelId: '',
+    accessToken: '',
+    enableTestEvent: false,
+    isEnabled: false
+  });
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   
@@ -161,6 +174,7 @@ const App = () => {
           websiteData,
           deliveryData,
           courierData,
+          facebookPixelData,
           categoriesData,
           subCategoriesData,
           childCategoriesData,
@@ -177,6 +191,7 @@ const App = () => {
           DataService.getWebsiteConfig(),
           DataService.getDeliveryConfig(),
           DataService.get('courier', { apiKey: '', secretKey: '' }),
+          DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }),
           DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]),
           DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]),
           DataService.getCatalog('childcategories', []),
@@ -195,6 +210,7 @@ const App = () => {
         setWebsiteConfig(websiteData);
         setDeliveryConfig(deliveryData);
         setCourierConfig(courierData);
+        setFacebookPixelConfig(facebookPixelData);
         setCategories(categoriesData);
         setSubCategories(subCategoriesData);
         setChildCategories(childCategoriesData);
@@ -220,6 +236,7 @@ const App = () => {
   useEffect(() => { if(!isLoading) DataService.save('logo', logo); }, [logo, isLoading]);
   useEffect(() => { if(!isLoading) DataService.save('delivery_config', deliveryConfig); }, [deliveryConfig, isLoading]);
   useEffect(() => { if(!isLoading) DataService.save('courier', courierConfig); }, [courierConfig, isLoading]);
+  useEffect(() => { if(!isLoading) DataService.save('facebook_pixel', facebookPixelConfig); }, [facebookPixelConfig, isLoading]);
   
   useEffect(() => { if(!isLoading) DataService.save('categories', categories); }, [categories, isLoading]);
   useEffect(() => { if(!isLoading) DataService.save('subcategories', subCategories); }, [subCategories, isLoading]);
@@ -235,6 +252,9 @@ const App = () => {
       root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
       root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
       root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
+      root.style.setProperty('--color-font-rgb', hexToRgb(themeConfig.fontColor));
+      root.style.setProperty('--color-hover-rgb', hexToRgb(themeConfig.hoverColor));
+      root.style.setProperty('--color-surface-rgb', hexToRgb(themeConfig.surfaceColor));
       if (themeConfig.darkMode) root.classList.add('dark');
       else root.classList.remove('dark');
     }
@@ -254,6 +274,41 @@ const App = () => {
       }
     }
   }, [websiteConfig, isLoading]);
+
+  useEffect(() => {
+    const scriptId = 'facebook-pixel-script';
+    const noScriptId = 'facebook-pixel-noscript';
+
+    const removePixelArtifacts = () => {
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) existingScript.remove();
+      const existingNoScript = document.getElementById(noScriptId);
+      if (existingNoScript) existingNoScript.remove();
+    };
+
+    if (!facebookPixelConfig?.isEnabled || !facebookPixelConfig.pixelId) {
+      removePixelArtifacts();
+      return;
+    }
+
+    removePixelArtifacts();
+    const pixelId = facebookPixelConfig.pixelId.trim();
+    const testEventId = facebookPixelConfig.enableTestEvent ? `TEST_${Date.now()}` : null;
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.innerHTML = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod? n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${pixelId}'${testEventId ? `, {eventID: '${testEventId}'}` : ''});
+fbq('track', 'PageView');`;
+    document.head.appendChild(script);
+
+    const noscript = document.createElement('noscript');
+    noscript.id = noScriptId;
+    noscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1${facebookPixelConfig.enableTestEvent ? '&cd[event_source_url]=test' : ''}" />`;
+    document.body.appendChild(noscript);
+
+    return removePixelArtifacts;
+  }, [facebookPixelConfig]);
 
 
   // --- HANDLERS ---
@@ -383,6 +438,8 @@ const App = () => {
       productId: selectedProduct?.id,
       productName: selectedProduct?.name,
       quantity: formData.quantity || checkoutQuantity
+      ,deliveryType: formData.deliveryType,
+      deliveryCharge: formData.deliveryCharge
     };
     setOrders([newOrder, ...orders]);
     setCurrentView('success');
@@ -467,6 +524,7 @@ const App = () => {
              adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} /> :
              adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
              adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
+             adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={setFacebookPixelConfig} onBack={() => setAdminSection('settings')} /> :
              adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
              adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
              <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
@@ -487,7 +545,22 @@ const App = () => {
               </>
             )}
             {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
-            {currentView === 'checkout' && selectedProduct && <StoreCheckout product={selectedProduct} quantity={checkoutQuantity} variant={selectedVariant || ensureVariantSelection(selectedProduct)} onBack={() => setCurrentView('detail')} onConfirmOrder={handlePlaceOrder} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+            {currentView === 'checkout' && selectedProduct && (
+              <StoreCheckout 
+                product={selectedProduct}
+                quantity={checkoutQuantity}
+                variant={selectedVariant || ensureVariantSelection(selectedProduct)}
+                onBack={() => setCurrentView('detail')}
+                onConfirmOrder={handlePlaceOrder}
+                user={user}
+                onLoginClick={() => setIsLoginOpen(true)}
+                onLogoutClick={handleLogout}
+                onProfileClick={() => setCurrentView('profile')}
+                logo={logo}
+                websiteConfig={websiteConfig}
+                deliveryConfigs={deliveryConfig}
+              />
+            )}
             {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
             {currentView === 'profile' && user && (
               <>

@@ -6,12 +6,16 @@
   --color-primary-rgb: 14, 165, 233; /* crystal blue */
   --color-secondary-rgb: 251, 146, 60; /* crystal orange */
   --color-tertiary-rgb: 12, 74, 110;
+  --color-font-rgb: 15, 23, 42;
+  --color-hover-rgb: 249, 115, 22;
+  --color-surface-rgb: 226, 232, 240;
 }
 
 @layer base {
   body {
     @apply antialiased text-slate-900 dark:text-slate-100;
     min-height: 100vh;
+    color: rgb(var(--color-font-rgb));
     background-color: #05060f;
     background-image:
       radial-gradient(circle at 15% 20%, rgba(var(--color-primary-rgb), 0.16), transparent 45%),
@@ -62,7 +66,7 @@
   }
 
   .store-card {
-    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(var(--color-primary-rgb), 0.08));
+    background: linear-gradient(145deg, rgba(var(--color-surface-rgb), 0.85), rgba(var(--color-primary-rgb), 0.08));
     border: 1px solid rgba(255,255,255,0.4);
     box-shadow:
       0 20px 45px rgba(15,23,42,0.08),
@@ -140,11 +144,36 @@
     transform: translateY(1px) scale(0.99);
   }
 
+  .btn-search {
+    background-image: linear-gradient(120deg, rgba(var(--color-primary-rgb), 0.95), rgba(var(--color-secondary-rgb), 0.85));
+    color: #fff;
+    font-weight: 600;
+    box-shadow:
+      0 12px 20px rgba(var(--color-primary-rgb), 0.2),
+      0 6px 12px rgba(var(--color-secondary-rgb), 0.15);
+    transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .btn-search:hover {
+    filter: brightness(1.05);
+    box-shadow:
+      0 14px 24px rgba(var(--color-primary-rgb), 0.25),
+      0 8px 16px rgba(var(--color-secondary-rgb), 0.2);
+  }
+
+  .btn-search:active {
+    transform: translateY(1px) scale(0.99);
+  }
+
   .btn-wishlist {
     padding: 0.5rem;
     border-radius: 9999px;
     border: 1px solid rgba(var(--color-primary-rgb), 0.35);
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(var(--color-surface-rgb), 0.85);
     color: rgba(var(--color-primary-rgb), 0.9);
     box-shadow: 0 10px 25px rgba(var(--color-primary-rgb), 0.1);
     transition: all 200ms ease;
@@ -154,7 +183,7 @@
   .btn-wishlist:hover {
     color: rgba(var(--color-primary-rgb), 1);
     border-color: rgba(var(--color-primary-rgb), 0.55);
-    box-shadow: 0 12px 28px rgba(var(--color-primary-rgb), 0.18);
+    box-shadow: 0 12px 28px rgba(var(--color-surface-rgb), 0.35);
     transform: translateY(-1px);
   }
 
@@ -163,6 +192,63 @@
     color: #fff;
     border-color: transparent;
     box-shadow: 0 15px 32px rgba(var(--color-primary-rgb), 0.3);
+  }
+
+  .text-font {
+    color: rgb(var(--color-font-rgb));
+  }
+
+  .surface-panel.surface-panel {
+    background-color: rgba(var(--color-surface-rgb), 0.55);
+    border-color: rgba(var(--color-surface-rgb), 0.75);
+    box-shadow:
+      0 25px 45px rgba(var(--color-surface-rgb), 0.35),
+      0 10px 20px rgba(var(--color-primary-rgb), 0.08);
+    backdrop-filter: blur(16px);
+  }
+
+  .text-font-soft {
+    color: rgba(var(--color-font-rgb), 0.78);
+  }
+
+  .text-font-muted {
+    color: rgba(var(--color-font-rgb), 0.6);
+  }
+
+  .store-header,
+  .store-footer {
+    color: rgb(var(--color-font-rgb));
+  }
+
+  .store-header :is(.text-gray-900, .text-gray-800, .text-gray-700, .text-slate-900, .text-slate-800, .text-slate-700),
+
+  .store-header :is(a, button):not(.btn-search):not(.btn-order),
+  .store-footer :is(a, button):not(.btn-search):not(.btn-order) {
+    transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+  }
+
+  .store-header :is(a, button):not(.btn-search):not(.btn-order):hover,
+  .store-footer :is(a, button):not(.btn-search):not(.btn-order):hover {
+    color: rgb(var(--color-hover-rgb));
+  }
+
+  .store-footer :is(a, button):not(.btn-search):not(.btn-order):hover svg,
+  .store-header :is(a, button):not(.btn-search):not(.btn-order):hover svg {
+    color: currentColor;
+    stroke: currentColor;
+  }
+  .store-footer :is(.text-gray-900, .text-gray-800, .text-gray-700, .text-slate-900, .text-slate-800, .text-slate-700) {
+    color: rgb(var(--color-font-rgb));
+  }
+
+  .store-header :is(.text-gray-600, .text-gray-500, .text-gray-400, .text-slate-600, .text-slate-500),
+  .store-footer :is(.text-gray-600, .text-gray-500, .text-gray-400, .text-slate-600, .text-slate-500) {
+    color: rgba(var(--color-font-rgb), 0.78);
+  }
+
+  .store-header :is(.text-gray-300, .text-gray-200, .text-slate-400),
+  .store-footer :is(.text-gray-300, .text-gray-200, .text-slate-400) {
+    color: rgba(var(--color-font-rgb), 0.55);
   }
 }
 

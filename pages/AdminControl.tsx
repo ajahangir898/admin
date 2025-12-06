@@ -34,7 +34,20 @@ const AdminControl: React.FC<AdminControlProps> = ({
   });
 
   // Filter Admin Users
-  const adminUsers = users.filter(u => u.role === 'admin' && 
+  const formatAdminRole = (role?: User['role']) => {
+    switch (role) {
+      case 'super_admin':
+        return 'Super Admin';
+      case 'tenant_admin':
+        return 'Tenant Admin';
+      case 'admin':
+        return 'Admin';
+      default:
+        return 'Staff';
+    }
+  };
+
+  const adminUsers = users.filter(u => u.role && u.role !== 'customer' && 
     (u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
      u.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -171,7 +184,7 @@ const AdminControl: React.FC<AdminControlProps> = ({
                          </span>
                        ) : (
                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">
-                           Super Admin
+                           {formatAdminRole(user.role)}
                          </span>
                        )}
                      </td>
@@ -181,7 +194,7 @@ const AdminControl: React.FC<AdminControlProps> = ({
                          value={user.roleId || ''}
                          onChange={(e) => onUpdateUserRole(user.email, e.target.value)}
                        >
-                         <option value="">Super Admin (Full Access)</option>
+                         <option value="">Full Access (Built-in)</option>
                          {roles.map(role => (
                            <option key={role.id} value={role.id}>{role.name}</option>
                          ))}

@@ -4,6 +4,7 @@ import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../ty
 import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
 import { slugify } from '../services/slugify';
+import { formatCurrency } from '../utils/format';
 
 interface AdminProductsProps {
   products: Product[];
@@ -505,13 +506,16 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
       {/* Product List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-         {filteredProducts.map(product => (
-           <div 
-             key={product.id} 
-             className={`bg-white rounded-xl border shadow-sm overflow-hidden hover:shadow-md transition group relative ${
-               selectedIds.includes(product.id) ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
-             }`}
-           >
+         {filteredProducts.map(product => {
+           const formattedPrice = formatCurrency(product.price);
+           const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
+           return (
+             <div 
+               key={product.id} 
+               className={`bg-white rounded-xl border shadow-sm overflow-hidden hover:shadow-md transition group relative ${
+                 selectedIds.includes(product.id) ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
+               }`}
+             >
               {/* Selection Checkbox Overlay */}
               <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                 <input 
@@ -578,18 +582,19 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                     {product.colors && product.colors.length > 3 && <span className="text-[10px] text-gray-400">+{product.colors.length - 3}</span>}
                  </div>
 
-                 <div className="flex justify-between items-center mt-2">
+                  <div className="flex justify-between items-center mt-2">
                     <div className="flex flex-col">
-                       <span className="font-bold text-gray-900">৳ {product.price.toLocaleString()}</span>
-                       {product.originalPrice && (
-                         <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
-                       )}
+                      <span className="font-bold text-gray-900">৳ {formattedPrice}</span>
+                      {formattedOriginalPrice && (
+                       <span className="text-xs text-gray-400 line-through">৳ {formattedOriginalPrice}</span>
+                      )}
                     </div>
                     <div className="text-xs text-gray-500">ID: {product.id}</div>
                  </div>
+                </div>
               </div>
-           </div>
-         ))}
+              );
+            })}
          {filteredProducts.length === 0 && (
             <div className="col-span-full py-12 text-center text-gray-500 flex flex-col items-center justify-center">
                 <Search size={48} className="text-gray-300 mb-4" />

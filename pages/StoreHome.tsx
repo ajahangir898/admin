@@ -17,6 +17,23 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={28} strokeWidth={1.5} />,
 };
 
+const getNextFlashSaleReset = () => {
+  const now = new Date();
+  const reset = new Date(now);
+  reset.setHours(24, 0, 0, 0);
+  return reset.getTime();
+};
+
+const getTimeSegments = (milliseconds: number) => {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return { hours, minutes, seconds };
+};
+
+const formatSegment = (value: number) => value.toString().padStart(2, '0');
+
 interface StoreHomeProps {
   products?: Product[];
   orders?: Order[];
@@ -57,6 +74,8 @@ const StoreHome = ({
 
   // Category Auto Scroll Logic for Style 2
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const flashSaleEndRef = useRef<number>(getNextFlashSaleReset());
+  const [flashTimeLeft, setFlashTimeLeft] = useState(() => getTimeSegments(flashSaleEndRef.current - Date.now()));
 
   useEffect(() => {
     if (websiteConfig?.categorySectionStyle === 'style2') {
@@ -94,6 +113,28 @@ const StoreHome = ({
     }
   }, [websiteConfig?.categorySectionStyle]);
 
+  const showFlashSaleCounter = websiteConfig?.showFlashSaleCounter ?? true;
+
+  useEffect(() => {
+    if (!showFlashSaleCounter) {
+      return;
+    }
+
+    flashSaleEndRef.current = getNextFlashSaleReset();
+    setFlashTimeLeft(getTimeSegments(flashSaleEndRef.current - Date.now()));
+
+    const timer = setInterval(() => {
+      const diff = flashSaleEndRef.current - Date.now();
+      if (diff <= 0) {
+        flashSaleEndRef.current = getNextFlashSaleReset();
+        setFlashTimeLeft(getTimeSegments(flashSaleEndRef.current - Date.now()));
+      } else {
+        setFlashTimeLeft(getTimeSegments(diff));
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [showFlashSaleCounter]);
+
   const handleQuickViewOrder = (product: Product, quantity: number, variant: ProductVariantSelection) => {
     if (onQuickCheckout) {
       onQuickCheckout(product, quantity, variant);
@@ -102,6 +143,25 @@ const StoreHome = ({
     }
     setQuickViewProduct(null);
   };
+
+  const selectInstantVariant = (product: Product): ProductVariantSelection => ({
+    color: product.variantDefaults?.color || product.colors?.[0] || 'Default',
+    size: product.variantDefaults?.size || product.sizes?.[0] || 'Standard'
+  });
+
+  const handleBuyNow = (product: Product) => {
+    if (onQuickCheckout) {
+      onQuickCheckout(product, 1, selectInstantVariant(product));
+    } else {
+      onProductClick(product);
+    }
+  };
+
+  const flashSaleCountdown = [
+    { label: 'Hours', value: formatSegment(flashTimeLeft.hours) },
+    { label: 'Mins', value: formatSegment(flashTimeLeft.minutes) },
+    { label: 'Sec', value: formatSegment(flashTimeLeft.seconds) }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
@@ -134,26 +194,26 @@ const StoreHome = ({
       {/* Hero Section */}
       <HeroSection carouselItems={websiteConfig?.carouselItems} />
 
-      <main className="max-w-7xl mx-auto px-4 space-y-8 pb-12">
+      <main className="max-w-7xl mx-auto px-4 space-y-4 pb-12">
         
         {/* Categories */}
-        {websiteConfig?.categorySectionStyle === 'style2' ? (
-           <div className="mt-2 mb-2">
-              <div className="flex justify-between items-end mb-2 border-b border-gray-100 pb-2">
-                 <div className="relative pb-2">
+          {websiteConfig?.categorySectionStyle === 'style2' ? (
+            <div className="mt-1 -mb-1">
+              <div className="flex justify-between items-end mb-1 border-b border-gray-100 pb-1">
+                 <div className="relative pb-1">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
 
                  </div>
-                 <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 transition mb-2 group">
+                 <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 transition mb-1 group">
                     View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent transform group-hover:translate-x-1 transition-transform"></div>
                  </a>
               </div>
               
 
               {/* Auto Scrolling Container */}
-              <div 
+                <div 
                  ref={categoryScrollRef}
-                 className="flex gap-6 overflow-x-hidden py-1 whitespace-nowrap scrollbar-hide"
+                  className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
                  style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }} 
                  
               >
@@ -186,17 +246,23 @@ const StoreHome = ({
         <section>
           <div className="flex items-center gap-3 mb-1">
           
-             <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
-             <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full text-xs font-semibold text-pink-900 bg-gradient-to-r from-rose-100 via-white to-violet-100 border border-pink-200 shadow-[0_6px_20px_rgba(244,114,182,0.25)]">
-               <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-rose-500">
-                 Ends in
-                 <span className="inline-flex h-4 w-10 items-center justify-center rounded-full bg-white text-rose-600 border border-rose-200">24h</span>
-               </span>
-               <span className="relative flex items-center gap-2 text-pink-700">
-                 <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
-                 
-               </span>
-             </div>
+             <SectionHeader title="⚡Flash Sales" />
+             {showFlashSaleCounter && (
+               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-pink-900 bg-gradient-to-r from-rose-100 via-white to-violet-100 shadow-[0_4px_12px_rgba(244,114,182,0.25)]">
+                 <div className="flex items-center gap-1 text-sky-700">
+                   {flashSaleCountdown.map(segment => (
+                     <span key={segment.label} className="flex flex-col items-center justify-center px-2 py-0.5 border border-sky-200 rounded-md bg-white text-sky-700 shadow-sm leading-tight min-w-[44px]">
+                       <span className="text-[11px] font-black">{segment.value}</span>
+                       <span className="text-[7px] font-semibold text-sky-500 tracking-tight normal-case">{segment.label}</span>
+                     </span>
+                   ))}
+                 </div>
+                 <span className="relative flex items-center gap-2 text-pink-700">
+                   <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+                   
+                 </span>
+               </div>
+             )}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {displayProducts.map((product) => (
@@ -204,13 +270,14 @@ const StoreHome = ({
                 key={`flash-${product.id}`} 
                 product={product} 
                 onClick={onProductClick} 
+                onBuyNow={handleBuyNow}
                 variant={websiteConfig?.productCardStyle}
                 onQuickView={setQuickViewProduct}
               />
             ))}
             {/* Add a duplicate if few products to fill grid */}
             {displayProducts.length > 0 && displayProducts.length < 5 && 
-              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
+              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
             }
           </div>
         </section>
@@ -223,17 +290,17 @@ const StoreHome = ({
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
              {displayProducts.slice().reverse().map((product) => (
-              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
+              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
             ))}
              {/* Add a duplicate if few products to fill grid */}
              {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
+               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
              }
           </div>
         </section>
 
         {/* OMG Fashion Banner */}
-        <section className="relative overflow-hidden rounded-3xl text-white shadow-2xl my-8 px-6 sm:px-10 py-10">
+        <section className="relative overflow-hidden rounded-3xl text-white shadow-2xl mt-4 mb-8 px-6 sm:px-10 py-10">
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-r from-[#150c2e] via-[#5b21b6] to-[#f472b6] opacity-95" />
             <div
@@ -325,11 +392,11 @@ const StoreHome = ({
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {displayProducts.map((product) => (
-              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
+              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
             ))}
              {/* Add a duplicate if few products to fill grid */}
              {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
+               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
              }
           </div>
         </section>

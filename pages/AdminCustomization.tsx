@@ -47,6 +47,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     hideCopyright: false,
     hideCopyrightText: false,
     showPoweredBy: false,
+    showFlashSaleCounter: true,
     brandingText: '',
     carouselItems: [],
     searchHints: '',
@@ -60,7 +61,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 ...prev,
                 ...websiteConfig,
                 footerQuickLinks: websiteConfig.footerQuickLinks || [],
-                footerUsefulLinks: websiteConfig.footerUsefulLinks || []
+                footerUsefulLinks: websiteConfig.footerUsefulLinks || [],
+                showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true
             }));
     }
   }, [websiteConfig]);
@@ -651,6 +653,21 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                             <input type="checkbox" className="w-5 h-5 text-green-600 rounded" checked={config.showPoweredBy} onChange={e => setConfig({...config, showPoweredBy: e.target.checked})}/>
                             <span className="text-sm font-medium">Powered by Saleecom (Show in footer)</span>
                         </label>
+                        <div className="flex items-center justify-between gap-3 rounded-xl border border-sky-100 bg-sky-50/70 px-4 py-3">
+                            <div>
+                                <p className="text-sm font-semibold text-gray-800">Flash Sale Counter Tag</p>
+                                <p className="text-xs text-gray-500">Show or hide the storefront countdown pill beside Flash Sales.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setConfig(prev => ({ ...prev, showFlashSaleCounter: !prev.showFlashSaleCounter }))}
+                                className={`relative inline-flex items-center rounded-full border px-1 py-0.5 text-xs font-bold transition ${config.showFlashSaleCounter ? 'bg-emerald-500/10 text-emerald-700 border-emerald-300' : 'bg-gray-100 text-gray-500 border-gray-300'}`}
+                            >
+                                <span className={`px-3 py-1 rounded-full transition ${config.showFlashSaleCounter ? 'bg-white shadow' : 'opacity-50'}`}>
+                                    {config.showFlashSaleCounter ? 'On' : 'Off'}
+                                </span>
+                            </button>
+                        </div>
                         <div className="pt-2">
                              <label className="block text-xs text-gray-500 mb-1">Branding Text</label>
                              <input type="text" className="w-full px-3 py-2 border rounded text-sm" value={config.brandingText} onChange={e => setConfig({...config, brandingText: e.target.value})}/>

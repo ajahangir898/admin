@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Product, LandingPage, LandingPageBlock, LandingPageTemplate, LandingPageStyle, LandingPageSEO } from '../types';
 import { LANDING_PAGE_TEMPLATES } from '../constants';
 import { Sparkles, ExternalLink, Eye, Copy, CheckCircle, Edit3, Trash2, Layout, Plus, PenSquare, Layers, Palette, Globe, Settings2, Zap, Star, Quote, HelpCircle, Image as ImageIcon, Phone, Mail, User, MapPin, ShoppingBag, Loader2, Shield } from 'lucide-react';
+import { formatCurrency } from '../utils/format';
 
 const randomId = () => (crypto?.randomUUID ? crypto.randomUUID() : `lp-${Date.now().toString(36)}-${Math.random().toString(16).slice(2)}`);
 const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -74,6 +75,9 @@ const TemplatePreviewCard: React.FC<{ product?: Product; template?: LandingPageT
     );
   }
 
+  const formattedPrice = formatCurrency(product.price);
+  const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
+
   return (
     <div className="rounded-2xl border border-gray-100 shadow-lg overflow-hidden bg-white">
       <div className="p-6 bg-gradient-to-br from-purple-50 via-white to-white">
@@ -83,9 +87,9 @@ const TemplatePreviewCard: React.FC<{ product?: Product; template?: LandingPageT
         <h3 className="text-2xl font-black text-gray-900 mt-3">{product.name}</h3>
         <p className="text-sm text-gray-500 mt-2 line-clamp-2">{product.description}</p>
         <div className="mt-4 flex items-center gap-4">
-          <span className="text-3xl font-bold text-gray-900">৳ {product.price.toLocaleString()}</span>
-          {product.originalPrice && (
-            <span className="text-sm line-through text-gray-400">৳ {product.originalPrice.toLocaleString()}</span>
+          <span className="text-3xl font-bold text-gray-900">৳ {formattedPrice}</span>
+          {formattedOriginalPrice && (
+            <span className="text-sm line-through text-gray-400">৳ {formattedOriginalPrice}</span>
           )}
         </div>
         <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-500">

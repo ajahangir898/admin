@@ -1,10 +1,13 @@
 
-import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
+import { AuthService, FirebaseUser } from './services/AuthService';
 import { slugify } from './services/slugify';
+import { DEFAULT_TENANT_ID } from './constants';
+import { Toaster, toast } from 'react-hot-toast';
 
 
 const StoreHome = lazy(() => import('./pages/StoreHome'));
@@ -26,6 +29,7 @@ const AdminReviews = lazy(() => import('./pages/AdminReviews'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
 const AdminFacebookPixel = lazy(() => import('./pages/AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
+const AdminTenantManagement = lazy(() => import('./pages/AdminTenantManagement'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 const loadAdminComponents = () => import('./components/AdminComponents');
 const loadStoreComponents = () => import('./components/StoreComponents');
@@ -43,6 +47,10 @@ interface AdminLayoutProps {
   logo: string | null;
   user?: User | null;
   onLogout?: () => void;
+  tenants?: Tenant[];
+  activeTenantId?: string;
+  onTenantChange?: (tenantId: string) => void;
+  isTenantSwitching?: boolean;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ 
@@ -52,7 +60,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   onNavigate,
   logo,
   user,
-  onLogout
+  onLogout,
+  tenants,
+  activeTenantId,
+  onTenantChange,
+  isTenantSwitching
 }) => {
   const highlightPage = activePage.startsWith('settings') ? 'settings' : activePage;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -65,6 +77,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
         logo={logo} 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)}
+        userRole={user?.role}
       />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader 
@@ -72,6 +85,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           user={user} 
           onLogout={onLogout} 
           logo={logo}
+          tenants={tenants}
+          activeTenantId={activeTenantId}
+          onTenantChange={onTenantChange}
+          isTenantSwitching={isTenantSwitching}
           onMenuClick={() => setIsSidebarOpen(true)} 
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gray-50/50">
@@ -93,23 +110,49 @@ const hexToRgb = (hex: string) => {
 
 const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
 
-const ensureUniqueProductSlug = (desired: string, list: Product[], ignoreId?: number) => {
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  'auth/user-not-found': 'Invalid email or password.',
+  'auth/wrong-password': 'Invalid email or password.',
+  'auth/invalid-credential': 'Invalid email or password.',
+  'auth/email-already-in-use': 'Email already in use. Try logging in instead.',
+  'auth/weak-password': 'Password should be at least 6 characters.',
+  'auth/too-many-requests': 'Too many attempts. Please try again later.'
+};
+
+const getAuthErrorMessage = (error: unknown) => {
+  if (typeof error === 'object' && error && 'code' in error) {
+    const code = (error as { code?: string }).code;
+    if (code && AUTH_ERROR_MESSAGES[code]) {
+      return AUTH_ERROR_MESSAGES[code];
+    }
+  }
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return 'Something went wrong. Please try again.';
+};
+
+const ensureUniqueProductSlug = (desired: string, list: Product[], tenantId?: string, ignoreId?: number) => {
   const base = slugify(desired || '').replace(/--+/g, '-') || `product-${Date.now()}`;
   let candidate = base;
   let counter = 2;
-  const hasConflict = (slugValue: string) => list.some(p => p.slug === slugValue && p.id !== ignoreId);
+  const hasConflict = (slugValue: string) => list.some(p => {
+    const sameTenant = tenantId ? p.tenantId === tenantId : true;
+    return sameTenant && p.slug === slugValue && p.id !== ignoreId;
+  });
   while (hasConflict(candidate)) {
     candidate = `${base}-${counter++}`;
   }
   return candidate;
 };
 
-const normalizeProductCollection = (items: Product[]): Product[] => {
+const normalizeProductCollection = (items: Product[], tenantId?: string): Product[] => {
   const normalized: Product[] = [];
   items.forEach(item => {
     const slugSource = item.slug || item.name || `product-${item.id}`;
-    const slug = ensureUniqueProductSlug(slugSource, normalized);
-    normalized.push({ ...item, slug });
+    const scopedTenantId = item.tenantId || tenantId;
+    const slug = ensureUniqueProductSlug(slugSource, normalized, scopedTenantId, item.id);
+    normalized.push({ ...item, slug, tenantId: scopedTenantId });
   });
   return normalized;
 };
@@ -121,8 +164,13 @@ const SuspenseFallback = () => (
   </div>
 );
 
+const isAdminRole = (role?: User['role'] | null) => role === 'admin' || role === 'tenant_admin' || role === 'super_admin';
+const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin';
+
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [activeTenantId, setActiveTenantId] = useState<string>(DEFAULT_TENANT_ID);
 
   // --- STATE ---
   const [orders, setOrders] = useState<Order[]>([]);
@@ -147,6 +195,7 @@ const App = () => {
   });
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   
   // Catalog State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -169,23 +218,121 @@ const App = () => {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariantSelection | null>(null);
   const [landingPages, setLandingPages] = useState<LandingPage[]>([]);
   const [selectedLandingPage, setSelectedLandingPage] = useState<LandingPage | null>(null);
+  const [isTenantSwitching, setIsTenantSwitching] = useState(false);
+  const [isTenantSeeding, setIsTenantSeeding] = useState(false);
+  const [deletingTenantId, setDeletingTenantId] = useState<string | null>(null);
+  const tenantSwitchTargetRef = useRef<string | null>(null);
+  const tenantsRef = useRef<Tenant[]>([]);
+  const currentViewRef = useRef<ViewState>(currentView);
+  const userRef = useRef<User | null>(user);
+
+  useEffect(() => {
+    tenantsRef.current = tenants;
+  }, [tenants]);
+
+  useEffect(() => {
+    currentViewRef.current = currentView;
+  }, [currentView]);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  useEffect(() => {
+    const unsubscribe = AuthService.onAuthStateChange(setAuthUser);
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!authUser) {
+      setUser(null);
+      if (currentViewRef.current.startsWith('admin')) {
+        setCurrentView('store');
+        setAdminSection('dashboard');
+      }
+      return;
+    }
+
+    const authEmail = authUser.email?.toLowerCase() || '';
+    let resolvedUser: User | null = null;
+
+    if (authEmail === 'admin@systemnextit.com') {
+      resolvedUser = {
+        name: 'Super Admin',
+        email: authUser.email || 'admin@systemnextit.com',
+        role: 'super_admin',
+        tenantId: activeTenantId || DEFAULT_TENANT_ID
+      };
+    }
+
+    if (!resolvedUser && authEmail) {
+      const tenantAdmin = tenants.find((tenant) => tenant.adminEmail?.toLowerCase() === authEmail);
+      if (tenantAdmin) {
+        resolvedUser = {
+          name: `${tenantAdmin.name} Admin`,
+          email: authUser.email || tenantAdmin.adminEmail || '',
+          role: 'tenant_admin',
+          tenantId: tenantAdmin.id
+        };
+      }
+    }
+
+    if (!resolvedUser && authEmail) {
+      const matchedUser = users.find((u) => u.email?.toLowerCase() === authEmail);
+      if (matchedUser) {
+        resolvedUser = {
+          ...matchedUser,
+          tenantId: matchedUser.tenantId || activeTenantId || DEFAULT_TENANT_ID,
+          role: matchedUser.role || 'customer'
+        };
+      }
+    }
+
+    if (!resolvedUser) {
+      resolvedUser = {
+        name: authUser.displayName || authUser.email || 'Customer',
+        email: authUser.email || '',
+        role: 'customer',
+        tenantId: activeTenantId || DEFAULT_TENANT_ID
+      };
+    }
+
+    setUser(resolvedUser);
+
+    if (resolvedUser.tenantId && resolvedUser.tenantId !== activeTenantId) {
+      setActiveTenantId(resolvedUser.tenantId);
+    }
+
+    if (isAdminRole(resolvedUser.role) && !currentViewRef.current.startsWith('admin')) {
+      setCurrentView('admin');
+      setAdminSection('dashboard');
+    }
+  }, [authUser, tenants, users, activeTenantId]);
 
   // --- INITIAL DATA LOADING ---
   useEffect(() => {
-    const storedSession = localStorage.getItem('gadgetshob_session');
-    if (storedSession) {
+    let isMounted = true;
+    const loadTenants = async () => {
       try {
-        const parsedUser = JSON.parse(storedSession);
-        setUser(parsedUser);
-        if (parsedUser?.role === 'admin') {
-          setCurrentView('admin');
+        const tenantList = await DataService.listTenants();
+        if (!isMounted) return;
+        setTenants(tenantList);
+        if (tenantList.length && !tenantList.some((tenant) => tenant.id === activeTenantId)) {
+          setActiveTenantId(tenantList[0].id);
         }
-      } catch (err) { console.warn('Invalid session cache', err); }
-    }
-
+      } catch (error) {
+        console.warn('Unable to load tenants', error);
+      }
+    };
+    loadTenants();
+    return () => { isMounted = false; };
+  }, [activeTenantId]);
+  useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
+      if (!activeTenantId) return;
       setIsLoading(true);
+      let loadError: Error | null = null;
       try {
         const [
           productsData,
@@ -205,26 +352,26 @@ const App = () => {
           brandsData,
           tagsData
         ] = await Promise.all([
-          DataService.getProducts(),
-          DataService.getOrders(),
-          DataService.getLandingPages(),
-          DataService.getUsers(),
-          DataService.getRoles(),
-          DataService.get<string | null>('logo', null),
-          DataService.getThemeConfig(),
-          DataService.getWebsiteConfig(),
-          DataService.getDeliveryConfig(),
-          DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }),
-          DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }),
-          DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }]),
-          DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }]),
-          DataService.getCatalog('childcategories', []),
-          DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }]),
-          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }])
+          DataService.getProducts(activeTenantId),
+          DataService.getOrders(activeTenantId),
+          DataService.getLandingPages(activeTenantId),
+          DataService.getUsers(activeTenantId),
+          DataService.getRoles(activeTenantId),
+          DataService.get<string | null>('logo', null, activeTenantId),
+          DataService.getThemeConfig(activeTenantId),
+          DataService.getWebsiteConfig(activeTenantId),
+          DataService.getDeliveryConfig(activeTenantId),
+          DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }, activeTenantId),
+          DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }, activeTenantId),
+          DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }], activeTenantId),
+          DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }], activeTenantId),
+          DataService.getCatalog('childcategories', [], activeTenantId),
+          DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }], activeTenantId),
+          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId)
         ]);
 
         if (!isMounted) return;
-        const normalizedProducts = normalizeProductCollection(productsData);
+        const normalizedProducts = normalizeProductCollection(productsData, activeTenantId);
         setProducts(normalizedProducts);
         setOrders(ordersData);
         setLandingPages(landingPagesData);
@@ -246,37 +393,50 @@ const App = () => {
         setBrands(brandsData);
         setTags(tagsData);
       } catch (error) {
+        loadError = error as Error;
         console.error('Failed to load data', error);
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          if (tenantSwitchTargetRef.current === activeTenantId) {
+            setIsTenantSwitching(false);
+            if (loadError) {
+              toast.error('Unable to switch tenants. Please try again.');
+            } else {
+              const switchedTenant = tenantsRef.current.find((tenant) => tenant.id === activeTenantId);
+              toast.success(`Now viewing ${switchedTenant?.name || 'selected tenant'}`);
+            }
+            tenantSwitchTargetRef.current = null;
+          }
+        }
       }
     };
 
     loadData();
     return () => { isMounted = false; };
-  }, []);
+  }, [activeTenantId]);
 
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
   
-  useEffect(() => { if(!isLoading) DataService.save('orders', orders); }, [orders, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('products', products); }, [products, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('roles', roles); }, [roles, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('users', users); }, [users, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('logo', logo); }, [logo, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('delivery_config', deliveryConfig); }, [deliveryConfig, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('courier', courierConfig); }, [courierConfig, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('facebook_pixel', facebookPixelConfig); }, [facebookPixelConfig, isLoading]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('orders', orders, activeTenantId); }, [orders, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('products', products, activeTenantId); }, [products, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('logo', logo, activeTenantId); }, [logo, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('delivery_config', deliveryConfig, activeTenantId); }, [deliveryConfig, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, activeTenantId]);
   
-  useEffect(() => { if(!isLoading) DataService.save('categories', categories); }, [categories, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('subcategories', subCategories); }, [subCategories, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('childcategories', childCategories); }, [childCategories, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('brands', brands); }, [brands, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('tags', tags); }, [tags, isLoading]);
-  useEffect(() => { if(!isLoading) DataService.save('landing_pages', landingPages); }, [landingPages, isLoading]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
 
   useEffect(() => { 
-    if(!isLoading && themeConfig) {
-      DataService.save('theme', themeConfig);
+    if(!isLoading && themeConfig && activeTenantId) {
+      DataService.save('theme', themeConfig, activeTenantId);
       const root = document.documentElement;
       root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
       root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
@@ -287,11 +447,11 @@ const App = () => {
       if (themeConfig.darkMode) root.classList.add('dark');
       else root.classList.remove('dark');
     }
-  }, [themeConfig, isLoading]);
+  }, [themeConfig, isLoading, activeTenantId]);
 
   useEffect(() => { 
-    if(!isLoading && websiteConfig) {
-      DataService.save('website_config', websiteConfig);
+    if(!isLoading && websiteConfig && activeTenantId) {
+      DataService.save('website_config', websiteConfig, activeTenantId);
       if (websiteConfig.favicon) {
         let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
         if (!link) {
@@ -302,7 +462,7 @@ const App = () => {
         link.href = websiteConfig.favicon;
       }
     }
-  }, [websiteConfig, isLoading]);
+  }, [websiteConfig, isLoading, activeTenantId]);
 
   useEffect(() => {
     const scriptId = 'facebook-pixel-script';
@@ -342,65 +502,147 @@ fbq('track', 'PageView');`;
 
   // --- HANDLERS ---
 
-  const handleRegister = (newUser: User) => {
-    if (users.some(u => u.email === newUser.email)) return false;
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    setUser(newUser);
-    localStorage.setItem('gadgetshob_session', JSON.stringify(newUser));
-    setIsLoginOpen(false);
-    return true;
+  const handleRegister = async (newUser: User) => {
+    if (!newUser.email || !newUser.password) {
+      throw new Error('Email and password are required');
+    }
+    const normalizedEmail = newUser.email.trim().toLowerCase();
+    if (users.some((u) => u.email?.toLowerCase() === normalizedEmail)) {
+      throw new Error('Email already registered. Try logging in instead.');
+    }
+    try {
+      await AuthService.register({
+        email: normalizedEmail,
+        password: newUser.password,
+        name: newUser.name
+      });
+      const { password, ...rest } = newUser;
+      const scopedUser: User = {
+        ...rest,
+        email: normalizedEmail,
+        tenantId: rest.tenantId || activeTenantId,
+        role: rest.role || 'customer'
+      };
+      setUsers((prev) => [...prev.filter((u) => u.email !== scopedUser.email), scopedUser]);
+      return true;
+    } catch (error) {
+      throw new Error(getAuthErrorMessage(error));
+    }
   };
 
-  const handleLogin = (email: string, pass: string) => {
+  const tryLegacyLogin = (email: string, pass: string) => {
     const formattedEmail = email.trim();
     const formattedPass = pass.trim();
-    const foundUser = users.find(u => u.email === formattedEmail && u.password === formattedPass);
-    if (formattedEmail.toLowerCase() === 'admin@systemnextit.com' && formattedPass === 'admin121') {
-       const admin: User = { name: 'Super Admin', email: 'admin@systemnextit.com', role: 'admin' };
-       setUser(admin);
-       localStorage.setItem('gadgetshob_session', JSON.stringify(admin));
-       setIsLoginOpen(false);
-       setCurrentView('admin');
-       return true;
-    }
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('gadgetshob_session', JSON.stringify(foundUser));
-      setIsLoginOpen(false);
+    const formattedEmailLower = formattedEmail.toLowerCase();
+
+    const tenantAdmin = tenants.find(
+      (tenant) => tenant.adminEmail?.toLowerCase() === formattedEmailLower && tenant.adminPassword === formattedPass
+    );
+    if (tenantAdmin) {
+      const adminUser: User = {
+        name: `${tenantAdmin.name} Admin`,
+        email: formattedEmail,
+        role: 'tenant_admin',
+        tenantId: tenantAdmin.id
+      };
+      setUser(adminUser);
+      setActiveTenantId(tenantAdmin.id);
+      setAdminSection('dashboard');
+      setCurrentView('admin');
       return true;
     }
+
+    if (formattedEmailLower === 'admin@systemnextit.com' && formattedPass === 'admin121') {
+      const admin: User = {
+        name: 'Super Admin',
+        email: 'admin@systemnextit.com',
+        role: 'super_admin',
+        tenantId: activeTenantId || DEFAULT_TENANT_ID
+      };
+      setUser(admin);
+      setActiveTenantId(admin.tenantId || activeTenantId || DEFAULT_TENANT_ID);
+      setAdminSection('dashboard');
+      setCurrentView('admin');
+      return true;
+    }
+
+    const foundUser = users.find(
+      (u) => u.email?.toLowerCase() === formattedEmailLower && u.password === formattedPass
+    );
+    if (foundUser) {
+      const userWithTenant = {
+        ...foundUser,
+        tenantId: foundUser.tenantId || activeTenantId || DEFAULT_TENANT_ID,
+      };
+      setUser(userWithTenant);
+      setActiveTenantId(userWithTenant.tenantId || activeTenantId || DEFAULT_TENANT_ID);
+      if (!foundUser.tenantId) {
+        setUsers((prev) => prev.map((u) => (u.email === foundUser.email ? userWithTenant : u)));
+      }
+      if (isAdminRole(userWithTenant.role)) {
+        setCurrentView('admin');
+        setAdminSection('dashboard');
+      }
+      return true;
+    }
+
     return false;
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('gadgetshob_session');
-    setCurrentView('store');
-    setSelectedVariant(null);
+  const handleLogin = async (email: string, pass: string) => {
+    try {
+      await AuthService.login(email.trim(), pass);
+      return true;
+    } catch (error) {
+      if (tryLegacyLogin(email, pass)) {
+        return true;
+      }
+      throw new Error(getAuthErrorMessage(error));
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.warn('Failed to sign out', error);
+    } finally {
+      setUser(null);
+      setCurrentView('store');
+      setSelectedVariant(null);
+      setAdminSection('dashboard');
+    }
   };
 
   const handleUpdateProfile = (updatedUser: User) => {
-    setUser(updatedUser);
-    localStorage.setItem('gadgetshob_session', JSON.stringify(updatedUser));
-    setUsers(users.map(u => u.email === updatedUser.email ? updatedUser : u));
+    const userWithTenant = { ...updatedUser, tenantId: updatedUser.tenantId || activeTenantId };
+    setUser(userWithTenant);
+    setUsers(users.map(u => u.email === updatedUser.email ? userWithTenant : u));
   };
 
-  const handleAddRole = (newRole: Role) => setRoles([...roles, newRole]);
-  const handleUpdateRole = (updatedRole: Role) => setRoles(roles.map(r => r.id === updatedRole.id ? updatedRole : r));
+  const handleAddRole = (newRole: Role) => {
+    const scopedRole = { ...newRole, tenantId: newRole.tenantId || activeTenantId };
+    setRoles([...roles, scopedRole]);
+  };
+  const handleUpdateRole = (updatedRole: Role) => {
+    const scopedRole = { ...updatedRole, tenantId: updatedRole.tenantId || activeTenantId };
+    setRoles(roles.map(r => r.id === scopedRole.id ? scopedRole : r));
+  };
   const handleDeleteRole = (roleId: string) => setRoles(roles.filter(r => r.id !== roleId));
   const handleUpdateUserRole = (userEmail: string, roleId: string) => {
     setUsers(users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u));
   };
 
   const handleAddProduct = (newProduct: Product) => {
-    const slug = ensureUniqueProductSlug(newProduct.slug || newProduct.name || `product-${newProduct.id}`, products);
-    setProducts([...products, { ...newProduct, slug }]);
+    const tenantId = newProduct.tenantId || activeTenantId;
+    const slug = ensureUniqueProductSlug(newProduct.slug || newProduct.name || `product-${newProduct.id}`, products, tenantId, newProduct.id);
+    setProducts([...products, { ...newProduct, slug, tenantId }]);
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
-    const slug = ensureUniqueProductSlug(updatedProduct.slug || updatedProduct.name || `product-${updatedProduct.id}`, products, updatedProduct.id);
-    setProducts(products.map(p => p.id === updatedProduct.id ? { ...updatedProduct, slug } : p));
+    const tenantId = updatedProduct.tenantId || activeTenantId;
+    const slug = ensureUniqueProductSlug(updatedProduct.slug || updatedProduct.name || `product-${updatedProduct.id}`, products, tenantId, updatedProduct.id);
+    setProducts(products.map(p => p.id === updatedProduct.id ? { ...updatedProduct, slug, tenantId } : p));
   };
   const handleDeleteProduct = (id: number) => setProducts(products.filter(p => p.id !== id));
   const handleBulkDeleteProducts = (ids: number[]) => setProducts(products.filter(p => !ids.includes(p.id)));
@@ -410,13 +652,15 @@ fbq('track', 'PageView');`;
   };
 
   const handleCreateLandingPage = (page: LandingPage) => {
-    setLandingPages(prev => [page, ...prev]);
+    const scopedPage = { ...page, tenantId: page.tenantId || activeTenantId };
+    setLandingPages(prev => [scopedPage, ...prev]);
   };
 
   const handleUpsertLandingPage = (page: LandingPage) => {
+    const scopedPage = { ...page, tenantId: page.tenantId || activeTenantId };
     setLandingPages(prev => {
-      const exists = prev.some(lp => lp.id === page.id);
-      return exists ? prev.map(lp => lp.id === page.id ? page : lp) : [page, ...prev];
+      const exists = prev.some(lp => lp.id === scopedPage.id);
+      return exists ? prev.map(lp => lp.id === scopedPage.id ? scopedPage : lp) : [scopedPage, ...prev];
     });
   };
 
@@ -441,10 +685,83 @@ fbq('track', 'PageView');`;
   const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
   const handleUpdateCourierConfig = (config: CourierConfig) => setCourierConfig(config);
   const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => setDeliveryConfig(configs);
+
+  const handleTenantChange = (tenantId: string) => {
+    if (!tenantId || tenantId === activeTenantId) return;
+    tenantSwitchTargetRef.current = tenantId;
+    setIsTenantSwitching(true);
+    setActiveTenantId(tenantId);
+    setAdminSection('dashboard');
+    setSelectedProduct(null);
+    setSelectedLandingPage(null);
+    if (user) {
+      const updatedUser = { ...user, tenantId };
+      setUser(updatedUser);
+    }
+    if (!currentView.startsWith('admin')) {
+      setCurrentView('admin');
+    }
+  };
+
+  const handleCreateTenant = async (
+    payload: CreateTenantPayload,
+    options: { activate?: boolean } = { activate: true }
+  ): Promise<Tenant> => {
+    setIsTenantSeeding(true);
+    try {
+      const newTenant = await DataService.seedTenant(payload);
+      setTenants(prev => {
+        const filtered = prev.filter(t => t.id !== newTenant.id);
+        return [newTenant, ...filtered];
+      });
+
+      if (options.activate) {
+        handleTenantChange(newTenant.id);
+      }
+
+      toast.success(`${newTenant.name} is ready`);
+      return newTenant;
+    } catch (error) {
+      console.error('Failed to create tenant', error);
+      const message = error instanceof Error ? error.message : 'Unable to create tenant';
+      toast.error(message);
+      throw error;
+    } finally {
+      setIsTenantSeeding(false);
+    }
+  };
+
+  const handleDeleteTenant = async (tenantId: string) => {
+    if (!tenantId) return;
+    setDeletingTenantId(tenantId);
+    try {
+      await DataService.deleteTenant(tenantId);
+      let fallbackTenantId: string | null = null;
+      setTenants(prev => {
+        const updated = prev.filter(tenant => tenant.id !== tenantId);
+        fallbackTenantId = updated[0]?.id || null;
+        return updated;
+      });
+      if (tenantId === activeTenantId) {
+        if (fallbackTenantId) {
+          handleTenantChange(fallbackTenantId);
+        } else {
+          setActiveTenantId(DEFAULT_TENANT_ID);
+        }
+      }
+      toast.success('Tenant removed');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to delete tenant';
+      toast.error(message);
+      throw error;
+    } finally {
+      setDeletingTenantId(null);
+    }
+  };
   
   // Updated to handle partial updates including trackingId
   const handleUpdateOrder = (orderId: string, updates: Partial<Order>) => {
-    setOrders(orders.map(o => o.id === orderId ? { ...o, ...updates } : o));
+    setOrders(orders.map(o => o.id === orderId ? { ...o, ...updates, tenantId: o.tenantId || activeTenantId } : o));
   };
 
   const addToWishlist = (id: number) => { if (!wishlist.includes(id)) setWishlist([...wishlist, id]); };
@@ -478,6 +795,7 @@ fbq('track', 'PageView');`;
   const handlePlaceOrder = (formData: any) => {
     const newOrder: Order = {
       id: `#${Math.floor(1000 + Math.random() * 9000)}`,
+      tenantId: activeTenantId,
       customer: formData.fullName,
       location: formData.address,
       amount: formData.amount,
@@ -503,6 +821,7 @@ fbq('track', 'PageView');`;
     if (!product) return;
     const newOrder: Order = {
       id: `LP-${Math.floor(10000 + Math.random() * 90000)}`,
+      tenantId: activeTenantId,
       customer: payload.fullName,
       location: payload.address,
       phone: payload.phone,
@@ -520,12 +839,14 @@ fbq('track', 'PageView');`;
 
   const handleCloseLandingPreview = () => {
     setSelectedLandingPage(null);
-    setCurrentView(user?.role === 'admin' ? 'admin' : 'store');
+    setCurrentView(isAdminRole(user?.role) ? 'admin' : 'store');
   };
 
+  const attachTenant = <T extends { tenantId?: string }>(item: T): T => ({ ...item, tenantId: item?.tenantId || activeTenantId });
+
   const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>) => ({
-    add: (item: any) => setter(prev => [...prev, item]),
-    update: (item: any) => setter(prev => prev.map(i => i.id === item.id ? item : i)),
+    add: (item: any) => setter(prev => [...prev, attachTenant(item)]),
+    update: (item: any) => setter(prev => prev.map(i => i.id === item.id ? attachTenant(item) : i)),
     delete: (id: string) => setter(prev => prev.filter(i => i.id !== id))
   });
 
@@ -534,9 +855,13 @@ fbq('track', 'PageView');`;
   const childCatHandlers = createCrudHandler(setChildCategories);
   const brandHandlers = createCrudHandler(setBrands);
   const tagHandlers = createCrudHandler(setTags);
+  const platformOperator = isPlatformOperator(user?.role);
+  const selectedTenantRecord = tenants.find(t => t.id === activeTenantId) || tenantsRef.current.find(t => t.id === activeTenantId) || null;
+  const headerTenants = platformOperator ? tenants : (selectedTenantRecord ? [selectedTenantRecord] : []);
+  const tenantSwitcher = platformOperator ? handleTenantChange : undefined;
 
   const toggleView = () => {
-    if (user?.role !== 'admin') return;
+    if (!isAdminRole(user?.role)) return;
     const nextView = currentView.startsWith('admin') ? 'store' : 'admin';
     setCurrentView(nextView);
     setSelectedProduct(null);
@@ -544,8 +869,11 @@ fbq('track', 'PageView');`;
 
   const syncViewWithLocation = useCallback((path?: string) => {
     const trimmedPath = (path ?? window.location.pathname).replace(/^\/+|\/+$/g, '');
+    const activeView = currentViewRef.current;
+    const activeUser = userRef.current;
+
     if (!trimmedPath) {
-      if (!currentView.startsWith('admin')) {
+      if (!activeView.startsWith('admin')) {
         setSelectedProduct(null);
         setCurrentView('store');
       }
@@ -553,11 +881,11 @@ fbq('track', 'PageView');`;
     }
 
     if (trimmedPath === 'admin') {
-      if (user?.role === 'admin') {
+      if (isAdminRole(activeUser?.role)) {
         setCurrentView('admin');
       } else {
         window.history.replaceState({}, '', '/');
-        if (!currentView.startsWith('admin')) setCurrentView('store');
+        if (!activeView.startsWith('admin')) setCurrentView('store');
       }
       return;
     }
@@ -571,11 +899,11 @@ fbq('track', 'PageView');`;
     }
 
     window.history.replaceState({}, '', '/');
-    if (!currentView.startsWith('admin')) {
+    if (!activeView.startsWith('admin')) {
       setSelectedProduct(null);
       setCurrentView('store');
     }
-  }, [products, currentView, user]);
+  }, [products]);
 
   useEffect(() => {
     const handlePopState = () => syncViewWithLocation();
@@ -593,6 +921,12 @@ fbq('track', 'PageView');`;
     }
   }, [currentView]);
 
+  useEffect(() => {
+    if (adminSection === 'tenants' && !isPlatformOperator(user?.role)) {
+      setAdminSection('dashboard');
+    }
+  }, [adminSection, user]);
+
 //   if (isLoading) {
 //     return (
 //       <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
@@ -606,10 +940,11 @@ fbq('track', 'PageView');`;
 
   return (
     <Suspense fallback={<SuspenseFallback />}>
+      <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
       <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
         {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
 
-        {user?.role === 'admin' && (
+        {isAdminRole(user?.role) && (
           <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
             <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
               {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
@@ -619,7 +954,7 @@ fbq('track', 'PageView');`;
         )}
 
         {currentView === 'admin' ? (
-          <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout}>
+          <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout} tenants={headerTenants} activeTenantId={activeTenantId} onTenantChange={tenantSwitcher}>
             {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
              adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
              adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
@@ -632,6 +967,9 @@ fbq('track', 'PageView');`;
              adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
              adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={setFacebookPixelConfig} onBack={() => setAdminSection('settings')} /> :
              adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
+             adminSection === 'tenants' ? (platformOperator
+               ? <AdminTenantManagement tenants={tenants} onCreateTenant={handleCreateTenant} isCreating={isTenantSeeding} onDeleteTenant={handleDeleteTenant} deletingTenantId={deletingTenantId} />
+               : <AdminDashboard orders={orders} products={products} />) :
              adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
              <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
             }

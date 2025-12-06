@@ -1,6 +1,46 @@
 
 import React from 'react';
 
+export type TenantPlan = 'starter' | 'growth' | 'enterprise';
+export type TenantStatus = 'active' | 'trialing' | 'suspended' | 'inactive';
+
+export interface TenantBranding {
+  logo?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  fontFamily?: string;
+}
+
+export interface Tenant {
+  id: string;
+  name: string;
+  subdomain: string;
+  customDomain?: string;
+  contactEmail: string;
+  contactName?: string;
+  adminEmail?: string;
+  adminPassword?: string;
+  plan: TenantPlan;
+  status: TenantStatus;
+  createdAt: string;
+  updatedAt: string;
+  onboardingCompleted: boolean;
+  locale?: string;
+  currency?: string;
+  branding?: TenantBranding;
+  settings?: Record<string, any>;
+}
+
+export interface CreateTenantPayload {
+  name: string;
+  contactEmail: string;
+  contactName?: string;
+  subdomain: string;
+  plan?: TenantPlan;
+  adminEmail: string;
+  adminPassword: string;
+}
+
 export interface ProductVariantSelection {
   color: string;
   size: string;
@@ -14,6 +54,7 @@ export interface ProductVariantStock extends ProductVariantSelection {
 export interface Product {
   id: number;
   name: string;
+  tenantId?: string;
   price: number;
   originalPrice?: number;
   image: string;
@@ -39,6 +80,7 @@ export interface Product {
 
 export interface Order {
   id: string;
+  tenantId?: string;
   customer: string;
   location: string;
   amount: number;
@@ -60,11 +102,12 @@ export interface Order {
 
 export interface User {
   name: string;
+  tenantId?: string;
   email: string;
   password?: string;
   phone?: string;
   address?: string;
-  role?: 'customer' | 'admin';
+  role?: 'customer' | 'admin' | 'tenant_admin' | 'super_admin';
   roleId?: string; // ID of the custom role defined in AdminControl
   username?: string; // Added for admin profile
   image?: string; // Added for admin profile
@@ -74,6 +117,7 @@ export interface User {
 
 export interface Role {
   id: string;
+  tenantId?: string;
   name: string;
   description: string;
   permissions: string[];
@@ -125,6 +169,7 @@ export interface CarouselItem {
 }
 
 export interface WebsiteConfig {
+  tenantId?: string;
   websiteName: string;
   shortDescription: string;
   whatsappNumber: string;
@@ -142,6 +187,7 @@ export interface WebsiteConfig {
   hideCopyright: boolean;
   hideCopyrightText: boolean;
   showPoweredBy: boolean;
+  showFlashSaleCounter?: boolean;
   brandingText: string;
   // Visual Toggles
   bottomNavStyle?: string;
@@ -166,6 +212,7 @@ export interface DeliveryConfig {
   outsideCharge: number;
   freeThreshold: number;
   note: string;
+  tenantId?: string;
 }
 
 export interface CourierConfig {
@@ -184,6 +231,7 @@ export interface FacebookPixelConfig {
 // Catalog Types
 export interface Category {
   id: string;
+  tenantId?: string;
   name: string;
   icon?: string;
   image?: string;
@@ -192,6 +240,7 @@ export interface Category {
 
 export interface SubCategory {
   id: string;
+  tenantId?: string;
   categoryId: string;
   name: string;
   status: 'Active' | 'Inactive';
@@ -199,6 +248,7 @@ export interface SubCategory {
 
 export interface ChildCategory {
   id: string;
+  tenantId?: string;
   subCategoryId: string;
   name: string;
   status: 'Active' | 'Inactive';
@@ -206,6 +256,7 @@ export interface ChildCategory {
 
 export interface Brand {
   id: string;
+  tenantId?: string;
   name: string;
   logo: string;
   status: 'Active' | 'Inactive';
@@ -213,12 +264,14 @@ export interface Brand {
 
 export interface Tag {
   id: string;
+  tenantId?: string;
   name: string;
   status: 'Active' | 'Inactive';
 }
 
 export interface GalleryItem {
   id: number;
+  tenantId?: string;
   title: string;
   category: string;
   imageUrl: string;
@@ -281,6 +334,7 @@ export interface LandingPageTemplate {
 
 export interface LandingPage {
   id: string;
+  tenantId?: string;
   name: string;
   mode: LandingPageMode;
   productId?: number;

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection } from '../types';
+import { formatCurrency } from '../utils/format';
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -264,6 +265,22 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         );
     };
 
+    const CameraButton: React.FC<{ variant?: 'light' | 'dark' }> = ({ variant = 'dark' }) => {
+        const baseClasses = variant === 'light'
+            ? 'bg-white/90 text-gray-700 hover:bg-white dark:bg-slate-700/70 dark:text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-800 dark:text-white';
+        return (
+            <button
+                type="button"
+                className={`${baseClasses} border border-gray-200 dark:border-slate-700 rounded-full p-2 flex items-center justify-center transition shadow-sm`}
+                title="Visual search"
+                aria-label="Visual search"
+            >
+                <Camera size={16} />
+            </button>
+        );
+    };
+
   // Header Style 4: Mobile Exact Search Layout
   if (websiteConfig?.headerStyle === 'style4') {
     return (
@@ -286,7 +303,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 className="w-full bg-gray-100 dark:bg-slate-800 border-none rounded-lg py-2.5 pl-10 pr-14 text-sm text-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500/20 placeholder-transparent"
                />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 text-gray-400">
-                        <Camera size={18} />
+                        <CameraButton variant="light" />
                         <VoiceButton variant="light" />
                     </div>
             </div>
@@ -338,6 +355,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600 placeholder-transparent"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <CameraButton variant="light" />
                         <VoiceButton />
                                                 <button className="btn-search px-6 py-2 rounded-full flex items-center justify-center">
                           <Search size={20} />
@@ -493,6 +511,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                      className="w-full border border-blue-400 rounded px-4 py-2.5 pr-32 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                  />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                          <CameraButton variant="light" />
                           <VoiceButton variant="light" />
                                   <button className="btn-search px-4 py-2 rounded-full flex items-center justify-center">
                              <Search size={20} />
@@ -608,6 +627,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                             className="w-full pl-10 pr-28 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-transparent font-medium text-gray-700"
                         />
                         <div className="absolute right-1 top-1 bottom-1 flex items-center gap-2">
+                            <CameraButton variant="light" />
                             <VoiceButton />
                             <button className="btn-search text-xs font-bold px-4 h-full rounded-md flex items-center justify-center">
                                 Search
@@ -663,6 +683,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600 placeholder-transparent"
                                 />
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                    <CameraButton variant="light" />
                                     <VoiceButton />
                                     <button className="btn-search px-6 py-2 rounded-full flex items-center justify-center gap-2">
                                         <Search size={20} />
@@ -767,7 +788,15 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
 };
 
 
-export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string; onQuickView?: (product: Product) => void }> = ({ product, onClick, variant, onQuickView }) => {
+export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string; onQuickView?: (product: Product) => void; onBuyNow?: (product: Product) => void }> = ({ product, onClick, variant, onQuickView, onBuyNow }) => {
+    const handleBuyNow = (event?: React.MouseEvent) => {
+        event?.stopPropagation();
+        if (onBuyNow) {
+            onBuyNow(product);
+        } else {
+            onClick(product);
+        }
+    };
   // Style 2 (Flash Sale - Pink/Blue)
   if (variant === 'style2') {
     return (
@@ -811,10 +840,10 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     </div>
                     
                     <div className="flex gap-2">
-                                                <button 
-                                                    className="flex-1 btn-order py-1.5 text-sm"
-                                                    onClick={() => onClick(product)}
-                                                >
+                    <button 
+                        className="flex-1 btn-order py-1.5 text-sm"
+                        onClick={handleBuyNow}
+                    >
                             Buy Now
                         </button>
                         <button className="bg-blue-500 hover:bg-blue-600 text-red-600 p-1.5 rounded transition">
@@ -827,8 +856,8 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
     );
   }
 
-    const formattedPrice = product.price.toLocaleString();
-    const formattedOriginalPrice = product.originalPrice?.toLocaleString();
+    const formattedPrice = formatCurrency(product.price);
+    const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
     const tagLabel = product.tag || 'Trending';
     const accentMeta = product.brand || product.category || 'Curated pick';
 
@@ -903,7 +932,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                         <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500">Starting at</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-gray-900 dark:text-white">৳ {formattedPrice}</span>
-                            {product.originalPrice && (
+                            {formattedOriginalPrice && (
                                 <span className="text-xs text-gray-400 line-through">৳ {formattedOriginalPrice}</span>
                             )}
                         </div>
@@ -912,7 +941,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
 
                     <div className="flex flex-col gap-2 w-32">
                         <button
-                            onClick={(e) => { e.stopPropagation(); onClick(product); }}
+                            onClick={handleBuyNow}
                             className="w-full btn-order py-2 rounded-xl font-bold text-sm"
                         >
                             অর্ডার করুন
@@ -1252,7 +1281,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
 
     // Default Footer
     return (
-        <footer className={`store-footer surface-panel bg-white border-t border-gray-100 pt-12 pb-6 text-gray-600 max-w-7xl mx-auto px-4`}>
+        <footer className={`store-footer surface-panel bg-white border-t border-gray-100 pt-1 pb-1 text-gray-600 max-w-7xl mx-auto px-4`}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
                     {logo ? (
@@ -1349,6 +1378,8 @@ export const ProductQuickViewModal: React.FC<{
         color: selectedColor || 'Default',
         size: selectedSize || 'Standard'
     };
+    const quickPrice = formatCurrency(product.price);
+    const quickOriginalPrice = formatCurrency(product.originalPrice, null);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -1375,9 +1406,9 @@ export const ProductQuickViewModal: React.FC<{
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <span className="text-3xl font-black text-gray-900">৳ {product.price.toLocaleString()}</span>
-                        {product.originalPrice && (
-                            <span className="text-sm line-through text-gray-400">৳ {product.originalPrice.toLocaleString()}</span>
+                        <span className="text-3xl font-black text-gray-900">৳ {quickPrice}</span>
+                        {quickOriginalPrice && (
+                            <span className="text-sm line-through text-gray-400">৳ {quickOriginalPrice}</span>
                         )}
                     </div>
 
@@ -1451,24 +1482,30 @@ export const ProductQuickViewModal: React.FC<{
     );
 };
 
-export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => boolean, onRegister: (u: UserType) => boolean }> = ({ onClose, onLogin, onRegister }) => {
+export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => Promise<boolean>, onRegister: (u: UserType) => Promise<boolean> }> = ({ onClose, onLogin, onRegister }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', address: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (isLogin) {
-            if(onLogin(formData.email, formData.password)) {
-                 onClose();
+        setErrorMessage(null);
+        setIsSubmitting(true);
+        try {
+            const success = isLogin
+                ? await onLogin(formData.email.trim(), formData.password)
+                : await onRegister({ ...formData, role: 'customer' });
+            if (success) {
+                onClose();
             } else {
-                 alert("Invalid credentials. Try admin/admin");
+                setErrorMessage(isLogin ? 'Invalid credentials. Please try again.' : 'Unable to create account.');
             }
-        } else {
-             if(onRegister({ ...formData, role: 'customer' })) {
-                 onClose();
-             } else {
-                 alert("User already exists!");
-             }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+            setErrorMessage(message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -1490,9 +1527,12 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p:
                         <input type="email" placeholder="Email Address" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
                         <input type="password" placeholder="Password" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required />
                         
-                        <button type="submit" className="w-full btn-order py-3 rounded-xl font-bold shadow-[0_18px_28px_rgba(var(--color-primary-rgb),0.25)]">
-                            {isLogin ? 'Login' : 'Register'}
+                        <button type="submit" disabled={isSubmitting} className="w-full btn-order py-3 rounded-xl font-bold shadow-[0_18px_28px_rgba(var(--color-primary-rgb),0.25)] disabled:opacity-60 disabled:cursor-not-allowed">
+                            {isSubmitting ? 'Please wait...' : (isLogin ? 'Login' : 'Register')}
                         </button>
+                        {errorMessage && (
+                            <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+                        )}
                     </form>
 
                     <div className="mt-6 text-center text-sm text-gray-600">
@@ -1584,20 +1624,8 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         process.env.VITE_GOOGLE_API_KEY ||
         process.env.API_KEY ||
         '';
-    const [customKey, setCustomKey] = useState(() => {
-        if (typeof window === 'undefined') return '';
-        return localStorage.getItem('gadgetshob_ai_key') || defaultEnvKey;
-    });
+    const [customKey, setCustomKey] = useState('');
     const activeApiKey = customKey || defaultEnvKey;
-
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        if (customKey) {
-            localStorage.setItem('gadgetshob_ai_key', customKey);
-        } else {
-            localStorage.removeItem('gadgetshob_ai_key');
-        }
-    }, [customKey]);
 
     const generateImage = async () => {
         if (!prompt) return;
@@ -1663,7 +1691,7 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                                 onChange={(e) => setCustomKey(e.target.value.trim())}
                                 className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 focus:outline-none"
                             />
-                            <p className="text-[11px] text-gray-500 mt-1">Key stays in this browser only (localStorage). Leave blank to use the bundled env key.</p>
+                            <p className="text-[11px] text-gray-500 mt-1">Key is held in memory for this session only. Leave blank to use the bundled env key.</p>
                         </div>
                         <div>
                             <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Prompt</label>

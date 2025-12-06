@@ -1,6 +1,8 @@
 import path from 'path';
 import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
+import type { PluginOption, PreviewServer, ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
+import { createTenantApiMiddleware } from './server/tenantsApi';
 
 const toPosixPath = (id: string) => id.split('\\').join('/');
 
@@ -73,6 +75,16 @@ const manualChunkResolver = (id: string): string | undefined => {
   return undefined;
 };
 
+const tenantApiPlugin = (): PluginOption => ({
+  name: 'tenant-api-mock',
+  configureServer(server: ViteDevServer) {
+    server.middlewares.use(createTenantApiMiddleware());
+  },
+  configurePreviewServer(server: PreviewServer) {
+    server.middlewares.use(createTenantApiMiddleware());
+  }
+});
+
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
@@ -80,7 +92,7 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [react(), splitVendorChunkPlugin()],
+      plugins: [react(), tenantApiPlugin(), splitVendorChunkPlugin()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -89,6 +101,12 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: './setupTests.ts',
+        css: true
       },
       build: {
         chunkSizeWarningLimit: 200,

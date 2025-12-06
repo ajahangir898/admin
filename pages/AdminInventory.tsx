@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Boxes, AlertTriangle, Package, TrendingUp, Search, ShieldCheck } from 'lucide-react';
 import { Product } from '../types';
+import { formatCurrency } from '../utils/format';
 
 interface AdminInventoryProps {
   products: Product[];
@@ -158,7 +159,7 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
                       <div className="text-xs text-gray-400">#{product.id}</div>
                     </td>
                     <td className="py-3 text-gray-500">{product.category || 'Unassigned'}</td>
-                    <td className="py-3 text-gray-700 font-semibold">৳ {product.price.toLocaleString()}</td>
+                    <td className="py-3 text-gray-700 font-semibold">৳ {formatCurrency(product.price)}</td>
                     <td className="py-3 font-bold text-gray-900">{product.stock ?? 0}</td>
                     <td className="py-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(product.stock)}`}>

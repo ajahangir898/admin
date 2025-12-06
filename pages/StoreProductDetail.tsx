@@ -4,6 +4,7 @@ import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '..
 import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2 } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
+import { formatCurrency } from '../utils/format';
 
 // Helper for stars
 const StarRating = ({ rating, count }: { rating: number, count?: number }) => (
@@ -109,6 +110,9 @@ const StoreProductDetail = ({
   const availableStock = variantStockEntry?.stock ?? product.stock ?? Infinity;
   const isOutOfStock = !Number.isFinite(availableStock) ? false : availableStock <= 0;
   const atStockLimit = Number.isFinite(availableStock) && quantity >= (availableStock as number);
+
+  const formattedPrice = formatCurrency(product.price);
+  const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
 
   const decreaseQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
   const increaseQuantity = () => {
@@ -238,9 +242,9 @@ const StoreProductDetail = ({
                  </div>
 
                   <div className="flex items-end gap-3 mb-6">
-                    <span className="text-4xl font-bold text-orange-500">৳ {product.price.toLocaleString()}</span>
-                    {product.originalPrice && (
-                      <span className="text-lg text-gray-400 line-through mb-1">৳ {product.originalPrice.toLocaleString()}</span>
+                    <span className="text-4xl font-bold text-orange-500">৳ {formattedPrice}</span>
+                    {formattedOriginalPrice && (
+                      <span className="text-lg text-gray-400 line-through mb-1">৳ {formattedOriginalPrice}</span>
                     )}
                  </div>
 

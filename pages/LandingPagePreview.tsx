@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { LandingPage, Product } from '../types';
 import { OnePageCheckout, LandingCheckoutPayload } from '../components/LandingPageComponents';
 import { ArrowLeft, Sparkles, Quote, HelpCircle, Star } from 'lucide-react';
+import { formatCurrency } from '../utils/format';
 
 interface LandingPagePreviewProps {
   page: LandingPage;
@@ -12,6 +13,8 @@ interface LandingPagePreviewProps {
 
 const LandingHero: React.FC<{ page: LandingPage; product?: Product; }> = ({ page, product }) => {
   const hero = page.blocks.find(block => block.type === 'hero');
+  const formattedPrice = product ? formatCurrency(product.price) : null;
+  const formattedOriginalPrice = product ? formatCurrency(product.originalPrice, null) : null;
   return (
     <div className="rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-8 space-y-5">
       <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/60">
@@ -21,8 +24,8 @@ const LandingHero: React.FC<{ page: LandingPage; product?: Product; }> = ({ page
       <p className="text-white/80 text-lg max-w-2xl">{hero?.description || page.seo.metaDescription}</p>
       {product && (
         <div className="flex items-center gap-6 text-white">
-          <span className="text-3xl font-extrabold">৳ {product.price.toLocaleString()}</span>
-          {product.originalPrice && <span className="text-white/60 line-through">৳ {product.originalPrice.toLocaleString()}</span>}
+          <span className="text-3xl font-extrabold">৳ {formattedPrice}</span>
+          {formattedOriginalPrice && <span className="text-white/60 line-through">৳ {formattedOriginalPrice}</span>}
         </div>
       )}
       {hero?.mediaUrl && (

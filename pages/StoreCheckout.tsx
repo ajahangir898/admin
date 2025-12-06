@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { ArrowLeft, Banknote, MapPin, Mail, Phone, User as UserIcon, X } from 'lucide-react';
+import { formatCurrency } from '../utils/format';
 
 interface CheckoutProps {
   product: Product;
@@ -75,6 +76,8 @@ const StoreCheckout = ({
     return isInside ? activeConfig.insideCharge : activeConfig.outsideCharge;
   }, [activeConfig, formData.division, subTotal]);
   const grandTotal = subTotal + computedDeliveryCharge;
+  const formattedProductPrice = formatCurrency(product.price);
+  const formattedProductOriginalPrice = formatCurrency(product.originalPrice, null);
 
   const handleSubmit = () => {
     // Basic validation
@@ -248,9 +251,9 @@ const StoreCheckout = ({
                             <span className="px-2">{quantity}</span>
                          </div>
                          <div className="flex items-center gap-2">
-                           <span className="font-bold text-gray-800">৳ {product.price.toLocaleString()}</span>
-                           {product.originalPrice && (
-                             <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
+                           <span className="font-bold text-gray-800">৳ {formattedProductPrice}</span>
+                           {formattedProductOriginalPrice && (
+                             <span className="text-xs text-gray-400 line-through">৳ {formattedProductOriginalPrice}</span>
                            )}
                          </div>
                       </div>

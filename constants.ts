@@ -1,8 +1,34 @@
 
-import { Product, Order, ChartData, GalleryItem, LandingPage, LandingPageTemplate } from './types';
+import { Product, Order, ChartData, GalleryItem, LandingPage, LandingPageTemplate, Tenant } from './types';
 
 export const DEFAULT_VARIANT_COLOR = 'Default';
 export const DEFAULT_VARIANT_SIZE = 'Standard';
+
+export const DEFAULT_TENANT_ID = 'tenant-demo';
+
+export const DEMO_TENANTS: Tenant[] = [
+  {
+    id: DEFAULT_TENANT_ID,
+    name: 'GadgetShob Demo',
+    subdomain: 'demo',
+    contactEmail: 'support@gadgetshob.com',
+    adminEmail: 'demo@gadgetshob.com',
+    adminPassword: 'demo1234',
+    plan: 'starter',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    onboardingCompleted: true,
+    locale: 'en-BD',
+    currency: 'BDT',
+    branding: {
+      logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200',
+      primaryColor: '#7c3aed',
+      secondaryColor: '#f97316',
+      fontFamily: 'Inter, sans-serif'
+    }
+  }
+];
 
 export const CATEGORIES = [
   { name: 'Phones', icon: 'smartphone' },
@@ -21,6 +47,7 @@ const toSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-'
 export const PRODUCTS: Product[] = [
   {
     id: 1,
+    tenantId: DEFAULT_TENANT_ID,
     name: 'Apple 20W USB-C Power Adapter',
     price: 2200,
     originalPrice: 3000,
@@ -48,6 +75,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 2,
+    tenantId: DEFAULT_TENANT_ID,
     name: 'Samsung Galaxy Watch 6',
     price: 18500,
     originalPrice: 25000,
@@ -79,6 +107,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 3,
+    tenantId: DEFAULT_TENANT_ID,
     name: 'Logitech G Pro X Headset',
     price: 12500,
     originalPrice: 15000,
@@ -108,6 +137,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 4,
+    tenantId: DEFAULT_TENANT_ID,
     name: 'iPhone 14 Pro Max 1TB',
     price: 189999,
     originalPrice: 200000,
@@ -139,14 +169,14 @@ export const PRODUCTS: Product[] = [
 ];
 
 export const RECENT_ORDERS: Order[] = [
-  { id: '#0024', customer: 'Fahim', location: 'Dhaka', amount: 4300, date: '28 Nov, 2025, 11:43 PM', status: 'Pending' },
-  { id: '#0023', customer: 'Durjoy Roy', location: 'Mirpur 6, Dhaka', amount: 29999, date: '28 Nov, 2025, 08:54 PM', status: 'Confirmed' },
-  { id: '#0022', customer: 'Sabbir Ahmed', location: 'Sylhet', amount: 14700, date: '25 Nov, 2025, 07:49 AM', status: 'Delivered' },
-  { id: '#0021', customer: 'Tanvir Hasan', location: 'Chittagong', amount: 5500, date: '24 Nov, 2025, 03:20 PM', status: 'Shipped' },
-  { id: '#0020', customer: 'Nusrat Jahan', location: 'Uttara, Dhaka', amount: 8200, date: '24 Nov, 2025, 10:15 AM', status: 'Confirmed' },
-  { id: '#0019', customer: 'Karim Ullah', location: 'Rajshahi', amount: 1250, date: '23 Nov, 2025, 06:45 PM', status: 'Delivered' },
-  { id: '#0018', customer: 'Rahim Sheikh', location: 'Khulna', amount: 21000, date: '23 Nov, 2025, 09:30 AM', status: 'Pending' },
-  { id: '#0017', customer: 'Samiul Islam', location: 'Barisal', amount: 3400, date: '22 Nov, 2025, 04:10 PM', status: 'Shipped' },
+  { id: '#0024', tenantId: DEFAULT_TENANT_ID, customer: 'Fahim', location: 'Dhaka', amount: 4300, date: '28 Nov, 2025, 11:43 PM', status: 'Pending' },
+  { id: '#0023', tenantId: DEFAULT_TENANT_ID, customer: 'Durjoy Roy', location: 'Mirpur 6, Dhaka', amount: 29999, date: '28 Nov, 2025, 08:54 PM', status: 'Confirmed' },
+  { id: '#0022', tenantId: DEFAULT_TENANT_ID, customer: 'Sabbir Ahmed', location: 'Sylhet', amount: 14700, date: '25 Nov, 2025, 07:49 AM', status: 'Delivered' },
+  { id: '#0021', tenantId: DEFAULT_TENANT_ID, customer: 'Tanvir Hasan', location: 'Chittagong', amount: 5500, date: '24 Nov, 2025, 03:20 PM', status: 'Shipped' },
+  { id: '#0020', tenantId: DEFAULT_TENANT_ID, customer: 'Nusrat Jahan', location: 'Uttara, Dhaka', amount: 8200, date: '24 Nov, 2025, 10:15 AM', status: 'Confirmed' },
+  { id: '#0019', tenantId: DEFAULT_TENANT_ID, customer: 'Karim Ullah', location: 'Rajshahi', amount: 1250, date: '23 Nov, 2025, 06:45 PM', status: 'Delivered' },
+  { id: '#0018', tenantId: DEFAULT_TENANT_ID, customer: 'Rahim Sheikh', location: 'Khulna', amount: 21000, date: '23 Nov, 2025, 09:30 AM', status: 'Pending' },
+  { id: '#0017', tenantId: DEFAULT_TENANT_ID, customer: 'Samiul Islam', location: 'Barisal', amount: 3400, date: '22 Nov, 2025, 04:10 PM', status: 'Shipped' },
 ];
 
 export const REVENUE_DATA: ChartData[] = [
@@ -178,18 +208,18 @@ export const AVAILABLE_PERMISSIONS = [
 ];
 
 export const GALLERY_IMAGES: GalleryItem[] = [
-  { id: 101, title: 'GadgetShob Logo', category: 'Branding', imageUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400', dateAdded: '2025-01-01' },
-  { id: 102, title: 'Congratulations Banner', category: 'Banners', imageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400', dateAdded: '2025-01-02' },
-  { id: 103, title: 'Winner Roksana', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', dateAdded: '2025-01-03' },
-  { id: 104, title: 'Diamond Winner', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400', dateAdded: '2025-01-04' },
-  { id: 105, title: 'Imran Hossain', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', dateAdded: '2025-01-05' },
-  { id: 106, title: 'Misty Roy', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400', dateAdded: '2025-01-06' },
-  { id: 107, title: 'T-Shirt Combo', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', dateAdded: '2025-01-07' },
-  { id: 108, title: 'Sunglass + Wallet', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400', dateAdded: '2025-01-08' },
-  { id: 109, title: 'Leather Wallet', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1627123424574-18bd75847b47?w=400', dateAdded: '2025-01-09' },
-  { id: 110, title: 'Women Smart Purse', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400', dateAdded: '2025-01-10' },
-  { id: 111, title: 'Vip-kem cot combo', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1556228720-1957be83d2bf?w=400', dateAdded: '2025-01-11' },
-  { id: 112, title: 'Mega Campaign', category: 'Banners', imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400', dateAdded: '2025-01-12' },
+  { id: 101, tenantId: DEFAULT_TENANT_ID, title: 'GadgetShob Logo', category: 'Branding', imageUrl: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400', dateAdded: '2025-01-01' },
+  { id: 102, tenantId: DEFAULT_TENANT_ID, title: 'Congratulations Banner', category: 'Banners', imageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400', dateAdded: '2025-01-02' },
+  { id: 103, tenantId: DEFAULT_TENANT_ID, title: 'Winner Roksana', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', dateAdded: '2025-01-03' },
+  { id: 104, tenantId: DEFAULT_TENANT_ID, title: 'Diamond Winner', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400', dateAdded: '2025-01-04' },
+  { id: 105, tenantId: DEFAULT_TENANT_ID, title: 'Imran Hossain', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', dateAdded: '2025-01-05' },
+  { id: 106, tenantId: DEFAULT_TENANT_ID, title: 'Misty Roy', category: 'Events', imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400', dateAdded: '2025-01-06' },
+  { id: 107, tenantId: DEFAULT_TENANT_ID, title: 'T-Shirt Combo', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', dateAdded: '2025-01-07' },
+  { id: 108, tenantId: DEFAULT_TENANT_ID, title: 'Sunglass + Wallet', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400', dateAdded: '2025-01-08' },
+  { id: 109, tenantId: DEFAULT_TENANT_ID, title: 'Leather Wallet', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1627123424574-18bd75847b47?w=400', dateAdded: '2025-01-09' },
+  { id: 110, tenantId: DEFAULT_TENANT_ID, title: 'Women Smart Purse', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400', dateAdded: '2025-01-10' },
+  { id: 111, tenantId: DEFAULT_TENANT_ID, title: 'Vip-kem cot combo', category: 'Products', imageUrl: 'https://images.unsplash.com/photo-1556228720-1957be83d2bf?w=400', dateAdded: '2025-01-11' },
+  { id: 112, tenantId: DEFAULT_TENANT_ID, title: 'Mega Campaign', category: 'Banners', imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400', dateAdded: '2025-01-12' },
 ];
 
 export const LANDING_PAGE_TEMPLATES: LandingPageTemplate[] = [
@@ -218,6 +248,7 @@ const firstProduct = PRODUCTS[0];
 export const DEFAULT_LANDING_PAGES: LandingPage[] = firstProduct ? [
   {
     id: 'lp-ready-1',
+    tenantId: DEFAULT_TENANT_ID,
     name: `${firstProduct.name} Instant Page`,
     mode: 'ready',
     productId: firstProduct.id,

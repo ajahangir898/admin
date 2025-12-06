@@ -51,6 +51,21 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
     address: target?.address || ''
   });
 
+  const formatRoleLabel = (role?: User['role']) => {
+    switch (role) {
+      case 'super_admin':
+        return 'Super Admin';
+      case 'tenant_admin':
+        return 'Tenant Admin';
+      case 'admin':
+        return 'Admin';
+      case 'customer':
+        return 'Customer';
+      default:
+        return 'Admin';
+    }
+  };
+
   const [profileForm, setProfileForm] = useState(getProfileSnapshot(user));
   const [avatarPreview, setAvatarPreview] = useState<string>(user?.image || DEFAULT_AVATAR);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -167,7 +182,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </div>
             <div className="flex-1">
-              <p className="text-xs uppercase tracking-[0.3em] text-white/70 mb-1">{profileForm.role === 'admin' ? 'Super Admin' : profileForm.role}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-white/70 mb-1">{formatRoleLabel(profileForm.role)}</p>
               <h3 className="text-2xl font-bold leading-tight">{profileName}</h3>
               <p className="text-white/80 text-sm">{profileForm.email || 'No email on file'}</p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
@@ -191,8 +206,8 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
               <p className="font-semibold">{profileForm.phone || 'Not added'}</p>
             </div>
             <div>
-              <p className="text-white/60">Role ID</p>
-              <p className="font-semibold">{user?.roleId || 'Super Admin'}</p>
+              <p className="text-white/60">Role</p>
+              <p className="font-semibold">{user?.roleId || formatRoleLabel(user?.role)}</p>
             </div>
             <div>
               <p className="text-white/60">Joined</p>
@@ -302,7 +317,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
                   <input
                     type="text"
                     className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 text-sm"
-                    value={profileForm.role === 'admin' ? 'Super Admin' : profileForm.role}
+                    value={formatRoleLabel(profileForm.role)}
                     readOnly
                   />
                 </div>

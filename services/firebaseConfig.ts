@@ -2,6 +2,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
+import { getAuth } from "firebase/auth";
 
 // Pull credentials from environment when available to avoid hardcoding secrets
 const firebaseConfig = {
@@ -17,5 +18,6 @@ const firebaseConfig = {
 // Initialize Firebase only once to avoid duplicate-app errors during HMR
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-export { app, db };
+export { app, db, auth };

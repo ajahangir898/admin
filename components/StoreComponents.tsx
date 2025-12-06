@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection } from '../types';
 
 const SEARCH_HINT_ANIMATION = `
@@ -742,7 +742,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
                 <Sparkles size={16} /> AI Image Studio
                 </button>
-                <a href="#" className="hover:text-green-500 transition">Wishlist</a>
+                <a href="#" className="hover:text-green-500 transition"></a>
             </nav>
             </div>
         </div>
@@ -1009,6 +1009,17 @@ export const SectionHeader: React.FC<{ title: string; className?: string }> = ({
 
 
 export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: string | null }> = ({ websiteConfig, logo }) => {
+    const resolveSocialIcon = (platform?: string): React.ReactNode => {
+        const key = platform?.toLowerCase() || '';
+        if (key.includes('facebook') || key === 'fb') return <Facebook size={18} className="text-current" />;
+        if (key.includes('instagram') || key === 'ig') return <Instagram size={18} className="text-current" />;
+        if (key.includes('twitter') || key === 'x') return <Twitter size={18} className="text-current" />;
+        if (key.includes('youtube') || key.includes('yt')) return <Youtube size={18} className="text-current" />;
+        if (key.includes('linkedin')) return <Linkedin size={18} className="text-current" />;
+        if (key.includes('whatsapp') || key.includes('messenger')) return <MessageCircle size={18} className="text-current" />;
+        return <Globe size={18} className="text-current" />;
+    };
+
     // Style 2 (Coco Kids Footer)
     if (websiteConfig?.footerStyle === 'style2') {
         return (
@@ -1167,9 +1178,10 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                                             href={link.url}
                                             target="_blank"
                                             rel="noreferrer"
+                                            aria-label={link.platform}
                                             className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:text-white hover:bg-[color:var(--color-primary)] transition"
                                         >
-                                            <Globe size={18} />
+                                            {resolveSocialIcon(link.platform)}
                                         </a>
                                     ))}
                                 </div>
@@ -1233,8 +1245,8 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
                     <div className="flex gap-3">
                     {websiteConfig?.socialLinks?.map(link => (
-                        <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
-                            <Globe size={16} />
+                        <a key={link.id} href={link.url} target="_blank" rel="noreferrer" aria-label={link.platform} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
+                            {resolveSocialIcon(link.platform)}
                         </a>
                     ))}
                     </div>

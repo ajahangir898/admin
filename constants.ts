@@ -24,7 +24,14 @@ export const PRODUCTS: Product[] = [
     name: 'Apple 20W USB-C Power Adapter',
     price: 2200,
     originalPrice: 3000,
-    image: 'https://images.unsplash.com/photo-1616348436168-de43ad0db179?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1616348436168-de43ad0db179?auto=format&fit=crop&q=80&w=960',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1616348436168-de43ad0db179?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1505745050311-50c9e02d7b34?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1457305237443-44c3d5a30b89?auto=format&fit=crop&q=80&w=960'
+    ],
     discount: '26% OFF',
     rating: 4.5,
     reviews: 120,
@@ -43,7 +50,14 @@ export const PRODUCTS: Product[] = [
     name: 'Samsung Galaxy Watch 6',
     price: 18500,
     originalPrice: 25000,
-    image: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&q=80&w=960',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1518544889280-37f5e7459521?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1461141346587-763ab02bced9?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1490376840453-5f616fbebe5b?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=960'
+    ],
     discount: '26% OFF',
     rating: 4.8,
     reviews: 45,
@@ -66,7 +80,14 @@ export const PRODUCTS: Product[] = [
     name: 'Logitech G Pro X Headset',
     price: 12500,
     originalPrice: 15000,
-    image: 'https://images.unsplash.com/photo-1599669454699-248893623040?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1599669454699-248893623040?auto=format&fit=crop&q=80&w=960',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1599669454699-248893623040?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960&sat=-50',
+      'https://images.unsplash.com/photo-1457305237443-44c3d5a30b89?auto=format&fit=crop&q=80&w=960&sat=-100',
+      'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=960'
+    ],
     discount: '16% OFF',
     rating: 4.7,
     reviews: 89,
@@ -87,7 +108,14 @@ export const PRODUCTS: Product[] = [
     name: 'iPhone 14 Pro Max 1TB',
     price: 189999,
     originalPrice: 200000,
-    image: 'https://images.unsplash.com/photo-1678685888221-c4e9c71a3983?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1678685888221-c4e9c71a3983?auto=format&fit=crop&q=80&w=960',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1678685888221-c4e9c71a3983?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1512499617640-c2f999098c01?auto=format&fit=crop&q=80&w=960',
+      'https://images.unsplash.com/photo-1456963802230-1204ad3b8ba0?auto=format&fit=crop&q=80&w=960'
+    ],
     discount: '5% OFF',
     rating: 5.0,
     reviews: 12,
@@ -205,7 +233,7 @@ export const DEFAULT_LANDING_PAGES: LandingPage[] = firstProduct ? [
         title: firstProduct.name,
         subtitle: 'Fast-charge your day with confidence.',
         description: firstProduct.description,
-        mediaUrl: firstProduct.image,
+        mediaUrl: firstProduct.galleryImages?.[0] || firstProduct.image,
         ctaLabel: 'Checkout in 1 Page',
         style: { background: '#f5f3ff', layout: 'split', accentColor: '#7c3aed' }
       },

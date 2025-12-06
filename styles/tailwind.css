@@ -11,41 +11,41 @@
   --color-surface-rgb: 226, 232, 240;
 }
 
-@layer base {
-  body {
-    @apply antialiased text-slate-900 dark:text-slate-100;
+/* @layer base { */
+  /* body { */
+    /* @apply antialiased text-slate-900 dark:text-slate-100;
     min-height: 100vh;
     color: rgb(var(--color-font-rgb));
     background-color: #05060f;
-    background-image:
-      radial-gradient(circle at 15% 20%, rgba(var(--color-primary-rgb), 0.16), transparent 45%),
-      radial-gradient(circle at 80% 0%, rgba(var(--color-secondary-rgb), 0.2), transparent 40%),
-      linear-gradient(120deg, rgba(3, 6, 18, 0.96), rgba(3, 12, 24, 0.96));
-  }
+    background-image: */
+      /* radial-gradient(circle at 15% 20%, rgba(var(--color-primary-rgb), 0.16), transparent 45%),
+      radial-gradient(circle at 80% 0%, rgba(var(--color-secondary-rgb), 0.2), transparent 40%), */
+      /* linear-gradient(120deg, rgba(3, 6, 18, 0.96), rgba(3, 12, 24, 0.96)); */
+  /* } */
 
-  body.dark {
-    background-color: #02030b;
-    background-image:
-      radial-gradient(circle at 20% 15%, rgba(var(--color-primary-rgb), 0.14), transparent 40%),
-      radial-gradient(circle at 70% 0%, rgba(var(--color-secondary-rgb), 0.18), transparent 35%),
-      linear-gradient(135deg, #01040b, #031126 60%, #041a2f);
-  }
+  /* body.dark { */
+    /* background-color: #02030b;
+    background-image: */
+      /* radial-gradient(circle at 20% 15%, rgba(var(--color-primary-rgb), 0.14), transparent 40%),
+      radial-gradient(circle at 70% 0%, rgba(var(--color-secondary-rgb), 0.18), transparent 35%), */
+      /* linear-gradient(135deg, #01040b, #031126 60%, #041a2f); */
+  /* } */
 
   ::selection {
     background: rgba(var(--color-primary-rgb), 0.25);
     color: #fff;
   }
-}
+/* } */
 
 @layer components {
-  .store-card {
+  /* .store-card {
     background: linear-gradient(145deg, rgba(var(--color-surface-rgb), 0.85), rgba(var(--color-primary-rgb), 0.08));
     border: 1px solid rgba(255,255,255,0.4);
     box-shadow:
       0 20px 45px rgba(15,23,42,0.08),
       0 12px 32px rgba(var(--color-primary-rgb), 0.14);
     backdrop-filter: blur(18px);
-  }
+  } */
 
   .btn-outline {
     border: 1px solid rgba(var(--color-primary-rgb), 0.45);

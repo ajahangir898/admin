@@ -66,7 +66,8 @@ const StoreProductDetail = ({
   const [showCartSuccess, setShowCartSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
-  const [selectedImage, setSelectedImage] = useState(product.image);
+  const galleryImages = product.galleryImages && product.galleryImages.length ? product.galleryImages : [product.image];
+  const [selectedImage, setSelectedImage] = useState(galleryImages[0]);
   const fallbackColor = product.variantDefaults?.color || 'Default';
   const fallbackSize = product.variantDefaults?.size || 'Standard';
   const colorOptions = product.colors && product.colors.length ? product.colors : [fallbackColor];
@@ -79,7 +80,8 @@ const StoreProductDetail = ({
   const [lastAddedVariant, setLastAddedVariant] = useState<ProductVariantSelection | null>(null);
 
   useEffect(() => {
-    setSelectedImage(product.image);
+    const refreshGallery = product.galleryImages && product.galleryImages.length ? product.galleryImages : [product.image];
+    setSelectedImage(refreshGallery[0]);
     setSelectedColor(colorOptions[0]);
     setSelectedSize(sizeOptions[0]);
     setQuantity(1);
@@ -92,13 +94,7 @@ const StoreProductDetail = ({
     }
   }, [selectedColor, selectedSize, quantity, variantError]);
 
-  // Mock additional images based on the main image for demo purposes
-  const additionalImages = [
-    product.image,
-    `${product.image}&w=401`, // Hack to get a "different" image from Unsplash for demo
-    `${product.image}&w=402`,
-    `${product.image}&w=403`,
-  ];
+  const additionalImages = galleryImages;
 
   const relatedProducts = PRODUCTS.filter(p => p.id !== product.id).slice(0, 4);
 

@@ -136,7 +136,7 @@ export const ReadyLandingForm: React.FC<ReadyLandingFormProps> = ({ products, te
           title: selectedProduct.name,
           subtitle: selectedProduct.tag || 'Instant delivery',
           description: selectedProduct.description,
-          mediaUrl: selectedProduct.image,
+          mediaUrl: selectedProduct.galleryImages?.[0] || selectedProduct.image,
           ctaLabel: 'Order in one page',
           style: { background: '#f4f0ff', accentColor: selectedTemplate.accentColor, layout: selectedTemplate.heroLayout === 'split' ? 'split' : 'stacked' }
         },

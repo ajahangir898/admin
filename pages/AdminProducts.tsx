@@ -56,6 +56,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     brand: '',
     description: '',
     image: '',
+    galleryImages: [],
     discount: '',
     tags: [],
     colors: [],
@@ -103,7 +104,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     let initialData: Partial<Product>;
     if (product) {
       setEditingProduct(product);
-      initialData = { ...product, status: product.status || 'Active', colors: product.colors || [], sizes: product.sizes || [] };
+      initialData = { ...product, status: product.status || 'Active', colors: product.colors || [], sizes: product.sizes || [], galleryImages: product.galleryImages || [] };
     } else {
       setEditingProduct(null);
       initialData = {
@@ -116,6 +117,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         brand: '',
         description: '',
         image: '',
+        galleryImages: [],
         discount: '',
         tags: [],
         colors: [],
@@ -143,13 +145,27 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     e.preventDefault();
     
     // Basic validation
-    if (!formData.name || !formData.price || !formData.image) {
-      alert("Please fill in required fields (Name, Price, Product Image)");
+    if (!formData.name || !formData.price) {
+      alert("Please fill in required fields (Name, Price)");
       return;
     }
 
+    const gallery = formData.galleryImages || [];
+    if (gallery.length === 0) {
+      alert("Please upload at least one product image.");
+      return;
+    }
+    if (gallery.length < 5) {
+      if (!window.confirm(`You only uploaded ${gallery.length} image(s). We recommend at least 5 images for best results. Continue anyway?`)) {
+        return;
+      }
+    }
+
+    const primaryImage = gallery[0] || '';
     const productData = {
       ...formData,
+      image: primaryImage,
+      galleryImages: gallery,
       // Ensure defaults
       price: Number(formData.price),
       originalPrice: Number(formData.originalPrice),
@@ -234,33 +250,52 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+    const files = input.files;
+    if (!files || files.length === 0) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert("File size is too large. Please upload an image under 2MB.");
+    const currentGallery = formData.galleryImages || [];
+    const maxFiles = 10;
+
+    if (currentGallery.length + files.length > maxFiles) {
+      alert(`You can upload up to ${maxFiles} images. You're adding ${files.length}, which would exceed the limit.`);
       if (input) input.value = '';
       return;
     }
 
-    console.log(`Processing upload for ${file.name} (Simulating DB store)`);
-
-    try {
-      const converted = await convertFileToWebP(file, { quality: 0.82, maxDimension: 1600 });
-      setFormData({ ...formData, image: converted });
-    } catch (error) {
-      console.error('Failed to process product image', error);
-      alert('Unable to process this image. Please try another file.');
-    } finally {
-      if (input) input.value = '';
+    const convertedImages: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 2 * 1024 * 1024) {
+        alert(`File "${file.name}" is too large. Each file must be under 2MB.`);
+        if (input) input.value = '';
+        return;
+      }
+      try {
+        const converted = await convertFileToWebP(file, { quality: 0.82, maxDimension: 640 });
+        convertedImages.push(converted);
+      } catch (error) {
+        console.error(`Failed to process ${file.name}`, error);
+        alert(`Unable to process "${file.name}". Please try another file.`);
+        if (input) input.value = '';
+        return;
+      }
     }
+
+    setFormData({ ...formData, galleryImages: [...currentGallery, ...convertedImages] });
+    if (input) input.value = '';
   };
 
-  const removeImage = () => {
-    setFormData({ ...formData, image: '' });
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-    }
+  const removeGalleryImage = (index: number) => {
+    const updated = [...(formData.galleryImages || [])];
+    updated.splice(index, 1);
+    setFormData({ ...formData, galleryImages: updated });
+  };
+
+  const moveGalleryImage = (fromIndex: number, toIndex: number) => {
+    const updated = [...(formData.galleryImages || [])];
+    const [movedItem] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, movedItem);
+    setFormData({ ...formData, galleryImages: updated });
   };
 
   // Bulk Handlers
@@ -469,7 +504,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
               </div>
 
               <div className="relative h-48 bg-gray-100">
-                 <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                 <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-cover" />
                  {product.discount && (
                    <span className="absolute bottom-2 right-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
                      {product.discount}
@@ -666,7 +701,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                       <label className="text-sm font-medium text-gray-700">Product Image*</label>
+                       <label className="text-sm font-medium text-gray-700">Product Images* (Min: 5, Max: 10)</label>
                        
                        <input 
                          type="file" 
@@ -674,42 +709,71 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                          onChange={handleImageUpload}
                          className="hidden"
                          accept="image/*"
+                         multiple
                        />
 
-                       {!formData.image ? (
+                       {!formData.galleryImages || formData.galleryImages.length === 0 ? (
                           <div 
                             onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-gray-300 rounded-xl h-32 flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition group"
+                            className="border-2 border-dashed border-gray-300 rounded-xl h-40 flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition group"
                           >
                              <div className="bg-purple-100 p-2 rounded-full text-purple-600 mb-2 group-hover:scale-110 transition">
                                <Upload size={20} />
                              </div>
-                             <p className="text-sm text-gray-500 font-medium">Click to upload image</p>
-                             <p className="text-xs text-gray-400">JPG, PNG (Max 2MB)</p>
+                             <p className="text-sm text-gray-500 font-medium">Click to upload images</p>
+                             <p className="text-xs text-gray-400">JPG, PNG • 640px WebP • Max 2MB each</p>
                           </div>
                        ) : (
-                          <div className="relative h-48 w-full bg-gray-100 rounded-xl border border-gray-200 overflow-hidden group">
-                             <img 
-                               src={formData.image} 
-                               alt="Preview" 
-                               className="w-full h-full object-contain" 
-                             />
-                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+                          <div className="space-y-3">
+                             <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                                {formData.galleryImages.map((img, idx) => (
+                                   <div key={idx} className="relative group aspect-square bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                                      <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-contain p-2" />
+                                      {idx === 0 && (
+                                         <span className="absolute top-1 left-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Primary</span>
+                                      )}
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1">
+                                         {idx > 0 && (
+                                            <button 
+                                              type="button"
+                                              onClick={() => moveGalleryImage(idx, idx - 1)}
+                                              className="bg-white text-gray-700 p-1 rounded hover:bg-gray-200"
+                                              title="Move left"
+                                            >
+                                              ←
+                                            </button>
+                                         )}
+                                         <button 
+                                           type="button"
+                                           onClick={() => removeGalleryImage(idx)}
+                                           className="bg-red-500 text-white p-1 rounded hover:bg-red-600"
+                                           title="Delete"
+                                         >
+                                           <Trash2 size={14} />
+                                         </button>
+                                         {idx < formData.galleryImages.length - 1 && (
+                                            <button 
+                                              type="button"
+                                              onClick={() => moveGalleryImage(idx, idx + 1)}
+                                              className="bg-white text-gray-700 p-1 rounded hover:bg-gray-200"
+                                              title="Move right"
+                                            >
+                                              →
+                                            </button>
+                                         )}
+                                      </div>
+                                   </div>
+                                ))}
+                             </div>
+                             {formData.galleryImages.length < 10 && (
                                 <button 
                                   type="button"
                                   onClick={() => fileInputRef.current?.click()}
-                                  className="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition shadow-lg text-sm"
+                                  className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-purple-500 hover:text-purple-600 transition flex items-center justify-center gap-2"
                                 >
-                                  Change
+                                  <Plus size={16} /> Add More Images ({formData.galleryImages.length}/10)
                                 </button>
-                                <button 
-                                  type="button"
-                                  onClick={removeImage}
-                                  className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition shadow-lg"
-                                >
-                                  <Trash2 size={18} />
-                                </button>
-                             </div>
+                             )}
                           </div>
                        )}
                     </div>

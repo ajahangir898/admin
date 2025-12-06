@@ -235,7 +235,7 @@ const StoreCheckout = ({
                 {/* Item Row */}
                  <div className="flex gap-3 mb-6 relative group">
                    <div className="w-16 h-16 bg-gray-50 rounded border border-gray-200 p-1 flex-shrink-0">
-                      <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                      <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
                    </div>
                    <div className="flex-1">
                       <div className="flex justify-between items-start">

@@ -36,6 +36,7 @@ export const MobileBottomNav: React.FC<{
 }> = ({ onHomeClick, onCartClick, onAccountClick, cartCount, websiteConfig, activeTab = 'home' }) => {
   
   const style = websiteConfig?.bottomNavStyle || 'style1';
+    const facebookLink = websiteConfig?.socialLinks?.find(link => (link.platform || '').toLowerCase().includes('facebook'))?.url;
 
   // Style 2: Floating Center Home Button (Light Pink Circle with Dark Pink Icon)
   if (style === 'style2') {
@@ -125,10 +126,23 @@ export const MobileBottomNav: React.FC<{
         <span className="text-[10px] font-bold text-pink-600">Home</span>
       </button>
       
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <Facebook size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Page</span>
-      </button>
+            {facebookLink ? (
+                <a
+                    href={facebookLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Facebook Page"
+                    className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group"
+                >
+                    <Facebook size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
+                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Page</span>
+                </a>
+            ) : (
+                <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+                    <Facebook size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
+                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Page</span>
+                </button>
+            )}
       
       <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
         <User size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />

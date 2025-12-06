@@ -7,9 +7,10 @@ interface AdminOrdersProps {
   orders: Order[];
   courierConfig?: CourierConfig;
   onUpdateOrder?: (orderId: string, updates: Partial<Order>) => void;
+  isLoading?: boolean;
 }
 
-const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpdateOrder }) => {
+const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpdateOrder, isLoading = false }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -119,6 +120,8 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
   const activeFilterCount = [
     startDate, endDate, minAmount, maxAmount, locationFilter
   ].filter(Boolean).length;
+  const skeletonRows = Array.from({ length: 6 });
+  const showEmptyState = !isLoading && filteredOrders.length === 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -201,6 +204,12 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
               )}
               {showFilters ? <ChevronUp size={14} className="ml-1"/> : <ChevronDown size={14} className="ml-1"/>}
             </button>
+            {isLoading && (
+              <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 whitespace-nowrap">
+                <Loader2 size={14} className="animate-spin text-purple-600" />
+                Syncing latest orders...
+              </div>
+            )}
           </div>
         </div>
 
@@ -301,7 +310,34 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredOrders.length > 0 ? (
+              {isLoading ? (
+                skeletonRows.map((_, idx) => (
+                  <tr key={`skeleton-${idx}`} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-28 bg-gray-200 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-20 bg-gray-200 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-36 bg-gray-200 rounded-full mb-2" />
+                      <div className="h-3 w-24 bg-gray-100 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-16 bg-gray-200 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-5 w-24 bg-gray-200 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <div className="h-9 w-9 bg-gray-200 rounded-lg" />
+                        <div className="h-9 w-9 bg-gray-200 rounded-lg" />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : filteredOrders.length > 0 ? (
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50 transition group">
                     <td className="px-6 py-4 font-bold text-gray-900">{order.id}</td>
@@ -367,7 +403,7 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
                     </td>
                   </tr>
                 ))
-              ) : (
+              ) : showEmptyState ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center justify-center">
@@ -381,7 +417,7 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
                     </div>
                   </td>
                 </tr>
-              )}
+              ) : null}
             </tbody>
           </table>
         </div>

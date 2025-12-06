@@ -813,54 +813,108 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
     );
   }
 
-  // Default Style (Green)
-  return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 hover:shadow-xl transition duration-300 group overflow-hidden flex flex-col relative">
-      <div className="relative h-48 bg-gray-50 dark:bg-slate-700 p-4 cursor-pointer" onClick={() => onClick(product)}>
-        <img src={product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
-        {product.discount && (
-          <span className="absolute top-3 left-3 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
-            {product.discount}
-          </span>
-        )}
-          <button className="absolute top-3 right-3 btn-wishlist opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
-           <Heart size={16} />
-        </button>
-      </div>
-      
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 
-          className="font-bold text-gray-800 dark:text-gray-100 text-sm mb-1 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition line-clamp-2"
-          onClick={() => onClick(product)}
-        >
-          {product.name}
-        </h3>
-        
-        {/* Variants Preview */}
-        {product.colors && product.colors.length > 0 && (
-            <div className="flex gap-1 mb-2">
-                {product.colors.slice(0, 3).map((c, i) => (
-                    <span key={i} className="w-2 h-2 rounded-full border border-gray-200" style={{backgroundColor: c}}></span>
-                ))}
+    const formattedPrice = product.price.toLocaleString();
+    const formattedOriginalPrice = product.originalPrice?.toLocaleString();
+    const tagLabel = product.tag || 'Trending';
+    const accentMeta = product.brand || product.category || 'Curated pick';
+
+    // Default Style (Card 1)
+    return (
+        <div className="group relative flex flex-col rounded-2xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
+            <span className="pointer-events-none absolute inset-x-4 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-500 opacity-60 group-hover:opacity-100" />
+
+            <div className="relative px-4 pt-4">
+                <div className="flex items-center justify-between text-[11px] font-semibold">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 uppercase tracking-wide dark:bg-emerald-500/10 dark:text-emerald-200">
+                        <Sparkles size={12} /> {tagLabel}
+                    </span>
+                    {typeof product.rating === 'number' ? (
+                        <span className="inline-flex items-center gap-1 text-amber-500">
+                            <Star size={12} fill="currentColor" className="drop-shadow" />
+                            {product.rating.toFixed(1)}
+                            {typeof product.reviews === 'number' && (
+                                <span className="text-[10px] text-gray-400 dark:text-gray-300 font-normal">({product.reviews})</span>
+                            )}
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-sky-600 bg-sky-50 dark:bg-sky-500/10 dark:text-sky-200">
+                            <Truck size={12} /> Fast ship
+                        </span>
+                    )}
+                </div>
+
+                <div className="relative mt-4">
+                    <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition" aria-hidden />
+                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
+                        <img src={product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
+                    </div>
+                    {product.discount && (
+                        <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                            {product.discount}
+                        </span>
+                    )}
+                    <button className="absolute top-4 right-6 btn-wishlist bg-white/80 dark:bg-slate-800/70 shadow-md backdrop-blur-sm hover:scale-110 transition" aria-label="Save to wishlist">
+                        <Heart size={16} />
+                    </button>
+                </div>
             </div>
-        )}
 
-        <div className="flex items-center gap-2 mb-3">
-           <span className="text-lg font-bold text-gray-900 dark:text-white">৳ {product.price.toLocaleString()}</span>
-           {product.originalPrice && (
-             <span className="text-xs text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
-           )}
+            <div className="p-4 flex-1 flex flex-col gap-3">
+                <div>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 dark:text-gray-500 mb-1">{accentMeta}</p>
+                    <h3
+                        className="font-bold text-gray-900 dark:text-gray-100 text-base leading-tight cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-300 transition line-clamp-2"
+                        onClick={() => onClick(product)}
+                    >
+                        {product.name}
+                    </h3>
+                    {product.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{product.description}</p>
+                    )}
+                </div>
+
+                {product.colors && product.colors.length > 0 && (
+                    <div className="flex gap-1.5">
+                        {product.colors.slice(0, 4).map((c, i) => (
+                            <span key={i} className="w-3 h-3 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }}></span>
+                        ))}
+                        {product.colors.length > 4 && (
+                            <span className="text-[10px] text-gray-400">+{product.colors.length - 4}</span>
+                        )}
+                    </div>
+                )}
+
+                <div className="mt-auto flex items-end justify-between gap-3">
+                    <div>
+                        <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500">Starting at</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-gray-900 dark:text-white">৳ {formattedPrice}</span>
+                            {product.originalPrice && (
+                                <span className="text-xs text-gray-400 line-through">৳ {formattedOriginalPrice}</span>
+                            )}
+                        </div>
+                        <p className="text-[11px] text-emerald-600 dark:text-emerald-300 font-semibold">Instant confirmation</p>
+                    </div>
+
+                    <div className="flex flex-col gap-2 w-32">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onClick(product); }}
+                            className="w-full btn-order py-2 rounded-xl font-bold text-sm"
+                        >
+                            অর্ডার করুন
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); onClick(product); }}
+                            className="inline-flex items-center justify-center gap-1 rounded-xl border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-600 dark:text-gray-200 py-1.5 hover:border-emerald-400 hover:text-emerald-600 transition"
+                        >
+                            <Eye size={14} /> Quick view
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-
-                <button 
-                    onClick={(e) => { e.stopPropagation(); onClick(product); }}
-                    className="w-full btn-order py-2 rounded-lg font-bold text-sm mt-auto"
-                >
-          অর্ডার করুন
-        </button>
-      </div>
-    </div>
-  );
+    );
 };
 
 
@@ -941,11 +995,16 @@ export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = (
     </div>
 );
 
-export const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
-    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 relative inline-block">
-        {title}
-        <span className="absolute bottom-0 left-0 w-1/2 h-1 bg-purple-500 rounded-full"></span>
-    </h2>
+export const SectionHeader: React.FC<{ title: string; className?: string }> = ({ title, className }) => (
+    <div className="inline-flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+            
+            <h2 className={`text-2xl font-black tracking-tight text-gray-900 dark:text-white drop-shadow-sm ${className ?? ''}`}>
+                {title}
+            </h2>
+        </div>
+        <span className="h-1 w-24 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full" />
+    </div>
 );
 
 
@@ -1308,7 +1367,7 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
                 <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
                 <div className="p-8">
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-3 mb-1">
                         <Truck size={28} className="text-purple-600" />
                         <h2 className="text-2xl font-bold text-gray-800">Track Order</h2>
                     </div>
@@ -1349,11 +1408,11 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
     );
 };
 
-let cachedGoogleGenAI: any = null;
+let cachedGoogleGenAI: typeof import('@google/generative-ai').GoogleGenerativeAI | null = null; // eslint-disable-line import/no-unresolved
 const loadGoogleGenAI = async () => {
     if (cachedGoogleGenAI) return cachedGoogleGenAI;
-    const mod = await import(/* @vite-ignore */ 'https://esm.sh/@google/genai?target=es2022&bundle');
-    cachedGoogleGenAI = mod.GoogleGenAI || mod.GoogleGenerativeAI;
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    cachedGoogleGenAI = GoogleGenerativeAI;
     return cachedGoogleGenAI;
 };
 
@@ -1398,18 +1457,18 @@ export const AIStudioModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                 setErrorMessage('Failed to load Google GenAI SDK. Please refresh and try again.');
                 return;
             }
-            const ai = new GoogleGenAI({ apiKey: activeApiKey });
+            const ai = new GoogleGenAI(activeApiKey);
+            const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash-image' });
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
-                contents: { parts: [{ text: prompt }] }
-            });
+            const result = await model.generateContent([{ text: prompt }]);
+            const response = result.response;
 
             // Extract image from response parts
             // Guidelines say: The output response may contain both image and text parts; you must iterate...
-            if (response.candidates && response.candidates[0].content && response.candidates[0].content.parts) {
-                for (const part of response.candidates[0].content.parts) {
-                    if (part.inlineData) {
+            const parts = response?.candidates?.[0]?.content?.parts;
+            if (parts) {
+                for (const part of parts) {
+                    if (part.inlineData?.data) {
                         const base64EncodeString = part.inlineData.data;
                         setImageUrl(`data:image/png;base64,${base64EncodeString}`);
                         break;
@@ -1523,4 +1582,3 @@ export const AddToCartSuccessModal: React.FC<{ product: Product; onClose: () => 
         </div>
     );
 };
-

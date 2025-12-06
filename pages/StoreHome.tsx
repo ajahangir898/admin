@@ -115,11 +115,11 @@ const StoreHome = ({
         
         {/* Categories */}
         {websiteConfig?.categorySectionStyle === 'style2' ? (
-           <div className="mt-6 mb-8">
+           <div className="mt-2 mb-2">
               <div className="flex justify-between items-end mb-2 border-b border-gray-100 pb-2">
                  <div className="relative pb-2">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
-                    <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
+      
                  </div>
                  <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 transition mb-2 group">
                     View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent transform group-hover:translate-x-1 transition-transform"></div>
@@ -159,10 +159,19 @@ const StoreHome = ({
 
         {/* Flash Deals */}
         <section>
-          <div className="flex items-center gap-3 mb-6">
-             <div className="h-8 w-1.5 bg-pink-500 rounded-full"></div>
-             <SectionHeader title="Flash Deals" />
-             <div className="bg-pink-100 text-pink-600 px-3 py-1 rounded text-xs font-bold animate-pulse">Ends in 24h</div>
+          <div className="flex items-center gap-3 mb-1">
+          
+             <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
+             <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full text-xs font-semibold text-pink-900 bg-gradient-to-r from-rose-100 via-white to-violet-100 border border-pink-200 shadow-[0_6px_20px_rgba(244,114,182,0.25)]">
+               <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-rose-500">
+                 Ends in
+                 <span className="inline-flex h-4 w-10 items-center justify-center rounded-full bg-white text-rose-600 border border-rose-200">24h</span>
+               </span>
+               <span className="relative flex items-center gap-2 text-pink-700">
+                 <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+                 
+               </span>
+             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {displayProducts.map((product) => (
@@ -182,9 +191,9 @@ const StoreHome = ({
 
         {/* Best Sale Products */}
         <section>
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-1">
                 <div className="h-8 w-1.5 bg-green-500 rounded-full"></div>
-                <SectionHeader title="Best Sale Products" />
+                <SectionHeader title="Best Sale Products" className="text-xl text-red-600" />
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
              {displayProducts.slice().reverse().map((product) => (
@@ -197,24 +206,96 @@ const StoreHome = ({
           </div>
         </section>
 
-         {/* OMG Fashion Banner */}
-        <section className="bg-purple-900 rounded-2xl overflow-hidden relative h-48 md:h-72 flex items-center px-8 md:px-16 text-white shadow-2xl my-8 transform hover:scale-[1.01] transition-transform duration-500">
-             <div className="z-10 relative max-w-lg">
-                 <span className="bg-white/20 text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block backdrop-blur-sm border border-white/10">NEW ARRIVAL</span>
-                 <h2 className="text-3xl md:text-6xl font-black mb-4 tracking-tight leading-tight">OMG FASHION</h2>
-                 <p className="mb-8 text-purple-100 text-sm md:text-lg font-medium">Get up to 70% off on all fashion accessories. Limited time offer.</p>
-                 <button className="btn-order px-8 py-3 rounded-full font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1">Explore Collection</button>
-             </div>
-             <div className="absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l from-purple-600/80 to-transparent"></div>
-             <div className="absolute -right-20 -bottom-40 w-96 h-96 bg-pink-500 rounded-full blur-[120px] opacity-60 animate-pulse"></div>
-             <div className="absolute left-20 -top-20 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-40"></div>
+        {/* OMG Fashion Banner */}
+        <section className="relative overflow-hidden rounded-3xl text-white shadow-2xl my-8 px-6 sm:px-10 py-10">
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#150c2e] via-[#5b21b6] to-[#f472b6] opacity-95" />
+            <div
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.35), transparent 45%), radial-gradient(circle at 80% 0%, rgba(249,168,212,0.4), transparent 40%)'
+              }}
+            />
+          </div>
+          <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
+            <div>
+              <span className="inline-flex items-center gap-2 bg-white/15 backdrop-blur px-4 py-1.5 text-xs font-semibold rounded-full border border-white/20">
+                <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" /> NEW ARRIVAL
+              </span>
+              <h2 className="text-3xl md:text-5xl font-black mt-5 leading-tight tracking-tight">
+                OMG Fashion Weekend
+              </h2>
+              <p className="mt-4 text-sm md:text-base text-white/80 max-w-xl">
+                Curated accessories, bold statements, and capsule outfits ready to ship worldwide. Save up to 70% on
+                limited drops while stock lasts.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
+                <div className="bg-white/15 rounded-2xl px-5 py-3 border border-white/20">
+                  <p className="text-xs text-white/60 uppercase">Exclusive</p>
+                  <p className="text-lg">Limited Drops</p>
+                </div>
+                <div className="bg-white/15 rounded-2xl px-5 py-3 border border-white/20">
+                  <p className="text-xs text-white/60 uppercase">Up to</p>
+                  <p className="text-lg">70% OFF</p>
+                </div>
+                <div className="bg-white/15 rounded-2xl px-5 py-3 border border-white/20">
+                  <p className="text-xs text-white/60 uppercase">Ships</p>
+                  <p className="text-lg">48h Express</p>
+                </div>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <button className="btn-order px-8 py-3 rounded-full font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                  Explore Collection
+                </button>
+                <button className="px-8 py-3 rounded-full font-bold border-2 border-white/60 text-white hover:bg-white/10">
+                  Watch Lookbook
+                </button>
+              </div>
+            </div>
+            <div className="hidden md:flex justify-center">
+              <div className="relative w-72 h-72">
+                <div className="absolute -inset-6 bg-gradient-to-br from-pink-500/40 to-purple-700/40 blur-3xl" aria-hidden />
+                <div className="relative bg-white/10 border border-white/20 rounded-[32px] h-full w-full backdrop-blur-md p-6 flex flex-col justify-between">
+                  <div>
+                    <p className="text-xs text-white/60">Feature Drop</p>
+                    <p className="text-2xl font-bold">Neon Bloom Set</p>
+                    <p className="text-sm text-white/70">Starting at ৳2,990</p>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center">
+                    <div
+                      className="w-40 h-40 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl"
+                      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=400&q=80')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div>
+                      <p className="text-xs text-white/60">Colorways</p>
+                      <p className="font-semibold">6 curated</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-white/60">Sizes</p>
+                      <p className="font-semibold">XS - XL</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-white/60">Stock</p>
+                      <p className="font-semibold text-emerald-300">In stock</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute -right-8 -bottom-6 bg-white/10 border border-white/20 backdrop-blur rounded-2xl px-4 py-3 text-sm font-semibold">
+                  <p className="text-xs text-white/60">Early Access</p>
+                  <p>500 VIP slots</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Popular Products */}
         <section>
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-1">
                 <div className="h-8 w-1.5 bg-purple-500 rounded-full"></div>
-                <SectionHeader title="Popular products" />
+                <SectionHeader title="Popular products" className="text-xl text-red-600" />
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {displayProducts.map((product) => (

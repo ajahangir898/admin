@@ -410,26 +410,40 @@ const StoreProductDetail = ({
       </main>
       
       {/* Mobile Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-sky-50 via-white to-orange-50 border-t border-white/80 p-3 md:hidden z-50 flex gap-3 shadow-lg backdrop-blur">
-        <button onClick={onBack} className="p-3 rounded-lg text-gray-600 border border-white/70 bg-white/70 shadow-sm">
-            <ArrowLeft size={24} />
-         </button>
-         <button 
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 md:hidden z-50 flex items-center gap-3 shadow-[0_-6px_25px_rgba(15,23,42,0.08)]">
+        <button
+          onClick={onBack}
+          className="h-12 w-12 flex items-center justify-center rounded-xl text-gray-600 border border-slate-200 bg-white shadow-sm"
+          aria-label="Go back"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <div className="flex-1 grid grid-cols-2 gap-3">
+          <button
             onClick={handleAddToCart}
-          disabled={isOutOfStock}
-          className={`flex-1 rounded-lg flex flex-col items-center justify-center leading-none ${isOutOfStock ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-orange-500 text-white font-bold'}`}
-         >
-            <span className="text-xs font-normal">Add to</span>
-            <span>Cart</span>
-         </button>
-         <button 
-          onClick={handleBuyNow}
-          disabled={isOutOfStock}
-          className={`flex-1 rounded-lg flex flex-col items-center justify-center leading-none ${isOutOfStock ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white font-bold'}`}
-         >
-            <span className="text-xs font-normal">Buy</span>
-            <span>Now</span>
-         </button>
+            disabled={isOutOfStock}
+            className={`h-12 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition ${
+              isOutOfStock
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                : 'bg-sky-500 text-white shadow-lg shadow-sky-200 active:scale-95'
+            }`}
+          >
+            <ShoppingCart size={20} />
+            <span>Add to cart</span>
+          </button>
+          <button
+            onClick={handleBuyNow}
+            disabled={isOutOfStock}
+            className={`h-12 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition ${
+              isOutOfStock
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                : 'bg-[#F3356B] text-white shadow-lg shadow-pink-200 active:scale-95'
+            }`}
+          >
+            <ShoppingBag size={20} />
+            <span>Buy Now</span>
+          </button>
+        </div>
       </div>
 
       <div className="hidden md:block">

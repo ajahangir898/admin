@@ -545,7 +545,7 @@ fbq('track', 'PageView');`;
           <>
             {currentView === 'store' && (
               <>
-                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />
+                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
                   onCartClick={() => {}} // Placeholder

@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal, ProductQuickViewModal } from '../components/StoreComponents';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
-import { Product, User, WebsiteConfig, Order } from '../types';
+import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -21,6 +21,7 @@ interface StoreHomeProps {
   products?: Product[];
   orders?: Order[];
   onProductClick: (p: Product) => void;
+  onQuickCheckout?: (p: Product, quantity: number, variant: ProductVariantSelection) => void;
   wishlistCount: number;
   wishlist: number[];
   onToggleWishlist: (id: number) => void;
@@ -36,6 +37,7 @@ const StoreHome = ({
   products,
   orders,
   onProductClick, 
+  onQuickCheckout,
   wishlistCount, 
   wishlist, 
   onToggleWishlist,
@@ -48,6 +50,7 @@ const StoreHome = ({
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   // Use passed products or fallback to initial constants
   const displayProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
@@ -91,6 +94,15 @@ const StoreHome = ({
     }
   }, [websiteConfig?.categorySectionStyle]);
 
+  const handleQuickViewOrder = (product: Product, quantity: number, variant: ProductVariantSelection) => {
+    if (onQuickCheckout) {
+      onQuickCheckout(product, quantity, variant);
+    } else {
+      onProductClick(product);
+    }
+    setQuickViewProduct(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
       <StoreHeader 
@@ -107,6 +119,17 @@ const StoreHome = ({
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
       {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
+      {quickViewProduct && (
+        <ProductQuickViewModal
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+          onCompleteOrder={handleQuickViewOrder}
+          onViewDetails={(product) => {
+            setQuickViewProduct(null);
+            onProductClick(product);
+          }}
+        />
+      )}
       
       {/* Hero Section */}
       <HeroSection carouselItems={websiteConfig?.carouselItems} />
@@ -180,11 +203,12 @@ const StoreHome = ({
                 product={product} 
                 onClick={onProductClick} 
                 variant={websiteConfig?.productCardStyle}
+                onQuickView={setQuickViewProduct}
               />
             ))}
             {/* Add a duplicate if few products to fill grid */}
             {displayProducts.length > 0 && displayProducts.length < 5 && 
-              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
+              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
             }
           </div>
         </section>
@@ -197,11 +221,11 @@ const StoreHome = ({
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
              {displayProducts.slice().reverse().map((product) => (
-              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
+              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
             ))}
              {/* Add a duplicate if few products to fill grid */}
              {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
+               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
              }
           </div>
         </section>
@@ -299,11 +323,11 @@ const StoreHome = ({
             </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {displayProducts.map((product) => (
-              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
+              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
             ))}
              {/* Add a duplicate if few products to fill grid */}
              {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} />
+               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
              }
           </div>
         </section>

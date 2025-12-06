@@ -4,8 +4,8 @@ import {
   ShoppingBag, Truck, CheckCircle, Clock, PauseCircle, XCircle, PackageCheck, ArchiveRestore,
   LayoutGrid, Layers, TrendingUp
 } from 'lucide-react';
-import { REVENUE_DATA, CATEGORY_DATA } from '../constants';
-import { Order } from '../types';
+import { REVENUE_DATA as DEFAULT_REVENUE_DATA, CATEGORY_DATA as DEFAULT_CATEGORY_DATA } from '../constants';
+import { Order, Product } from '../types';
 
 const COLORS = [
   'rgb(var(--color-primary-rgb))',
@@ -14,7 +14,77 @@ const COLORS = [
   'rgba(var(--color-secondary-rgb), 0.6)'
 ];
 
-const buildAreaGeometry = (data: typeof REVENUE_DATA, width = 640, height = 240) => {
+const ALLOWED_REVENUE_STATUSES: Array<Order['status']> = ['Pending', 'Confirmed', 'Shipped', 'Delivered'];
+
+const parseOrderDate = (dateString?: string) => {
+  if (!dateString) return null;
+  const direct = Date.parse(dateString);
+  if (!Number.isNaN(direct)) return new Date(direct);
+  const sanitized = Date.parse(dateString.replace(/,/g, ''));
+  return Number.isNaN(sanitized) ? null : new Date(sanitized);
+};
+
+const buildWeeklyRevenueData = (orders: Order[]) => {
+  if (!orders.length) return DEFAULT_REVENUE_DATA;
+
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+  const startDate = new Date(endDate);
+  startDate.setDate(endDate.getDate() - 6);
+  startDate.setHours(0, 0, 0, 0);
+
+  const buckets = Array.from({ length: 7 }, (_, index) => {
+    const current = new Date(startDate);
+    current.setDate(startDate.getDate() + index);
+    return {
+      key: `${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`,
+      name: current.toLocaleDateString('en-US', { weekday: 'short' }),
+      value: 0
+    };
+  });
+
+  const bucketIndex = new Map(buckets.map((bucket, index) => [bucket.key, index]));
+
+  orders.forEach((order) => {
+    if (!ALLOWED_REVENUE_STATUSES.includes(order.status)) return;
+    const orderDate = parseOrderDate(order.date);
+    if (!orderDate || orderDate < startDate || orderDate > endDate) return;
+    const key = `${orderDate.getFullYear()}-${orderDate.getMonth()}-${orderDate.getDate()}`;
+    const targetIndex = bucketIndex.get(key);
+    if (targetIndex === undefined) return;
+    buckets[targetIndex].value += order.amount;
+  });
+
+  if (buckets.every((bucket) => bucket.value === 0)) {
+    return DEFAULT_REVENUE_DATA;
+  }
+
+  return buckets.map(({ key, ...rest }) => rest);
+};
+
+const buildCategoryBreakdown = (orders: Order[], products: Product[]) => {
+  if (!orders.length) return DEFAULT_CATEGORY_DATA;
+
+  const productById = new Map(products.map((product) => [product.id, product]));
+  const productByName = new Map(products.map((product) => [product.name.toLowerCase(), product]));
+  const totals: Record<string, number> = {};
+
+  orders.forEach((order) => {
+    if (!ALLOWED_REVENUE_STATUSES.includes(order.status)) return;
+    const matchedProduct = (order.productId && productById.get(order.productId))
+      || (order.productName ? productByName.get(order.productName.toLowerCase()) : undefined);
+    const category = matchedProduct?.category || 'Other';
+    totals[category] = (totals[category] || 0) + order.amount;
+  });
+
+  const dataset = Object.entries(totals)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+
+  return dataset.length ? dataset : DEFAULT_CATEGORY_DATA;
+};
+
+const buildAreaGeometry = (data: typeof DEFAULT_REVENUE_DATA, width = 640, height = 240) => {
   if (!data.length) {
     return {
       width,
@@ -41,7 +111,7 @@ const buildAreaGeometry = (data: typeof REVENUE_DATA, width = 640, height = 240)
   return { width, height, strokePath, fillPath, points };
 };
 
-const buildPieGradient = (data: typeof CATEGORY_DATA) => {
+const buildPieGradient = (data: typeof DEFAULT_CATEGORY_DATA) => {
   const total = data.reduce((sum, item) => sum + item.value, 0) || 1;
   let cursor = 0;
   return data.map((item, index) => {
@@ -52,10 +122,11 @@ const buildPieGradient = (data: typeof CATEGORY_DATA) => {
   }).join(', ');
 };
 
-const AdminDashboard = ({ orders }: { orders: Order[] }) => {
+const AdminDashboard = ({ orders, products }: { orders: Order[]; products: Product[] }) => {
   // Calculate dynamic stats based on props
   const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
+  const revenueOrders = useMemo(() => orders.filter((order) => ALLOWED_REVENUE_STATUSES.includes(order.status)), [orders]);
+  const totalRevenue = revenueOrders.reduce((sum, order) => sum + order.amount, 0);
   const pendingOrders = orders.filter(o => o.status === 'Pending').length;
   const confirmedOrders = orders.filter(o => o.status === 'Confirmed').length;
   const deliveredOrders = orders.filter(o => o.status === 'Delivered').length;
@@ -65,9 +136,11 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
   const cancelledOrders = 12;
 
   const gradientId = useMemo(() => `revenueGradient-${Math.random().toString(36).slice(2, 10)}`, []);
-  const revenueGeometry = useMemo(() => buildAreaGeometry(REVENUE_DATA), []);
-  const pieGradient = useMemo(() => buildPieGradient(CATEGORY_DATA), []);
-  const totalCategorySales = CATEGORY_DATA.reduce((sum, item) => sum + item.value, 0);
+  const revenueData = useMemo(() => buildWeeklyRevenueData(orders), [orders]);
+  const categoryData = useMemo(() => buildCategoryBreakdown(orders, products), [orders, products]);
+  const revenueGeometry = useMemo(() => buildAreaGeometry(revenueData), [revenueData]);
+  const pieGradient = useMemo(() => buildPieGradient(categoryData), [categoryData]);
+  const totalCategorySales = categoryData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -150,7 +223,7 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
               ))}
             </svg>
             <div className="mt-4 grid grid-cols-7 text-xs text-gray-500">
-              {REVENUE_DATA.map((item) => (
+              {revenueData.map((item) => (
                 <span key={item.name} className="text-center font-semibold">
                   {item.name}
                 </span>
@@ -174,7 +247,7 @@ const AdminDashboard = ({ orders }: { orders: Order[] }) => {
                </div>
              </div>
              <div className="w-full space-y-3">
-               {CATEGORY_DATA.map((item, index) => (
+               {categoryData.map((item, index) => (
                  <div key={item.name} className="flex items-center justify-between text-sm">
                    <div className="flex items-center gap-2">
                      <span

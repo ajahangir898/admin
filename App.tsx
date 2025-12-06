@@ -20,6 +20,7 @@ const AdminControl = lazy(() => import('./pages/AdminControl'));
 const AdminCatalog = lazy(() => import('./pages/AdminCatalog'));
 const AdminDeliverySettings = lazy(() => import('./pages/AdminDeliverySettings'));
 const AdminCourierSettings = lazy(() => import('./pages/AdminCourierSettings'));
+const AdminInventory = lazy(() => import('./pages/AdminInventory'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
 const AdminFacebookPixel = lazy(() => import('./pages/AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
@@ -527,6 +528,7 @@ fbq('track', 'PageView');`;
              adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
              adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
              adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
+             adminSection === 'inventory' ? <AdminInventory products={products} /> :
              adminSection === 'gallery' ? <AdminGallery /> :
              adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} user={user} onUpdateProfile={handleUpdateProfile} /> :
              adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :

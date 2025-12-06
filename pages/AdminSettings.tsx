@@ -4,7 +4,7 @@ import {
   Truck, Lock, CheckCircle, AlertCircle, MessageCircle, 
   CreditCard, Facebook, Globe, ShoppingBag, Settings, Search, 
   BarChart, DollarSign, FileText, ArrowRight, UploadCloud, 
-  Camera, Shield, Clock3, UserRound, Phone, Mail, MapPin, Loader2, AtSign 
+  Camera, Shield, Clock3, UserCircle, Phone, Mail, MapPin, Loader2, AtSign 
 } from 'lucide-react';
 import { CourierConfig, User } from '../types';
 import { convertFileToWebP } from '../services/imageUtils';
@@ -247,7 +247,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Full name</label>
                 <div className="relative">
-                  <UserRound size={16} className="absolute left-3 top-3 text-gray-400" />
+                  <UserCircle size={16} className="absolute left-3 top-3 text-gray-400" />
                   <input
                     type="text"
                     className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 text-sm"

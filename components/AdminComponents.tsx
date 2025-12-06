@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen, 
   FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
   Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
-  Layers, Tag
+  Layers, Tag, Boxes
 } from 'lucide-react';
 import { StatCardProps, User } from '../types';
 
@@ -25,6 +25,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
     { id: 'orders', icon: <ShoppingBag size={18} />, label: 'Orders' },
     { id: 'products', icon: <Box size={18} />, label: 'Products' },
     { id: 'landing_pages', icon: <FileText size={18} />, label: 'Landing page' },
+    { id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management' },
     { id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery' },
   ];
 

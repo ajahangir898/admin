@@ -803,9 +803,9 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
 
                 <div className="mt-auto">
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-pink-600 font-bold text-lg">৳ {product.price}</span>
+                        <span className="text-pink-600 font-bold text-medium"><b>৳</b>{product.price}</span>
                         {product.originalPrice && (
-                            <span className="text-gray-400 text-xs line-through">৳ {product.originalPrice}</span>
+                            <span className="text-gray-400 text-xs line-through">{product.originalPrice}</span>
                         )}
                         <span className="ml-auto text-[10px] text-blue-500 font-medium">Get 50 Coins</span>
                     </div>
@@ -817,7 +817,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                                 >
                             Buy Now
                         </button>
-                        <button className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded transition">
+                        <button className="bg-blue-500 hover:bg-blue-600 text-red-600 p-1.5 rounded transition">
                             <ShoppingCart size={18} />
                         </button>
                     </div>

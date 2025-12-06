@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
+import { slugify } from './services/slugify';
 
 
 const StoreHome = lazy(() => import('./pages/StoreHome'));
@@ -91,6 +92,27 @@ const hexToRgb = (hex: string) => {
 };
 
 const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
+
+const ensureUniqueProductSlug = (desired: string, list: Product[], ignoreId?: number) => {
+  const base = slugify(desired || '').replace(/--+/g, '-') || `product-${Date.now()}`;
+  let candidate = base;
+  let counter = 2;
+  const hasConflict = (slugValue: string) => list.some(p => p.slug === slugValue && p.id !== ignoreId);
+  while (hasConflict(candidate)) {
+    candidate = `${base}-${counter++}`;
+  }
+  return candidate;
+};
+
+const normalizeProductCollection = (items: Product[]): Product[] => {
+  const normalized: Product[] = [];
+  items.forEach(item => {
+    const slugSource = item.slug || item.name || `product-${item.id}`;
+    const slug = ensureUniqueProductSlug(slugSource, normalized);
+    normalized.push({ ...item, slug });
+  });
+  return normalized;
+};
 
 const SuspenseFallback = () => (
   <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
@@ -202,7 +224,8 @@ const App = () => {
         ]);
 
         if (!isMounted) return;
-        setProducts(productsData);
+        const normalizedProducts = normalizeProductCollection(productsData);
+        setProducts(normalizedProducts);
         setOrders(ordersData);
         setLandingPages(landingPagesData);
         setUsers(usersData);
@@ -370,11 +393,21 @@ fbq('track', 'PageView');`;
     setUsers(users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u));
   };
 
-  const handleAddProduct = (newProduct: Product) => setProducts([...products, newProduct]);
-  const handleUpdateProduct = (updatedProduct: Product) => setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+  const handleAddProduct = (newProduct: Product) => {
+    const slug = ensureUniqueProductSlug(newProduct.slug || newProduct.name || `product-${newProduct.id}`, products);
+    setProducts([...products, { ...newProduct, slug }]);
+  };
+
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    const slug = ensureUniqueProductSlug(updatedProduct.slug || updatedProduct.name || `product-${updatedProduct.id}`, products, updatedProduct.id);
+    setProducts(products.map(p => p.id === updatedProduct.id ? { ...updatedProduct, slug } : p));
+  };
   const handleDeleteProduct = (id: number) => setProducts(products.filter(p => p.id !== id));
   const handleBulkDeleteProducts = (ids: number[]) => setProducts(products.filter(p => !ids.includes(p.id)));
-  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...updates } : p));
+  const handleBulkUpdateProducts = (ids: number[], updates: Partial<Product>) => {
+    const { slug, ...restUpdates } = updates;
+    setProducts(products.map(p => ids.includes(p.id) ? { ...p, ...restUpdates } : p));
+  };
 
   const handleCreateLandingPage = (page: LandingPage) => {
     setLandingPages(prev => [page, ...prev]);
@@ -423,12 +456,23 @@ fbq('track', 'PageView');`;
     size: variant?.size || product?.variantDefaults?.size || product?.sizes?.[0] || FALLBACK_VARIANT.size,
   });
 
-  const handleProductClick = (product: Product) => { setSelectedProduct(product); setSelectedVariant(null); setCurrentView('detail'); window.scrollTo(0,0); };
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setSelectedVariant(null);
+    setCurrentView('detail');
+    if (product.slug) {
+      window.history.pushState({ slug: product.slug }, '', `/${product.slug}`);
+    }
+    window.scrollTo(0,0);
+  };
   const handleCheckoutStart = (product: Product, quantity: number = 1, variant?: ProductVariantSelection) => {
     setSelectedProduct(product);
     setCheckoutQuantity(quantity);
     setSelectedVariant(ensureVariantSelection(product, variant));
     setCurrentView('checkout');
+    if (product.slug) {
+      window.history.pushState({ slug: product.slug }, '', `/${product.slug}`);
+    }
     window.scrollTo(0,0);
   };
   const handlePlaceOrder = (formData: any) => {
@@ -497,6 +541,57 @@ fbq('track', 'PageView');`;
     setCurrentView(nextView);
     setSelectedProduct(null);
   };
+
+  const syncViewWithLocation = useCallback((path?: string) => {
+    const trimmedPath = (path ?? window.location.pathname).replace(/^\/+|\/+$/g, '');
+    if (!trimmedPath) {
+      if (!currentView.startsWith('admin')) {
+        setSelectedProduct(null);
+        setCurrentView('store');
+      }
+      return;
+    }
+
+    if (trimmedPath === 'admin') {
+      if (user?.role === 'admin') {
+        setCurrentView('admin');
+      } else {
+        window.history.replaceState({}, '', '/');
+        if (!currentView.startsWith('admin')) setCurrentView('store');
+      }
+      return;
+    }
+
+    const matchedProduct = products.find(p => p.slug === trimmedPath);
+    if (matchedProduct) {
+      setSelectedProduct(matchedProduct);
+      setSelectedVariant(null);
+      setCurrentView('detail');
+      return;
+    }
+
+    window.history.replaceState({}, '', '/');
+    if (!currentView.startsWith('admin')) {
+      setSelectedProduct(null);
+      setCurrentView('store');
+    }
+  }, [products, currentView, user]);
+
+  useEffect(() => {
+    const handlePopState = () => syncViewWithLocation();
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [syncViewWithLocation]);
+
+  useEffect(() => {
+    syncViewWithLocation(window.location.pathname);
+  }, [products, syncViewWithLocation]);
+
+  useEffect(() => {
+    if (currentView === 'store' && window.location.pathname !== '/') {
+      window.history.replaceState({}, '', '/');
+    }
+  }, [currentView]);
 
 //   if (isLoading) {
 //     return (

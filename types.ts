@@ -18,6 +18,7 @@ export interface Product {
   originalPrice?: number;
   image: string;
   galleryImages?: string[];
+  slug?: string;
   discount?: string;
   tag?: string;
   description?: string;

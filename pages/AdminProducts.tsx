@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
+import { slugify } from '../services/slugify';
 
 interface AdminProductsProps {
   products: Product[];
@@ -34,6 +35,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const shareOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://mydomain.com';
 
   // Filter State
   const [filterCategory, setFilterCategory] = useState('');
@@ -67,6 +69,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [tagInput, setTagInput] = useState('');
   const [colorInput, setColorInput] = useState('');
   const [sizeInput, setSizeInput] = useState('');
+  const [isSlugTouched, setIsSlugTouched] = useState(false);
   
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,11 +103,25 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     return parentSub && c.subCategoryId === parentSub.id;
   });
 
+  const buildSlugFromName = (value: string) => slugify(value || '').replace(/--+/g, '-');
+
+  const ensureUniqueSlug = (desired: string, excludeId?: number) => {
+    const base = desired || buildSlugFromName(formData.name || '') || `product-${Date.now()}`;
+    let candidate = base;
+    let counter = 2;
+    const isConflict = (slugValue: string) => products.some(p => p.slug === slugValue && p.id !== excludeId);
+    while (isConflict(candidate)) {
+      candidate = `${base}-${counter++}`;
+    }
+    return candidate;
+  };
+
   const handleOpenModal = (product?: Product) => {
     let initialData: Partial<Product>;
     if (product) {
       setEditingProduct(product);
-      initialData = { ...product, status: product.status || 'Active', colors: product.colors || [], sizes: product.sizes || [], galleryImages: product.galleryImages || [] };
+      initialData = { ...product, status: product.status || 'Active', colors: product.colors || [], sizes: product.sizes || [], galleryImages: product.galleryImages || [], slug: product.slug };
+      setIsSlugTouched(true);
     } else {
       setEditingProduct(null);
       initialData = {
@@ -118,12 +135,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         description: '',
         image: '',
         galleryImages: [],
+        slug: '',
         discount: '',
         tags: [],
         colors: [],
         sizes: [],
         status: 'Active'
       };
+      setIsSlugTouched(false);
     }
     setFormData(initialData);
     setInitialFormData(initialData);
@@ -162,10 +181,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     }
 
     const primaryImage = gallery[0] || '';
+    const normalizedSlug = buildSlugFromName(formData.slug || formData.name || '');
+    const finalSlug = ensureUniqueSlug(normalizedSlug, editingProduct?.id);
     const productData = {
       ...formData,
       image: primaryImage,
       galleryImages: gallery,
+      slug: finalSlug,
       // Ensure defaults
       price: Number(formData.price),
       originalPrice: Number(formData.originalPrice),
@@ -246,6 +268,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       ...formData,
       sizes: formData.sizes?.filter(s => s !== sizeToRemove)
     });
+  };
+
+  const handleNameChange = (value: string) => {
+    const updated: Partial<Product> = { ...formData, name: value };
+    if (!isSlugTouched) {
+      updated.slug = buildSlugFromName(value);
+    }
+    setFormData(updated);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -593,9 +623,25 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                             required
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
                             value={formData.name}
-                            onChange={e => setFormData({...formData, name: e.target.value})}
+                            onChange={e => handleNameChange(e.target.value)}
                           />
                        </div>
+
+                       <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Product URL Slug</label>
+                          <input 
+                            type="text" 
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                            value={formData.slug || ''}
+                            onChange={e => {
+                              setIsSlugTouched(true);
+                              setFormData({ ...formData, slug: buildSlugFromName(e.target.value) });
+                            }}
+                          />
+                          <p className="text-xs text-gray-500">
+                            Link preview: {shareOrigin}/{formData.slug || 'product-name'}
+                          </p>
+                        </div>
                        
                        <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-700">Brand</label>

@@ -142,18 +142,20 @@ const StoreHome = ({
               <div className="flex justify-between items-end mb-2 border-b border-gray-100 pb-2">
                  <div className="relative pb-2">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
-      
+
                  </div>
                  <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 transition mb-2 group">
                     View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent transform group-hover:translate-x-1 transition-transform"></div>
                  </a>
               </div>
               
+
               {/* Auto Scrolling Container */}
               <div 
                  ref={categoryScrollRef}
                  className="flex gap-6 overflow-x-hidden py-1 whitespace-nowrap scrollbar-hide"
-                 style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
+                 style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }} 
+                 
               >
                  {/* Render multiple times for infinite seamless loop */}
                  {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (

@@ -32,6 +32,7 @@ export const PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1505745050311-50c9e02d7b34?auto=format&fit=crop&q=80&w=960',
       'https://images.unsplash.com/photo-1457305237443-44c3d5a30b89?auto=format&fit=crop&q=80&w=960'
     ],
+    slug: 'apple-20w-usb-c-power-adapter',
     discount: '26% OFF',
     rating: 4.5,
     reviews: 120,
@@ -58,6 +59,7 @@ export const PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1490376840453-5f616fbebe5b?auto=format&fit=crop&q=80&w=960',
       'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=960'
     ],
+    slug: 'samsung-galaxy-watch-6',
     discount: '26% OFF',
     rating: 4.8,
     reviews: 45,
@@ -88,6 +90,7 @@ export const PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1457305237443-44c3d5a30b89?auto=format&fit=crop&q=80&w=960&sat=-100',
       'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=960'
     ],
+    slug: 'logitech-g-pro-x-headset',
     discount: '16% OFF',
     rating: 4.7,
     reviews: 89,
@@ -116,6 +119,7 @@ export const PRODUCTS: Product[] = [
       'https://images.unsplash.com/photo-1512499617640-c2f999098c01?auto=format&fit=crop&q=80&w=960',
       'https://images.unsplash.com/photo-1456963802230-1204ad3b8ba0?auto=format&fit=crop&q=80&w=960'
     ],
+    slug: 'iphone-14-pro-max-1tb',
     discount: '5% OFF',
     rating: 5.0,
     reviews: 12,

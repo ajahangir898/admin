@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
 import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
-import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft } from 'lucide-react';
+import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2 } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 
 // Helper for stars
@@ -78,6 +78,8 @@ const StoreProductDetail = ({
   const [selectedSize, setSelectedSize] = useState(sizeOptions[0]);
   const [variantError, setVariantError] = useState<string | null>(null);
   const [lastAddedVariant, setLastAddedVariant] = useState<ProductVariantSelection | null>(null);
+  const shareBase = typeof window !== 'undefined' ? window.location.origin : 'https://mydomain.com';
+  const shareUrl = `${shareBase}/${product.slug || `product-${product.id}`}`;
 
   useEffect(() => {
     const refreshGallery = product.galleryImages && product.galleryImages.length ? product.galleryImages : [product.image];
@@ -141,6 +143,23 @@ const StoreProductDetail = ({
   const handleBuyNow = () => {
     if (!validateVariant()) return;
     onCheckout(product, quantity, currentVariant);
+  };
+
+  const handleShareLink = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product.name, url: shareUrl });
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Product link copied to clipboard');
+        return;
+      }
+      window.prompt('Copy this product link', shareUrl);
+    } catch (error) {
+      console.warn('Share cancelled', error);
+    }
   };
 
   return (
@@ -224,6 +243,19 @@ const StoreProductDetail = ({
                       <span className="text-lg text-gray-400 line-through mb-1">৳ {product.originalPrice.toLocaleString()}</span>
                     )}
                  </div>
+
+                   <div className="flex flex-wrap items-center gap-3 mb-6">
+                    <button
+                      type="button"
+                      onClick={handleShareLink}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#0064d1] hover:bg-[#0055b2] text-white text-sm font-semibold px-4 py-2 shadow-sm"
+                    >
+                        <Share2 size={16} /> Share now
+                     </button>
+                     <span className="text-xs text-gray-500 break-all">
+                       
+                     </span>
+                   </div>
 
                  <div className="space-y-5 mb-6">
                     <div>

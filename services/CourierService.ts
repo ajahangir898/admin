@@ -1,6 +1,7 @@
 import { CourierConfig, Order } from '../types';
 
 const STEADFAST_ENDPOINT = 'https://portal.steadfast.com.bd/api/v1/create_order';
+const STEADFAST_FRAUD_ENDPOINT = 'https://portal.steadfast.com.bd/api/v1/fraud-check';
 
 const sanitizePhone = (value?: string) => {
   if (!value) return '';
@@ -38,6 +39,13 @@ export interface CourierSyncResult {
   reference?: string;
   payload: Record<string, unknown>;
   response: any;
+}
+
+export interface FraudCheckResult {
+  status: string;
+  riskScore?: number;
+  remarks?: string;
+  raw: any;
 }
 
 export class CourierService {
@@ -85,6 +93,54 @@ export class CourierService {
         console.error('Failed to sync with Steadfast', error);
       }
       throw error instanceof Error ? error : new Error('Unexpected error while contacting Steadfast.');
+    }
+  }
+
+  static async checkFraudRisk(order: Order, config: CourierConfig): Promise<FraudCheckResult> {
+    if (!config.apiKey || !config.secretKey) {
+      throw new Error('Steadfast credentials are missing. Update Courier Settings and try again.');
+    }
+    if (!order.phone) {
+      throw new Error('Customer phone number is required to run a fraud check.');
+    }
+
+    const payload = {
+      invoice: normalizeInvoice(order.id),
+      recipient_phone: sanitizePhone(order.phone),
+      cod_amount: Math.round(order.amount),
+      recipient_city: order.division || 'Dhaka',
+      recipient_name: order.customer,
+    };
+
+    try {
+      const response = await fetch(STEADFAST_FRAUD_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-Key': config.apiKey.trim(),
+          'Secret-Key': config.secretKey.trim(),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message = data?.message || data?.error || 'Steadfast fraud check failed.';
+        throw new Error(message);
+      }
+
+      return {
+        status: data?.status || data?.result || 'unknown',
+        riskScore: typeof data?.risk_score === 'number' ? data.risk_score : undefined,
+        remarks: data?.remarks || data?.message,
+        raw: data,
+      };
+    } catch (error) {
+      if (import.meta?.env?.DEV) {
+        console.error('Failed to run Steadfast fraud check', error);
+      }
+      throw error instanceof Error ? error : new Error('Unexpected error during Steadfast fraud check.');
     }
   }
 }

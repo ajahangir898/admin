@@ -438,68 +438,68 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
             colorClass="bg-blue-50 border-blue-100 hover:border-blue-300"
             onClick={() => onNavigate('settings_delivery')}
           />
-          <SettingsCard 
+          {/* <SettingsCard 
             title="Payment Methods" 
             icon={<CreditCard size={24} className="text-green-600"/>} 
             colorClass="bg-green-50 border-green-100 hover:border-green-300"
-          />
-          <SettingsCard 
+          /> */}
+          {/* <SettingsCard 
             title="SMS" 
             icon={<MessageCircle size={24} className="text-orange-600"/>} 
             colorClass="bg-orange-50 border-orange-100 hover:border-orange-300"
-          />
+          /> */}
           <SettingsCard 
             title="Courier API" 
             icon={<Settings size={24} className="text-purple-600"/>} 
             colorClass="bg-purple-50 border-purple-100 hover:border-purple-300"
             onClick={() => onNavigate('settings_courier')}
           />
-          <SettingsCard 
+          {/* <SettingsCard 
             title="Social Login" 
             icon={<Globe size={24} className="text-red-600"/>} 
             colorClass="bg-red-50 border-red-100 hover:border-red-300"
-          />
+          /> */}
           <SettingsCard 
             title="Facebook Pixel" 
             icon={<Facebook size={24} className="text-blue-700"/>} 
             colorClass="bg-blue-50 border-blue-100 hover:border-blue-300"
             onClick={() => onNavigate('settings_facebook_pixel')}
           />
-          <SettingsCard 
+          {/* <SettingsCard 
             title="Analytics" 
             icon={<BarChart size={24} className="text-indigo-600"/>} 
             colorClass="bg-indigo-50 border-indigo-100 hover:border-indigo-300"
-          />
-          <SettingsCard 
+          /> */}
+          {/* <SettingsCard 
             title="Facebook Catalog" 
             icon={<ShoppingBag size={24} className="text-blue-600"/>} 
             colorClass="bg-blue-50 border-blue-100 hover:border-blue-300"
-          />
-          <SettingsCard 
+          /> */}
+          {/* <SettingsCard 
             title="Chat Manage" 
             icon={<MessageCircle size={24} className="text-cyan-600"/>} 
             colorClass="bg-cyan-50 border-cyan-100 hover:border-cyan-300"
-          />
-          <SettingsCard 
+          /> */}
+          {/* <SettingsCard 
             title="Shop Currency" 
             icon={<DollarSign size={24} className="text-yellow-600"/>} 
             colorClass="bg-yellow-50 border-yellow-100 hover:border-yellow-300"
-          />
-          <SettingsCard 
+          /> */}
+          {/* <SettingsCard 
             title="Order Setting" 
             icon={<FileText size={24} className="text-teal-600"/>} 
             colorClass="bg-teal-50 border-teal-100 hover:border-teal-300"
-          />
-          <SettingsCard 
+          /> */}
+          {/* <SettingsCard 
             title="Product Setting" 
             icon={<Settings size={24} className="text-green-700"/>} 
             colorClass="bg-green-50 border-green-100 hover:border-green-300"
-          />
-          <SettingsCard 
+          /> */}
+          {/* <SettingsCard 
             title="Search Console" 
             icon={<Search size={24} className="text-blue-500"/>} 
             colorClass="bg-blue-50 border-blue-100 hover:border-blue-300"
-          />
+          /> */}
         </div>
       </section>
 

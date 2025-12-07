@@ -193,6 +193,94 @@
   }
 }
 
+/* Admin dashboard theming overrides */
+.admin-theme {
+  --admin-bg: #030407;
+  --admin-surface: #070b12;
+  --admin-surface-elevated: #0c1019;
+  --admin-surface-soft: #05060a;
+  --admin-border-weak: rgba(255,255,255,0.05);
+  --admin-border: rgba(255,255,255,0.1);
+  --admin-border-strong: rgba(255,255,255,0.2);
+  --admin-text-strong: #f8fafc;
+  --admin-text-muted: #cbd5f5;
+  --admin-text-soft: #94a3b8;
+  --admin-red: #ef4444;
+  --admin-emerald: #10b981;
+  background-color: var(--admin-bg);
+  color: var(--admin-text-strong);
+}
+
+.admin-theme :is(.bg-white, .bg-gray-50, .bg-gray-100) {
+  background-color: var(--admin-surface);
+  color: var(--admin-text-strong);
+  border-color: var(--admin-border);
+}
+
+.admin-theme :is(.bg-gray-200, .bg-gray-300) {
+  background-color: var(--admin-surface-elevated);
+}
+
+.admin-theme :is(.text-gray-900, .text-gray-800, .text-gray-700, .text-slate-900, .text-slate-800, .text-slate-700) {
+  color: var(--admin-text-strong);
+}
+
+.admin-theme :is(.text-gray-600, .text-gray-500, .text-slate-600, .text-slate-500) {
+  color: var(--admin-text-muted);
+}
+
+.admin-theme :is(.text-gray-400, .text-gray-300, .text-gray-200, .text-gray-100, .text-slate-400, .text-slate-300, .text-slate-200, .text-slate-100) {
+  color: var(--admin-text-soft);
+}
+
+.admin-theme :is(.border-gray-100, .border-slate-100),
+.admin-theme :is(.divide-gray-100, .divide-slate-100) > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--admin-border-weak);
+}
+
+.admin-theme :is(.border-gray-200, .border-slate-200),
+.admin-theme :is(.divide-gray-200, .divide-slate-200) > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--admin-border);
+}
+
+.admin-theme :is(.border-gray-300, .border-slate-300),
+.admin-theme :is(.divide-gray-300, .divide-slate-300) > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--admin-border-strong);
+}
+
+.admin-theme :is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl) {
+  box-shadow: 0 20px 45px rgba(0,0,0,0.45);
+}
+
+.admin-theme .bg-orange-50 {
+  background-color: rgba(239,68,68,0.15);
+  color: #fecaca;
+  border-color: rgba(239,68,68,0.4);
+}
+
+.admin-theme .bg-green-50 {
+  background-color: rgba(16,185,129,0.15);
+  color: #bbf7d0;
+  border-color: rgba(16,185,129,0.35);
+}
+
+.admin-theme .text-orange-600 {
+  color: #fb923c;
+}
+
+.admin-theme .text-green-600 {
+  color: #34d399;
+}
+
+.admin-theme .bg-white\/5 {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.admin-theme .hover\:bg-gray-50:hover,
+.admin-theme .hover\:bg-gray-100:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

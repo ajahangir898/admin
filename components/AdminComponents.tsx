@@ -52,30 +52,30 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 
 	const SidebarContent = () => (
 		<>
-			<div className="p-6 border-b border-gray-100 flex items-center justify-between">
+			<div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#0f0f1a] via-[#061410] to-[#1a0b0f]">
 				{logo ? (
 					<img src={logo} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
 				) : (
-					<h2 className="text-2xl font-bold tracking-tighter">
-						<span className="text-gray-800">GADGET</span>
-						<span className="text-orange-500">SHOB</span>
+					<h2 className="text-2xl font-black tracking-widest">
+						<span className="text-white">GADGET</span>
+						<span className="text-red-500">SHOB</span>
 					</h2>
 				)}
-				<button onClick={onClose} className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+				<button onClick={onClose} className="lg:hidden p-2 text-slate-300 hover:bg-white/10 rounded-full">
 					<X size={20} />
 				</button>
 			</div>
 
-			<div className="p-4 space-y-1 flex-1 overflow-y-auto scrollbar-hide">
-				<div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-2">Main Menu</div>
+			<div className="p-4 space-y-1 flex-1 overflow-y-auto scrollbar-hide bg-[#050509] text-slate-200">
+				<div className="text-[10px] font-semibold text-emerald-400 uppercase tracking-[0.4em] mb-3 px-3 mt-2">Main Menu</div>
 				{filteredMenuItems.map((item) => (
 					<div
 						key={item.id}
 						onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
-						className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
 							activePage === item.id
-								? 'bg-green-50 text-green-600 font-bold shadow-sm'
-								: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+								? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40 shadow-lg shadow-emerald-900/30'
+								: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
 						}`}
 					>
 						{item.icon}
@@ -86,8 +86,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				<div>
 					<div
 						onClick={() => setIsCatalogOpen(!isCatalogOpen)}
-						className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
-							activePage?.startsWith('catalog_') ? 'text-green-600 font-bold bg-green-50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+						className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm border ${
+							activePage?.startsWith('catalog_') ? 'text-emerald-200 font-semibold bg-gradient-to-r from-[#0f1314] via-[#0c0f15] to-[#08150f] border-emerald-500/40 shadow-emerald-900/20' : 'border-white/5 text-slate-400 hover:bg-emerald-500/5 hover:text-white'
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -104,10 +104,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 									key={item.id}
 									onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
 									className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition flex items-center gap-2 ${
-										activePage === item.id ? 'text-green-600 font-bold bg-white shadow-sm border border-gray-100' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+										activePage === item.id ? 'text-emerald-200 font-semibold bg-emerald-500/5 border border-emerald-500/40 shadow-emerald-900/20 shadow-lg' : 'text-slate-500 hover:text-white hover:bg-emerald-500/5'
 									}`}
 								>
-									<div className={`w-0 h-0 border-l-[4px] border-l-green-600 border-y-[4px] border-y-transparent ${activePage === item.id ? 'opacity-100' : 'opacity-0'}`}></div>
+									<div className={`w-0 h-0 border-l-[4px] border-l-emerald-400 border-y-[4px] border-y-transparent ${activePage === item.id ? 'opacity-100' : 'opacity-0'}`}></div>
 									{item.label}
 								</div>
 							))}
@@ -118,7 +118,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				<div>
 					<div
 						onClick={() => setIsCustomizationOpen(!isCustomizationOpen)}
-						className="flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+						className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm text-slate-400 hover:bg-emerald-500/5 hover:text-white border border-white/5"
 					>
 						<div className="flex items-center gap-3">
 							<Sliders size={18} />
@@ -134,11 +134,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 									key={item.id}
 									onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
 									className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${
-										activePage === item.id ? 'text-green-600 font-bold bg-green-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+										activePage === item.id ? 'text-emerald-200 font-semibold bg-emerald-500/5 border border-emerald-500/30' : 'text-slate-500 hover:text-white hover:bg-emerald-500/5'
 									}`}
 								>
 									<div className="flex items-center gap-2">
-										<div className={`w-1.5 h-1.5 rounded-full ${activePage === item.id ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+										<div className={`w-1.5 h-1.5 rounded-full ${activePage === item.id ? 'bg-emerald-400' : 'bg-white/30'}`}></div>
 										{item.label}
 									</div>
 								</div>
@@ -147,13 +147,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					)}
 				</div>
 
-				<div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3 mt-6">System</div>
+				<div className="text-[10px] font-semibold text-emerald-400 uppercase tracking-[0.4em] mb-3 px-3 mt-6">System</div>
 				<div
 					onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
-					className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
 						activePage === 'settings'
-							? 'bg-green-50 text-green-600 font-bold shadow-sm'
-							: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40'
+							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
 					}`}
 				>
 					<Settings size={18} />
@@ -161,18 +161,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				</div>
 				<div
 					onClick={() => { onNavigate && onNavigate('admin'); onClose && onClose(); }}
-					className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
 						activePage === 'admin'
-							? 'bg-green-50 text-green-600 font-bold shadow-sm'
-							: 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40'
+							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
 					}`}
 				>
 					<Shield size={18} />
 					<span>Admin Control</span>
 				</div>
 
-				<div className="mt-8 pt-4 border-t border-gray-100">
-					<div className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-gray-600 hover:text-orange-600 hover:bg-orange-50 transition text-sm">
+				<div className="mt-8 pt-4 border-t border-white/10">
+					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-emerald-200 hover:text-white hover:bg-gradient-to-r hover:from-red-600/20 hover:to-emerald-500/20 transition text-sm">
 						<LogOut size={18} />
 						<span>Logout</span>
 					</div>
@@ -183,7 +183,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 
 	return (
 		<>
-			<div className="hidden lg:flex w-64 bg-white border-r border-gray-200 h-screen flex-col sticky top-0 scrollbar-hide">
+			<div className="hidden lg:flex w-64 bg-[#050509] border-r border-emerald-500/10 h-screen flex-col sticky top-0 scrollbar-hide">
 				<SidebarContent />
 			</div>
 
@@ -194,7 +194,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				></div>
 			)}
 
-			<div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+			<div className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#050509] shadow-2xl shadow-emerald-900/30 border-r border-emerald-500/20 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 				<SidebarContent />
 			</div>
 		</>
@@ -236,26 +236,26 @@ export const AdminHeader: React.FC<{
 	const getStatusClasses = (status?: Tenant['status']) => {
 		switch (status) {
 			case 'active':
-				return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+				return 'bg-emerald-500/15 text-emerald-200 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]';
 			case 'trialing':
-				return 'bg-sky-100 text-sky-700 border border-sky-200';
+				return 'bg-amber-500/20 text-amber-200 border border-amber-400/40';
 			case 'suspended':
-				return 'bg-amber-100 text-amber-700 border border-amber-200';
+				return 'bg-yellow-500/10 text-yellow-200 border border-yellow-500/30';
 			case 'inactive':
 			default:
-				return 'bg-gray-100 text-gray-600 border border-gray-200';
+				return 'bg-white/10 text-slate-300 border border-white/10';
 		}
 	};
 
 	const getPlanClasses = (plan?: Tenant['plan']) => {
 		switch (plan) {
 			case 'growth':
-				return 'bg-purple-100 text-purple-700 border border-purple-200';
+				return 'bg-fuchsia-500/20 text-fuchsia-200 border border-fuchsia-500/40';
 			case 'enterprise':
-				return 'bg-indigo-100 text-indigo-700 border border-indigo-200';
+				return 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40';
 			case 'starter':
 			default:
-				return 'bg-slate-100 text-slate-700 border border-slate-200';
+				return 'bg-white/10 text-slate-200 border border-white/10';
 		}
 	};
 
@@ -268,8 +268,8 @@ export const AdminHeader: React.FC<{
 
 	const renderTenantSummary = () => (
 		<div className="text-left">
-			<p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">Tenant</p>
-			<p className="text-sm font-semibold text-gray-900 truncate max-w-[200px]">
+			<p className="text-[10px] uppercase tracking-[0.4em] text-emerald-300 font-semibold">Tenant</p>
+			<p className="text-sm font-semibold text-white truncate max-w-[200px]">
 				{selectedTenant?.name || 'Select tenant'}
 			</p>
 			{selectedTenant && (
@@ -286,16 +286,16 @@ export const AdminHeader: React.FC<{
 	);
 
 	return (
-		<header className="bg-white border-b border-gray-200 h-auto min-h-16 flex flex-wrap items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30 shadow-sm">
+		<header className="bg-gradient-to-r from-[#09080f]/95 via-[#07130d]/95 to-[#080c0a]/95 border-b border-white/5 h-auto min-h-16 flex flex-wrap items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30 shadow-[0_10px_40px_rgba(0,0,0,0.45)] text-white">
 			<div className="flex items-center gap-4 flex-wrap">
 				<button
 					onClick={onMenuClick}
-					className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+					className="lg:hidden p-2 text-emerald-200 hover:bg-emerald-500/10 rounded-lg transition"
 				>
 					<Menu size={24} />
 				</button>
-				<h2 className="text-xl font-bold text-gray-800 hidden md:block">Dashboard</h2>
-				<button onClick={onSwitchView} className="hidden md:flex items-center gap-2 text-xs font-medium text-green-600 bg-green-50 px-4 py-1.5 rounded-full border border-green-100 hover:bg-green-100 transition">
+				<h2 className="text-xl font-black tracking-wide hidden md:block text-emerald-200">Dashboard</h2>
+				<button onClick={onSwitchView} className="hidden md:flex items-center gap-2 text-xs font-semibold text-white bg-gradient-to-r from-red-600 via-red-500 to-emerald-500 px-4 py-1.5 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-900/30 hover:shadow-emerald-500/50 transition">
 					<Globe size={14} />
 					Go to Website
 				</button>
@@ -305,28 +305,28 @@ export const AdminHeader: React.FC<{
 							type="button"
 							onClick={() => setIsTenantMenuOpen((prev) => !prev)}
 							disabled={isTenantSwitching}
-							className={`group flex items-center justify-between gap-4 rounded-xl border px-4 py-2 shadow-sm transition w-72 ${isTenantSwitching ? 'cursor-wait border-gray-200 bg-gray-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+							className={`group flex items-center justify-between gap-4 rounded-2xl border px-4 py-2 shadow-lg transition w-72 ${isTenantSwitching ? 'cursor-wait border-white/10 bg-white/5' : 'border-white/10 bg-gradient-to-r from-[#120f1f] via-[#07140e] to-[#1a1427] hover:border-emerald-500/40 hover:shadow-emerald-500/40 hover:bg-[#1d1a2f]'}`}
 							aria-haspopup="listbox"
 							aria-expanded={isTenantMenuOpen}
 						>
 							{renderTenantSummary()}
-							<div className="flex items-center gap-2 text-gray-400">
-								{isTenantSwitching && <Loader2 size={18} className="animate-spin text-emerald-500" />}
+							<div className="flex items-center gap-2 text-emerald-200">
+								{isTenantSwitching && <Loader2 size={18} className="animate-spin text-emerald-400" />}
 								<ChevronDown size={16} className="transition group-hover:text-gray-600" />
 							</div>
 						</button>
 						{isTenantMenuOpen && (
-							<div className="absolute right-0 top-full mt-2 w-[20rem] bg-white rounded-2xl border border-gray-100 shadow-2xl z-40 p-2">
+							<div className="absolute right-0 top-full mt-2 w-[20rem] bg-gradient-to-br from-[#140f1f] via-[#07130c] to-[#1b0f12] rounded-2xl border border-emerald-500/20 shadow-2xl shadow-emerald-900/40 z-40 p-2">
 								{tenantOptions.map((tenant) => (
 									<button
 										key={tenant.id}
 										type="button"
 										onClick={() => handleTenantSelect(tenant.id)}
 										disabled={isTenantSwitching}
-										className={`w-full text-left rounded-xl px-3 py-2.5 transition flex items-start justify-between gap-3 ${tenant.id === activeTenantId ? 'bg-green-50 border border-green-100' : 'hover:bg-gray-50 border border-transparent'}`}
+										className={`w-full text-left rounded-xl px-3 py-2.5 transition flex items-start justify-between gap-3 ${tenant.id === activeTenantId ? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 border border-emerald-500/40' : 'hover:bg-emerald-500/5 border border-transparent'}`}
 									>
 										<div>
-											<p className="text-sm font-semibold text-gray-900">{tenant.name}</p>
+											<p className="text-sm font-semibold text-white">{tenant.name}</p>
 											<div className="flex items-center gap-2 mt-1">
 												<span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${getPlanClasses(tenant.plan)}`}>
 													{formatLabel(tenant.plan)}
@@ -335,9 +335,9 @@ export const AdminHeader: React.FC<{
 													{formatLabel(tenant.status)}
 												</span>
 											</div>
-											<p className="text-xs text-gray-500 mt-1">{tenant.subdomain}</p>
+											<p className="text-xs text-slate-400 mt-1">{tenant.subdomain}</p>
 										</div>
-										{tenant.id === activeTenantId && <Check size={16} className="text-green-600" />}
+										{tenant.id === activeTenantId && <Check size={16} className="text-emerald-400" />}
 									</button>
 								))}
 								{!tenantOptions.length && (
@@ -352,7 +352,7 @@ export const AdminHeader: React.FC<{
 			<div className="flex items-center gap-3 md:gap-6 flex-1 justify-end">
 				{canSwitchTenant && (
 					<div className="sm:hidden w-full max-w-[200px]">
-						<label htmlFor={mobileSelectId} className="text-[10px] uppercase font-semibold text-gray-400 tracking-wider block mb-1">Tenant</label>
+						<label htmlFor={mobileSelectId} className="text-[10px] uppercase font-semibold text-emerald-300 tracking-wider block mb-1">Tenant</label>
 						<div className="relative">
 							<select
 								id={mobileSelectId}
@@ -376,13 +376,13 @@ export const AdminHeader: React.FC<{
 						</div>
 					</div>
 				)}
-				<div className="bg-orange-50 border border-orange-100 text-orange-600 text-xs font-bold px-3 py-1 rounded hidden md:block animate-pulse">
+				<div className="bg-gradient-to-r from-red-600/20 to-emerald-500/20 border border-emerald-400/30 text-emerald-100 text-xs font-bold px-3 py-1 rounded hidden md:block animate-pulse">
 					Admin Mode
 				</div>
 				<div className="flex items-center gap-4">
-					<button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition">
+					<button className="relative p-2 text-emerald-200 hover:bg-emerald-500/10 rounded-full transition">
 						<Bell size={20} />
-						<span className="absolute top-1.5 right-2 w-2 h-2 bg-orange-500 rounded-full border border-white"></span>
+						<span className="absolute top-1.5 right-2 w-2 h-2 bg-emerald-400 rounded-full border border-white"></span>
 					</button>
 
 					<div className="relative">
@@ -390,7 +390,7 @@ export const AdminHeader: React.FC<{
 							className="flex items-center gap-2 cursor-pointer"
 							onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 						>
-							<div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-green-200">
+							<div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-emerald-400/70">
 								<img src={user?.image || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'} alt="Admin" className="w-full h-full object-cover" />
 							</div>
 						</div>
@@ -430,11 +430,11 @@ export const AdminHeader: React.FC<{
 
 export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon, colorClass }) => {
 	const palette: Record<string, string> = {
-		primary: 'bg-green-50 text-green-700 border-green-100 hover:border-green-200',
-		'primary-strong': 'bg-green-100 text-green-800 border-green-200 hover:border-green-300',
-		secondary: 'bg-orange-50 text-orange-700 border-orange-100 hover:border-orange-200',
-		'secondary-strong': 'bg-orange-100 text-orange-800 border-orange-200 hover:border-orange-300',
-		neutral: 'bg-white text-slate-600 border-gray-100 hover:border-gray-200'
+		primary: 'bg-gradient-to-br from-[#062017] via-[#05160f] to-[#0c1411] text-emerald-100 border border-emerald-500/30 hover:border-emerald-400/50 shadow-emerald-900/30',
+		'primary-strong': 'bg-gradient-to-br from-[#0f2e22] via-[#041911] to-[#130c11] text-emerald-100 border border-emerald-400/40 hover:border-emerald-300/50 shadow-emerald-900/30',
+		secondary: 'bg-gradient-to-br from-[#2b0a0d] via-[#1a0507] to-[#120508] text-red-100 border border-red-500/30 hover:border-red-400/50 shadow-red-900/30',
+		'secondary-strong': 'bg-gradient-to-br from-[#360f12] via-[#200608] to-[#150407] text-red-100 border border-red-500/40 hover:border-red-400/60 shadow-red-900/30',
+		neutral: 'bg-[#0b0f12] text-slate-200 border border-white/5 hover:border-white/20 shadow-black/30'
 	};
 
 	const getColors = (color: string) => {
@@ -448,7 +448,7 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 	const styleClass = getColors(colorClass);
 
 	return (
-		<div className={`p-4 rounded-xl border ${styleClass} transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-32 relative overflow-hidden group`}>
+		<div className={`p-4 rounded-xl ${styleClass} transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-32 relative overflow-hidden group`}>
 			<div className="z-10 relative">
 				<p className="text-xs font-semibold opacity-70 mb-1 uppercase tracking-wide">{title}</p>
 				<h3 className="text-2xl font-extrabold">{value}</h3>

@@ -343,7 +343,7 @@ const AdminControl: React.FC<AdminControlProps> = ({
                  <button 
                    type="submit" 
                    form="roleForm"
-                   className="px-6 py-2.5 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200 flex items-center gap-2"
+                   className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg transition text-sm font-medium shadow-lg"
                  >
                    <Check size={18} /> Save Role
                  </button>

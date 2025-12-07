@@ -157,7 +157,7 @@ const AdminCatalog: React.FC<AdminCatalogProps> = ({
         </div>
         <button 
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium shadow-lg shadow-purple-200"
+          className="flex items-center gap-2 px-4 py-2 text-red-900 rounded-lg transition text-sm font-medium bg-red-100 hover:bg-red-200 hover:shadow-md"
         >
           <Plus size={16} /> Add New
         </button>

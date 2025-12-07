@@ -1,7 +1,7 @@
 {
-  "name": "gadgetshob-admin",
+  "name": "E-Commerce-Solutions",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.4.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "lint": "tsc --noEmit",
     "seed:admins": "tsx server/seedAdminUsers.ts"
   },
   "dependencies": {

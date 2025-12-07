@@ -380,7 +380,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         </div>
         <button 
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium shadow-lg shadow-purple-200"
+          className="flex items-center gap-2 px-4 py-2 text-red-900"
         >
           <Plus size={16} /> Add Product
         </button>
@@ -953,7 +953,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                  <button 
                    type="submit" 
                    form="productForm"
-                   className="px-6 py-2.5 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200 flex items-center gap-2"
+                   className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg transition text-sm font-medium shadow-lg"
                  >
                    <Save size={18} /> Save Product
                  </button>

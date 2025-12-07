@@ -131,10 +131,10 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
            <p className="text-sm text-gray-500">Manage and track all your store orders.</p>
         </div>
         <div className="flex gap-3">
-           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
+           <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg transition text-sm font-medium shadow-lg">
              <Download size={16} /> Export
            </button>
-           <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium shadow-lg shadow-purple-200">
+           <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg transition text-sm font-medium shadow-lg">
              + Create Order
            </button>
         </div>
@@ -382,7 +382,7 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
                             <button 
                               onClick={() => handleSendToCourier(order)}
                               disabled={processingOrder === order.id}
-                              className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded transition shadow-sm flex items-center gap-1 disabled:opacity-70 disabled:cursor-not-allowed"
+                              className="p-2 text-black shadow-lg transition shadow-sm flex items-center gap-1 disabled:opacity-70 disabled:cursor-not-allowed"
                               title="Send to Steadfast Courier"
                             >
                               {processingOrder === order.id ? (

@@ -70,7 +70,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
+    <div className="admin-theme flex h-screen font-sans text-slate-100 bg-gradient-to-br from-black via-[#0b1a12] to-[#1b0b0f]">
       <AdminSidebar 
         activePage={highlightPage} 
         onNavigate={onNavigate} 
@@ -79,7 +79,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
         onClose={() => setIsSidebarOpen(false)}
         userRole={user?.role}
       />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-[#050407]/80 via-[#07110b]/75 to-[#0e0609]/80 backdrop-blur">
         <AdminHeader 
           onSwitchView={onSwitchView} 
           user={user} 
@@ -91,7 +91,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           isTenantSwitching={isTenantSwitching}
           onMenuClick={() => setIsSidebarOpen(true)} 
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gray-50/50">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gradient-to-b from-[#08080f]/80 via-[#0c1a12]/70 to-[#1a0b0f]/60">
           {children}
         </main>
       </div>

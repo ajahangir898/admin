@@ -1482,11 +1482,12 @@ export const ProductQuickViewModal: React.FC<{
     );
 };
 
-export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => Promise<boolean>, onRegister: (u: UserType) => Promise<boolean> }> = ({ onClose, onLogin, onRegister }) => {
+export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => Promise<boolean>, onRegister: (u: UserType) => Promise<boolean>, onGoogleLogin?: () => Promise<boolean> }> = ({ onClose, onLogin, onRegister, onGoogleLogin }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', address: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1534,6 +1535,43 @@ export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p:
                             <p className="text-sm text-red-500 text-center">{errorMessage}</p>
                         )}
                     </form>
+
+                    {onGoogleLogin && (
+                        <div className="mt-6">
+                            <div className="relative flex items-center justify-center mb-3">
+                                <span className="px-3 text-xs text-gray-400 bg-white">OR</span>
+                                <div className="absolute left-0 right-0 h-px bg-gray-200" aria-hidden />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (!onGoogleLogin) return;
+                                    setErrorMessage(null);
+                                    setIsGoogleLoading(true);
+                                    try {
+                                        const success = await onGoogleLogin();
+                                        if (success) {
+                                            onClose();
+                                        }
+                                    } catch (error: any) {
+                                        setErrorMessage(error?.message || 'Unable to continue with Google.');
+                                    } finally {
+                                        setIsGoogleLoading(false);
+                                    }
+                                }}
+                                disabled={isGoogleLoading}
+                                className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden>
+                                    <path d="M17.64 9.2045c0-.638-.0573-1.2517-.1636-1.8409H9v3.4818h4.8436c-.2091 1.125-.8436 2.0782-1.7968 2.7168v2.2582h2.9086c1.7018-1.5668 2.6846-3.8745 2.6846-6.6159z" fill="#4285F4" />
+                                    <path d="M9 18c2.43 0 4.4673-.8063 5.9564-2.1791l-2.9086-2.2582c-.8059.54-1.8377.8618-3.0478.8618-2.3445 0-4.3282-1.5832-5.0364-3.7105H.9573v2.3313C2.4382 15.9827 5.4818 18 9 18z" fill="#34A853" />
+                                    <path d="M3.9636 10.7141c-.18-.54-.2823-1.1168-.2823-1.7141 0-.5973.1023-1.1741.2823-1.7141V4.9545H.9573C.3477 6.1745 0 7.5473 0 9s.3477 2.8255.9573 4.0455l3.0063-2.3314z" fill="#FBBC05" />
+                                    <path d="M9 3.5455c1.3214 0 2.5073.4546 3.4405 1.345l2.5809-2.5809C13.4646.8973 11.4273 0 9 0 5.4818 0 2.4382 2.0177.9573 4.9545l3.0063 2.3314C4.6718 5.1286 6.6555 3.5455 9 3.5455z" fill="#EA4335" />
+                                </svg>
+                                {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
+                            </button>
+                        </div>
+                    )}
 
                     <div className="mt-6 text-center text-sm text-gray-600">
                         {isLogin ? "Don't have an account? " : "Already have an account? "}

@@ -246,7 +246,7 @@ const StoreHome = ({
         <section>
           <div className="flex items-center gap-3 mb-1">
           
-             <SectionHeader title="⚡Flash Sales" />
+             <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
              {showFlashSaleCounter && (
                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-pink-900 bg-gradient-to-r from-rose-100 via-white to-violet-100 shadow-[0_4px_12px_rgba(244,114,182,0.25)]">
                  <div className="flex items-center gap-1 text-sky-700">

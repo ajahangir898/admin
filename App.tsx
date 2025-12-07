@@ -116,7 +116,11 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'auth/invalid-credential': 'Invalid email or password.',
   'auth/email-already-in-use': 'Email already in use. Try logging in instead.',
   'auth/weak-password': 'Password should be at least 6 characters.',
-  'auth/too-many-requests': 'Too many attempts. Please try again later.'
+  'auth/too-many-requests': 'Too many attempts. Please try again later.',
+  'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Please allow popups or try again.',
+  'auth/operation-not-supported-in-this-environment': 'Google sign-in is not supported in this browser. Try opening the site in your default browser.',
+  'auth/popup-blocked-unsupported-browser': 'Google sign-in is not supported in this browser. Please try the redirect flow.',
+  'auth/unauthorized-domain': 'This domain is not authorized for Google sign-in. Add it to Firebase Auth authorized domains.'
 };
 
 const getAuthErrorMessage = (error: unknown) => {
@@ -601,6 +605,15 @@ fbq('track', 'PageView');`;
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      await AuthService.loginWithGoogle();
+      return true;
+    } catch (error) {
+      throw new Error(getAuthErrorMessage(error));
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await AuthService.logout();
@@ -942,7 +955,7 @@ fbq('track', 'PageView');`;
     <Suspense fallback={<SuspenseFallback />}>
       <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
       <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
-        {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} />}
+        {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
 
         {isAdminRole(user?.role) && (
           <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">

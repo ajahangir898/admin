@@ -1,0 +1,23 @@
+[
+  {
+    "email": "admin@systemnextit.com",
+    "password": "admin121",
+    "displayName": "Super Admin",
+    "tenantId": "tenant-demo",
+    "role": "super_admin"
+  },
+  {
+    "email": "demo@gadgetshob.com",
+    "password": "demo1234",
+    "displayName": "GadgetShob Admin",
+    "tenantId": "gadgetshob-tenant",
+    "role": "tenant_admin"
+  },
+  {
+    "email": "amit@amit.com",
+    "password": "amit1234",
+    "displayName": "User",
+    "tenantId": "user-tenant",
+    "role": "tenant_admin"
+  }
+]

@@ -10,6 +10,27 @@ class DataServiceImpl {
     return items.filter(item => !item.tenantId || item.tenantId === tenantId);
   }
 
+  private getCollectionRef(collectionName: string, tenantId?: string) {
+    if (!db) throw new Error('Firebase DB not initialized');
+    return tenantId
+      ? collection(db, 'tenants', tenantId, collectionName)
+      : collection(db, collectionName);
+  }
+
+  private getCollectionDocRef(collectionName: string, id: string, tenantId?: string) {
+    if (!db) throw new Error('Firebase DB not initialized');
+    return tenantId
+      ? doc(db, 'tenants', tenantId, collectionName, id)
+      : doc(db, collectionName, id);
+  }
+
+  private getConfigDocRef(key: string, tenantId?: string) {
+    if (!db) throw new Error('Firebase DB not initialized');
+    return tenantId
+      ? doc(db, 'tenants', tenantId, 'configurations', key)
+      : doc(db, 'configurations', key);
+  }
+
   // --- Generic Helpers with Fallback ---
   
   private async safeFirebaseCall<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
@@ -44,7 +65,7 @@ class DataServiceImpl {
   async getProducts(tenantId?: string): Promise<Product[]> {
     const fallback = this.filterByTenant(PRODUCTS, tenantId);
     return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(collection(db, 'products'));
+      const snapshot = await getDocs(this.getCollectionRef('products', tenantId));
       const items = snapshot.docs.map(d => ({ id: Number(d.id), ...d.data() } as Product));
       const filtered = this.filterByTenant(items, tenantId);
       return filtered.length ? filtered : fallback;
@@ -54,7 +75,7 @@ class DataServiceImpl {
   async getOrders(tenantId?: string): Promise<Order[]> {
     const fallback = this.filterByTenant(RECENT_ORDERS, tenantId);
     return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(collection(db, 'orders'));
+      const snapshot = await getDocs(this.getCollectionRef('orders', tenantId));
       const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Order));
       const filtered = this.filterByTenant(items, tenantId);
       return filtered.length ? filtered : fallback;
@@ -67,7 +88,7 @@ class DataServiceImpl {
 
   async getUsers(tenantId?: string): Promise<User[]> {
     return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(collection(db, 'users'));
+      const snapshot = await getDocs(this.getCollectionRef('users', tenantId));
       const items = snapshot.docs.map(d => d.data() as User);
       const filtered = this.filterByTenant(items, tenantId);
       return filtered;
@@ -80,7 +101,7 @@ class DataServiceImpl {
       { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: ['view_dashboard', 'view_orders'] }
     ];
     return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(collection(db, 'roles'));
+      const snapshot = await getDocs(this.getCollectionRef('roles', tenantId));
       const roles = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Role));
       const filtered = tenantId ? roles.filter(role => !(role as any).tenantId || (role as any).tenantId === tenantId) : roles;
       return filtered.length ? filtered : defaultRoles;
@@ -92,7 +113,7 @@ class DataServiceImpl {
     
     return this.safeFirebaseCall(async () => {
       if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
-        const docRef = doc(db, 'configurations', key);
+        const docRef = this.getConfigDocRef(key, tenantId);
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) {
           return defaultValue;
@@ -121,7 +142,7 @@ class DataServiceImpl {
       }
       
       if (isArray) {
-         const snapshot = await getDocs(collection(db, key));
+        const snapshot = await getDocs(this.getCollectionRef(key, tenantId));
          const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         const filteredItems = this.filterByTenant(items as any[], tenantId);
         return filteredItems.length ? filteredItems as unknown as T : defaultValue;
@@ -208,7 +229,7 @@ class DataServiceImpl {
 
         // Configs -> Single Doc
         if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
-          const docRef = doc(db, 'configurations', key);
+          const docRef = this.getConfigDocRef(key, tenantId);
           if (key === 'logo') {
             await setDoc(docRef, { value: data ?? null, tenantId: tenantId || null });
           } else if (key === 'delivery_config') {
@@ -230,7 +251,7 @@ class DataServiceImpl {
                 if (item && (item.id || item.id === 0)) {
                     const id = String(item.id);
                     const payload = tenantId ? { ...item, tenantId } : item;
-                    batchPromises.push(setDoc(doc(db, key, id), payload));
+                    batchPromises.push(setDoc(this.getCollectionDocRef(key, id, tenantId), payload));
                 }
             }
             // Note: In a real app, handling deletions is complex with this pattern.

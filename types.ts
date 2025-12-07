@@ -20,6 +20,7 @@ export interface Tenant {
   contactName?: string;
   adminEmail?: string;
   adminPassword?: string;
+  adminAuthUid?: string;
   plan: TenantPlan;
   status: TenantStatus;
   createdAt: string;

@@ -804,7 +804,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
             <div className="relative aspect-square p-4 bg-gray-50">
                 <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
                 {product.discount && (
-                    <span className="absolute top-2 left-2 bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                    <span className="absolute top-2 left-2 bg-pink-600 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded">
                         {product.discount}
                     </span>
                 )}

@@ -25,6 +25,12 @@ interface StoreHeaderProps {
   onProfileClick?: () => void;
   logo?: string | null;
   websiteConfig?: WebsiteConfig;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
+    onCategoriesClick?: () => void;
+    onProductsClick?: () => void;
+    categoriesList?: string[];
+    onCategorySelect?: (categoryName: string) => void;
 }
 
 export const MobileBottomNav: React.FC<{
@@ -163,11 +169,22 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   onLogoutClick, 
   onProfileClick,
   logo,
-  websiteConfig
+    websiteConfig,
+    searchValue,
+    onSearchChange,
+    onCategoriesClick,
+    onProductsClick,
+    categoriesList,
+    onCategorySelect
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const categoryMenuRef = useRef<HTMLDivElement>(null);
+    const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+        const searchQuery = searchValue ?? '';
+        const emitSearchValue = (value: string) => {
+                onSearchChange?.(value);
+        };
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<any>(null);
     const supportsVoiceSearch = typeof window !== 'undefined' && Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
@@ -209,6 +226,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
+            if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target as Node)) {
+                setIsCategoryMenuOpen(false);
+            }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -223,7 +243,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         recognition.maxAlternatives = 1;
         recognition.onresult = (event: any) => {
             const transcript = event.results?.[0]?.[0]?.transcript;
-            if (transcript) setSearchQuery(transcript);
+            if (transcript) emitSearchValue(transcript);
         };
         recognition.onstart = () => setIsListening(true);
         recognition.onend = () => setIsListening(false);
@@ -298,7 +318,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                   type="text" 
                         placeholder="Search your products" 
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => emitSearchValue(e.target.value)}
                                 aria-label="Search products"
                                 className="w-full bg-gray-100 dark:bg-slate-800 border-none rounded-lg py-2.5 pl-10 pr-14 text-sm text-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500/20 placeholder-transparent"
                />
@@ -350,7 +370,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     type="text"
                     placeholder={websiteConfig?.searchHints || "Search product..."}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => emitSearchValue(e.target.value)}
                     aria-label="Search products"
                     className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600 placeholder-transparent"
                     />
@@ -431,8 +451,38 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <div className="max-w-7xl mx-auto px-4">
                 <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
                     <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
-                    {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
-                    <a href="#" className="hover:text-green-500 transition">Products</a>
+                                        {websiteConfig?.showMobileHeaderCategory && (
+                                            <div
+                                                ref={categoryMenuRef}
+                                                className="relative"
+                                                onMouseEnter={() => setIsCategoryMenuOpen(true)}
+                                                onMouseLeave={() => setIsCategoryMenuOpen(false)}
+                                            >
+                                                <button type="button" onClick={onCategoriesClick} className="hover:text-green-500 transition">
+                                                    Categories
+                                                </button>
+                                                {isCategoryMenuOpen && categoriesList?.length ? (
+                                                    <div className="absolute left-0 top-full mt-2 w-48 rounded-xl border border-gray-100 bg-white py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                                                        {categoriesList.map((category) => (
+                                                            <button
+                                                                key={category}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    onCategorySelect?.(category);
+                                                                    setIsCategoryMenuOpen(false);
+                                                                }}
+                                                                className="block w-full px-4 py-1.5 text-left text-sm text-gray-600 transition hover:bg-gray-50 hover:text-green-600 dark:text-gray-200 dark:hover:bg-slate-700"
+                                                            >
+                                                                {category}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        )}
+                                        <button type="button" onClick={onProductsClick} className="hover:text-green-500 transition">
+                                            Products
+                                        </button>
                     <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
                     <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
                     <Sparkles size={16} /> 
@@ -506,7 +556,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                    type="text" 
                    placeholder={websiteConfig?.searchHints || "Search..."}
                          value={searchQuery}
-                         onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => emitSearchValue(e.target.value)}
                      aria-label="Search products"
                      className="w-full border border-blue-400 rounded px-4 py-2.5 pr-32 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                  />
@@ -622,7 +672,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                             type="text"
                             placeholder={websiteConfig?.searchHints || "gadget"}
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => emitSearchValue(e.target.value)}
                             aria-label="Search products"
                             className="w-full pl-10 pr-28 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-transparent font-medium text-gray-700"
                         />
@@ -678,7 +728,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 type="text"
                                 placeholder={websiteConfig?.searchHints || "Search product..."}
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => emitSearchValue(e.target.value)}
                                 aria-label="Search products"
                                 className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600 placeholder-transparent"
                                 />
@@ -771,8 +821,38 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             <div className="max-w-7xl mx-auto px-4">
             <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
                 <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
-                {websiteConfig?.showMobileHeaderCategory && <a href="#" className="hover:text-green-500 transition">Categories</a>}
-                <a href="#" className="hover:text-green-500 transition">Products</a>
+                                {websiteConfig?.showMobileHeaderCategory && (
+                                    <div
+                                        ref={categoryMenuRef}
+                                        className="relative"
+                                        onMouseEnter={() => setIsCategoryMenuOpen(true)}
+                                        onMouseLeave={() => setIsCategoryMenuOpen(false)}
+                                    >
+                                        <button type="button" onClick={onCategoriesClick} className="hover:text-green-500 transition">
+                                            Categories
+                                        </button>
+                                        {isCategoryMenuOpen && categoriesList?.length ? (
+                                            <div className="absolute left-0 top-full mt-2 w-48 rounded-xl border border-gray-100 bg-white py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                                                {categoriesList.map((category) => (
+                                                    <button
+                                                        key={category}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            onCategorySelect?.(category);
+                                                            setIsCategoryMenuOpen(false);
+                                                        }}
+                                                        className="block w-full px-4 py-1.5 text-left text-sm text-gray-600 transition hover:bg-gray-50 hover:text-green-600 dark:text-gray-200 dark:hover:bg-slate-700"
+                                                    >
+                                                        {category}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                )}
+                                        <button type="button" onClick={onProductsClick} className="hover:text-green-500 transition">
+                                            Products
+                                        </button>
                 <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
                 <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
                 {/* <Sparkles size={16} /> AI Image Studio */}
@@ -1038,7 +1118,7 @@ export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = (
         <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
             {icon}
         </div>
-        <span className="text-sm font-semibold text-gray-700 group-hover:text-pink-600 tracking-wide">{name}</span>
+        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-pink-600 tracking-wide">{name}</span>
     </div>
 );
 
@@ -1614,7 +1694,7 @@ export const TrackOrderModal: React.FC<{ onClose: () => void, orders?: Order[] }
                           value={orderId}
                           onChange={e => setOrderId(e.target.value)}
                         />
-                        <button onClick={handleTrack} className="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-700">Track</button>
+                        <button onClick={handleTrack} className="bg-purple-600 text-black-600 px-4 py-2 rounded-lg font-bold hover:bg-purple-700 shadow-lg">Track</button>
                     </div>
 
                     {searched && (

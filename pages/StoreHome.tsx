@@ -68,9 +68,34 @@ const StoreHome = ({
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const categoriesSectionRef = useRef<HTMLElement | null>(null);
+  const productsSectionRef = useRef<HTMLElement | null>(null);
 
   // Use passed products or fallback to initial constants
   const displayProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const matchesSearch = (product: Product) => {
+    if (!normalizedSearch) return true;
+    const contains = (value?: string) => Boolean(value && value.toLowerCase().includes(normalizedSearch));
+    if (
+      contains(product.name) ||
+      contains(product.description) ||
+      contains(product.brand) ||
+      contains(product.category) ||
+      contains(product.subCategory) ||
+      contains(product.childCategory)
+    ) {
+      return true;
+    }
+    if (product.tags && product.tags.length) {
+      return product.tags.some((tag) => contains(tag));
+    }
+    return false;
+  };
+  const filteredProducts = normalizedSearch ? displayProducts.filter(matchesSearch) : displayProducts;
+  const hasSearchQuery = Boolean(normalizedSearch);
 
   // Category Auto Scroll Logic for Style 2
   const categoryScrollRef = useRef<HTMLDivElement>(null);
@@ -144,6 +169,25 @@ const StoreHome = ({
     setQuickViewProduct(null);
   };
 
+  const scrollToSection = (ref: React.RefObject<HTMLElement | null>) => {
+    if (typeof window === 'undefined' || !ref.current) return;
+    const headerOffset = 80;
+    const top = ref.current.getBoundingClientRect().top + window.scrollY - headerOffset;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  };
+
+  const performScroll = (ref: React.RefObject<HTMLElement | null>) => {
+    if (hasSearchQuery) {
+      setSearchTerm('');
+      setTimeout(() => scrollToSection(ref), 120);
+    } else {
+      scrollToSection(ref);
+    }
+  };
+
+  const handleCategoriesNav = () => performScroll(categoriesSectionRef);
+  const handleProductsNav = () => performScroll(productsSectionRef);
+
   const selectInstantVariant = (product: Product): ProductVariantSelection => ({
     color: product.variantDefaults?.color || product.colors?.[0] || 'Default',
     size: product.variantDefaults?.size || product.sizes?.[0] || 'Standard'
@@ -175,6 +219,12 @@ const StoreHome = ({
         onProfileClick={onProfileClick}
         logo={logo}
         websiteConfig={websiteConfig}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        onCategoriesClick={handleCategoriesNav}
+        onProductsClick={handleProductsNav}
+        categoriesList={CATEGORIES.map((cat) => cat.name)}
+        onCategorySelect={(categoryName) => setSearchTerm(categoryName)}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
@@ -195,112 +245,171 @@ const StoreHome = ({
       <HeroSection carouselItems={websiteConfig?.carouselItems} />
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-12">
-        
-        {/* Categories */}
-          {websiteConfig?.categorySectionStyle === 'style2' ? (
-            <div className="mt-1 -mb-1">
-              <div className="flex justify-between items-end mb-1 border-b border-gray-100 pb-1">
-                 <div className="relative pb-1">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
-
-                 </div>
-                 <a href="#" className="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-blue-600 flex items-center gap-1 transition mb-1 group">
-                    View All <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-blue-500 border-b-[5px] border-b-transparent transform group-hover:translate-x-1 transition-transform"></div>
-                 </a>
+        {hasSearchQuery ? (
+          <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-gray-400">Search</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'result' : 'results'} for “{searchTerm.trim()}”.
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-300">Matching product titles, categories, brands, and tags.</p>
               </div>
-              
-
-              {/* Auto Scrolling Container */}
-                <div 
-                 ref={categoryScrollRef}
-                  className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
-                 style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }} 
-                 
+              <button
+                onClick={() => setSearchTerm('')}
+                className="self-start rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-rose-400 hover:text-rose-500 dark:border-slate-700 dark:text-gray-300"
               >
-                 {/* Render multiple times for infinite seamless loop */}
-                 {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
-                    <CategoryPill 
-                      key={`${cat.name}-${idx}`} 
-                      name={cat.name} 
-                      icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })} 
-                    />
-                 ))}
-              </div>
-           </div>
-        ) : (
-           <div className="mt-6 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
-               <SectionHeader title="Categories" />
-               <div className="flex flex-wrap gap-x-8 gap-y-8 justify-center md:justify-between overflow-x-auto pb-4 scrollbar-hide pt-2">
-               {CATEGORIES.map((cat, idx) => (
-                   <CategoryCircle 
-                     key={idx} 
-                     name={cat.name} 
-                     icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 32, strokeWidth: 1.5 })} 
-                   />
-               ))}
-               </div>
-           </div>
-        )}
-
-        {/* Flash Deals */}
-        <section>
-          <div className="flex items-center gap-3 mb-1">
-          
-             <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
-             {showFlashSaleCounter && (
-               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-pink-900 bg-gradient-to-r from-rose-100 via-white to-violet-100 shadow-[0_4px_12px_rgba(244,114,182,0.25)]">
-                 <div className="flex items-center gap-1 text-sky-700">
-                   {flashSaleCountdown.map(segment => (
-                     <span key={segment.label} className="flex flex-col items-center justify-center px-2 py-0.5 border border-sky-200 rounded-md bg-white text-sky-700 shadow-sm leading-tight min-w-[44px]">
-                       <span className="text-[11px] font-black">{segment.value}</span>
-                       <span className="text-[7px] font-semibold text-sky-500 tracking-tight normal-case">{segment.label}</span>
-                     </span>
-                   ))}
-                 </div>
-                 <span className="relative flex items-center gap-2 text-pink-700">
-                   <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
-                   
-                 </span>
-               </div>
-             )}
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {displayProducts.map((product) => (
-              <ProductCard 
-                key={`flash-${product.id}`} 
-                product={product} 
-                onClick={onProductClick} 
-                onBuyNow={handleBuyNow}
-                variant={websiteConfig?.productCardStyle}
-                onQuickView={setQuickViewProduct}
-              />
-            ))}
-            {/* Add a duplicate if few products to fill grid */}
-            {displayProducts.length > 0 && displayProducts.length < 5 && 
-              <ProductCard product={{...displayProducts[0], id: 99}} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
-            }
-          </div>
-        </section>
-
-        {/* Best Sale Products */}
-        <section>
-            <div className="flex items-center gap-3 mb-1">
-                <div className="h-8 w-1.5 bg-green-500 rounded-full"></div>
-                <SectionHeader title="Best Sale Products" className="text-xl text-red-600" />
+                Clear search
+              </button>
             </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-             {displayProducts.slice().reverse().map((product) => (
-              <ProductCard key={`best-${product.id}`} product={product} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
-            ))}
-             {/* Add a duplicate if few products to fill grid */}
-             {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[1], id: 98}} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
-             }
-          </div>
-        </section>
+            {filteredProducts.length ? (
+              <div className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={`search-${product.id}`}
+                    product={product}
+                    onClick={onProductClick}
+                    onBuyNow={handleBuyNow}
+                    variant={websiteConfig?.productCardStyle}
+                    onQuickView={setQuickViewProduct}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-8 rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 p-10 text-center text-gray-600 dark:border-slate-700 dark:bg-slate-900/40">
+                <p className="text-lg font-semibold text-gray-700 dark:text-gray-100">No products found for “{searchTerm.trim()}”.</p>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">Try another brand name, category, or keyword.</p>
+              </div>
+            )}
+          </section>
+        ) : (
+          <>
+            {/* Categories */}
+            <div ref={categoriesSectionRef}>
+            {websiteConfig?.categorySectionStyle === 'style2' ? (
+              <div className="mt-1 -mb-1">
+                <div className="flex items-end justify-between border-b border-gray-100 pb-1">
+                  <div className="relative pb-1">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
+                  </div>
+                  <a
+                    href="#"
+                    className="group mb-1 flex items-center gap-1 text-sm font-bold text-gray-600 transition hover:text-blue-600 dark:text-gray-400"
+                  >
+                    View All
+                    <div className="h-0 w-0 border-b-[5px] border-l-[8px] border-t-[5px] border-b-transparent border-l-blue-500 border-t-transparent transition-transform group-hover:translate-x-1"></div>
+                  </a>
+                </div>
+                <div
+                  ref={categoryScrollRef}
+                  className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
+                  style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
+                >
+                  {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
+                    <CategoryPill
+                      key={`${cat.name}-${idx}`}
+                      name={cat.name}
+                      icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <SectionHeader title="Categories" />
+                <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
+                  {CATEGORIES.map((cat, idx) => (
+                    <CategoryCircle
+                      key={idx}
+                      name={cat.name}
+                      icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 32, strokeWidth: 1.5 })}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            </div>
 
-        {/* OMG Fashion Banner */}
-        <section className="relative overflow-hidden rounded-3xl text-white shadow-2xl mt-4 mb-8 px-6 sm:px-10 py-10">
+            {/* Flash Deals */}
+            <section ref={productsSectionRef}>
+              <div className="mb-1 flex items-center gap-3">
+                <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
+                {showFlashSaleCounter && (
+                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-100 via-white to-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-pink-900 shadow-[0_4px_12px_rgba(244,114,182,0.25)]">
+                    <div className="flex items-center gap-1 text-sky-700">
+                      {flashSaleCountdown.map((segment) => (
+                        <span
+                          key={segment.label}
+                          className="flex min-w-[44px] flex-col items-center justify-center rounded-md border border-sky-200 bg-white px-2 py-0.5 text-sky-700 shadow-sm leading-tight"
+                        >
+                          <span className="text-[11px] font-black">{segment.value}</span>
+                          <span className="text-[7px] font-semibold uppercase tracking-tight text-sky-500">{segment.label}</span>
+                        </span>
+                      ))}
+                    </div>
+                    <span className="relative flex items-center gap-2 text-pink-700">
+                      <span className="h-2 w-2 animate-ping rounded-full bg-rose-500" />
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
+                {displayProducts.map((product) => (
+                  <ProductCard
+                    key={`flash-${product.id}`}
+                    product={product}
+                    onClick={onProductClick}
+                    onBuyNow={handleBuyNow}
+                    variant={websiteConfig?.productCardStyle}
+                    onQuickView={setQuickViewProduct}
+                  />
+                ))}
+                {displayProducts.length > 0 && displayProducts.length < 5 && (
+                  <ProductCard
+                    product={{ ...displayProducts[0], id: 99 }}
+                    onClick={onProductClick}
+                    onBuyNow={handleBuyNow}
+                    variant={websiteConfig?.productCardStyle}
+                    onQuickView={setQuickViewProduct}
+                  />
+                )}
+              </div>
+            </section>
+
+            {/* Best Sale Products */}
+            <section>
+              <div className="mb-1 flex items-center gap-3">
+                <div className="h-8 w-1.5 rounded-full bg-green-500"></div>
+                <SectionHeader title="Best Sale Products" className="text-xl text-red-600" />
+              </div>
+              <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
+                {displayProducts
+                  .slice()
+                  .reverse()
+                  .map((product) => (
+                    <ProductCard
+                      key={`best-${product.id}`}
+                      product={product}
+                      onClick={onProductClick}
+                      onBuyNow={handleBuyNow}
+                      variant={websiteConfig?.productCardStyle}
+                      onQuickView={setQuickViewProduct}
+                    />
+                  ))}
+                {displayProducts.length > 0 && displayProducts.length < 5 && (
+                  <ProductCard
+                    product={{ ...displayProducts[1], id: 98 }}
+                    onClick={onProductClick}
+                    onBuyNow={handleBuyNow}
+                    variant={websiteConfig?.productCardStyle}
+                    onQuickView={setQuickViewProduct}
+                  />
+                )}
+              </div>
+            </section>
+
+            {/* OMG Fashion Banner */}
+            <section className="relative mt-4 mb-8 overflow-hidden rounded-3xl px-6 py-10 text-white shadow-2xl sm:px-10">
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-r from-[#150c2e] via-[#5b21b6] to-[#f472b6] opacity-95" />
             <div
@@ -384,23 +493,36 @@ const StoreHome = ({
           </div>
         </section>
 
-        {/* Popular Products */}
-        <section>
-            <div className="flex items-center gap-3 mb-1">
-                <div className="h-8 w-1.5 bg-purple-500 rounded-full"></div>
+            {/* Popular Products */}
+            <section>
+              <div className="mb-1 flex items-center gap-3">
+                <div className="h-8 w-1.5 rounded-full bg-purple-500"></div>
                 <SectionHeader title="Popular products" className="text-xl text-red-600" />
-            </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {displayProducts.map((product) => (
-              <ProductCard key={`pop-${product.id}`} product={product} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
-            ))}
-             {/* Add a duplicate if few products to fill grid */}
-             {displayProducts.length > 0 && displayProducts.length < 5 && 
-               <ProductCard product={{...displayProducts[2], id: 97}} onClick={onProductClick} onBuyNow={handleBuyNow} variant={websiteConfig?.productCardStyle} onQuickView={setQuickViewProduct} />
-             }
-          </div>
-        </section>
-
+              </div>
+              <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
+                {displayProducts.map((product) => (
+                  <ProductCard
+                    key={`pop-${product.id}`}
+                    product={product}
+                    onClick={onProductClick}
+                    onBuyNow={handleBuyNow}
+                    variant={websiteConfig?.productCardStyle}
+                    onQuickView={setQuickViewProduct}
+                  />
+                ))}
+                {displayProducts.length > 0 && displayProducts.length < 5 && (
+                  <ProductCard
+                    product={{ ...displayProducts[2], id: 97 }}
+                    onClick={onProductClick}
+                    onBuyNow={handleBuyNow}
+                    variant={websiteConfig?.productCardStyle}
+                    onQuickView={setQuickViewProduct}
+                  />
+                )}
+              </div>
+            </section>
+          </>
+        )}
       </main>
 
       <StoreFooter websiteConfig={websiteConfig} logo={logo} />

@@ -1,7 +1,7 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
 import { slugify } from '../services/slugify';
 import { formatCurrency } from '../utils/format';
@@ -19,6 +19,72 @@ interface AdminProductsProps {
   onBulkDelete: (ids: number[]) => void;
   onBulkUpdate: (ids: number[], updates: Partial<Product>) => void;
 }
+
+type ViewMode = 'extraLargeIcons' | 'largeIcons' | 'mediumIcons' | 'smallIcons' | 'list' | 'details';
+
+interface ViewOption {
+  value: ViewMode;
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+}
+
+const VIEW_OPTIONS: ViewOption[] = [
+  {
+    value: 'extraLargeIcons',
+    label: 'Extra large icons',
+    description: 'Edge-to-edge cards that spotlight imagery',
+    icon: Maximize2
+  },
+  {
+    value: 'largeIcons',
+    label: 'Large icons',
+    description: 'Balanced card layout (default)',
+    icon: Square
+  },
+  {
+    value: 'mediumIcons',
+    label: 'Medium icons',
+    description: 'Denser grid, faster scanning',
+    icon: Grid
+  },
+  {
+    value: 'smallIcons',
+    label: 'Small icons',
+    description: 'Tight tiles for inventory sweeps',
+    icon: Grip
+  },
+  {
+    value: 'list',
+    label: 'List',
+    description: 'Single column with quick stats',
+    icon: List
+  },
+  {
+    value: 'details',
+    label: 'Details',
+    description: 'List layout with rich metadata',
+    icon: Table
+  }
+];
+
+const VIEW_GRID_LAYOUTS: Record<ViewMode, string> = {
+  extraLargeIcons: 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8',
+  largeIcons: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6',
+  mediumIcons: 'grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5',
+  smallIcons: 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4',
+  list: 'grid-cols-1 gap-3',
+  details: 'grid-cols-1 gap-2'
+};
+
+const VIEW_IMAGE_HEIGHT: Record<ViewMode, string> = {
+  extraLargeIcons: 'h-64',
+  largeIcons: 'h-52',
+  mediumIcons: 'h-44',
+  smallIcons: 'h-36',
+  list: 'h-32',
+  details: 'h-32'
+};
 
 const AdminProducts: React.FC<AdminProductsProps> = ({ 
   products,
@@ -47,6 +113,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkAction, setBulkAction] = useState<'category' | 'discount' | 'status' | null>(null);
   const [bulkValue, setBulkValue] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('largeIcons');
+  const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -74,6 +142,29 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const viewMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isViewMenuOpen && viewMenuRef.current && !viewMenuRef.current.contains(event.target as Node)) {
+        setIsViewMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isViewMenuOpen]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsViewMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
 
   // Derived State for filtering
   const filteredProducts = products.filter(p => {
@@ -371,6 +462,12 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     }
   };
 
+  const activeViewOption = VIEW_OPTIONS.find(option => option.value === viewMode) || VIEW_OPTIONS[1];
+  const ActiveViewIcon = activeViewOption?.icon || Square;
+  const gridTemplateClass = VIEW_GRID_LAYOUTS[viewMode];
+  const imageHeightClass = VIEW_IMAGE_HEIGHT[viewMode];
+  const isListLikeView = viewMode === 'list' || viewMode === 'details';
+
   return (
     <div className="space-y-6 animate-fade-in relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -413,8 +510,65 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
             </div>
           </div>
-          <div className="text-sm text-gray-500 whitespace-nowrap">
-             Showing <span className="font-bold text-gray-800">{filteredProducts.length}</span> products
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between sm:justify-end">
+            <div className="relative w-full sm:w-auto" ref={viewMenuRef}>
+              <button 
+                type="button"
+                onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
+                className={`w-full sm:w-auto border rounded-xl bg-gradient-to-b from-white to-gray-50 shadow-sm px-4 py-2.5 text-left transition focus:outline-none focus:ring-2 focus:ring-red-300 ${isViewMenuOpen ? 'border-red-300' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                <span className="text-[10px] uppercase tracking-wide text-gray-400">View</span>
+                <div className="flex items-center justify-between gap-3 mt-1">
+                  <div className="flex items-center gap-2">
+                    <ActiveViewIcon size={16} className="text-gray-500" />
+                    <span className="text-sm font-semibold text-gray-800">{activeViewOption?.label}</span>
+                  </div>
+                  <ChevronDown size={14} className={`text-gray-500 transition ${isViewMenuOpen ? 'transform rotate-180' : ''}`} />
+                </div>
+              </button>
+
+              {isViewMenuOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-2xl shadow-2xl z-40 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-[0.1em]">View options</p>
+                    <p className="text-[11px] text-gray-400">Switch between Windows-style layouts</p>
+                  </div>
+                  <div className="py-1">
+                    {VIEW_OPTIONS.map(option => {
+                      const Icon = option.icon;
+                      const isActive = option.value === viewMode;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setViewMode(option.value);
+                            setIsViewMenuOpen(false);
+                          }}
+                          className={`w-full flex items-start gap-3 px-4 py-2.5 transition text-left ${isActive ? 'bg-red-50 border-l-4 border-red-400' : 'hover:bg-gray-50'}`}
+                        >
+                          <Icon size={18} className={`mt-0.5 ${isActive ? 'text-red-600' : 'text-gray-400'}`} />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`text-sm font-semibold ${isActive ? 'text-gray-900' : 'text-gray-700'}`}>{option.label}</span>
+                              {isActive && <CheckCircle size={16} className="text-red-500" />}
+                            </div>
+                            <p className="text-xs text-gray-500">{option.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="px-4 py-3 bg-gray-50 text-xs text-gray-500 border-t border-gray-100 flex items-center gap-2">
+                    <AlertCircle size={14} className="text-gray-400" />
+                    Personalize how the catalog grid looks and feels.
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="text-sm text-gray-500 whitespace-nowrap text-right">
+               Showing <span className="font-bold text-gray-800">{filteredProducts.length}</span> products
+            </div>
           </div>
         </div>
 
@@ -505,39 +659,124 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       )}
 
       {/* Product List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+      <div className={`grid ${gridTemplateClass} pb-20`}>
          {filteredProducts.map(product => {
            const formattedPrice = formatCurrency(product.price);
            const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
+           const isSelected = selectedIds.includes(product.id);
+           const statusClass = (product.status || 'Active') === 'Active' 
+             ? 'bg-green-100 text-green-700' 
+             : 'bg-gray-100 text-gray-600';
+
+           if (isListLikeView) {
+             return (
+               <div 
+                 key={product.id}
+                 className={`bg-white rounded-2xl border shadow-sm transition ${
+                   isSelected ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
+                 }`}
+               >
+                 <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+                   <div className="flex items-center gap-3 flex-1 min-w-0">
+                     <input 
+                       type="checkbox" 
+                       checked={isSelected}
+                       onChange={() => toggleSelection(product.id)}
+                       className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer flex-shrink-0"
+                     />
+                     <div className="relative w-20 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
+                        <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-cover" />
+                        {product.discount && (
+                          <span className="absolute bottom-1 right-1 bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                            {product.discount}
+                          </span>
+                        )}
+                     </div>
+                     <div className="flex-1 min-w-0 space-y-1 cursor-pointer" onClick={() => toggleSelection(product.id)}>
+                        <div className="flex flex-wrap gap-1">
+                          <span className="text-[11px] font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                            {product.category || 'Uncategorized'}
+                          </span>
+                          {product.brand && (
+                            <span className="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                              {product.brand}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-semibold text-gray-900 truncate" title={product.name}>{product.name}</h3>
+                        {viewMode === 'details' ? (
+                          <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-500">
+                            <p className="truncate">Brand: {product.brand || '—'}</p>
+                            <p className="truncate">Stock: {product.stock ?? '—'}</p>
+                            <p className="truncate">Category: {product.category || '—'}</p>
+                            <p className="truncate">ID: {product.id}</p>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500 line-clamp-1">{product.description || 'Add a short description to highlight this product.'}</p>
+                        )}
+                     </div>
+                   </div>
+                   <div className="flex flex-col gap-3 w-full md:w-auto border-t pt-3 md:border-t-0 md:pt-0 md:flex-row md:items-center md:gap-5 md:justify-end">
+                     <div className="text-right min-w-[120px]">
+                        <span className="font-bold text-gray-900 block">৳ {formattedPrice}</span>
+                        {formattedOriginalPrice && (
+                          <span className="text-xs text-gray-400 line-through">৳ {formattedOriginalPrice}</span>
+                        )}
+                        <span className={`inline-flex mt-2 px-2 py-1 rounded text-[10px] font-bold uppercase shadow-sm ${statusClass}`}>
+                          {product.status || 'Active'}
+                        </span>
+                     </div>
+                     <div className="flex flex-wrap gap-2 justify-end">
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(product);
+                          }}
+                          className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-900"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(product.id);
+                          }}
+                          className="px-3 py-1.5 border border-red-200 text-sm text-red-600 rounded-lg hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             );
+           }
+
            return (
              <div 
                key={product.id} 
                className={`bg-white rounded-xl border shadow-sm overflow-hidden hover:shadow-md transition group relative ${
-                 selectedIds.includes(product.id) ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
+                 isSelected ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
                }`}
              >
-              {/* Selection Checkbox Overlay */}
               <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                 <input 
                   type="checkbox" 
-                  checked={selectedIds.includes(product.id)}
+                  checked={isSelected}
                   onChange={() => toggleSelection(product.id)}
                   className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 shadow-sm cursor-pointer"
                 />
               </div>
               
-              {/* Status Badge */}
               <div className="absolute top-3 right-3 z-10">
-                 <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase shadow-sm ${
-                    (product.status || 'Active') === 'Active' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-gray-100 text-gray-600'
-                 }`}>
+                 <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase shadow-sm ${statusClass}`}>
                     {product.status || 'Active'}
                  </span>
               </div>
 
-              <div className="relative h-48 bg-gray-100">
+              <div className={`relative ${imageHeightClass} bg-gray-100`}>
                  <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-cover" />
                  {product.discount && (
                    <span className="absolute bottom-2 right-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
@@ -561,21 +800,24 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                     </button>
                  </div>
               </div>
-              <div className="p-4 cursor-pointer" onClick={() => toggleSelection(product.id)}>
+              <div className={`${viewMode === 'smallIcons' ? 'p-3' : viewMode === 'extraLargeIcons' ? 'p-5' : 'p-4'} cursor-pointer`} onClick={() => toggleSelection(product.id)}>
                  <div className="mb-2 flex flex-wrap gap-1">
-                    <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                    <span className={`${viewMode === 'smallIcons' ? 'text-[10px]' : 'text-xs'} font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full`}>
                       {product.category || 'Uncategorized'}
                     </span>
                     {product.brand && (
-                      <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                      <span className={`${viewMode === 'smallIcons' ? 'text-[10px]' : 'text-xs'} font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full`}>
                         {product.brand}
                       </span>
                     )}
                  </div>
-                 <h3 className="font-bold text-gray-800 line-clamp-1 mb-1" title={product.name}>{product.name}</h3>
-                 
-                 {/* Variants preview */}
-                 <div className="flex gap-1 mb-2">
+                 <h3 className={`font-bold text-gray-800 line-clamp-1 mb-1 ${viewMode === 'smallIcons' ? 'text-sm' : 'text-base'}`} title={product.name}>{product.name}</h3>
+                 {viewMode === 'extraLargeIcons' && (
+                   <p className="text-sm text-gray-500 line-clamp-2 mb-2">
+                     {product.description || 'Add a marketing blurb to make this product pop.'}
+                   </p>
+                 )}
+                 <div className={`flex gap-1 mb-2 ${viewMode === 'smallIcons' ? 'scale-90 origin-left' : ''}`}>
                     {product.colors?.slice(0, 3).map((c, i) => (
                         <span key={i} className="w-2.5 h-2.5 rounded-full border border-gray-300" style={{backgroundColor: c}} title={c}></span>
                     ))}
@@ -584,7 +826,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
                   <div className="flex justify-between items-center mt-2">
                     <div className="flex flex-col">
-                      <span className="font-bold text-gray-900">৳ {formattedPrice}</span>
+                      <span className={`${viewMode === 'smallIcons' ? 'text-sm' : 'text-base'} font-bold text-gray-900`}>৳ {formattedPrice}</span>
                       {formattedOriginalPrice && (
                        <span className="text-xs text-gray-400 line-through">৳ {formattedOriginalPrice}</span>
                       )}

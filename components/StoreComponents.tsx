@@ -435,7 +435,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     <a href="#" className="hover:text-green-500 transition">Products</a>
                     <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
                     <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
-                    <Sparkles size={16} /> AI Image Studio
+                    <Sparkles size={16} /> 
                     </button>
                     <a href="#" className="hover:text-green-500 transition">Wishlist</a>
                 </nav>
@@ -775,9 +775,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <a href="#" className="hover:text-green-500 transition">Products</a>
                 <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
                 <button onClick={onOpenAIStudio} className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 transition font-bold">
-                <Sparkles size={16} /> AI Image Studio
+                {/* <Sparkles size={16} /> AI Image Studio */}
                 </button>
-                <a href="#" className="hover:text-green-500 transition"></a>
+                {/* <a href="#" className="hover:text-green-500 transition"></a> */}
             </nav>
             </div>
         </div>

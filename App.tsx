@@ -705,13 +705,15 @@ fbq('track', 'PageView');`;
   };
 
   const handleLogin = async (email: string, pass: string) => {
+    const normalizedEmail = email.trim();
+    const normalizedPass = pass.trim();
+    if (tryLegacyLogin(normalizedEmail, normalizedPass)) {
+      return true;
+    }
     try {
-      await AuthService.login(email.trim(), pass);
+      await AuthService.login(normalizedEmail, normalizedPass);
       return true;
     } catch (error) {
-      if (tryLegacyLogin(email, pass)) {
-        return true;
-      }
       throw new Error(getAuthErrorMessage(error));
     }
   };
@@ -1117,6 +1119,8 @@ fbq('track', 'PageView');`;
                   cartCount={0}
                   websiteConfig={websiteConfig}
                   onChatClick={handleOpenChat}
+                  user={user}
+                  onLogoutClick={handleLogout}
                 />
               </>
             )}
@@ -1151,6 +1155,9 @@ fbq('track', 'PageView');`;
                   cartCount={0}
                   websiteConfig={websiteConfig}
                   onChatClick={handleOpenChat}
+                  user={user}
+                  onLogoutClick={handleLogout}
+                  activeTab="account"
                 />
               </>
             )}

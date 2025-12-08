@@ -63,9 +63,42 @@ export const MobileBottomNav: React.FC<{
     cartCount?: number;
     websiteConfig?: WebsiteConfig;
     activeTab?: string;
-}> = ({ onHomeClick, onCartClick, onAccountClick, onChatClick, cartCount, websiteConfig, activeTab = 'home' }) => {
+    user?: UserType | null;
+    onLogoutClick?: () => void;
+}> = ({ onHomeClick, onCartClick, onAccountClick, onChatClick, cartCount, websiteConfig, activeTab = 'home', user, onLogoutClick }) => {
   
     const style = websiteConfig?.bottomNavStyle || 'style1';
+    const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+    const accountSectionRef = useRef<HTMLDivElement>(null);
+    const customerLabel = user?.name || user?.displayName || user?.email || 'Guest shopper';
+    const customerInitial = (customerLabel?.charAt(0) || 'G').toUpperCase();
+    useEffect(() => {
+        if (!isAccountMenuOpen) return;
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (!accountSectionRef.current?.contains(event.target as Node)) {
+                setIsAccountMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleOutsideClick);
+        return () => document.removeEventListener('mousedown', handleOutsideClick);
+    }, [isAccountMenuOpen]);
+    useEffect(() => {
+        if (style !== 'style1') {
+            setIsAccountMenuOpen(false);
+        }
+    }, [style]);
+    const handleAccountPrimaryAction = () => {
+        setIsAccountMenuOpen(false);
+        onAccountClick?.();
+    };
+    const handleAccountLogout = () => {
+        if (!onLogoutClick) {
+            setIsAccountMenuOpen(false);
+            return;
+        }
+        setIsAccountMenuOpen(false);
+        onLogoutClick();
+    };
                 const facebookLinkRaw = websiteConfig?.socialLinks?.find((link) => {
                         const platformKey = (link.platform || '').toLowerCase();
                         return platformKey.includes('facebook') || platformKey === 'fb';
@@ -235,10 +268,52 @@ export const MobileBottomNav: React.FC<{
                 </button>
             )}
       
-            <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <User size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Account</span>
-      </button>
+            <div ref={accountSectionRef} className="relative flex justify-center w-1/5">
+                <button onClick={() => setIsAccountMenuOpen((prev) => !prev)} className={`flex flex-col items-center gap-1 transition w-full group ${isAccountMenuOpen ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}>
+                    <User size={22} strokeWidth={2} className={`${isAccountMenuOpen ? 'text-pink-600' : 'text-gray-500 group-hover:text-pink-600'}`} />
+                    <span className="text-[10px] font-medium">Account</span>
+                </button>
+                {isAccountMenuOpen && (
+                    <div className="absolute bottom-[70px] left-1/2 -translate-x-1/2 w-[230px] rounded-3xl border border-gray-100 bg-white shadow-[0_15px_45px_rgba(15,23,42,0.15)] p-4 z-[60]">
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b border-r border-gray-100 rotate-45"></div>
+                        {user ? (
+                            <>
+                                <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white flex items-center justify-center text-sm font-semibold">
+                                        {customerInitial}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{customerLabel}</p>
+                                        {user.email && <p className="text-xs text-gray-500 truncate">{user.email}</p>}
+                                    </div>
+                                </div>
+                                <button onClick={handleAccountPrimaryAction} className="mt-3 w-full flex items-center justify-between rounded-2xl bg-gray-50 hover:bg-pink-50 text-gray-800 hover:text-pink-600 text-sm font-medium py-2.5 px-3 transition">
+                                    <span>View profile</span>
+                                    <ChevronRight size={16} />
+                                </button>
+                                <button onClick={handleAccountLogout} disabled={!onLogoutClick} className={`mt-2 w-full flex items-center justify-between rounded-2xl text-sm font-semibold py-2.5 px-3 transition ${onLogoutClick ? 'text-rose-600 hover:bg-rose-50' : 'text-gray-400 cursor-not-allowed'}`}>
+                                    <span>Logout</span>
+                                    <LogOut size={16} />
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div className="pb-3 border-b border-gray-100">
+                                    <p className="text-sm text-gray-600">Sign in to track orders and manage your wishlist.</p>
+                                </div>
+                                <button onClick={handleAccountPrimaryAction} className="flex-1 btn-order py-1.5 px-2 text-sm">
+                                    Sign in / Sign up
+                                </button>
+                                {chatFallbackLink && (
+                                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="mt-2 block text-center text-xs text-gray-500 hover:text-pink-600 transition">
+                                        Need help? Chat on WhatsApp
+                                    </a>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
+            </div>
     </div>
   );
 };
@@ -889,7 +964,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     </button>
 
                     <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800" size={18} strokeWidth={2.5} />
+                        <div className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-green-500 text-white flex items-center justify-center shadow-sm">
+                            <Search size={16} strokeWidth={2} />
+                        </div>
                         {renderSearchHintOverlay('left-10', 'text-xs')}
                         <input
                             type="text"
@@ -897,7 +974,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                             value={activeSearchValue}
                             onChange={(e) => handleSearchInput(e.target.value)}
                             aria-label="Search products"
-                            className="w-full pl-10 pr-28 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-transparent font-medium text-gray-700"
+                            className="w-full pl-12 pr-28 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-transparent font-medium text-gray-700"
                         />
                         <div className="absolute right-1 top-1 bottom-1 flex items-center gap-2">
                             <CameraButton variant="light" />
@@ -1717,6 +1794,19 @@ export const StoreChatModal: React.FC<{
         if (!baseWhatsAppLink || typeof window === 'undefined') return;
         window.open(baseWhatsAppLink, '_blank', 'noopener,noreferrer');
     }, [baseWhatsAppLink]);
+    const showChatInfo = useCallback(() => {
+        toast.custom(() => (
+            <div className="max-w-sm rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-xl text-sm text-gray-700">
+                <p className="font-semibold text-gray-900 mb-2">How live chat works</p>
+                <ul className="list-disc pl-4 space-y-1">
+                    <li>Messages sync in real-time between customer and admin.</li>
+                    <li>Tap and hold on your own replies to edit or delete them.</li>
+                    <li>Use the call or video icons to jump into WhatsApp if you need faster support.</li>
+                </ul>
+            </div>
+        ), { duration: 6000 });
+    }, []);
+    const canSend = Boolean(draft.trim() && (chatEnabled || !isCustomerView));
 
     useEffect(() => {
         if (!isOpen) return;
@@ -1803,10 +1893,16 @@ export const StoreChatModal: React.FC<{
                         >
                             <Phone size={18} />
                         </button>
-                        <button type="button" className="p-2 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Video call">
+                        <button
+                            type="button"
+                            onClick={openWhatsApp}
+                            className={`p-2 rounded-full text-gray-500 ${baseWhatsAppLink ? 'hover:bg-gray-100' : 'opacity-50 cursor-not-allowed'}`}
+                            aria-label="Open WhatsApp video"
+                            disabled={!baseWhatsAppLink}
+                        >
                             <Video size={18} />
                         </button>
-                        <button type="button" className="p-2 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Conversation details">
+                        <button type="button" onClick={showChatInfo} className="p-2 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Chat usage tips">
                             <Info size={18} />
                         </button>
                         <button onClick={onClose} className="p-2 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Close chat">
@@ -1919,10 +2015,10 @@ export const StoreChatModal: React.FC<{
                             />
                             <button
                                 onClick={handleSend}
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md transition disabled:opacity-50"
-                                style={{ backgroundColor: 'var(--chat-accent)', boxShadow: '0 8px 18px rgba(0,132,255,0.25)' }}
+                                className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition ${canSend ? 'text-white shadow-md' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                style={canSend ? { backgroundColor: 'var(--chat-accent)', boxShadow: '0 8px 18px rgba(0,132,255,0.25)' } : undefined}
                                 aria-label="Send message"
-                                disabled={!draft.trim() || (!chatEnabled && isCustomerView)}
+                                disabled={!canSend}
                             >
                                 <Send size={18} />
                             </button>

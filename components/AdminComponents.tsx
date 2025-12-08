@@ -210,8 +210,10 @@ export const AdminHeader: React.FC<{
 	tenants?: Tenant[],
 	activeTenantId?: string,
 	onTenantChange?: (tenantId: string) => void,
-	isTenantSwitching?: boolean
-}> = ({ onSwitchView, user, onLogout, logo, onMenuClick, tenants, activeTenantId, onTenantChange, isTenantSwitching }) => {
+	isTenantSwitching?: boolean,
+	onOpenChatCenter?: () => void,
+	hasUnreadChat?: boolean
+}> = ({ onSwitchView, user, onLogout, logo, onMenuClick, tenants, activeTenantId, onTenantChange, isTenantSwitching, onOpenChatCenter, hasUnreadChat }) => {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isTenantMenuOpen, setIsTenantMenuOpen] = useState(false);
 	const tenantMenuRef = useRef<HTMLDivElement | null>(null);
@@ -380,6 +382,21 @@ export const AdminHeader: React.FC<{
 					Admin Mode
 				</div>
 				<div className="flex items-center gap-4">
+					{onOpenChatCenter && (
+						<button
+							onClick={onOpenChatCenter}
+							type="button"
+							className={`relative p-2 rounded-full transition ${hasUnreadChat ? 'text-pink-300 bg-pink-500/10 shadow-lg shadow-pink-500/30' : 'text-emerald-200 hover:bg-emerald-500/10'}`}
+							aria-label="Open customer chat"
+						>
+							<MessageCircle size={20} />
+							{hasUnreadChat && (
+								<span className="absolute -top-1 -right-1 text-[9px] font-black uppercase bg-pink-500 text-white px-1.5 py-0.5 rounded-full shadow">
+									New
+								</span>
+							)}
+						</button>
+					)}
 					<button className="relative p-2 text-emerald-200 hover:bg-emerald-500/10 rounded-full transition">
 						<Bell size={20} />
 						<span className="absolute top-1.5 right-2 w-2 h-2 bg-emerald-400 rounded-full border border-white"></span>

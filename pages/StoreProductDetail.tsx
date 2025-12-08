@@ -46,6 +46,7 @@ interface StoreProductDetailProps {
   websiteConfig?: WebsiteConfig;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onOpenChat?: () => void;
 }
 
 const StoreProductDetail = ({ 
@@ -64,7 +65,8 @@ const StoreProductDetail = ({
   logo,
   websiteConfig,
   searchValue,
-  onSearchChange
+  onSearchChange,
+  onOpenChat
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -485,7 +487,7 @@ const StoreProductDetail = ({
       </div>
 
       <div className="hidden md:block">
-        <StoreFooter websiteConfig={websiteConfig} logo={logo} />
+        <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </div>
     </div>
   );

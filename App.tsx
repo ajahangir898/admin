@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, CreateTenantPayload } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, CreateTenantPayload, ChatMessage } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
 import { AuthService, FirebaseUser } from './services/AuthService';
@@ -37,6 +37,7 @@ const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default:
 const AdminHeader = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminHeader })));
 const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: module.LoginModal })));
 const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
+const StoreChatModal = lazy(() => loadStoreComponents().then(module => ({ default: module.StoreChatModal })));
 
 // Wrapper layout for Admin pages
 interface AdminLayoutProps {
@@ -51,6 +52,8 @@ interface AdminLayoutProps {
   activeTenantId?: string;
   onTenantChange?: (tenantId: string) => void;
   isTenantSwitching?: boolean;
+  onOpenChatCenter?: () => void;
+  hasUnreadChat?: boolean;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ 
@@ -64,7 +67,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   tenants,
   activeTenantId,
   onTenantChange,
-  isTenantSwitching
+  isTenantSwitching,
+  onOpenChatCenter,
+  hasUnreadChat
 }) => {
   const highlightPage = activePage.startsWith('settings') ? 'settings' : activePage;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -89,6 +94,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           activeTenantId={activeTenantId}
           onTenantChange={onTenantChange}
           isTenantSwitching={isTenantSwitching}
+          onOpenChatCenter={onOpenChatCenter}
+          hasUnreadChat={hasUnreadChat}
           onMenuClick={() => setIsSidebarOpen(true)} 
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gradient-to-b from-[#08080f]/80 via-[#0c1a12]/70 to-[#1a0b0f]/60">
@@ -214,6 +221,10 @@ const App = () => {
   // Auth & Navigation
   const [user, setUser] = useState<User | null>(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAdminChatOpen, setIsAdminChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [hasUnreadChat, setHasUnreadChat] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('store');
   const [adminSection, setAdminSection] = useState('dashboard');
   const [wishlist, setWishlist] = useState<number[]>([]);
@@ -230,6 +241,7 @@ const App = () => {
   const tenantsRef = useRef<Tenant[]>([]);
   const currentViewRef = useRef<ViewState>(currentView);
   const userRef = useRef<User | null>(user);
+  const chatGreetingSeedRef = useRef<string | null>(null);
 
   useEffect(() => {
     tenantsRef.current = tenants;
@@ -242,6 +254,10 @@ const App = () => {
   useEffect(() => {
     userRef.current = user;
   }, [user]);
+
+  useEffect(() => {
+    chatGreetingSeedRef.current = null;
+  }, [activeTenantId]);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange(setAuthUser);
@@ -342,6 +358,7 @@ const App = () => {
         const [
           productsData,
           ordersData,
+          chatMessagesData,
           landingPagesData,
           usersData,
           rolesData,
@@ -359,6 +376,7 @@ const App = () => {
         ] = await Promise.all([
           DataService.getProducts(activeTenantId),
           DataService.getOrders(activeTenantId),
+          DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
           DataService.getLandingPages(activeTenantId),
           DataService.getUsers(activeTenantId),
           DataService.getRoles(activeTenantId),
@@ -379,6 +397,11 @@ const App = () => {
         const normalizedProducts = normalizeProductCollection(productsData, activeTenantId);
         setProducts(normalizedProducts);
         setOrders(ordersData);
+        const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
+        setChatMessages(hydratedMessages);
+        chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
+        setHasUnreadChat(false);
+        setIsAdminChatOpen(false);
         setLandingPages(landingPagesData);
         setUsers(usersData);
         setRoles(rolesData);
@@ -424,6 +447,7 @@ const App = () => {
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('orders', orders, activeTenantId); }, [orders, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('chat_messages', chatMessages, activeTenantId); }, [chatMessages, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('products', products, activeTenantId); }, [products, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
@@ -468,6 +492,21 @@ const App = () => {
       }
     }
   }, [websiteConfig, isLoading, activeTenantId]);
+
+  useEffect(() => {
+    if (!websiteConfig?.chatGreeting) return;
+    if (chatMessages.length > 0) return;
+    const tenantKey = activeTenantId || 'default';
+    if (chatGreetingSeedRef.current === tenantKey) return;
+    const greetingMessage: ChatMessage = {
+      id: `greeting-${Date.now()}`,
+      sender: 'admin',
+      text: websiteConfig.chatGreeting,
+      timestamp: Date.now(),
+    };
+    setChatMessages([greetingMessage]);
+    chatGreetingSeedRef.current = tenantKey;
+  }, [websiteConfig?.chatGreeting, chatMessages.length, activeTenantId]);
 
   useEffect(() => {
     const scriptId = 'facebook-pixel-script';
@@ -516,6 +555,66 @@ fbq('track', 'PageView');`;
     if (typeof window !== 'undefined') {
       window.scrollTo(0, 0);
     }
+  }, []);
+
+  const appendChatMessage = useCallback((sender: ChatMessage['sender'], text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const authorName = userRef.current?.name || (sender === 'customer' ? 'Visitor' : 'Support Agent');
+    const authorEmail = userRef.current?.email || undefined;
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        sender,
+        text: trimmed,
+        timestamp: Date.now(),
+        customerName: sender === 'customer' ? (userRef.current?.name || 'Visitor') : undefined,
+        customerEmail: sender === 'customer' ? userRef.current?.email : undefined,
+        authorName,
+        authorEmail,
+      }
+    ]);
+  }, []);
+
+  const handleCustomerSendChat = useCallback((text: string) => {
+    appendChatMessage('customer', text);
+    if (!isAdminChatOpen) {
+      setHasUnreadChat(true);
+    }
+  }, [appendChatMessage, isAdminChatOpen]);
+
+  const handleAdminSendChat = useCallback((text: string) => {
+    appendChatMessage('admin', text);
+  }, [appendChatMessage]);
+
+  const handleEditChatMessage = useCallback((messageId: string, updatedText: string) => {
+    const trimmed = updatedText.trim();
+    if (!trimmed) return;
+    setChatMessages((prev) => prev.map((message) => message.id === messageId ? { ...message, text: trimmed, editedAt: Date.now() } : message));
+  }, []);
+
+  const handleDeleteChatMessage = useCallback((messageId: string) => {
+    setChatMessages((prev) => prev.filter((message) => message.id !== messageId));
+  }, []);
+
+  const handleOpenChat = useCallback(() => {
+    setIsAdminChatOpen(false);
+    setIsChatOpen(true);
+  }, []);
+
+  const handleCloseChat = useCallback(() => {
+    setIsChatOpen(false);
+  }, []);
+
+  const handleOpenAdminChat = useCallback(() => {
+    setIsAdminChatOpen(true);
+    setIsChatOpen(false);
+    setHasUnreadChat(false);
+  }, []);
+
+  const handleCloseAdminChat = useCallback(() => {
+    setIsAdminChatOpen(false);
   }, []);
 
   const handleRegister = async (newUser: User) => {
@@ -881,6 +980,7 @@ fbq('track', 'PageView');`;
   const brandHandlers = createCrudHandler(setBrands);
   const tagHandlers = createCrudHandler(setTags);
   const platformOperator = isPlatformOperator(user?.role);
+  const canAccessAdminChat = user?.role === 'super_admin';
   const selectedTenantRecord = tenants.find(t => t.id === activeTenantId) || tenantsRef.current.find(t => t.id === activeTenantId) || null;
   const headerTenants = platformOperator ? tenants : (selectedTenantRecord ? [selectedTenantRecord] : []);
   const tenantSwitcher = platformOperator ? handleTenantChange : undefined;
@@ -947,6 +1047,12 @@ fbq('track', 'PageView');`;
   }, [currentView]);
 
   useEffect(() => {
+    if (!currentView.startsWith('admin') && isAdminChatOpen) {
+      setIsAdminChatOpen(false);
+    }
+  }, [currentView, isAdminChatOpen]);
+
+  useEffect(() => {
     if (adminSection === 'tenants' && !isPlatformOperator(user?.role)) {
       setAdminSection('dashboard');
     }
@@ -979,7 +1085,7 @@ fbq('track', 'PageView');`;
         )}
 
         {currentView === 'admin' ? (
-          <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout} tenants={headerTenants} activeTenantId={activeTenantId} onTenantChange={tenantSwitcher}>
+          <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout} tenants={headerTenants} activeTenantId={activeTenantId} onTenantChange={tenantSwitcher} onOpenChatCenter={canAccessAdminChat ? handleOpenAdminChat : undefined} hasUnreadChat={canAccessAdminChat ? hasUnreadChat : undefined}>
             {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
              adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
              adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
@@ -1003,17 +1109,18 @@ fbq('track', 'PageView');`;
           <>
             {currentView === 'store' && (
               <>
-                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />
+                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
                   onCartClick={() => {}} // Placeholder
                   onAccountClick={() => user ? setCurrentView('profile') : setIsLoginOpen(true)}
                   cartCount={0}
                   websiteConfig={websiteConfig}
+                  onChatClick={handleOpenChat}
                 />
               </>
             )}
-            {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />}
+            {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />}
             {currentView === 'checkout' && selectedProduct && (
               <StoreCheckout 
                 product={selectedProduct}
@@ -1030,18 +1137,20 @@ fbq('track', 'PageView');`;
                 deliveryConfigs={deliveryConfig}
                 searchValue={storeSearchQuery}
                 onSearchChange={handleStoreSearchChange}
+                onOpenChat={handleOpenChat}
               />
             )}
-            {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />}
+            {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />}
             {currentView === 'profile' && user && (
               <>
-                <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />
+                <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
                   onCartClick={() => {}} // Placeholder
                   onAccountClick={() => {}} // Already on profile
                   cartCount={0}
                   websiteConfig={websiteConfig}
+                  onChatClick={handleOpenChat}
                 />
               </>
             )}
@@ -1053,9 +1162,34 @@ fbq('track', 'PageView');`;
                 onSubmitLandingOrder={handleLandingOrderSubmit}
               />
             )}
+            <StoreChatModal
+              isOpen={isChatOpen}
+              onClose={handleCloseChat}
+              websiteConfig={websiteConfig}
+              user={user}
+              messages={chatMessages}
+              onSendMessage={handleCustomerSendChat}
+              context="customer"
+              onEditMessage={handleEditChatMessage}
+              onDeleteMessage={handleDeleteChatMessage}
+            />
           </>
         )}
       </div>
+      {canAccessAdminChat && (
+        <StoreChatModal
+          isOpen={Boolean(isAdminChatOpen && currentView.startsWith('admin'))}
+          onClose={handleCloseAdminChat}
+          websiteConfig={websiteConfig}
+          user={user}
+          messages={chatMessages}
+          onSendMessage={handleAdminSendChat}
+          context="admin"
+          onEditMessage={handleEditChatMessage}
+          onDeleteMessage={handleDeleteChatMessage}
+          canDeleteAll
+        />
+      )}
   </Suspense>
   );
 };

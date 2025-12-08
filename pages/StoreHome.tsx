@@ -50,6 +50,7 @@ interface StoreHomeProps {
   websiteConfig?: WebsiteConfig;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onOpenChat?: () => void;
 }
 
 const StoreHome = ({ 
@@ -65,7 +66,10 @@ const StoreHome = ({
   onLogoutClick,
   onProfileClick,
   logo,
-  websiteConfig
+  websiteConfig,
+  searchValue,
+  onSearchChange,
+  onOpenChat
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -535,7 +539,7 @@ const StoreHome = ({
         )}
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} logo={logo} />
+      <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
     </div>
   );
 };

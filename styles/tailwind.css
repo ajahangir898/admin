@@ -147,6 +147,32 @@
     box-shadow: 0 15px 32px rgba(var(--color-primary-rgb), 0.3);
   }
 
+  .cart_btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.65rem;
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.15), rgba(var(--color-secondary-rgb), 0.18));
+    border: 1px solid rgba(var(--color-primary-rgb), 0.35);
+    color: rgba(var(--color-font-rgb), 0.9);
+    box-shadow: 0 18px 25px rgba(var(--color-primary-rgb), 0.15);
+    transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .cart_btn:hover {
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.25), rgba(var(--color-secondary-rgb), 0.3));
+    color: rgb(var(--color-font-rgb));
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 20px 30px rgba(var(--color-secondary-rgb), 0.25);
+  }
+
+  .cart_btn:active {
+    transform: translateY(1px) scale(0.99);
+  }
+
   .surface-panel.surface-panel {
     background-color: rgba(var(--color-surface-rgb), 0.55);
     border-color: rgba(var(--color-surface-rgb), 0.75);

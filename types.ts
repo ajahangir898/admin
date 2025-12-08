@@ -159,6 +159,23 @@ export interface FooterLink {
   url: string;
 }
 
+export interface ChatSupportHours {
+  from: string;
+  to: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: 'customer' | 'admin';
+  text: string;
+  timestamp: number;
+  customerName?: string;
+  customerEmail?: string;
+  authorName?: string;
+  authorEmail?: string;
+  editedAt?: number;
+}
+
 export interface CarouselItem {
   id: string;
   image: string;
@@ -203,6 +220,11 @@ export interface WebsiteConfig {
   carouselItems: CarouselItem[];
   searchHints?: string;
   orderLanguage?: 'English' | 'Bangla';
+  chatEnabled?: boolean;
+  chatGreeting?: string;
+  chatOfflineMessage?: string;
+  chatSupportHours?: ChatSupportHours;
+  chatWhatsAppFallback?: boolean;
 }
 
 export interface DeliveryConfig {

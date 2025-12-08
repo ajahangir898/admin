@@ -205,7 +205,12 @@ class DataServiceImpl {
       ],
       searchHints: 'gadget item, gift, educational toy, mobile accessories',
       orderLanguage: 'English',
-      productCardStyle: 'style1'
+      productCardStyle: 'style1',
+      chatEnabled: true,
+      chatGreeting: 'Hi there! How can we help today?',
+      chatOfflineMessage: 'We are currently offline. Drop your message and we will reach out soon.',
+      chatSupportHours: { from: '10:00', to: '22:00' },
+      chatWhatsAppFallback: true
     };
     return this.get<WebsiteConfig>('website_config', defaultConfig, tenantId);
   }

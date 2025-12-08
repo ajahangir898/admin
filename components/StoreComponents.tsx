@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection } from '../types';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check } from 'lucide-react';
+import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
 
@@ -15,6 +15,12 @@ const SEARCH_HINT_ANIMATION = `
     display: inline-block;
 }
 `;
+
+const buildWhatsAppLink = (rawNumber?: string | null) => {
+    if (!rawNumber) return null;
+    const sanitized = rawNumber.trim().replace(/[^0-9]/g, '');
+    return sanitized ? `https://wa.me/${sanitized}` : null;
+};
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
   onOpenAIStudio?: () => void;
@@ -35,16 +41,26 @@ interface StoreHeaderProps {
 }
 
 export const MobileBottomNav: React.FC<{
-  onHomeClick: () => void;
-  onCartClick: () => void;
-  onAccountClick: () => void;
-  cartCount?: number;
-  websiteConfig?: WebsiteConfig;
-  activeTab?: string;
-}> = ({ onHomeClick, onCartClick, onAccountClick, cartCount, websiteConfig, activeTab = 'home' }) => {
+    onHomeClick: () => void;
+    onCartClick: () => void;
+    onAccountClick: () => void;
+    onChatClick?: () => void;
+    cartCount?: number;
+    websiteConfig?: WebsiteConfig;
+    activeTab?: string;
+}> = ({ onHomeClick, onCartClick, onAccountClick, onChatClick, cartCount, websiteConfig, activeTab = 'home' }) => {
   
-  const style = websiteConfig?.bottomNavStyle || 'style1';
-    const facebookLink = websiteConfig?.socialLinks?.find(link => (link.platform || '').toLowerCase().includes('facebook'))?.url;
+    const style = websiteConfig?.bottomNavStyle || 'style1';
+                const facebookLinkRaw = websiteConfig?.socialLinks?.find((link) => {
+                        const platformKey = (link.platform || '').toLowerCase();
+                        return platformKey.includes('facebook') || platformKey === 'fb';
+                })?.url?.trim();
+                const facebookLink = facebookLinkRaw
+                        ? (/^https?:\/\//i.test(facebookLinkRaw) ? facebookLinkRaw : `https://${facebookLinkRaw.replace(/^\/+/, '')}`)
+                        : null;
+                const whatsappLink = buildWhatsAppLink(websiteConfig?.whatsappNumber);
+                const chatEnabled = websiteConfig?.chatEnabled ?? true;
+                const chatFallbackLink = !chatEnabled && websiteConfig?.chatWhatsAppFallback ? whatsappLink : null;
 
   // Style 2: Floating Center Home Button (Light Pink Circle with Dark Pink Icon)
   if (style === 'style2') {
@@ -53,10 +69,22 @@ export const MobileBottomNav: React.FC<{
         
         {/* Left Side */}
         <div className="flex-1 flex justify-around items-center h-full pb-2 pr-10">
-           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
-              <MessageSquare size={20} strokeWidth={1.5} />
-              <span className="text-[10px] font-medium">Chat</span>
-           </button>
+                     {chatEnabled && onChatClick ? (
+                         <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+                                <MessageSquare size={20} strokeWidth={1.5} />
+                                <span className="text-[10px] font-medium">Chat</span>
+                         </button>
+                     ) : chatFallbackLink ? (
+                         <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+                                <MessageSquare size={20} strokeWidth={1.5} />
+                                <span className="text-[10px] font-medium">Chat</span>
+                         </a>
+                     ) : (
+                         <button className="flex flex-col items-center gap-1 text-gray-400 transition group" type="button" disabled>
+                                <MessageSquare size={20} strokeWidth={1.5} className="text-gray-400" />
+                                <span className="text-[10px] font-medium">Chat</span>
+                         </button>
+                     )}
            <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
               <List size={22} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Categories</span>
@@ -101,10 +129,22 @@ export const MobileBottomNav: React.FC<{
           <List size={22} strokeWidth={1.5} />
           <span className="text-[10px] font-medium">Categories</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-          <MessageSquare size={22} strokeWidth={1.5} />
-          <span className="text-[10px] font-medium">Chat</span>
-        </button>
+                {chatEnabled && onChatClick ? (
+                    <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+                        <MessageSquare size={22} strokeWidth={1.5} />
+                        <span className="text-[10px] font-medium">Chat</span>
+                    </button>
+                ) : chatFallbackLink ? (
+                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+                        <MessageSquare size={22} strokeWidth={1.5} />
+                        <span className="text-[10px] font-medium">Chat</span>
+                    </a>
+                ) : (
+                    <button className="flex flex-col items-center gap-1 text-gray-400 transition" type="button" disabled>
+                        <MessageSquare size={22} strokeWidth={1.5} className="text-gray-400" />
+                        <span className="text-[10px] font-medium">Chat</span>
+                    </button>
+                )}
         <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
           <User size={22} strokeWidth={1.5} />
           <span className="text-[10px] font-medium">Account</span>
@@ -116,18 +156,46 @@ export const MobileBottomNav: React.FC<{
   // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-1 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <div className="relative">
-           {/* Custom Messenger Icon SVG */}
-           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-pink-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
-        </div>
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Messenger</span>
-      </button>
+            {chatEnabled && onChatClick ? (
+                <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+                    <div className="relative">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-pink-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Live Chat</span>
+                </button>
+            ) : chatFallbackLink ? (
+                <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+                    <div className="relative">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-pink-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Live Chat</span>
+                </a>
+            ) : (
+                <button className="flex flex-col items-center gap-1 text-gray-400 transition w-1/5 group" type="button" disabled title="Live chat unavailable">
+                    <div className="relative">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-400">Live Chat</span>
+                </button>
+            )}
       
-      <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-        <Phone size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-        <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Call</span>
-      </button>
+            {whatsappLink ? (
+                <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group"
+                    aria-label="Chat on WhatsApp"
+                >
+                    <Phone size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
+                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Call</span>
+                </a>
+            ) : (
+                <button className="flex flex-col items-center gap-1 text-gray-400 transition w-1/5 group" title="WhatsApp number not configured" type="button" disabled>
+                    <Phone size={22} strokeWidth={2} className="text-gray-400" />
+                    <span className="text-[10px] font-medium text-gray-400">Call</span>
+                </button>
+            )}
       
       <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-600 transition w-1/5">
         <Home size={26} strokeWidth={2.5} className="fill-pink-600 text-pink-600" />
@@ -152,7 +220,7 @@ export const MobileBottomNav: React.FC<{
                 </button>
             )}
       
-      <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
+            <button onClick={onAccountClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
         <User size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
         <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Account</span>
       </button>
@@ -183,12 +251,24 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
         const searchQuery = searchValue ?? '';
+        const [isListening, setIsListening] = useState(false);
+        const [liveTranscript, setLiveTranscript] = useState('');
+        const [typedSearchValue, setTypedSearchValue] = useState(searchQuery);
+        useEffect(() => {
+            setTypedSearchValue(searchQuery);
+        }, [searchQuery]);
+        const activeSearchValue = isListening && liveTranscript ? liveTranscript : typedSearchValue;
         const emitSearchValue = useCallback((value: string) => {
             onSearchChange?.(value);
         }, [onSearchChange]);
-    const [isListening, setIsListening] = useState(false);
+        const handleSearchInput = useCallback((value: string) => {
+            setTypedSearchValue(value);
+            emitSearchValue(value);
+        }, [emitSearchValue]);
+    
+    const [supportsVoiceSearch, setSupportsVoiceSearch] = useState(false);
     const recognitionRef = useRef<any>(null);
-    const supportsVoiceSearch = typeof window !== 'undefined' && Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+    const speechApiRef = useRef<any>(null);
     const isSecureVoiceContext = typeof window !== 'undefined'
         ? (window.isSecureContext || ['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(window.location.hostname))
         : false;
@@ -196,6 +276,16 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         if (message) {
             toast.error(message);
         }
+    }, []);
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+        speechApiRef.current = SpeechRecognitionConstructor;
+        setSupportsVoiceSearch(Boolean(SpeechRecognitionConstructor));
+        return () => {
+            recognitionRef.current?.stop?.();
+            recognitionRef.current = null;
+        };
     }, []);
     const parsedHints = useMemo(() => {
         if (websiteConfig?.searchHints) {
@@ -219,13 +309,25 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     }, [parsedHints.length]);
     const activeHint = parsedHints[activeHintIndex] || '';
     const renderSearchHintOverlay = (offsetClass = 'left-4', textSizeClass = 'text-sm') => {
-        if (searchQuery.trim() || !activeHint) return null;
+        if (activeSearchValue.trim() || !activeHint) return null;
         return (
             <div
                 key={`${offsetClass}-${activeHintIndex}`}
                 className={`pointer-events-none absolute inset-y-0 ${offsetClass} flex items-center text-gray-400 ${textSizeClass} z-10`}
             >
                 <span className="search-hint-animate">{activeHint}</span>
+            </div>
+        );
+    };
+
+    const renderVoiceStreamOverlay = (positionClass = 'absolute -bottom-11 left-0 right-0') => {
+        if (!isListening) return null;
+        return (
+            <div className={`pointer-events-none ${positionClass}`}>
+                <div className="flex items-center gap-2 rounded-full border border-blue-200 bg-white/95 px-3 py-1 text-xs font-semibold text-blue-600 shadow-sm">
+                    <span className="h-2 w-2 rounded-full bg-blue-500 animate-ping" />
+                    <span className="truncate">{liveTranscript || 'Listening…'}</span>
+                </div>
             </div>
         );
     };
@@ -243,21 +345,46 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-    useEffect(() => {
-        if (!supportsVoiceSearch) return;
-        const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const buildRecognition = useCallback(() => {
+        const SpeechRecognitionConstructor = speechApiRef.current;
+        if (!SpeechRecognitionConstructor) {
+            return null;
+        }
         const recognition = new SpeechRecognitionConstructor();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
+        recognition.lang = websiteConfig?.voiceSearchLanguage || 'en-US';
+        recognition.interimResults = true;
         recognition.maxAlternatives = 1;
         recognition.onresult = (event: any) => {
-            const transcript = event.results?.[0]?.[0]?.transcript;
-            if (transcript) emitSearchValue(transcript);
+            if (!event?.results) return;
+            const transcript = Array.from(event.results)
+                .map((result: any) => result?.[0]?.transcript || '')
+                .join(' ')
+                .trim();
+            const latestResult = event.results[event.results.length - 1];
+            const isFinal = latestResult?.isFinal;
+            if (isFinal) {
+                if (transcript) {
+                    setTypedSearchValue(transcript);
+                    emitSearchValue(transcript);
+                }
+                setLiveTranscript('');
+            } else {
+                setLiveTranscript(transcript);
+            }
         };
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
+        recognition.onstart = () => {
+            setLiveTranscript('');
+            setIsListening(true);
+        };
+        recognition.onend = () => {
+            setIsListening(false);
+            setLiveTranscript('');
+            recognitionRef.current = null;
+        };
         recognition.onerror = (event: any) => {
             setIsListening(false);
+            setLiveTranscript('');
+            recognitionRef.current = null;
             const errorType = event?.error || '';
             if (errorType === 'not-allowed') {
                 notifyVoiceSearchIssue('Microphone permission denied. Please allow access to use voice search.');
@@ -265,39 +392,71 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 notifyVoiceSearchIssue('Network error interrupted voice search. Check your connection and try again.');
             } else if (typeof errorType === 'string' && errorType.toLowerCase().includes('secure')) {
                 notifyVoiceSearchIssue('Voice search requires a secure (https) connection. Open the site via https:// or localhost.');
+            } else if (errorType === 'no-speech') {
+                notifyVoiceSearchIssue('We did not catch that. Please speak a bit louder and try again.');
             } else {
                 notifyVoiceSearchIssue('Voice search stopped due to an unexpected error. Please try again.');
             }
         };
-        recognitionRef.current = recognition;
-        return () => {
-            recognition.stop?.();
-            recognitionRef.current = null;
-        };
-    }, [supportsVoiceSearch, notifyVoiceSearchIssue, emitSearchValue]);
+        return recognition;
+    }, [emitSearchValue, notifyVoiceSearchIssue, websiteConfig?.voiceSearchLanguage]);
 
-    const handleVoiceSearch = () => {
+    const ensureMicrophonePermission = useCallback(async () => {
+        if (typeof navigator === 'undefined') {
+            return false;
+        }
+        try {
+            const permissionStatus = await navigator.permissions?.query?.({ name: 'microphone' as PermissionName });
+            if (permissionStatus?.state === 'granted') {
+                return true;
+            }
+        } catch (_) {
+            // Some browsers (Safari) do not expose the Permissions API for microphones.
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+            return true;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach((track) => track.stop());
+            return true;
+        } catch (error) {
+            notifyVoiceSearchIssue('Microphone permission is required for voice search. Please allow access and try again.');
+            console.error('Microphone permission denied', error);
+            return false;
+        }
+    }, [notifyVoiceSearchIssue]);
+
+    const handleVoiceSearch = useCallback(async () => {
         if (!supportsVoiceSearch) {
             notifyVoiceSearchIssue('Voice search is not available in this browser. Please try Chrome or Edge.');
             return;
         }
         if (!isSecureVoiceContext) {
-            notifyVoiceSearchIssue('Voice search requires HTTPS or localhost. Open the site via https:// or run it locally.');
+            notifyVoiceSearchIssue('Voice search works best over HTTPS or localhost. Attempting to listen anyway.');
+        }
+        const hasPermission = await ensureMicrophonePermission();
+        if (!hasPermission) {
             return;
         }
-        const recognition = recognitionRef.current;
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.abort?.();
+            } catch (_) {
+                // Ignore abort errors; we just want a clean state.
+            }
+            recognitionRef.current = null;
+        }
+        const recognition = buildRecognition();
         if (!recognition) {
             notifyVoiceSearchIssue('Voice search is still initializing. Please try again in a moment.');
             return;
         }
-        try {
-            recognition.abort?.();
-        } catch (_) {
-            // Ignore abort errors; we just want a clean start state.
-        }
+        recognitionRef.current = recognition;
         try {
             recognition.start();
         } catch (error) {
+            recognitionRef.current = null;
             let message = 'Voice search could not start. Please try again.';
             if (error instanceof DOMException) {
                 if (error.name === 'NotAllowedError') {
@@ -311,7 +470,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             notifyVoiceSearchIssue(message);
             console.error('Voice search failed to start', error);
         }
-    };
+    }, [supportsVoiceSearch, isSecureVoiceContext, ensureMicrophonePermission, buildRecognition, notifyVoiceSearchIssue]);
 
     const VoiceButton: React.FC<{ variant?: 'light' | 'dark' }> = ({ variant = 'dark' }) => {
         if (!supportsVoiceSearch) return null;
@@ -363,8 +522,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                <input 
                   type="text" 
                         placeholder="Search your products" 
-                        value={searchQuery}
-                    onChange={(e) => emitSearchValue(e.target.value)}
+                        value={activeSearchValue}
+                    onChange={(e) => handleSearchInput(e.target.value)}
                                 aria-label="Search products"
                                 className="w-full bg-gray-100 dark:bg-slate-800 border-none rounded-lg py-2.5 pl-10 pr-14 text-sm text-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500/20 placeholder-transparent"
                />
@@ -372,6 +531,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         <CameraButton variant="light" />
                         <VoiceButton variant="light" />
                     </div>
+                    {renderVoiceStreamOverlay('absolute -bottom-10 left-0 right-0')}
             </div>
             
                 <button className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-full transition flex-shrink-0" onClick={handleVoiceSearch}>
@@ -415,8 +575,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     <input
                     type="text"
                     placeholder={websiteConfig?.searchHints || "Search product..."}
-                    value={searchQuery}
-                    onChange={(e) => emitSearchValue(e.target.value)}
+                    value={activeSearchValue}
+                    onChange={(e) => handleSearchInput(e.target.value)}
                     aria-label="Search products"
                     className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600 placeholder-transparent"
                     />
@@ -427,6 +587,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                           <Search size={20} />
                         </button>
                     </div>
+                    {renderVoiceStreamOverlay('absolute -bottom-11 left-6 right-6')}
                 </div>
 
                 <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
@@ -598,11 +759,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
               {/* Search Bar - Center */}
               <div className="hidden md:block flex-1 max-w-2xl relative">
                  {renderSearchHintOverlay('left-4')}
-                 <input 
-                   type="text" 
-                   placeholder={websiteConfig?.searchHints || "Search..."}
-                         value={searchQuery}
-                        onChange={(e) => emitSearchValue(e.target.value)}
+                                 <input 
+                                     type="text" 
+                                     placeholder={websiteConfig?.searchHints || "Search..."}
+                                                value={activeSearchValue}
+                                                onChange={(e) => handleSearchInput(e.target.value)}
                      aria-label="Search products"
                      className="w-full border border-blue-400 rounded px-4 py-2.5 pr-32 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                  />
@@ -613,6 +774,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                              <Search size={20} />
                           </button>
                       </div>
+                      {renderVoiceStreamOverlay('absolute -bottom-11 left-6 right-6')}
               </div>
 
               {/* Right Actions */}
@@ -717,8 +879,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         <input
                             type="text"
                             placeholder={websiteConfig?.searchHints || "gadget"}
-                            value={searchQuery}
-                            onChange={(e) => emitSearchValue(e.target.value)}
+                            value={activeSearchValue}
+                            onChange={(e) => handleSearchInput(e.target.value)}
                             aria-label="Search products"
                             className="w-full pl-10 pr-28 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-white placeholder-transparent font-medium text-gray-700"
                         />
@@ -729,6 +891,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 Search
                             </button>
                         </div>
+                        {renderVoiceStreamOverlay('absolute -bottom-10 left-0 right-0')}
                     </div>
 
                     <div className="relative cursor-pointer">
@@ -773,8 +936,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 <input
                                 type="text"
                                 placeholder={websiteConfig?.searchHints || "Search product..."}
-                                value={searchQuery}
-                                onChange={(e) => emitSearchValue(e.target.value)}
+                                value={activeSearchValue}
+                                onChange={(e) => handleSearchInput(e.target.value)}
                                 aria-label="Search products"
                                 className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600 placeholder-transparent"
                                 />
@@ -785,6 +948,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                         <Search size={20} />
                                     </button>
                                 </div>
+                                {renderVoiceStreamOverlay('absolute -bottom-11 left-6 right-6')}
             </div>
 
             {/* Actions */}
@@ -966,14 +1130,19 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     </div>
                     
                     <div className="flex gap-2">
-                    <button 
-                        className="flex-1 btn-order py-1.5 text-sm"
-                        onClick={handleBuyNow}
-                    >
+                        <button 
+                            className="flex-1 btn-order py-1.5 text-sm"
+                            onClick={handleBuyNow}
+                        >
                             Buy Now
                         </button>
-                        <button className="bg-blue-500 hover:bg-blue-600 text-red-600 p-1.5 rounded transition">
-                            <ShoppingCart size={18} />
+                        <button
+                            type="button"
+                            className="min-w-[110px] inline-flex items-center justify-center gap-2 rounded-xl border border-pink-200 bg-white/90 text-pink-600 font-semibold text-xs px-3 py-1.5 shadow-sm hover:bg-white"
+                            aria-label="Add to cart"
+                        >
+                            <ShoppingCart size={16} />
+                            Add to Cart
                         </button>
                     </div>
                 </div>
@@ -1181,7 +1350,7 @@ export const SectionHeader: React.FC<{ title: string; className?: string }> = ({
 );
 
 
-export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: string | null }> = ({ websiteConfig, logo }) => {
+export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: string | null; onOpenChat?: () => void }> = ({ websiteConfig, logo, onOpenChat }) => {
     const resolveSocialIcon = (platform?: string): React.ReactNode => {
         const key = platform?.toLowerCase() || '';
         if (key.includes('facebook') || key === 'fb') return <Facebook size={18} className="text-current" />;
@@ -1192,6 +1361,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
         if (key.includes('whatsapp') || key.includes('messenger')) return <MessageCircle size={18} className="text-current" />;
         return <Globe size={18} className="text-current" />;
     };
+    const whatsappLink = buildWhatsAppLink(websiteConfig?.whatsappNumber);
+    const chatEnabled = websiteConfig?.chatEnabled ?? true;
+    const chatFallbackLink = !chatEnabled && websiteConfig?.chatWhatsAppFallback ? whatsappLink : null;
 
     // Style 2 (Coco Kids Footer)
     if (websiteConfig?.footerStyle === 'style2') {
@@ -1273,9 +1445,19 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                 </div>
 
                 {/* Floating Chat Button */}
-                <button className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40">
-                    <MessageSquare size={24} />
-                </button>
+                {chatEnabled && onOpenChat ? (
+                    <button onClick={onOpenChat} className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40">
+                        <MessageSquare size={24} />
+                    </button>
+                ) : chatFallbackLink ? (
+                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition z-40">
+                        <MessageSquare size={24} />
+                    </a>
+                ) : (
+                    <button className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-gray-300 text-gray-600 rounded-full shadow-lg flex items-center justify-center cursor-not-allowed z-40" type="button" disabled title="Live chat unavailable">
+                        <MessageSquare size={24} />
+                    </button>
+                )}
             </footer>
         );
     }
@@ -1477,6 +1659,209 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                 </div>
             )}
         </footer>
+    );
+};
+
+export const StoreChatModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    websiteConfig?: WebsiteConfig;
+    user?: UserType | null;
+    messages?: ChatMessage[];
+    onSendMessage?: (text: string) => void;
+    context?: 'customer' | 'admin';
+    onEditMessage?: (id: string, text: string) => void;
+    onDeleteMessage?: (id: string) => void;
+    canDeleteAll?: boolean;
+}> = ({ isOpen, onClose, websiteConfig, user, messages = [], onSendMessage, context = 'customer', onEditMessage, onDeleteMessage, canDeleteAll = false }) => {
+    const [draft, setDraft] = useState('');
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+    const [editingDraft, setEditingDraft] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const isCustomerView = context !== 'admin';
+    const chatEnabled = isCustomerView ? (websiteConfig?.chatEnabled ?? true) : true;
+    const whatsappLink = isCustomerView && websiteConfig?.chatWhatsAppFallback ? buildWhatsAppLink(websiteConfig?.whatsappNumber) : null;
+    const storeName = websiteConfig?.websiteName || 'Our Store';
+    const supportHours = websiteConfig?.chatSupportHours ? `${websiteConfig.chatSupportHours.from} – ${websiteConfig.chatSupportHours.to}` : null;
+    const displayMessages = messages;
+    const normalizedUserEmail = user?.email?.toLowerCase();
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const timeout = setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 80);
+        return () => clearTimeout(timeout);
+    }, [isOpen, messages.length]);
+
+    useEffect(() => {
+        if (!editingMessageId) return;
+        const targetExists = displayMessages.some((message) => message.id === editingMessageId);
+        if (!targetExists) {
+            setEditingMessageId(null);
+            setEditingDraft('');
+        }
+    }, [displayMessages, editingMessageId]);
+
+    const handleSend = useCallback(() => {
+        const text = draft.trim();
+        if (!text || !onSendMessage || (!chatEnabled && isCustomerView)) return;
+        onSendMessage(text);
+        setDraft('');
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 10);
+    }, [draft, onSendMessage, chatEnabled, isCustomerView]);
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            handleSend();
+        }
+    };
+
+    const startEditing = (message: ChatMessage) => {
+        setEditingMessageId(message.id);
+        setEditingDraft(message.text);
+    };
+
+    const cancelEditing = () => {
+        setEditingMessageId(null);
+        setEditingDraft('');
+    };
+
+    const saveEditing = () => {
+        if (!editingMessageId || !onEditMessage) return;
+        const trimmed = editingDraft.trim();
+        if (!trimmed) return;
+        onEditMessage(editingMessageId, trimmed);
+        setEditingMessageId(null);
+        setEditingDraft('');
+    };
+
+    const handleDelete = (id: string) => {
+        onDeleteMessage?.(id);
+        if (editingMessageId === id) {
+            cancelEditing();
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-0 sm:px-4">
+            <div className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col h-[75vh] sm:h-[560px]">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                    <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-gray-400">{isCustomerView ? 'Live Support' : 'Customer Chat'}</p>
+                        <h3 className="text-lg font-bold text-gray-900">{storeName}</h3>
+                        {supportHours && isCustomerView && <p className="text-xs text-gray-500">Support hours: {supportHours}</p>}
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="Close chat">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                {!chatEnabled && isCustomerView && (
+                    <div className="bg-amber-50 text-amber-700 text-sm px-5 py-3 border-b border-amber-100">
+                        {websiteConfig?.chatOfflineMessage || 'Our agents are currently offline. Please try again later or use the fallback options below.'}
+                    </div>
+                )}
+
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                    {displayMessages.map((message) => {
+                        const isCustomer = message.sender === 'customer';
+                        const isOwnMessage = normalizedUserEmail && message.authorEmail?.toLowerCase() === normalizedUserEmail;
+                        const bubbleClasses = isCustomer
+                            ? 'bg-gradient-to-br from-pink-50 to-pink-100 text-pink-900 border border-pink-200 rounded-br-sm shadow-pink-100'
+                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm shadow-gray-100';
+                        const timeClasses = isCustomer ? 'text-pink-500/70' : 'text-gray-500/80';
+                        const displayName = isOwnMessage ? 'You' : (message.authorName || (message.sender === 'admin' ? 'Support Team' : message.customerName || 'Customer'));
+                        const canEdit = Boolean(isOwnMessage && onEditMessage);
+                        const canDelete = Boolean(onDeleteMessage && (isOwnMessage || (!isCustomerView && canDeleteAll)));
+                        const isEditing = editingMessageId === message.id;
+                        return (
+                            <div key={message.id} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow ${bubbleClasses}`}>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-[10px] uppercase tracking-[0.25em] text-gray-400">{displayName}</span>
+                                        <span className={`text-[10px] ${timeClasses}`}>
+                                            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {message.editedAt ? ' • Edited' : ''}
+                                        </span>
+                                    </div>
+                                    {isEditing ? (
+                                        <div className="space-y-2">
+                                            <textarea
+                                                value={editingDraft}
+                                                onChange={(e) => setEditingDraft(e.target.value)}
+                                                className="w-full rounded-xl border border-pink-200 bg-white/70 text-sm text-gray-800 p-2 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                                rows={2}
+                                            />
+                                            <div className="flex justify-end gap-2">
+                                                <button type="button" onClick={cancelEditing} className="text-xs font-semibold text-gray-500 hover:text-gray-700">Cancel</button>
+                                                <button type="button" onClick={saveEditing} className="text-xs font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+                                                    <Check size={14} /> Save
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="whitespace-pre-line leading-relaxed break-words font-medium">{message.text}</p>
+                                    )}
+                                    {(canEdit || canDelete) && !isEditing && (
+                                        <div className="mt-2 flex justify-end gap-2 text-gray-400">
+                                            {canEdit && (
+                                                <button type="button" onClick={() => startEditing(message)} className="hover:text-pink-600" aria-label="Edit message">
+                                                    <Edit2 size={14} />
+                                                </button>
+                                            )}
+                                            {canDelete && (
+                                                <button type="button" onClick={() => handleDelete(message.id)} className="hover:text-red-500" aria-label="Delete message">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                <div className="px-4 pb-5 pt-3 border-t border-gray-100">
+                    {chatEnabled || !isCustomerView ? (
+                        <div className="bg-gray-50 border border-gray-200 rounded-2xl flex items-center gap-2 px-3 py-2">
+                            <input
+                                type="text"
+                                value={draft}
+                                onChange={(e) => setDraft(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder={isCustomerView ? (user ? `Reply as ${user.name}` : 'Write your message...') : 'Reply to the customer...'}
+                                className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-400"
+                            />
+                            <button
+                                onClick={handleSend}
+                                className="btn-order px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 disabled:opacity-50"
+                                disabled={!draft.trim() || (!chatEnabled && isCustomerView)}
+                            >
+                                <Send size={16} /> Send
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="text-sm text-gray-600 space-y-3">
+                            <p>Need urgent help? You can still reach us via the options below:</p>
+                            {whatsappLink && (
+                                <a href={whatsappLink} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-green-500 text-green-700 py-2 font-semibold">
+                                    <MessageCircle size={16} /> Chat on WhatsApp
+                                </a>
+                            )}
+                            <p className="text-xs text-gray-400">Leave your message and we will respond once we are online.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 };
 

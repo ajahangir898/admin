@@ -14,9 +14,10 @@ interface SuccessProps {
   websiteConfig?: WebsiteConfig;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onOpenChat?: () => void;
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onOpenChat }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50 font-sans text-slate-900 flex flex-col">
       <StoreHeader 
@@ -65,7 +66,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         </div>
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} logo={logo} />
+      <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
     </div>
   );
 };

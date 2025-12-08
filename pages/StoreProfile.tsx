@@ -15,6 +15,7 @@ interface StoreProfileProps {
   websiteConfig?: WebsiteConfig;
    searchValue?: string;
    onSearchChange?: (value: string) => void;
+   onOpenChat?: () => void;
 }
 
 const StoreProfile = ({ 
@@ -27,7 +28,8 @@ const StoreProfile = ({
   logo,
    websiteConfig,
    searchValue,
-   onSearchChange
+   onSearchChange,
+   onOpenChat
 }: StoreProfileProps) => {
   const [activeTab, setActiveTab] = useState<'info' | 'orders'>('info');
   const [formData, setFormData] = useState({
@@ -267,7 +269,7 @@ const StoreProfile = ({
         </div>
       </main>
 
-         <StoreFooter websiteConfig={websiteConfig} logo={logo} />
+         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
     </div>
   );
 };

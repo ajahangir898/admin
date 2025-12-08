@@ -20,6 +20,7 @@ interface CheckoutProps {
   deliveryConfigs?: DeliveryConfig[];
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onOpenChat?: () => void;
 }
 
 const StoreCheckout = ({ 
@@ -36,7 +37,8 @@ const StoreCheckout = ({
   websiteConfig,
   deliveryConfigs,
   searchValue,
-  onSearchChange
+  onSearchChange,
+  onOpenChat
 }: CheckoutProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -319,7 +321,7 @@ const StoreCheckout = ({
         </div>
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} logo={logo} />
+      <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
     </div>
   );
 };

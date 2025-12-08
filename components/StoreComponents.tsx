@@ -1,8 +1,9 @@
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection } from '../types';
 import { formatCurrency } from '../utils/format';
+import { toast } from 'react-hot-toast';
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -182,12 +183,20 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
         const searchQuery = searchValue ?? '';
-        const emitSearchValue = (value: string) => {
-                onSearchChange?.(value);
-        };
+        const emitSearchValue = useCallback((value: string) => {
+            onSearchChange?.(value);
+        }, [onSearchChange]);
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<any>(null);
     const supportsVoiceSearch = typeof window !== 'undefined' && Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+    const isSecureVoiceContext = typeof window !== 'undefined'
+        ? (window.isSecureContext || ['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(window.location.hostname))
+        : false;
+    const notifyVoiceSearchIssue = useCallback((message: string) => {
+        if (message) {
+            toast.error(message);
+        }
+    }, []);
     const parsedHints = useMemo(() => {
         if (websiteConfig?.searchHints) {
             return websiteConfig.searchHints
@@ -247,22 +256,59 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         };
         recognition.onstart = () => setIsListening(true);
         recognition.onend = () => setIsListening(false);
-        recognition.onerror = () => setIsListening(false);
+        recognition.onerror = (event: any) => {
+            setIsListening(false);
+            const errorType = event?.error || '';
+            if (errorType === 'not-allowed') {
+                notifyVoiceSearchIssue('Microphone permission denied. Please allow access to use voice search.');
+            } else if (errorType === 'network') {
+                notifyVoiceSearchIssue('Network error interrupted voice search. Check your connection and try again.');
+            } else if (typeof errorType === 'string' && errorType.toLowerCase().includes('secure')) {
+                notifyVoiceSearchIssue('Voice search requires a secure (https) connection. Open the site via https:// or localhost.');
+            } else {
+                notifyVoiceSearchIssue('Voice search stopped due to an unexpected error. Please try again.');
+            }
+        };
         recognitionRef.current = recognition;
         return () => {
             recognition.stop?.();
             recognitionRef.current = null;
         };
-    }, [supportsVoiceSearch]);
+    }, [supportsVoiceSearch, notifyVoiceSearchIssue, emitSearchValue]);
 
     const handleVoiceSearch = () => {
-        if (!recognitionRef.current) {
-            alert('Voice search is not supported in this browser.');
+        if (!supportsVoiceSearch) {
+            notifyVoiceSearchIssue('Voice search is not available in this browser. Please try Chrome or Edge.');
+            return;
+        }
+        if (!isSecureVoiceContext) {
+            notifyVoiceSearchIssue('Voice search requires HTTPS or localhost. Open the site via https:// or run it locally.');
+            return;
+        }
+        const recognition = recognitionRef.current;
+        if (!recognition) {
+            notifyVoiceSearchIssue('Voice search is still initializing. Please try again in a moment.');
             return;
         }
         try {
-            recognitionRef.current.start();
+            recognition.abort?.();
+        } catch (_) {
+            // Ignore abort errors; we just want a clean start state.
+        }
+        try {
+            recognition.start();
         } catch (error) {
+            let message = 'Voice search could not start. Please try again.';
+            if (error instanceof DOMException) {
+                if (error.name === 'NotAllowedError') {
+                    message = 'Microphone permission denied. Please allow access to use voice search.';
+                } else if (error.message?.toLowerCase().includes('secure origin')) {
+                    message = 'Voice search requires a secure (https) connection. Open the site via https:// or localhost.';
+                } else if (error.name === 'InvalidStateError') {
+                    message = 'Voice search is already running. Please wait a second before trying again.';
+                }
+            }
+            notifyVoiceSearchIssue(message);
             console.error('Voice search failed to start', error);
         }
     };

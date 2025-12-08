@@ -44,6 +44,8 @@ interface StoreProductDetailProps {
   onProfileClick?: () => void;
   logo?: string | null;
   websiteConfig?: WebsiteConfig;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 const StoreProductDetail = ({ 
@@ -60,7 +62,9 @@ const StoreProductDetail = ({
   onLogoutClick,
   onProfileClick,
   logo,
-  websiteConfig
+  websiteConfig,
+  searchValue,
+  onSearchChange
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -179,6 +183,8 @@ const StoreProductDetail = ({
         onProfileClick={onProfileClick}
         logo={logo}
         websiteConfig={websiteConfig}
+        searchValue={searchValue}
+        onSearchChange={onSearchChange}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}

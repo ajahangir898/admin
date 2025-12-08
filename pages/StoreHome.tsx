@@ -48,6 +48,8 @@ interface StoreHomeProps {
   onProfileClick?: () => void;
   logo?: string | null;
   websiteConfig?: WebsiteConfig;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 const StoreHome = ({ 
@@ -68,7 +70,15 @@ const StoreHome = ({
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [internalSearchTerm, setInternalSearchTerm] = useState('');
+  const searchTerm = typeof searchValue === 'string' ? searchValue : internalSearchTerm;
+  const updateSearchTerm = (value: string) => {
+    if (onSearchChange) {
+      onSearchChange(value);
+    } else {
+      setInternalSearchTerm(value);
+    }
+  };
   const categoriesSectionRef = useRef<HTMLElement | null>(null);
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
@@ -178,7 +188,7 @@ const StoreHome = ({
 
   const performScroll = (ref: React.RefObject<HTMLElement | null>) => {
     if (hasSearchQuery) {
-      setSearchTerm('');
+      updateSearchTerm('');
       setTimeout(() => scrollToSection(ref), 120);
     } else {
       scrollToSection(ref);
@@ -220,11 +230,11 @@ const StoreHome = ({
         logo={logo}
         websiteConfig={websiteConfig}
         searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={updateSearchTerm}
         onCategoriesClick={handleCategoriesNav}
         onProductsClick={handleProductsNav}
         categoriesList={CATEGORIES.map((cat) => cat.name)}
-        onCategorySelect={(categoryName) => setSearchTerm(categoryName)}
+        onCategorySelect={(categoryName) => updateSearchTerm(categoryName)}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
@@ -256,7 +266,7 @@ const StoreHome = ({
                 <p className="text-sm text-gray-500 dark:text-gray-300">Matching product titles, categories, brands, and tags.</p>
               </div>
               <button
-                onClick={() => setSearchTerm('')}
+                onClick={() => updateSearchTerm('')}
                 className="self-start rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-rose-400 hover:text-rose-500 dark:border-slate-700 dark:text-gray-300"
               >
                 Clear search

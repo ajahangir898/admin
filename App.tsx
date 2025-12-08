@@ -217,6 +217,7 @@ const App = () => {
   const [currentView, setCurrentView] = useState<ViewState>('store');
   const [adminSection, setAdminSection] = useState('dashboard');
   const [wishlist, setWishlist] = useState<number[]>([]);
+  const [storeSearchQuery, setStoreSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariantSelection | null>(null);
@@ -505,6 +506,17 @@ fbq('track', 'PageView');`;
 
 
   // --- HANDLERS ---
+
+  const handleStoreSearchChange = useCallback((value: string) => {
+    setStoreSearchQuery(value);
+    if (currentViewRef.current !== 'store') {
+      setSelectedProduct(null);
+      setCurrentView('store');
+    }
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   const handleRegister = async (newUser: User) => {
     if (!newUser.email || !newUser.password) {
@@ -991,7 +1003,7 @@ fbq('track', 'PageView');`;
           <>
             {currentView === 'store' && (
               <>
-                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />
+                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
                   onCartClick={() => {}} // Placeholder
@@ -1001,7 +1013,7 @@ fbq('track', 'PageView');`;
                 />
               </>
             )}
-            {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+            {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />}
             {currentView === 'checkout' && selectedProduct && (
               <StoreCheckout 
                 product={selectedProduct}
@@ -1016,12 +1028,14 @@ fbq('track', 'PageView');`;
                 logo={logo}
                 websiteConfig={websiteConfig}
                 deliveryConfigs={deliveryConfig}
+                searchValue={storeSearchQuery}
+                onSearchChange={handleStoreSearchChange}
               />
             )}
-            {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} />}
+            {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />}
             {currentView === 'profile' && user && (
               <>
-                <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} />
+                <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
                   onCartClick={() => {}} // Placeholder

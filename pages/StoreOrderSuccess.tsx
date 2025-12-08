@@ -12,9 +12,11 @@ interface SuccessProps {
   onProfileClick?: () => void;
   logo?: string | null;
   websiteConfig?: WebsiteConfig;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50 font-sans text-slate-900 flex flex-col">
       <StoreHeader 
@@ -25,6 +27,8 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         onProfileClick={onProfileClick}
         logo={logo}
         websiteConfig={websiteConfig}
+        searchValue={searchValue}
+        onSearchChange={onSearchChange}
       />
       
       <main className="flex-1 max-w-7xl mx-auto px-4 flex items-center justify-center py-12">

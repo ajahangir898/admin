@@ -13,6 +13,8 @@ interface StoreProfileProps {
   onLogoutClick?: () => void;
   logo?: string | null;
   websiteConfig?: WebsiteConfig;
+   searchValue?: string;
+   onSearchChange?: (value: string) => void;
 }
 
 const StoreProfile = ({ 
@@ -23,7 +25,9 @@ const StoreProfile = ({
   onLoginClick, 
   onLogoutClick,
   logo,
-  websiteConfig
+   websiteConfig,
+   searchValue,
+   onSearchChange
 }: StoreProfileProps) => {
   const [activeTab, setActiveTab] = useState<'info' | 'orders'>('info');
   const [formData, setFormData] = useState({
@@ -62,6 +66,8 @@ const StoreProfile = ({
         onProfileClick={() => {}} // Already on profile
         logo={logo}
         websiteConfig={websiteConfig}
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8">

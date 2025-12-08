@@ -18,6 +18,8 @@ interface CheckoutProps {
   logo?: string | null;
   websiteConfig?: WebsiteConfig;
   deliveryConfigs?: DeliveryConfig[];
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 const StoreCheckout = ({ 
@@ -32,7 +34,9 @@ const StoreCheckout = ({
   onProfileClick,
   logo,
   websiteConfig,
-  deliveryConfigs
+  deliveryConfigs,
+  searchValue,
+  onSearchChange
 }: CheckoutProps) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -107,6 +111,8 @@ const StoreCheckout = ({
         onProfileClick={onProfileClick}
         logo={logo}
         websiteConfig={websiteConfig}
+        searchValue={searchValue}
+        onSearchChange={onSearchChange}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8">

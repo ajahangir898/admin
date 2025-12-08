@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, CSSProperties } from 'react';
 import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check, Video, Info, Smile } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage } from '../types';
+import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
 import { Tenant } from 'firebase-admin/auth';
@@ -1456,9 +1456,47 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
     const chatEnabled = websiteConfig?.chatEnabled ?? true;
     const chatFallbackLink = !chatEnabled && websiteConfig?.chatWhatsAppFallback ? whatsappLink : null;
 
+    const floatingChatButton = (() => {
+        const baseClasses = 'hidden md:flex fixed bottom-8 right-8 w-16 h-16 items-center justify-center rounded-[26px] text-white shadow-[0_18px_35px_rgba(255,122,85,0.35)] border border-white/30 transition-transform duration-200 hover:-translate-y-1 z-40';
+        const bubbleContent = (
+            <span className="relative flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-white opacity-90" />
+                <span className="w-2 h-2 rounded-full bg-white opacity-80" />
+                <span className="w-2 h-2 rounded-full bg-white opacity-70" />
+            </span>
+        );
+        if (chatEnabled && onOpenChat) {
+            return (
+                <button
+                    type="button"
+                    onClick={onOpenChat}
+                    aria-label="Open live chat"
+                    className={`${baseClasses} flex-1 btn-order py-1 text-sm`}
+                >
+                    {bubbleContent}
+                </button>
+            );
+        }
+        if (chatFallbackLink) {
+            return (
+                <a
+                    href={chatFallbackLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Chat on WhatsApp"
+                    className={`${baseClasses} bg-gradient-to-br from-[#34d399] to-[#059669]`}
+                >
+                    {bubbleContent}
+                </a>
+            );
+        }
+        return null;
+    })();
+
     // Style 2 (Coco Kids Footer)
     if (websiteConfig?.footerStyle === 'style2') {
         return (
+            <>
             <footer className="store-footer surface-panel bg-white border-t border-gray-100 pt-8 pb-4 relative mt-auto max-w-7xl mx-auto px-4">
                 <div className="max-w-7xl mx-auto px-4">
                     {/* Centered Contact Bar */}
@@ -1534,22 +1572,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         &copy; All Copyrights Reserved by Cocokids
                     </div>
                 </div>
-
-                {/* Floating Chat Button */}
-                {chatEnabled && onOpenChat ? (
-                    <button onClick={onOpenChat} className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition z-40">
-                        <MessageSquare size={24} />
-                    </button>
-                ) : chatFallbackLink ? (
-                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition z-40">
-                        <MessageSquare size={24} />
-                    </a>
-                ) : (
-                    <button className="fixed bottom-20 right-6 md:bottom-6 w-12 h-12 bg-gray-300 text-gray-600 rounded-full shadow-lg flex items-center justify-center cursor-not-allowed z-40" type="button" disabled title="Live chat unavailable">
-                        <MessageSquare size={24} />
-                    </button>
-                )}
             </footer>
+            {floatingChatButton}
+            </>
         );
     }
 
@@ -1586,6 +1611,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
         ].filter((card): card is { label: string; value: string; icon: React.ReactNode } => Boolean(card));
 
         return (
+            <>
             <footer className="store-footer surface-panel bg-white/95 border-t border-gray-100 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 py-12 space-y-10">
                     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.2fr,0.8fr,0.8fr]">
@@ -1675,11 +1701,14 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     </div>
                 </div>
             </footer>
+            {floatingChatButton}
+            </>
         );
     }
 
     // Default Footer
     return (
+        <>
         <footer className={`store-footer surface-panel bg-white border-t border-gray-100 pt-1 pb-1 text-gray-600 max-w-7xl mx-auto px-4`}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
@@ -1701,7 +1730,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Quick Links</h4>
                     <ul className="space-y-2 text-sm">
                         <li><a href="#" className="hover:text-purple-600">About Us</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Contact</a></li>
+                        <li><a href="#" className="hover:text-purple-600">Why Shop with us</a></li>
                         <li><a href="#" className="hover:text-purple-600">Terms & Conditions</a></li>
                         <li><a href="#" className="hover:text-purple-600">Privacy Policy</a></li>
                     </ul>
@@ -1750,6 +1779,8 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                 </div>
             )}
         </footer>
+        {floatingChatButton}
+        </>
     );
 };
 
@@ -1757,6 +1788,7 @@ export const StoreChatModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     websiteConfig?: WebsiteConfig;
+    themeConfig?: ThemeConfig;
     user?: UserType | null;
     messages?: ChatMessage[];
     onSendMessage?: (text: string) => void;
@@ -1764,7 +1796,7 @@ export const StoreChatModal: React.FC<{
     onEditMessage?: (id: string, text: string) => void;
     onDeleteMessage?: (id: string) => void;
     canDeleteAll?: boolean;
-}> = ({ isOpen, onClose, websiteConfig, user, messages = [], onSendMessage, context = 'customer', onEditMessage, onDeleteMessage, canDeleteAll = false }) => {
+}> = ({ isOpen, onClose, websiteConfig, themeConfig, user, messages = [], onSendMessage, context = 'customer', onEditMessage, onDeleteMessage, canDeleteAll = false }) => {
     const [draft, setDraft] = useState('');
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editingDraft, setEditingDraft] = useState('');
@@ -1780,13 +1812,22 @@ export const StoreChatModal: React.FC<{
     const chatContactName = websiteConfig?.websiteName || 'Support Team';
     const statusLine = websiteConfig?.chatGreeting || (supportHours ? `Typically replies ${supportHours}` : 'Active now');
     const chatInitial = chatContactName.charAt(0).toUpperCase();
-    const chatShellStyle = useMemo(() => ({
-        '--chat-accent': '#0084ff',
-        '--chat-accent-rgb': hexToRgb('#0084ff'),
-        '--chat-surface': '#f0f2f5',
-        '--chat-border': 'rgba(15,23,42,0.08)',
-        '--chat-shadow': 'rgba(15,23,42,0.12)'
-    }) as CSSProperties, []);
+    const chatShellStyle = useMemo(() => {
+        const fallbackAccent = themeConfig?.primaryColor || '#0084ff';
+        const accentHex = websiteConfig?.chatAccentColor || fallbackAccent;
+        const accentRgb = hexToRgb(accentHex);
+        const fallbackSurface = themeConfig?.surfaceColor || '#f5f6f7';
+        const surfaceColor = websiteConfig?.chatSurfaceColor || `rgba(${hexToRgb(fallbackSurface)}, 0.96)`;
+        const borderColor = websiteConfig?.chatBorderColor || `rgba(${accentRgb}, 0.18)`;
+        const shadowColor = websiteConfig?.chatShadowColor || `rgba(${accentRgb}, 0.28)`;
+        return {
+            '--chat-accent': accentHex,
+            '--chat-accent-rgb': accentRgb,
+            '--chat-surface': surfaceColor,
+            '--chat-border': borderColor,
+            '--chat-shadow': shadowColor
+        } as CSSProperties;
+    }, [themeConfig?.primaryColor, themeConfig?.surfaceColor, websiteConfig?.chatAccentColor, websiteConfig?.chatSurfaceColor, websiteConfig?.chatBorderColor, websiteConfig?.chatShadowColor]);
     const composerPlaceholder = isCustomerView
         ? (user ? `Reply as ${user.name}` : 'Write a message...')
         : 'Reply to the customer...';
@@ -1875,7 +1916,7 @@ export const StoreChatModal: React.FC<{
             <div className="live-chat-shell bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl flex flex-col h-[75vh] sm:h-[560px]" style={chatShellStyle}>
                 <div className="live-chat-header flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-100">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white to-[#dbeafe] border border-white shadow-sm flex items-center justify-center text-sm font-semibold text-[#1d4ed8]">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white to-[rgba(var(--chat-accent-rgb),0.18)] border border-white shadow-sm flex items-center justify-center text-sm font-semibold text-[color:var(--chat-accent)]">
                             {chatInitial}
                         </div>
                         <div>
@@ -1917,7 +1958,7 @@ export const StoreChatModal: React.FC<{
                     </div>
                 )}
 
-                <div className="flex-1 overflow-y-auto bg-[#f5f6f7] px-3 sm:px-4 py-4">
+                <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4" style={{ background: 'var(--chat-surface)' }}>
                     {displayMessages.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center text-sm text-gray-500 gap-2">
                             <p className="text-base font-semibold text-gray-600">Start the conversation</p>
@@ -1928,22 +1969,38 @@ export const StoreChatModal: React.FC<{
                             {displayMessages.map((message) => {
                                 const isCustomer = message.sender === 'customer';
                                 const isOwnMessage = normalizedUserEmail && message.authorEmail?.toLowerCase() === normalizedUserEmail;
-                                const bubbleVariant = isCustomer ? 'customer' : 'admin';
-                                const bubbleClasses = `live-chat-bubble ${isCustomer ? 'ml-auto rounded-br-sm text-white' : 'rounded-bl-sm'}`;
-                                const displayName = isOwnMessage ? 'You' : (message.authorName || (message.sender === 'admin' ? 'Support Team' : message.customerName || 'Customer'));
+                                const isSuperAdminMessage = message.authorRole === 'super_admin' || message.authorEmail?.toLowerCase() === 'admin@systemnextit.com';
+                                const alignRight = isCustomerView ? isCustomer : isSuperAdminMessage;
+                                const bubbleVariant = isCustomer
+                                    ? (isCustomerView ? 'customer' : 'admin')
+                                    : (isSuperAdminMessage ? 'super-admin' : 'admin');
+                                const bubbleClasses = `live-chat-bubble ${alignRight ? 'ml-auto rounded-br-sm' : 'rounded-bl-sm'}`;
+                                const rawDisplayName = isOwnMessage ? 'You' : (message.authorName || (message.sender === 'admin' ? 'Support Team' : message.customerName || 'Customer'));
+                                const displayName = !isCustomerView && isSuperAdminMessage ? 'Super Admin' : rawDisplayName;
                                 const canEdit = Boolean(isOwnMessage && onEditMessage);
                                 const canDelete = Boolean(onDeleteMessage && (isOwnMessage || (!isCustomerView && canDeleteAll)));
                                 const isEditing = editingMessageId === message.id;
-                                const actionWrapperClass = isCustomer ? 'text-white/80' : 'text-gray-400';
-                                const actionButtonClass = isCustomer ? 'text-white/80 hover:text-white' : 'text-gray-400 hover:text-gray-600';
-                                const timestampColorClass = isCustomer ? 'text-[#dbeafe]' : 'text-gray-500';
-                                const timestampAlignClass = isCustomer ? 'text-right' : 'text-left';
-                                const showNameTag = !isCustomer && !isCustomerView;
+                                const actionWrapperClass = alignRight ? 'text-white/80' : 'text-gray-400';
+                                const actionButtonClass = alignRight ? 'text-white/80 hover:text-white' : 'text-gray-400 hover:text-gray-600';
+                                const timestampColorClass = alignRight ? 'text-white/80' : 'text-gray-500';
+                                const timestampAlignClass = alignRight ? 'text-right' : 'text-left';
+                                const showNameTag = !isCustomerView && (!isSuperAdminMessage || isCustomer);
+                                const shouldShowAvatar = showNameTag && !alignRight;
+                                const avatarInitial = (message.authorName || message.customerName || 'A').charAt(0).toUpperCase();
                                 return (
-                                    <div key={message.id} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'}`}>
+                                    <div key={message.id} className={`flex ${alignRight ? 'justify-end' : 'justify-start'} gap-2`}>
+                                        {shouldShowAvatar && (
+                                            <div className="pt-1 hidden sm:flex">
+                                                <div className="h-8 w-8 rounded-full bg-white text-gray-600 text-xs font-semibold flex items-center justify-center shadow ring-1 ring-gray-100">
+                                                    {avatarInitial}
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="max-w-[80%] space-y-1">
                                             {showNameTag && (
-                                                <span className="text-[11px] font-semibold text-gray-500 px-1">{displayName}</span>
+                                                <span className={`text-[11px] font-semibold px-1 ${alignRight ? 'text-[rgba(255,255,255,0.85)]' : 'text-gray-500'}`}>
+                                                    {displayName}
+                                                </span>
                                             )}
                                             <div className={`${bubbleClasses}`} data-variant={bubbleVariant}>
                                                 {isEditing ? (
@@ -2016,7 +2073,7 @@ export const StoreChatModal: React.FC<{
                             <button
                                 onClick={handleSend}
                                 className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition ${canSend ? 'text-white shadow-md' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
-                                style={canSend ? { backgroundColor: 'var(--chat-accent)', boxShadow: '0 8px 18px rgba(0,132,255,0.25)' } : undefined}
+                                style={canSend ? { backgroundColor: 'var(--chat-accent)', boxShadow: '0 8px 18px rgba(var(--chat-accent-rgb), 0.25)' } : undefined}
                                 aria-label="Send message"
                                 disabled={!canSend}
                             >

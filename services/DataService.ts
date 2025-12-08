@@ -1,10 +1,49 @@
 
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload } from '../types';
-import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS } from '../constants';
+import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
 import { db } from './firebaseConfig';
 import { collection, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore/lite';
 
+type SavePayload = {
+  key: string;
+  data: unknown;
+  tenantId?: string;
+};
+
+type SaveQueueEntry = {
+  timer: ReturnType<typeof setTimeout>;
+  payload: SavePayload;
+  resolvers: Array<{ resolve: () => void; reject: (error: unknown) => void }>;
+};
+
+const SAVE_DEBOUNCE_MS = Math.max(0, Number(import.meta.env.VITE_FIREBASE_SAVE_DEBOUNCE_MS ?? 1200));
+const DISABLE_FIREBASE_SAVE = String(import.meta.env.VITE_DISABLE_FIREBASE_SAVE ?? '').toLowerCase() === 'true';
+const SHOULD_LOG_SAVE_SKIP = Boolean(import.meta.env.DEV);
+
 class DataServiceImpl {
+  private saveQueue = new Map<string, SaveQueueEntry>();
+  private hasLoggedSaveBlock = false;
+  private hasWarnedDbMissing = false;
+  private sanitizeTenantSlug(value?: string | null): string {
+    if (!value) return '';
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 63);
+  }
+
+  private omitUndefined<T extends Record<string, any>>(payload: T): T {
+    const sanitized: Record<string, any> = {};
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined) {
+        sanitized[key] = value;
+      }
+    });
+    return sanitized as T;
+  }
+
   private filterByTenant<T extends { tenantId?: string }>(items: T[], tenantId?: string): T[] {
     if (!tenantId) return items;
     return items.filter(item => !item.tenantId || item.tenantId === tenantId);
@@ -29,6 +68,44 @@ class DataServiceImpl {
     return tenantId
       ? doc(db, 'tenants', tenantId, 'configurations', key)
       : doc(db, 'configurations', key);
+  }
+
+  private getSaveQueueKey(key: string, tenantId?: string) {
+    return `${tenantId || 'public'}::${key}`;
+  }
+
+  private enqueueSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
+    const queueKey = this.getSaveQueueKey(key, tenantId);
+    return new Promise((resolve, reject) => {
+      const existing = this.saveQueue.get(queueKey);
+      if (existing) {
+        clearTimeout(existing.timer);
+        existing.payload = { key, data, tenantId };
+        existing.resolvers.push({ resolve, reject });
+        existing.timer = setTimeout(() => this.flushQueuedSave(queueKey), SAVE_DEBOUNCE_MS);
+        return;
+      }
+
+      const timer = setTimeout(() => this.flushQueuedSave(queueKey), SAVE_DEBOUNCE_MS);
+      this.saveQueue.set(queueKey, {
+        timer,
+        payload: { key, data, tenantId },
+        resolvers: [{ resolve, reject }]
+      });
+    });
+  }
+
+  private async flushQueuedSave(queueKey: string) {
+    const entry = this.saveQueue.get(queueKey);
+    if (!entry) return;
+    clearTimeout(entry.timer);
+    this.saveQueue.delete(queueKey);
+    try {
+      await this.commitSave(entry.payload.key, entry.payload.data, entry.payload.tenantId);
+      entry.resolvers.forEach(({ resolve }) => resolve());
+    } catch (error) {
+      entry.resolvers.forEach(({ reject }) => reject(error));
+    }
   }
 
   // --- Generic Helpers with Fallback ---
@@ -229,42 +306,62 @@ class DataServiceImpl {
   // --- Saving Methods ---
 
   async save<T>(key: string, data: T, tenantId?: string): Promise<void> {
+    if (DISABLE_FIREBASE_SAVE) {
+      if (!this.hasLoggedSaveBlock && SHOULD_LOG_SAVE_SKIP) {
+        console.info('[DataService] Remote saves are disabled via VITE_DISABLE_FIREBASE_SAVE flag.');
+        this.hasLoggedSaveBlock = true;
+      }
+      return;
+    }
+
+    if (!db) {
+      if (!this.hasWarnedDbMissing) {
+        console.warn('Firebase DB not initialized; skipping save operation.');
+        this.hasWarnedDbMissing = true;
+      }
+      return;
+    }
+
+    if (SAVE_DEBOUNCE_MS <= 0) {
+      await this.commitSave(key, data, tenantId);
+      return;
+    }
+
+    await this.enqueueSave(key, data, tenantId);
+  }
+
+  private async commitSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
     try {
-        if (!db) return;
+      if (!db) return;
 
-        // Configs -> Single Doc
-        if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
-          const docRef = this.getConfigDocRef(key, tenantId);
-          if (key === 'logo') {
-            await setDoc(docRef, { value: data ?? null, tenantId: tenantId || null });
-          } else if (key === 'delivery_config') {
-            const scopedItems = Array.isArray(data)
-              ? data.map(item => ({ ...item, tenantId: tenantId || (item as any)?.tenantId || null }))
-              : [];
-            await setDoc(docRef, { items: scopedItems, tenantId: tenantId || null });
-          } else {
-            await setDoc(docRef, { ...(data as any), tenantId: tenantId || (data as any)?.tenantId || null });
+      // Configs -> Single Doc
+      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
+        const docRef = this.getConfigDocRef(key, tenantId);
+        if (key === 'logo') {
+          await setDoc(docRef, { value: (data as any) ?? null, tenantId: tenantId || null });
+        } else if (key === 'delivery_config') {
+          const scopedItems = Array.isArray(data)
+            ? data.map(item => ({ ...item, tenantId: tenantId || (item as any)?.tenantId || null }))
+            : [];
+          await setDoc(docRef, { items: scopedItems, tenantId: tenantId || null });
+        } else {
+          await setDoc(docRef, { ...(data as any), tenantId: tenantId || (data as any)?.tenantId || null });
+        }
+        return;
+      }
+
+      // Arrays -> Collection (Sync Strategy: Overwrite items)
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (item && (item.id || item.id === 0)) {
+            const id = String(item.id);
+            const payload = tenantId ? { ...item, tenantId } : item;
+            await setDoc(this.getCollectionDocRef(key, id, tenantId), payload);
           }
-          return;
         }
-
-        // Arrays -> Collection (Sync Strategy: Overwrite items)
-        if (Array.isArray(data)) {
-            const batchPromises = [];
-            // We iterate and save each item as a doc
-            for (const item of data) {
-                if (item && (item.id || item.id === 0)) {
-                    const id = String(item.id);
-                    const payload = tenantId ? { ...item, tenantId } : item;
-                    batchPromises.push(setDoc(this.getCollectionDocRef(key, id, tenantId), payload));
-                }
-            }
-            // Note: In a real app, handling deletions is complex with this pattern.
-            // For now, we assume this is an upsert.
-            await Promise.all(batchPromises);
-        }
-    } catch (e) {
-        console.error(`Failed to sync ${key} to Firebase`, e);
+      }
+    } catch (error) {
+      console.error(`Failed to sync ${key} to Firebase`, error);
     }
   }
 
@@ -300,9 +397,20 @@ class DataServiceImpl {
       throw new Error('adminEmail and adminPassword are required');
     }
 
-    const normalizedSubdomain = payload.subdomain.trim().toLowerCase();
+    const normalizedSubdomain = this.sanitizeTenantSlug(payload.subdomain);
     if (!normalizedSubdomain) {
-      throw new Error('subdomain must include alphanumeric characters');
+      throw new Error('Subdomain must contain letters, numbers, or dashes.');
+    }
+    if (RESERVED_TENANT_SLUGS.includes(normalizedSubdomain)) {
+      throw new Error('This subdomain is reserved. Choose another.');
+    }
+
+    const existingTenants = await this.listTenants();
+    const slugConflict = existingTenants.some(
+      tenant => this.sanitizeTenantSlug(tenant.subdomain) === normalizedSubdomain
+    );
+    if (slugConflict) {
+      throw new Error('Subdomain already in use. Pick a different slug.');
     }
     const adminEmail = payload.adminEmail.trim().toLowerCase();
     const adminPassword = payload.adminPassword.trim();
@@ -313,12 +421,12 @@ class DataServiceImpl {
       throw new Error('Admin password must be at least 6 characters');
     }
     const now = new Date().toISOString();
-    const baseTenant: Omit<Tenant, 'id'> = {
+    const baseTenant = this.omitUndefined<Omit<Tenant, 'id'>>({
       name: payload.name.trim(),
       subdomain: normalizedSubdomain,
-      customDomain: undefined,
+      customDomain: null,
       contactEmail: payload.contactEmail.trim(),
-      contactName: payload.contactName?.trim(),
+      contactName: payload.contactName?.trim() || undefined,
       adminEmail,
       adminPassword,
       plan: payload.plan || 'starter',
@@ -330,7 +438,7 @@ class DataServiceImpl {
       currency: 'USD',
       branding: {},
       settings: {}
-    };
+    });
 
     if (db) {
       try {

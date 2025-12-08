@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Building2, CheckCircle2, AlertCircle, Mail, User, Globe, Hash, Clock3, Shield, Sparkles, Trash2, Activity, Users as UsersIcon, PieChart, Lock } from 'lucide-react';
+import { Building2, CheckCircle2, AlertCircle, Mail, User, Globe, Hash, Clock3, Shield, Sparkles, Trash2, Activity, Users as UsersIcon, PieChart, Lock, ExternalLink, Link2, WifiOff, Wifi, Loader2 as Spinner } from 'lucide-react';
 import { CreateTenantPayload, Tenant } from '../types';
+import { RESERVED_TENANT_SLUGS } from '../constants';
 
 interface AdminTenantManagementProps {
   tenants: Tenant[];
@@ -23,6 +24,7 @@ const sanitizeSubdomain = (value: string) =>
     .slice(0, 32);
 
 const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({ tenants, onCreateTenant, isCreating, onDeleteTenant, deletingTenantId }) => {
+  type DomainStatus = 'idle' | 'checking' | 'online' | 'offline';
   const [form, setForm] = useState({
     name: '',
     contactEmail: '',
@@ -37,11 +39,67 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({ tenants, 
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [subdomainTouched, setSubdomainTouched] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Tenant | null>(null);
+  const [domainStatuses, setDomainStatuses] = useState<Record<string, DomainStatus>>({});
+
+  const normalizeDomain = (value?: string | null) => {
+    if (!value) return '';
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/^https?:\/\//, '')
+      .replace(/\/$/, '');
+  };
+
+  const primaryDomain = normalizeDomain(import.meta.env.VITE_PRIMARY_DOMAIN) || (typeof window !== 'undefined' ? window.location.hostname : '');
+  const tenantProtocol = primaryDomain.includes('localhost') || primaryDomain.startsWith('127.') ? 'http' : 'https';
+  const formatTenantDomain = (subdomain?: string | null) => {
+    if (!subdomain) return null;
+    const slug = subdomain.trim();
+    if (!slug || !primaryDomain) return null;
+    return `${tenantProtocol}://${slug}.${primaryDomain}`;
+  };
 
   const sortedTenants = useMemo(
     () => [...tenants].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')),
     [tenants]
   );
+
+  const domainStatusLabel = (value: DomainStatus | undefined) => {
+    switch (value) {
+      case 'online':
+        return { label: 'Reachable', className: 'bg-emerald-50 text-emerald-700 border-emerald-100' };
+      case 'offline':
+        return { label: 'Offline', className: 'bg-red-50 text-red-600 border-red-100' };
+      case 'checking':
+        return { label: 'Checking...', className: 'bg-amber-50 text-amber-700 border-amber-100' };
+      default:
+        return { label: 'Not checked', className: 'bg-gray-100 text-gray-600 border-gray-200' };
+    }
+  };
+
+  const handleCheckDomain = async (tenant: Tenant) => {
+    if (!tenant?.subdomain) {
+      setStatus({ type: 'error', message: 'This tenant does not have a subdomain yet.' });
+      return;
+    }
+    if (!primaryDomain) {
+      setStatus({ type: 'error', message: 'Set VITE_PRIMARY_DOMAIN to verify storefront URLs.' });
+      return;
+    }
+    const targetUrl = formatTenantDomain(tenant.subdomain);
+    if (!targetUrl) {
+      setStatus({ type: 'error', message: 'Unable to build tenant URL. Check your domain settings.' });
+      return;
+    }
+    setDomainStatuses(prev => ({ ...prev, [tenant.id]: 'checking' }));
+    try {
+      await fetch(`${targetUrl}?uptime=${Date.now()}`, { mode: 'no-cors', cache: 'no-store' });
+      setDomainStatuses(prev => ({ ...prev, [tenant.id]: 'online' }));
+    } catch (error) {
+      console.warn('Subdomain reachability check failed', error);
+      setDomainStatuses(prev => ({ ...prev, [tenant.id]: 'offline' }));
+    }
+  };
 
   const metrics = useMemo(() => {
     const total = tenants.length;
@@ -65,6 +123,11 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({ tenants, 
     if (!form.subdomain) return false;
     return tenants.some(tenant => tenant.subdomain?.toLowerCase() === form.subdomain.toLowerCase());
   }, [form.subdomain, tenants]);
+
+  const isReservedSubdomain = useMemo(() => {
+    if (!form.subdomain) return false;
+    return RESERVED_TENANT_SLUGS.includes(form.subdomain.toLowerCase());
+  }, [form.subdomain]);
 
   const isEmailValid = (email: string) => /\S+@\S+\.\S+/.test(email.trim());
   const contactEmailValid = form.contactEmail ? isEmailValid(form.contactEmail) : false;
@@ -126,7 +189,8 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({ tenants, 
     adminEmailValid &&
     adminPasswordStrong &&
     adminPasswordsMatch &&
-    !subdomainConflict
+    !subdomainConflict &&
+    !isReservedSubdomain
   );
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -288,13 +352,17 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({ tenants, 
                   type="text"
                   value={form.subdomain}
                   onChange={(event) => handleSubdomainChange(event.target.value)}
-                  className={`w-full pl-9 pr-3 py-2.5 rounded-2xl border text-sm ${subdomainConflict ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`}
+                  className={`w-full pl-9 pr-3 py-2.5 rounded-2xl border text-sm ${(subdomainConflict || isReservedSubdomain) ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`}
                   placeholder="acme-shop"
                   required
                 />
               </div>
-              <p className={`text-xs ${subdomainConflict ? 'text-red-600' : 'text-gray-400'}`}>
-                {subdomainConflict ? 'Subdomain already in use.' : 'Shown as subdomain.gadgetshob.com'}
+              <p className={`text-xs ${(subdomainConflict || isReservedSubdomain) ? 'text-red-600' : 'text-gray-400'}`}>
+                {subdomainConflict
+                  ? 'Subdomain already in use.'
+                  : isReservedSubdomain
+                    ? 'This keyword is reserved. Pick a different slug.'
+                    : 'Shown as subdomain.localhost:3000 or subdomain.systemnextit.com'}
               </p>
             </div>
             <div className="space-y-2">
@@ -417,38 +485,72 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({ tenants, 
             <p className="text-sm text-gray-500">Newest first. Click a tenant from the header selector to jump in.</p>
           </div>
           <div className="space-y-4 max-h-[520px] overflow-y-auto pr-1">
-            {sortedTenants.slice(0, 8).map((tenant) => (
-              <div key={tenant.id} className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900">{tenant.name}</p>
-                    <p className="text-xs text-gray-500">{tenant.subdomain}</p>
+            {sortedTenants.slice(0, 8).map((tenant) => {
+              const tenantUrl = formatTenantDomain(tenant.subdomain);
+              const reachability = domainStatusLabel(domainStatuses[tenant.id]);
+              const isChecking = domainStatuses[tenant.id] === 'checking';
+              const domainLabel = tenant.subdomain ? (primaryDomain ? `${tenant.subdomain}.${primaryDomain}` : tenant.subdomain) : 'No subdomain';
+              return (
+                <div key={tenant.id} className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-semibold text-gray-900">{tenant.name}</p>
+                      <p className="text-xs text-gray-500">{domainLabel}</p>
+                    </div>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${tenant.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                      {prettify(tenant.status || 'inactive')}
+                    </span>
                   </div>
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${tenant.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
-                    {prettify(tenant.status || 'inactive')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <Clock3 size={14} />
-                  {tenant.createdAt ? new Date(tenant.createdAt).toLocaleDateString() : 'Unknown date'}
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white font-semibold">{prettify(tenant.plan || 'starter')}</span>
-                  <span className="px-2 py-0.5 rounded-full border border-gray-200 text-gray-600">{tenant.currency || 'USD'}</span>
-                </div>
-                {onDeleteTenant && (
-                  <div className="flex justify-end pt-2">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                    <Clock3 size={14} />
+                    {tenant.createdAt ? new Date(tenant.createdAt).toLocaleDateString() : 'Unknown date'}
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold ${reachability.className}`}>
+                      {domainStatuses[tenant.id] === 'online' && <Wifi size={12} />}
+                      {domainStatuses[tenant.id] === 'offline' && <WifiOff size={12} />}
+                      {domainStatuses[tenant.id] === 'checking' && <Spinner size={12} className="animate-spin" />}
+                      {reachability.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white font-semibold">{prettify(tenant.plan || 'starter')}</span>
+                    <span className="px-2 py-0.5 rounded-full border border-gray-200 text-gray-600">{tenant.currency || 'USD'}</span>
+                    {tenantUrl && (
+                      <a
+                        href={tenantUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-indigo-200 text-indigo-600 font-semibold"
+                      >
+                        <ExternalLink size={12} /> Visit site
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {!primaryDomain && (
+                      <span className="text-[11px] text-amber-600 font-semibold">Set VITE_PRIMARY_DOMAIN to enable link checks.</span>
+                    )}
                     <button
                       type="button"
-                      onClick={() => handleDeleteRequest(tenant)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700"
+                      onClick={() => handleCheckDomain(tenant)}
+                      disabled={isChecking || !tenant.subdomain || !primaryDomain}
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-2xl text-xs font-semibold border ${isChecking ? 'border-gray-200 text-gray-400 cursor-wait' : primaryDomain ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-gray-200 text-gray-400 cursor-not-allowed'}`}
                     >
-                      <Trash2 size={14} /> Remove
+                      {isChecking ? <Spinner size={12} className="animate-spin" /> : <Link2 size={12} />}
+                      {isChecking ? 'Checking...' : 'Check subdomain'}
                     </button>
+                    {onDeleteTenant && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRequest(tenant)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 size={14} /> Remove
+                      </button>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
             {!tenants.length && (
               <div className="text-sm text-gray-500">No tenants detected. Create your first store above.</div>
             )}

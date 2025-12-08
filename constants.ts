@@ -6,13 +6,25 @@ export const DEFAULT_VARIANT_SIZE = 'Standard';
 
 export const DEFAULT_TENANT_ID = 'tenant-demo';
 
+export const RESERVED_TENANT_SLUGS = [
+  'www',
+  'admin',
+  'app',
+  'api',
+  'dashboard',
+  'tenant',
+  'support',
+  'cdn',
+  'static'
+];
+
 export const DEMO_TENANTS: Tenant[] = [
   {
     id: DEFAULT_TENANT_ID,
     name: 'GadgetShob Demo',
     subdomain: 'demo',
-    contactEmail: 'support@gadgetshob.com',
-    adminEmail: 'demo@gadgetshob.com',
+    contactEmail: 'support@systemnextit.com',
+    adminEmail: 'demo@systemnextit.com',
     adminPassword: 'demo1234',
     plan: 'starter',
     status: 'active',
@@ -258,7 +270,7 @@ export const DEFAULT_LANDING_PAGES: LandingPage[] = firstProduct ? [
     seo: {
       metaTitle: `${firstProduct.name} | Buy Online`,
       metaDescription: firstProduct.description?.slice(0, 140) || 'Instant landing experience.',
-      canonicalUrl: `https://demo.gadgetshob.com/${toSlug(firstProduct.name)}-page`,
+      canonicalUrl: `https://demo.systemnextit.com/${toSlug(firstProduct.name)}-page`,
       keywords: ['gadget', 'deal', firstProduct.name]
     },
     blocks: [

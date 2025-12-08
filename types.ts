@@ -173,6 +173,7 @@ export interface ChatMessage {
   customerEmail?: string;
   authorName?: string;
   authorEmail?: string;
+  authorRole?: User['role'];
   editedAt?: number;
 }
 
@@ -225,6 +226,10 @@ export interface WebsiteConfig {
   chatOfflineMessage?: string;
   chatSupportHours?: ChatSupportHours;
   chatWhatsAppFallback?: boolean;
+  chatAccentColor?: string;
+  chatSurfaceColor?: string;
+  chatBorderColor?: string;
+  chatShadowColor?: string;
 }
 
 export interface DeliveryConfig {

@@ -255,6 +255,13 @@
     border-color: transparent;
   }
 
+  .live-chat-bubble[data-variant='super-admin'] {
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.95), rgba(var(--color-secondary-rgb), 0.9));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 15px 30px rgba(var(--color-primary-rgb), 0.25);
+  }
+
   .live-chat-bubble[data-variant='admin'] {
     background: #fff;
     color: rgba(15,23,42,0.9);

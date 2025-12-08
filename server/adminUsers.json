@@ -7,10 +7,10 @@
     "role": "super_admin"
   },
   {
-    "email": "demo@gadgetshob.com",
+    "email": "demo@systemnextit.com",
     "password": "demo1234",
-    "displayName": "GadgetShob Admin",
-    "tenantId": "gadgetshob-tenant",
+    "displayName": "SystemNextIT Admin",
+    "tenantId": "systemnextit-tenant",
     "role": "tenant_admin"
   },
   {

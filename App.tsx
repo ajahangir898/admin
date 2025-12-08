@@ -6,7 +6,7 @@ import type { LandingCheckoutPayload } from './components/LandingPageComponents'
 import { DataService } from './services/DataService';
 import { AuthService, FirebaseUser } from './services/AuthService';
 import { slugify } from './services/slugify';
-import { DEFAULT_TENANT_ID } from './constants';
+import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { Toaster, toast } from 'react-hot-toast';
 
 
@@ -108,6 +108,72 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
 type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview';
 
+const sanitizeSubdomainSlug = (value?: string | null) => {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 63);
+};
+
+const normalizeDomainValue = (value?: string | null) => {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/$/, '');
+};
+
+const PRIMARY_TENANT_DOMAIN = normalizeDomainValue(import.meta.env.VITE_PRIMARY_DOMAIN);
+const DEFAULT_TENANT_SLUG = sanitizeSubdomainSlug(import.meta.env.VITE_DEFAULT_TENANT_SLUG);
+
+const isReservedTenantSlug = (slug?: string | null) => {
+  if (!slug) return false;
+  return RESERVED_TENANT_SLUGS.includes(sanitizeSubdomainSlug(slug));
+};
+
+const getHostTenantSlug = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const hostname = window.location.hostname?.toLowerCase() || '';
+  const params = new URLSearchParams(window.location.search);
+  const forcedSlug = sanitizeSubdomainSlug(params.get('tenant'));
+  if (forcedSlug && !isReservedTenantSlug(forcedSlug)) {
+    return forcedSlug;
+  }
+
+  const hostSegments = hostname.split('.');
+  const isLocalhost = hostname === 'localhost' || hostname.endsWith('.localhost') || hostname.startsWith('127.');
+
+  if (isLocalhost) {
+    if (hostSegments.length > 1) {
+      const candidate = sanitizeSubdomainSlug(hostSegments[0]);
+      return candidate || null;
+    }
+    return DEFAULT_TENANT_SLUG || null;
+  }
+
+  if (PRIMARY_TENANT_DOMAIN) {
+    if (hostname === PRIMARY_TENANT_DOMAIN || hostname === `www.${PRIMARY_TENANT_DOMAIN}`) {
+      return DEFAULT_TENANT_SLUG || null;
+    }
+    if (hostname.endsWith(`.${PRIMARY_TENANT_DOMAIN}`)) {
+      const subdomain = hostname.slice(0, hostname.length - (PRIMARY_TENANT_DOMAIN.length + 1));
+      const candidate = sanitizeSubdomainSlug(subdomain);
+      if (!candidate || isReservedTenantSlug(candidate)) return null;
+      return candidate;
+    }
+  }
+
+  if (hostSegments.length > 2) {
+    const candidate = sanitizeSubdomainSlug(hostSegments[0]);
+    if (!candidate || isReservedTenantSlug(candidate)) return null;
+    return candidate;
+  }
+
+  return DEFAULT_TENANT_SLUG || null;
+};
+
 const hexToRgb = (hex: string) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result 
@@ -182,6 +248,8 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [activeTenantId, setActiveTenantId] = useState<string>(DEFAULT_TENANT_ID);
+  const [hostTenantSlug] = useState<string | null>(() => getHostTenantSlug());
+  const [hostTenantId, setHostTenantId] = useState<string | null>(null);
 
   // --- STATE ---
   const [orders, setOrders] = useState<Order[]>([]);
@@ -242,6 +310,13 @@ const App = () => {
   const currentViewRef = useRef<ViewState>(currentView);
   const userRef = useRef<User | null>(user);
   const chatGreetingSeedRef = useRef<string | null>(null);
+  const chatMessagesRef = useRef<ChatMessage[]>([]);
+  const isAdminChatOpenRef = useRef(false);
+  const chatSyncLockRef = useRef(false);
+  const skipNextChatSaveRef = useRef(false);
+  const hostTenantSlugRef = useRef<string | null>(hostTenantSlug);
+  const hostTenantWarningRef = useRef(false);
+  const activeTenantIdRef = useRef<string>(activeTenantId);
 
   useEffect(() => {
     tenantsRef.current = tenants;
@@ -256,8 +331,38 @@ const App = () => {
   }, [user]);
 
   useEffect(() => {
+    chatMessagesRef.current = chatMessages;
+  }, [chatMessages]);
+
+  useEffect(() => {
+    isAdminChatOpenRef.current = isAdminChatOpen;
+  }, [isAdminChatOpen]);
+
+  useEffect(() => {
     chatGreetingSeedRef.current = null;
   }, [activeTenantId]);
+
+  useEffect(() => {
+    activeTenantIdRef.current = activeTenantId;
+  }, [activeTenantId]);
+
+  useEffect(() => {
+    hostTenantSlugRef.current = hostTenantSlug;
+  }, [hostTenantSlug]);
+
+  useEffect(() => {
+    if (!hostTenantSlug) return;
+    if (hostTenantId) return;
+    const desiredSlug = sanitizeSubdomainSlug(hostTenantSlug);
+    if (!desiredSlug) return;
+    const matchedTenant = tenants.find((tenant) => sanitizeSubdomainSlug(tenant.subdomain || '') === desiredSlug);
+    if (matchedTenant) {
+      setHostTenantId(matchedTenant.id);
+      if (matchedTenant.id !== activeTenantIdRef.current) {
+        setActiveTenantId(matchedTenant.id);
+      }
+    }
+  }, [hostTenantSlug, hostTenantId, tenants]);
 
   useEffect(() => {
     const unsubscribe = AuthService.onAuthStateChange(setAuthUser);
@@ -338,7 +443,30 @@ const App = () => {
         const tenantList = await DataService.listTenants();
         if (!isMounted) return;
         setTenants(tenantList);
-        if (tenantList.length && !tenantList.some((tenant) => tenant.id === activeTenantId)) {
+
+        const desiredSlug = hostTenantSlugRef.current ? sanitizeSubdomainSlug(hostTenantSlugRef.current) : '';
+        const matchedTenant = desiredSlug
+          ? tenantList.find((tenant) => sanitizeSubdomainSlug(tenant.subdomain || '') === desiredSlug)
+          : undefined;
+
+        setHostTenantId(matchedTenant ? matchedTenant.id : null);
+
+        if (desiredSlug && !matchedTenant && !hostTenantWarningRef.current) {
+          toast.error(`No storefront configured for ${desiredSlug}.`);
+          hostTenantWarningRef.current = true;
+        }
+
+        const activeId = activeTenantIdRef.current;
+        const activeExists = tenantList.some((tenant) => tenant.id === activeId);
+
+        if (matchedTenant) {
+          if (matchedTenant.id !== activeId) {
+            setActiveTenantId(matchedTenant.id);
+          }
+          return;
+        }
+
+        if (!activeExists && tenantList.length) {
           setActiveTenantId(tenantList[0].id);
         }
       } catch (error) {
@@ -347,7 +475,7 @@ const App = () => {
     };
     loadTenants();
     return () => { isMounted = false; };
-  }, [activeTenantId]);
+  }, [hostTenantSlug]);
   useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
@@ -398,6 +526,7 @@ const App = () => {
         setProducts(normalizedProducts);
         setOrders(ordersData);
         const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
+        skipNextChatSaveRef.current = true;
         setChatMessages(hydratedMessages);
         chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
         setHasUnreadChat(false);
@@ -447,7 +576,32 @@ const App = () => {
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('orders', orders, activeTenantId); }, [orders, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('chat_messages', chatMessages, activeTenantId); }, [chatMessages, isLoading, activeTenantId]);
+  useEffect(() => {
+    if (isLoading || !activeTenantId) return;
+    if (skipNextChatSaveRef.current) {
+      skipNextChatSaveRef.current = false;
+      return;
+    }
+
+    let isCancelled = false;
+
+    const persistChats = async () => {
+      chatSyncLockRef.current = true;
+      try {
+        await DataService.save('chat_messages', chatMessages, activeTenantId);
+      } catch (error) {
+        console.warn('Unable to save chat messages', error);
+      } finally {
+        chatSyncLockRef.current = false;
+      }
+    };
+
+    persistChats();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [chatMessages, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('products', products, activeTenantId); }, [products, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
@@ -462,6 +616,66 @@ const App = () => {
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!activeTenantId || isLoading) return;
+
+    let isMounted = true;
+    let isFetching = false;
+
+    const syncChatFromRemote = async () => {
+      if (!isMounted || isFetching || chatSyncLockRef.current) return;
+      isFetching = true;
+      try {
+        const latest = await DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId);
+        if (!isMounted) return;
+        const normalized = Array.isArray(latest) ? [...latest] : [];
+        normalized.sort((a, b) => (a?.timestamp || 0) - (b?.timestamp || 0));
+
+        const localMessages = chatMessagesRef.current;
+        const prevIds = new Set(localMessages.map((message) => message.id));
+        const newMessages = normalized.filter((message) => !prevIds.has(message.id));
+
+        const hasDifference =
+          localMessages.length !== normalized.length ||
+          localMessages.some((message, index) => {
+            const comparison = normalized[index];
+            if (!comparison) return true;
+            return (
+              message.id !== comparison.id ||
+              message.text !== comparison.text ||
+              message.timestamp !== comparison.timestamp ||
+              message.sender !== comparison.sender ||
+              (message.editedAt || 0) !== (comparison.editedAt || 0)
+            );
+          });
+
+        if (hasDifference) {
+          skipNextChatSaveRef.current = true;
+          setChatMessages(normalized);
+        }
+
+        const shouldNotify = newMessages.some((message) => message.sender === 'customer');
+        const isSuperAdmin = userRef.current?.role === 'super_admin';
+        if (shouldNotify && isSuperAdmin && !isAdminChatOpenRef.current) {
+          setHasUnreadChat(true);
+        }
+      } catch (error) {
+        console.warn('Unable to sync chat messages', error);
+      } finally {
+        isFetching = false;
+      }
+    };
+
+    const intervalId = window.setInterval(syncChatFromRemote, 3500);
+    syncChatFromRemote();
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [activeTenantId, isLoading]);
 
   useEffect(() => { 
     if(!isLoading && themeConfig && activeTenantId) {
@@ -562,19 +776,21 @@ fbq('track', 'PageView');`;
     if (!trimmed) return;
     const authorName = userRef.current?.name || (sender === 'customer' ? 'Visitor' : 'Support Agent');
     const authorEmail = userRef.current?.email || undefined;
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        sender,
-        text: trimmed,
-        timestamp: Date.now(),
-        customerName: sender === 'customer' ? (userRef.current?.name || 'Visitor') : undefined,
-        customerEmail: sender === 'customer' ? userRef.current?.email : undefined,
-        authorName,
-        authorEmail,
-      }
-    ]);
+    const authorRole = userRef.current?.role;
+    const messageId = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const message: ChatMessage = {
+      id: messageId,
+      sender,
+      text: trimmed,
+      timestamp: Date.now(),
+      customerName: sender === 'customer' ? (userRef.current?.name || 'Visitor') : undefined,
+      customerEmail: sender === 'customer' ? userRef.current?.email : undefined,
+      authorName,
+      authorEmail,
+      authorRole,
+    };
+    chatSyncLockRef.current = true;
+    setChatMessages((prev) => [...prev, message]);
   }, []);
 
   const handleCustomerSendChat = useCallback((text: string) => {
@@ -591,10 +807,16 @@ fbq('track', 'PageView');`;
   const handleEditChatMessage = useCallback((messageId: string, updatedText: string) => {
     const trimmed = updatedText.trim();
     if (!trimmed) return;
+    const existing = chatMessagesRef.current.find((message) => message.id === messageId);
+    if (!existing || existing.text === trimmed) return;
+    chatSyncLockRef.current = true;
     setChatMessages((prev) => prev.map((message) => message.id === messageId ? { ...message, text: trimmed, editedAt: Date.now() } : message));
   }, []);
 
   const handleDeleteChatMessage = useCallback((messageId: string) => {
+    const exists = chatMessagesRef.current.some((message) => message.id === messageId);
+    if (!exists) return;
+    chatSyncLockRef.current = true;
     setChatMessages((prev) => prev.filter((message) => message.id !== messageId));
   }, []);
 
@@ -814,6 +1036,10 @@ fbq('track', 'PageView');`;
 
   const handleTenantChange = (tenantId: string) => {
     if (!tenantId || tenantId === activeTenantId) return;
+    if (hostTenantId && tenantId !== hostTenantId) {
+      toast.error('This subdomain is locked to its storefront. Use the primary admin domain to switch tenants.');
+      return;
+    }
     tenantSwitchTargetRef.current = tenantId;
     setIsTenantSwitching(true);
     setActiveTenantId(tenantId);
@@ -984,8 +1210,10 @@ fbq('track', 'PageView');`;
   const platformOperator = isPlatformOperator(user?.role);
   const canAccessAdminChat = user?.role === 'super_admin';
   const selectedTenantRecord = tenants.find(t => t.id === activeTenantId) || tenantsRef.current.find(t => t.id === activeTenantId) || null;
-  const headerTenants = platformOperator ? tenants : (selectedTenantRecord ? [selectedTenantRecord] : []);
-  const tenantSwitcher = platformOperator ? handleTenantChange : undefined;
+  const isTenantLockedByHost = Boolean(hostTenantId);
+  const scopedTenants = isTenantLockedByHost ? tenants.filter((tenant) => tenant.id === hostTenantId) : tenants;
+  const headerTenants = platformOperator ? scopedTenants : (selectedTenantRecord ? [selectedTenantRecord] : []);
+  const tenantSwitcher = platformOperator && !isTenantLockedByHost ? handleTenantChange : undefined;
 
   const toggleView = () => {
     if (!isAdminRole(user?.role)) return;
@@ -1173,6 +1401,7 @@ fbq('track', 'PageView');`;
               isOpen={isChatOpen}
               onClose={handleCloseChat}
               websiteConfig={websiteConfig}
+              themeConfig={themeConfig}
               user={user}
               messages={chatMessages}
               onSendMessage={handleCustomerSendChat}
@@ -1188,6 +1417,7 @@ fbq('track', 'PageView');`;
           isOpen={Boolean(isAdminChatOpen && currentView.startsWith('admin'))}
           onClose={handleCloseAdminChat}
           websiteConfig={websiteConfig}
+          themeConfig={themeConfig}
           user={user}
           messages={chatMessages}
           onSendMessage={handleAdminSendChat}

@@ -480,7 +480,7 @@ const StoreHome = ({
                   <div className="flex-1 flex items-center justify-center">
                     <div
                       className="w-40 h-40 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl"
-                      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&w=400&q=80')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960')", backgroundSize: 'cover', backgroundPosition: 'center' }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-sm">

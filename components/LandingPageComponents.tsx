@@ -130,7 +130,7 @@ export const ReadyLandingForm: React.FC<ReadyLandingFormProps> = ({ products, te
       seo: {
         metaTitle: `${selectedProduct.name} | Buy Now`,
         metaDescription: selectedProduct.description?.slice(0, 150) || 'Instant landing experience',
-        canonicalUrl: `https://demo.gadgetshob.com/${toSlug(selectedProduct.name)}-${selectedTemplate.id}`,
+        canonicalUrl: `https://demo.systemnextit.com/${toSlug(selectedProduct.name)}-${selectedTemplate.id}`,
         keywords: ['landing page', 'flash sale', selectedProduct.name]
       },
       blocks: [
@@ -267,7 +267,7 @@ export const CustomLandingEditor: React.FC<CustomLandingEditorProps> = ({ onSave
   const [blocks, setBlocks] = useState<LandingPageBlock[]>(defaultBlocks);
   const [selectedBlockId, setSelectedBlockId] = useState(blocks[0]?.id || '');
   const [style, setStyle] = useState<LandingPageStyle>({ primaryColor: '#7c3aed', accentColor: '#f97316', background: '#f5f3ff', buttonShape: 'pill', fontFamily: 'Space Grotesk, sans-serif' });
-  const [seo, setSeo] = useState<LandingPageSEO>({ metaTitle: 'Campaign Landing', metaDescription: 'Custom landing page crafted in the editor.', canonicalUrl: 'https://demo.gadgetshob.com/campaign-landing' });
+  const [seo, setSeo] = useState<LandingPageSEO>({ metaTitle: 'Campaign Landing', metaDescription: 'Custom landing page crafted in the editor.', canonicalUrl: 'https://demo.systemnextit.com/campaign-landing' });
   const [includeCheckout, setIncludeCheckout] = useState(true);
   const selectedBlock = blocks.find(block => block.id === selectedBlockId) || blocks[0];
 

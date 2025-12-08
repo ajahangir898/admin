@@ -152,8 +152,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 9999px;
-    padding: 0.65rem;
+    border-radius: 10px;
+    padding: 0.55rem;
     background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.15), rgba(var(--color-secondary-rgb), 0.18));
     border: 1px solid rgba(var(--color-primary-rgb), 0.35);
     color: rgba(var(--color-font-rgb), 0.9);
@@ -216,6 +216,108 @@
   .store-header :is(.text-gray-300, .text-gray-200, .text-slate-400),
   .store-footer :is(.text-gray-300, .text-gray-200, .text-slate-400) {
     color: rgba(var(--color-font-rgb), 0.55);
+  }
+
+  .live-chat-shell {
+    --chat-accent: var(--chat-accent, #0084ff);
+    --chat-accent-rgb: var(--chat-accent-rgb, 0, 132, 255);
+    --chat-surface: var(--chat-surface, #f0f2f5);
+    --chat-border: var(--chat-border, rgba(15, 23, 42, 0.08));
+    --chat-shadow: var(--chat-shadow, rgba(15, 23, 42, 0.12));
+    background-color: var(--chat-surface);
+    background-image: linear-gradient(145deg, #fff, var(--chat-surface));
+    border: 1px solid var(--chat-border);
+    box-shadow: 0 22px 45px var(--chat-shadow);
+    border-radius: 1.5rem;
+  }
+
+  .live-chat-shell .live-chat-header {
+    background: #fff;
+    border-bottom: 1px solid rgba(15,23,42,0.05);
+  }
+
+  .live-chat-bubble {
+    border-radius: 1.75rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    font-weight: 500;
+    background: #fff;
+    color: rgba(15,23,42,0.92);
+    border: 1px solid rgba(15,23,42,0.08);
+    box-shadow: none;
+    transition: transform 120ms ease, filter 120ms ease;
+  }
+
+  .live-chat-bubble[data-variant='customer'] {
+    background: linear-gradient(135deg, rgba(var(--chat-accent-rgb), 0.95), rgba(var(--chat-accent-rgb), 0.8));
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .live-chat-bubble[data-variant='admin'] {
+    background: #fff;
+    color: rgba(15,23,42,0.9);
+  }
+
+  .live-chat-bubble:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+  }
+
+  .live-chat-input {
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid rgba(15,23,42,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 6px 18px rgba(15,23,42,0.08);
+  }
+
+  .live-chat-input:focus-within {
+    border-color: rgba(var(--chat-accent-rgb), 0.45);
+    box-shadow: 0 0 0 2px rgba(var(--chat-accent-rgb), 0.2), inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+
+  .dark .live-chat-shell,
+  .live-chat-shell.dark {
+    --chat-surface: var(--chat-surface-dark, #0f172a);
+    --chat-border: var(--chat-border-dark, rgba(148,163,184,0.3));
+    --chat-shadow: var(--chat-shadow-dark, rgba(2, 6, 23, 0.7));
+    background-color: var(--chat-surface);
+    background-image: linear-gradient(145deg, rgba(15,23,42,0.98), rgba(2,6,23,0.96));
+    border-color: var(--chat-border);
+    box-shadow: 0 30px 55px rgba(2,6,23,0.75);
+  }
+
+  .dark .live-chat-shell .live-chat-header,
+  .live-chat-shell.dark .live-chat-header {
+    background: rgba(2,6,23,0.9);
+    border-bottom-color: rgba(148,163,184,0.25);
+  }
+
+  .dark .live-chat-bubble[data-variant='customer'],
+  .live-chat-shell.dark .live-chat-bubble[data-variant='customer'] {
+    background: linear-gradient(135deg, rgba(var(--chat-accent-rgb), 0.75), rgba(var(--chat-accent-rgb), 0.55));
+    color: #f8fbff;
+  }
+
+  .dark .live-chat-bubble[data-variant='admin'],
+  .live-chat-shell.dark .live-chat-bubble[data-variant='admin'] {
+    background: rgba(15,23,42,0.75);
+    color: rgba(226,232,240,0.9);
+    border-color: rgba(148,163,184,0.25);
+  }
+
+  .dark .live-chat-input,
+  .live-chat-shell.dark .live-chat-input {
+    background: rgba(15,23,42,0.85);
+    border-color: rgba(148,163,184,0.35);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 18px rgba(0,0,0,0.45);
+  }
+
+  .dark .live-chat-input:focus-within,
+  .live-chat-shell.dark .live-chat-input:focus-within {
+    border-color: rgba(var(--chat-accent-rgb), 0.6);
+    box-shadow: 0 0 0 2px rgba(var(--chat-accent-rgb), 0.3);
   }
 }
 

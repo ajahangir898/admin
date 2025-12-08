@@ -170,7 +170,7 @@ class DataServiceImpl {
 
   async getWebsiteConfig(tenantId?: string): Promise<WebsiteConfig> {
     const defaultConfig: WebsiteConfig = {
-      websiteName: 'Overseas Products',
+      websiteName: 'SystemNext IT',
       shortDescription: 'Get the best for less',
       whatsappNumber: '+8801615332701',
       favicon: null,
@@ -197,7 +197,7 @@ class DataServiceImpl {
       hideCopyright: false,
       hideCopyrightText: false,
       showPoweredBy: false,
-      brandingText: 'Overseas Products',
+      brandingText: 'SystemNext IT',
       carouselItems: [
         { id: '1', name: 'Mobile Holder', image: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&q=80&w=400', url: '/magnetic-suction-vacuum', urlType: 'Internal', serial: 3, status: 'Publish' },
         { id: '2', name: 'Main', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=400', url: '/Product-categories', urlType: 'Internal', serial: 1, status: 'Publish' },

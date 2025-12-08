@@ -1,9 +1,10 @@
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo, useCallback, CSSProperties } from 'react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check, Video, Info, Smile } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
+import { Tenant } from 'firebase-admin/auth';
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -20,6 +21,20 @@ const buildWhatsAppLink = (rawNumber?: string | null) => {
     if (!rawNumber) return null;
     const sanitized = rawNumber.trim().replace(/[^0-9]/g, '');
     return sanitized ? `https://wa.me/${sanitized}` : null;
+};
+
+const hexToRgb = (hex: string) => {
+    if (!hex) return '0, 0, 0';
+    let sanitized = hex.replace('#', '');
+    if (sanitized.length === 3) {
+        sanitized = sanitized.split('').map((char) => char + char).join('');
+    }
+    if (sanitized.length !== 6) return '0, 0, 0';
+    const numeric = parseInt(sanitized, 16);
+    const r = (numeric >> 16) & 255;
+    const g = (numeric >> 8) & 255;
+    const b = numeric & 255;
+    return `${r}, ${g}, ${b}`;
 };
 interface StoreHeaderProps { 
   onTrackOrder?: () => void;
@@ -1130,19 +1145,18 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     </div>
                     
                     <div className="flex gap-2">
-                        <button 
-                            className="flex-1 btn-order py-1.5 text-sm"
-                            onClick={handleBuyNow}
-                        >
+                    <button 
+                        className="flex-1 btn-order py-1.5 text-sm"
+                        onClick={handleBuyNow}
+                    >
                             Buy Now
                         </button>
                         <button
                             type="button"
-                            className="min-w-[110px] inline-flex items-center justify-center gap-2 rounded-xl border border-pink-200 bg-white/90 text-pink-600 font-semibold text-xs px-3 py-1.5 shadow-sm hover:bg-white"
+                            className="cart_btn"
                             aria-label="Add to cart"
                         >
-                            <ShoppingCart size={16} />
-                            Add to Cart
+                            <ShoppingCart size={18} className="text-rose-500" />
                         </button>
                     </div>
                 </div>
@@ -1679,12 +1693,30 @@ export const StoreChatModal: React.FC<{
     const [editingDraft, setEditingDraft] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isCustomerView = context !== 'admin';
+    const baseWhatsAppLink = isCustomerView ? buildWhatsAppLink(websiteConfig?.whatsappNumber) : null;
     const chatEnabled = isCustomerView ? (websiteConfig?.chatEnabled ?? true) : true;
-    const whatsappLink = isCustomerView && websiteConfig?.chatWhatsAppFallback ? buildWhatsAppLink(websiteConfig?.whatsappNumber) : null;
+    const whatsappFallbackLink = websiteConfig?.chatWhatsAppFallback ? baseWhatsAppLink : null;
     const storeName = websiteConfig?.websiteName || 'Our Store';
     const supportHours = websiteConfig?.chatSupportHours ? `${websiteConfig.chatSupportHours.from} – ${websiteConfig.chatSupportHours.to}` : null;
     const displayMessages = messages;
     const normalizedUserEmail = user?.email?.toLowerCase();
+    const chatContactName = websiteConfig?.websiteName || 'Support Team';
+    const statusLine = websiteConfig?.chatGreeting || (supportHours ? `Typically replies ${supportHours}` : 'Active now');
+    const chatInitial = chatContactName.charAt(0).toUpperCase();
+    const chatShellStyle = useMemo(() => ({
+        '--chat-accent': '#0084ff',
+        '--chat-accent-rgb': hexToRgb('#0084ff'),
+        '--chat-surface': '#f0f2f5',
+        '--chat-border': 'rgba(15,23,42,0.08)',
+        '--chat-shadow': 'rgba(15,23,42,0.12)'
+    }) as CSSProperties, []);
+    const composerPlaceholder = isCustomerView
+        ? (user ? `Reply as ${user.name}` : 'Write a message...')
+        : 'Reply to the customer...';
+    const openWhatsApp = useCallback(() => {
+        if (!baseWhatsAppLink || typeof window === 'undefined') return;
+        window.open(baseWhatsAppLink, '_blank', 'noopener,noreferrer');
+    }, [baseWhatsAppLink]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -1750,16 +1782,37 @@ export const StoreChatModal: React.FC<{
 
     return (
         <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-0 sm:px-4">
-            <div className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col h-[75vh] sm:h-[560px]">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-gray-400">{isCustomerView ? 'Live Support' : 'Customer Chat'}</p>
-                        <h3 className="text-lg font-bold text-gray-900">{storeName}</h3>
-                        {supportHours && isCustomerView && <p className="text-xs text-gray-500">Support hours: {supportHours}</p>}
+            <div className="live-chat-shell bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl flex flex-col h-[75vh] sm:h-[560px]" style={chatShellStyle}>
+                <div className="live-chat-header flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white to-[#dbeafe] border border-white shadow-sm flex items-center justify-center text-sm font-semibold text-[#1d4ed8]">
+                            {chatInitial}
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-900">{chatContactName}</p>
+                            <p className="text-xs text-gray-500">{statusLine}</p>
+                        </div>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="Close chat">
-                        <X size={20} />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={openWhatsApp}
+                            className={`p-2 rounded-full text-gray-500 ${baseWhatsAppLink ? 'hover:bg-gray-100' : 'opacity-50 cursor-not-allowed'}`}
+                            aria-label="Open WhatsApp"
+                            disabled={!baseWhatsAppLink}
+                        >
+                            <Phone size={18} />
+                        </button>
+                        <button type="button" className="p-2 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Video call">
+                            <Video size={18} />
+                        </button>
+                        <button type="button" className="p-2 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Conversation details">
+                            <Info size={18} />
+                        </button>
+                        <button onClick={onClose} className="p-2 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Close chat">
+                            <X size={18} />
+                        </button>
+                    </div>
                 </div>
 
                 {!chatEnabled && isCustomerView && (
@@ -1768,91 +1821,117 @@ export const StoreChatModal: React.FC<{
                     </div>
                 )}
 
-                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-                    {displayMessages.map((message) => {
-                        const isCustomer = message.sender === 'customer';
-                        const isOwnMessage = normalizedUserEmail && message.authorEmail?.toLowerCase() === normalizedUserEmail;
-                        const bubbleClasses = isCustomer
-                            ? 'bg-gradient-to-br from-pink-50 to-pink-100 text-pink-900 border border-pink-200 rounded-br-sm shadow-pink-100'
-                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm shadow-gray-100';
-                        const timeClasses = isCustomer ? 'text-pink-500/70' : 'text-gray-500/80';
-                        const displayName = isOwnMessage ? 'You' : (message.authorName || (message.sender === 'admin' ? 'Support Team' : message.customerName || 'Customer'));
-                        const canEdit = Boolean(isOwnMessage && onEditMessage);
-                        const canDelete = Boolean(onDeleteMessage && (isOwnMessage || (!isCustomerView && canDeleteAll)));
-                        const isEditing = editingMessageId === message.id;
-                        return (
-                            <div key={message.id} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow ${bubbleClasses}`}>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="text-[10px] uppercase tracking-[0.25em] text-gray-400">{displayName}</span>
-                                        <span className={`text-[10px] ${timeClasses}`}>
-                                            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            {message.editedAt ? ' • Edited' : ''}
-                                        </span>
-                                    </div>
-                                    {isEditing ? (
-                                        <div className="space-y-2">
-                                            <textarea
-                                                value={editingDraft}
-                                                onChange={(e) => setEditingDraft(e.target.value)}
-                                                className="w-full rounded-xl border border-pink-200 bg-white/70 text-sm text-gray-800 p-2 focus:outline-none focus:ring-2 focus:ring-pink-200"
-                                                rows={2}
-                                            />
-                                            <div className="flex justify-end gap-2">
-                                                <button type="button" onClick={cancelEditing} className="text-xs font-semibold text-gray-500 hover:text-gray-700">Cancel</button>
-                                                <button type="button" onClick={saveEditing} className="text-xs font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
-                                                    <Check size={14} /> Save
-                                                </button>
+                <div className="flex-1 overflow-y-auto bg-[#f5f6f7] px-3 sm:px-4 py-4">
+                    {displayMessages.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center text-sm text-gray-500 gap-2">
+                            <p className="text-base font-semibold text-gray-600">Start the conversation</p>
+                            <p className="text-xs text-gray-500 max-w-xs">Send a message to {storeName} and we will reply as soon as possible.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {displayMessages.map((message) => {
+                                const isCustomer = message.sender === 'customer';
+                                const isOwnMessage = normalizedUserEmail && message.authorEmail?.toLowerCase() === normalizedUserEmail;
+                                const bubbleVariant = isCustomer ? 'customer' : 'admin';
+                                const bubbleClasses = `live-chat-bubble ${isCustomer ? 'ml-auto rounded-br-sm text-white' : 'rounded-bl-sm'}`;
+                                const displayName = isOwnMessage ? 'You' : (message.authorName || (message.sender === 'admin' ? 'Support Team' : message.customerName || 'Customer'));
+                                const canEdit = Boolean(isOwnMessage && onEditMessage);
+                                const canDelete = Boolean(onDeleteMessage && (isOwnMessage || (!isCustomerView && canDeleteAll)));
+                                const isEditing = editingMessageId === message.id;
+                                const actionWrapperClass = isCustomer ? 'text-white/80' : 'text-gray-400';
+                                const actionButtonClass = isCustomer ? 'text-white/80 hover:text-white' : 'text-gray-400 hover:text-gray-600';
+                                const timestampColorClass = isCustomer ? 'text-[#dbeafe]' : 'text-gray-500';
+                                const timestampAlignClass = isCustomer ? 'text-right' : 'text-left';
+                                const showNameTag = !isCustomer && !isCustomerView;
+                                return (
+                                    <div key={message.id} className={`flex ${isCustomer ? 'justify-end' : 'justify-start'}`}>
+                                        <div className="max-w-[80%] space-y-1">
+                                            {showNameTag && (
+                                                <span className="text-[11px] font-semibold text-gray-500 px-1">{displayName}</span>
+                                            )}
+                                            <div className={`${bubbleClasses}`} data-variant={bubbleVariant}>
+                                                {isEditing ? (
+                                                    <div className="space-y-2">
+                                                        <textarea
+                                                            value={editingDraft}
+                                                            onChange={(e) => setEditingDraft(e.target.value)}
+                                                            className="w-full rounded-xl border border-gray-200 bg-white/90 text-sm text-gray-800 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                                            rows={2}
+                                                        />
+                                                        <div className="flex justify-end gap-2">
+                                                            <button type="button" onClick={cancelEditing} className="text-xs font-semibold text-gray-500 hover:text-gray-700">Cancel</button>
+                                                            <button type="button" onClick={saveEditing} className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                                                                <Check size={14} /> Save
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="whitespace-pre-line leading-relaxed break-words font-medium">{message.text}</p>
+                                                )}
+                                                {(canEdit || canDelete) && !isEditing && (
+                                                    <div className={`mt-2 flex justify-end gap-2 text-xs ${actionWrapperClass}`}>
+                                                        {canEdit && (
+                                                            <button type="button" onClick={() => startEditing(message)} className={actionButtonClass} aria-label="Edit message">
+                                                                <Edit2 size={14} />
+                                                            </button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <button type="button" onClick={() => handleDelete(message.id)} className={actionButtonClass} aria-label="Delete message">
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className={`text-[11px] ${timestampColorClass} ${timestampAlignClass} px-1`}>
+                                                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {message.editedAt ? ' • Edited' : ''}
                                             </div>
                                         </div>
-                                    ) : (
-                                        <p className="whitespace-pre-line leading-relaxed break-words font-medium">{message.text}</p>
-                                    )}
-                                    {(canEdit || canDelete) && !isEditing && (
-                                        <div className="mt-2 flex justify-end gap-2 text-gray-400">
-                                            {canEdit && (
-                                                <button type="button" onClick={() => startEditing(message)} className="hover:text-pink-600" aria-label="Edit message">
-                                                    <Edit2 size={14} />
-                                                </button>
-                                            )}
-                                            {canDelete && (
-                                                <button type="button" onClick={() => handleDelete(message.id)} className="hover:text-red-500" aria-label="Delete message">
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                    <div ref={messagesEndRef} />
+                                    </div>
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    )}
+                    {displayMessages.length === 0 && <div ref={messagesEndRef} />}
                 </div>
 
-                <div className="px-4 pb-5 pt-3 border-t border-gray-100">
+                <div className="px-4 pb-5 pt-3 border-t border-gray-100 bg-white">
                     {chatEnabled || !isCustomerView ? (
-                        <div className="bg-gray-50 border border-gray-200 rounded-2xl flex items-center gap-2 px-3 py-2">
+                        <div className="live-chat-input flex items-center gap-3 px-4 py-2">
+                            <button type="button" className="text-gray-500 hover:text-gray-700" aria-label="Add attachment">
+                                <Plus size={18} />
+                            </button>
+                            <button type="button" className="text-gray-500 hover:text-gray-700" aria-label="Attach image">
+                                <ImageIcon size={18} />
+                            </button>
+                            <button type="button" className="text-gray-500 hover:text-gray-700" aria-label="Add emoji">
+                                <Smile size={18} />
+                            </button>
                             <input
                                 type="text"
                                 value={draft}
                                 onChange={(e) => setDraft(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder={isCustomerView ? (user ? `Reply as ${user.name}` : 'Write your message...') : 'Reply to the customer...'}
+                                placeholder={composerPlaceholder}
                                 className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder:text-gray-400"
                             />
                             <button
                                 onClick={handleSend}
-                                className="btn-order px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 disabled:opacity-50"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md transition disabled:opacity-50"
+                                style={{ backgroundColor: 'var(--chat-accent)', boxShadow: '0 8px 18px rgba(0,132,255,0.25)' }}
+                                aria-label="Send message"
                                 disabled={!draft.trim() || (!chatEnabled && isCustomerView)}
                             >
-                                <Send size={16} /> Send
+                                <Send size={18} />
                             </button>
                         </div>
                     ) : (
                         <div className="text-sm text-gray-600 space-y-3">
                             <p>Need urgent help? You can still reach us via the options below:</p>
-                            {whatsappLink && (
-                                <a href={whatsappLink} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-green-500 text-green-700 py-2 font-semibold">
+                            {whatsappFallbackLink && (
+                                <a href={whatsappFallbackLink} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-green-500 text-green-700 py-2 font-semibold">
                                     <MessageCircle size={16} /> Chat on WhatsApp
                                 </a>
                             )}

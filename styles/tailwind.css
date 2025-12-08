@@ -281,6 +281,37 @@
   background-color: rgba(255,255,255,0.05);
 }
 
+.admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea) {
+  background-color: rgba(15,23,42,0.82);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--admin-text-strong);
+  border-radius: 0.75rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 16px rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+}
+
+.admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea)::placeholder {
+  color: rgba(226,232,240,0.55);
+}
+
+.admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea):focus {
+  border-color: rgba(248,113,113,0.7);
+  box-shadow: 0 0 0 2px rgba(248,113,113,0.25), 0 10px 24px rgba(0,0,0,0.45);
+  background-color: rgba(15,23,42,0.95);
+  outline: none;
+}
+
+.admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea):disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea)::selection {
+  background-color: rgba(248,113,113,0.35);
+  color: #fff;
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

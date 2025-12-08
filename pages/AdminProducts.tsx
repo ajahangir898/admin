@@ -503,11 +503,11 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                <input 
                  type="text" 
                  placeholder="Search products..." 
-                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                 className="w-full pl-10 pr-4 py-2 text-sm rounded-xl bg-gray-900/70 text-gray-100 placeholder-gray-500 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500/60 focus:border-red-500 selection:bg-red-500/30 selection:text-white transition"
                  value={searchTerm}
                  onChange={(e) => setSearchTerm(e.target.value)}
                />
-               <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+               <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
             </div>
           </div>
           <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between sm:justify-end">
@@ -515,22 +515,22 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
               <button 
                 type="button"
                 onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
-                className={`w-full sm:w-auto border rounded-xl bg-gradient-to-b from-white to-gray-50 shadow-sm px-4 py-2.5 text-left transition focus:outline-none focus:ring-2 focus:ring-red-300 ${isViewMenuOpen ? 'border-red-300' : 'border-gray-200 hover:border-gray-300'}`}
+                className={`w-full sm:w-auto rounded-2xl px-4 py-2.5 text-left transition focus:outline-none focus:ring-2 focus:ring-red-500/40 shadow-2xl bg-gradient-to-b from-gray-900 via-gray-950 to-black border ${isViewMenuOpen ? 'border-red-500/60' : 'border-gray-800 hover:border-red-500/40'}`}
               >
-                <span className="text-[10px] uppercase tracking-wide text-gray-400">View</span>
+                <span className="text-[10px] uppercase tracking-[0.4em] text-red-100/70">View</span>
                 <div className="flex items-center justify-between gap-3 mt-1">
                   <div className="flex items-center gap-2">
-                    <ActiveViewIcon size={16} className="text-gray-500" />
-                    <span className="text-sm font-semibold text-gray-800">{activeViewOption?.label}</span>
+                    <ActiveViewIcon size={16} className="text-red-200" />
+                    <span className="text-sm font-semibold text-gray-100">{activeViewOption?.label}</span>
                   </div>
-                  <ChevronDown size={14} className={`text-gray-500 transition ${isViewMenuOpen ? 'transform rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`text-red-200 transition ${isViewMenuOpen ? 'transform rotate-180' : ''}`} />
                 </div>
               </button>
 
               {isViewMenuOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-2xl shadow-2xl z-40 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-[0.1em]">View options</p>
+                <div className="absolute right-0 mt-2 w-72 bg-gray-950 border border-gray-800 rounded-2xl shadow-2xl z-40 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-800 bg-gray-900">
+                    <p className="text-xs font-semibold text-gray-200 uppercase tracking-[0.3em]">View options</p>
                     <p className="text-[11px] text-gray-400">Switch between Windows-style layouts</p>
                   </div>
                   <div className="py-1">
@@ -545,21 +545,21 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                             setViewMode(option.value);
                             setIsViewMenuOpen(false);
                           }}
-                          className={`w-full flex items-start gap-3 px-4 py-2.5 transition text-left ${isActive ? 'bg-red-50 border-l-4 border-red-400' : 'hover:bg-gray-50'}`}
+                          className={`w-full flex items-start gap-3 px-4 py-2.5 transition text-left ${isActive ? 'bg-red-900/30 border-l-4 border-red-500' : 'hover:bg-gray-900'}`}
                         >
-                          <Icon size={18} className={`mt-0.5 ${isActive ? 'text-red-600' : 'text-gray-400'}`} />
+                          <Icon size={18} className={`mt-0.5 ${isActive ? 'text-red-300' : 'text-gray-400'}`} />
                           <div className="flex-1">
                             <div className="flex items-center justify-between gap-2">
-                              <span className={`text-sm font-semibold ${isActive ? 'text-gray-900' : 'text-gray-700'}`}>{option.label}</span>
-                              {isActive && <CheckCircle size={16} className="text-red-500" />}
+                              <span className={`text-sm font-semibold ${isActive ? 'text-white' : 'text-gray-200'}`}>{option.label}</span>
+                              {isActive && <CheckCircle size={16} className="text-red-400" />}
                             </div>
-                            <p className="text-xs text-gray-500">{option.description}</p>
+                            <p className="text-xs text-gray-400">{option.description}</p>
                           </div>
                         </button>
                       );
                     })}
                   </div>
-                  <div className="px-4 py-3 bg-gray-50 text-xs text-gray-500 border-t border-gray-100 flex items-center gap-2">
+                  <div className="px-4 py-3 bg-gray-900 text-xs text-gray-300 border-t border-gray-800 flex items-center gap-2">
                     <AlertCircle size={14} className="text-gray-400" />
                     Personalize how the catalog grid looks and feels.
                   </div>

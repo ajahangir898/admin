@@ -40,6 +40,7 @@ interface StoreHeaderProps {
   onOpenAIStudio?: () => void;
   onHomeClick?: () => void;
   wishlistCount?: number;
+    notificationsCount?: number;
   user?: UserType | null;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
@@ -322,6 +323,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   onOpenAIStudio, 
   onHomeClick, 
   wishlistCount, 
+    notificationsCount,
   user, 
   onLoginClick, 
   onLogoutClick, 
@@ -339,6 +341,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+    const notificationBadgeCount = typeof notificationsCount === 'number' && notificationsCount > 0 ? notificationsCount : 0;
         const searchQuery = searchValue ?? '';
         const [isListening, setIsListening] = useState(false);
         const [liveTranscript, setLiveTranscript] = useState('');
@@ -644,7 +647,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
                     {logo ? (
-                    <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
+                    <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" />
                     ) : (
                     <h1 className="text-2xl font-bold tracking-tighter">
                         {websiteConfig?.brandingText ? (
@@ -689,13 +692,23 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     </div>
                     <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
                     <div className="relative">
                         <ShoppingCart size={24} />
                         <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
                     </div>
                     <span className="hidden sm:inline text-sm font-medium">Cart</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                    <div className="relative">
+                        <Bell size={24} />
+                        {notificationBadgeCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{notificationBadgeCount}</span>
+                        )}
+                    </div>
+                    <span className="hidden sm:inline text-sm font-medium">Notifications</span>
                     </div>
                     
                     <div className="relative hidden md:block" ref={menuRef}>
@@ -942,18 +955,45 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
       {/* MOBILE HEADER SPECIFIC LAYOUT */}
             <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3 border-b border-gray-100 shadow-sm">
                 {/* Logo Row - Centered */}
-                <div className="flex justify-center mb-3 items-center h-8" onClick={onHomeClick}>
-                    {logo ? (
-                        <img src={logo} alt="Store Logo" className="h-6 object-contain" />
-                    ) : (
-                        <div className="flex items-center gap-1">
-                            <Smartphone size={20} className="text-gray-800 dark:text-white" strokeWidth={2.5} />
-                            <h1 className="text-lg font-bold tracking-tight flex items-center">
-                                <span className="text-gray-900 dark:text-white">GADGET</span>
-                                <span className="text-pink-500">SHOB</span>
-                            </h1>
+                <div className="flex justify-between items-center mb-3 h-8 gap-3">
+                    <div className="flex items-center" onClick={onHomeClick}>
+                        {logo ? (
+                            <img src={logo} alt="Store Logo" className="h-8 object-contain" />
+                        ) : (
+                            <div className="flex items-center gap-1">
+                                <Smartphone size={20} className="text-gray-800 dark:text-white" strokeWidth={2.5} />
+                                <h1 className="text-lg font-bold tracking-tight flex items-center">
+                                    <span className="text-gray-900 dark:text-white">GADGET</span>
+                                    <span className="text-pink-500">SHOB</span>
+                                </h1>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="relative cursor-pointer text-gray-800 dark:text-white">
+                            <Heart size={24} strokeWidth={2} />
+                            {wishlistCount !== undefined && wishlistCount > 0 && (
+                                <span className="absolute -top-1.5 -right-1 bg-pink-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
+                                    {wishlistCount}
+                                </span>
+                            )}
                         </div>
-                    )}
+                        <div className="relative cursor-pointer">
+                            <ShoppingCart size={26} className="text-gray-800 dark:text-white" strokeWidth={2} />
+                            <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
+                                0
+                            </span>
+                        </div>
+                        <div className="relative cursor-pointer text-gray-800 dark:text-white">
+                            <Bell size={24} strokeWidth={2} />
+                            {notificationBadgeCount > 0 && (
+                                <span className="absolute -top-1.5 -right-1 bg-blue-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
+                                    {notificationBadgeCount}
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Action Row */}
@@ -985,12 +1025,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         {renderVoiceStreamOverlay('absolute -bottom-10 left-0 right-0')}
                     </div>
 
-                    <div className="relative cursor-pointer">
-                        <ShoppingCart size={26} className="text-gray-800 dark:text-white" strokeWidth={2} />
-                        <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
-                            0
-                        </span>
-                    </div>
+                   
                 </div>
             </div>
 
@@ -1006,7 +1041,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             {/* Logo */}
             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
                 {logo ? (
-                <img src={logo} alt="Store Logo" className="h-8 md:h-10 object-contain" />
+                <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" />
                 ) : (
                 <h1 className="text-2xl font-bold tracking-tighter">
                     {websiteConfig?.brandingText ? (
@@ -1060,6 +1095,16 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
                 </div>
                 <span className="hidden sm:inline text-sm font-medium">Cart</span>
+                </div>
+                
+                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                <div className="relative">
+                    <Bell size={24} />
+                    {notificationBadgeCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{notificationBadgeCount}</span>
+                    )}
+                </div>
+                <span className="hidden sm:inline text-sm font-medium">Notifications</span>
                 </div>
                 
                 <div className="relative hidden md:block" ref={menuRef}>

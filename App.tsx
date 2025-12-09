@@ -7,6 +7,7 @@ import { DataService } from './services/DataService';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { Toaster, toast } from 'react-hot-toast';
+import AppSkeleton from './components/SkeletonLoaders';
 
 
 const StoreHome = lazy(() => import('./pages/StoreHome'));
@@ -1257,16 +1258,12 @@ fbq('track', 'PageView');`;
     }
   }, [adminSection, user]);
 
-//   if (isLoading) {
-//     return (
-//       <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
-//         {/* <Loader2 size={48} className="animate-spin text-purple-600" /> */}
-// <LifeLine color="#32cd32" size="medium" text="" textColor="#00ff0e" />
-      
-//         <p className="font-medium animate-pulse">Overseas Products.</p>
-//       </div>
-//     );
-//   }
+  if (isLoading) {
+    const skeletonVariant: 'store' | 'admin' = currentView.startsWith('admin') || isAdminRole(user?.role)
+      ? 'admin'
+      : 'store';
+    return <AppSkeleton variant={skeletonVariant} darkMode={themeConfig.darkMode} />;
+  }
 
   return (
     <Suspense fallback={<SuspenseFallback />}>

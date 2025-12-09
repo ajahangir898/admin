@@ -468,40 +468,40 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             ], [categoriesList, safeCategories, safeSubCategories, safeChildCategories, safeBrands, safeTags]);
     // Drawer order: Campaign, Recommend, Catalog, FAQs, Download, Need Help
     const mobileDrawerLinks = useMemo<DrawerLinkItem[]>(() => [
-        { key: 'campaign', label: 'Campaign', icon: Heart },
-        { key: 'recommend', label: 'Recommend', icon: Phone, action: onTrackOrder },
+        { key: 'campaign', label: 'Campaign', icon: (props) => <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQpsA1K1YnBSEvQlatJX7r83C0QH2O0TRLXqQ&s" alt="Campaign" style={{ height: props.size || 18, width: props.size || 18, ...props }} /> },
+        { key: 'recommend', label: 'Recommend', icon: (props) => <img src="https://i.postimg.cc/T1XsS9F1/images_(1).png" alt="Recommend" style={{ height: props.size || 18, width: props.size || 18, ...props }} />, action: onTrackOrder },
         // Catalog handled separately as dropdown
         { key: 'faqs', label: 'FAQs', icon: Info },
     ], [onTrackOrder]);
             // Drawer: Add app download buttons after FAQs
-            const appDownloadButtons = (
-                <div className="flex flex-col gap-3 mt-4">
-                    {websiteConfig?.androidAppUrl && (
-                        <a
-                            href={websiteConfig.androidAppUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center rounded-full bg-white shadow border border-gray-200 px-4 py-2 gap-2 hover:bg-gray-50 transition"
-                            style={{ minWidth: 220 }}
-                        >
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" style={{ height: 32 }} />
-                            <span className="ml-2 font-semibold text-gray-800 text-base">Get it on Google Play</span>
-                        </a>
-                    )}
-                    {websiteConfig?.iosAppUrl && (
-                        <a
-                            href={websiteConfig.iosAppUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center rounded-full bg-white shadow border border-gray-200 px-4 py-2 gap-2 hover:bg-gray-50 transition"
-                            style={{ minWidth: 220 }}
-                        >
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_badge_EN.svg" alt="App Store" style={{ height: 32 }} />
-                            <span className="ml-2 font-semibold text-gray-800 text-base">Download on the App Store</span>
-                        </a>
-                    )}
-                </div>
-            );
+            // const appDownloadButtons = (
+            //     <div className="flex flex-col gap-3 mt-4">
+            //         {websiteConfig?.androidAppUrl && (
+            //             <a
+            //                 href={websiteConfig.androidAppUrl}
+            //                 target="_blank"
+            //                 rel="noopener noreferrer"
+            //                 className="flex items-center justify-center rounded-full bg-white shadow border border-gray-200 px-4 py-2 gap-2 hover:bg-gray-50 transition"
+            //                 style={{ minWidth: 220 }}
+            //             >
+            //                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" style={{ height: 32 }} />
+            //                 <span className="ml-2 font-semibold text-gray-800 text-base">Get it on Google Play</span>
+            //             </a>
+            //         )}
+            //         {websiteConfig?.iosAppUrl && (
+            //             <a
+            //                 href={websiteConfig.iosAppUrl}
+            //                 target="_blank"
+            //                 rel="noopener noreferrer"
+            //                 className="flex items-center justify-center rounded-full bg-white shadow border border-gray-200 px-4 py-2 gap-2 hover:bg-gray-50 transition"
+            //                 style={{ minWidth: 220 }}
+            //             >
+            //                 <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_badge_EN.svg" alt="App Store" style={{ height: 32 }} />
+            //                 <span className="ml-2 font-semibold text-gray-800 text-base">Download on the App Store</span>
+            //             </a>
+            //         )}
+            //     </div>
+            // );
     const toggleCatalogSection = useCallback((key: string) => {
         setActiveCatalogSection((prev) => (prev === key ? '' : key));
     }, []);
@@ -1051,7 +1051,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             />
             <aside
                 className={`fixed inset-y-0 left-0 z-[99] w-[82%] max-w-sm bg-white dark:bg-slate-900 shadow-2xl md:hidden transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-                aria-hidden={!isMobileMenuOpen}
+                aria-hidden={isMobileMenuOpen ? undefined : true}
             >
                 <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100 dark:border-slate-800">
                     <div className="flex items-center gap-2">
@@ -1063,6 +1063,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                             </span>
                         )}
                     </div>
+
+                            
+
                     <button
                         type="button"
                         className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800"
@@ -1072,26 +1075,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         <X size={20} />
                     </button>
                 </div>
-                <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-                    <nav className="space-y-2">
-                        {mobileDrawerLinks.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <button
-                                    key={item.key}
-                                    type="button"
-                                    className="w-full flex items-center gap-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-left text-sm font-semibold text-gray-800 dark:text-gray-200 shadow-sm hover:border-purple-200 dark:hover:border-purple-400/40"
-                                    onClick={() => handleDrawerNavClick(item.action)}
-                                >
-                                    <Icon size={18} strokeWidth={1.8} className="text-gray-700 dark:text-gray-300" />
-                                    <span>{item.label}</span>
-                                </button>
-                            );
-                        })}
-                        {/* App download buttons */}
-                        {appDownloadButtons}
-                        {/* Catalog dropdown (click only) */}
-                        <div className="rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden mt-2">
+                            {/* catalog dropdown (click only) */}
+                
+                         <div className="rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden mt-2">
                             <button
                                 type="button"
                                 className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-slate-800/60"
@@ -1155,22 +1141,45 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 })}
                             </div>
                         </div>
-                        {/* Download buttons */}
+
+                <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+                    <nav className="space-y-2">
+                        {mobileDrawerLinks.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    className="w-full flex items-center gap-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-left text-sm font-semibold text-gray-800 dark:text-gray-200 shadow-sm hover:border-purple-200 dark:hover:border-purple-400/40"
+                                    onClick={() => handleDrawerNavClick(item.action)}
+                                >
+                                    <Icon size={18} strokeWidth={1.8} className="text-gray-700 dark:text-gray-300" />
+                                    <span>
+                                        
+                                        {item.label}</span>
+                                </button>
+                               
+                            );
+                        })}
+
+                         
+                        {/* App download buttons */}
                         <div className="flex gap-3 mt-4 px-2">
                             {websiteConfig?.androidAppUrl && (
-                                <a href={websiteConfig.androidAppUrl} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center border-2 border-red-500 rounded-lg bg-white px-4 py-3 shadow transition hover:bg-gray-50" style={{ minWidth: 120 }}>
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" style={{ height: 32, marginBottom: 4 }} />
-                                    <span className="font-semibold text-gray-800 text-sm">Download Android App</span>
+                                <a href={websiteConfig.androidAppUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-full bg-white px-0 py-0 shadow transition hover:bg-gray-100" style={{ minWidth: 80, height: 56 }}>
+                                    <img src="https://i.postimg.cc/Kc9RrHT8/android-icon.png" alt="Google Play" style={{ height: 50, width: 120 }} />
                                 </a>
                             )}
                             {websiteConfig?.iosAppUrl && (
-                                <a href={websiteConfig.iosAppUrl} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center border-2 border-red-500 rounded-lg bg-white px-4 py-3 shadow transition hover:bg-gray-50" style={{ minWidth: 120 }}>
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_badge_EN.svg" alt="App Store" style={{ height: 32, marginBottom: 4 }} />
-                                    <span className="font-semibold text-gray-800 text-sm">Download iOS App</span>
+                                <a href={websiteConfig.iosAppUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-full bg-white px-0 py-0 shadow transition hover:bg-gray-100" style={{ minWidth: 80, height: 56 }}>
+                                    <img src="https://i.postimg.cc/wxW7cGNT/appple_app_icon.png" alt="App Store" style={{ height: 50, width: 120 }} />
                                 </a>
                             )}
                         </div>
+                        {/* Catalog dropdown (click only) */}
+                       
                     </nav>
+                       
                   
                     <div className="rounded-2xl bg-gray-900 text-white px-4 py-5 space-y-2 shadow-lg">
                         <p className="text-sm font-semibold">Need help?</p>

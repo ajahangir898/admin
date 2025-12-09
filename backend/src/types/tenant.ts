@@ -1,5 +1,7 @@
+import type { ObjectId } from 'mongodb';
+
 export interface BaseModel {
-  _id?: string;
+  _id?: string | ObjectId;
   createdAt: string;
   updatedAt: string;
 }
@@ -11,6 +13,7 @@ export interface Tenant extends BaseModel {
   contactEmail: string;
   contactName?: string;
   adminEmail: string;
+  adminPassword?: string;
   adminAuthUid?: string;
   plan: 'starter' | 'growth' | 'enterprise' | string;
   status: 'trialing' | 'active' | 'suspended' | 'archived' | string;

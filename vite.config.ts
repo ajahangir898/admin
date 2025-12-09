@@ -1,8 +1,6 @@
 import path from 'path';
 import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
-import type { PluginOption, PreviewServer, ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
-import { createTenantApiMiddleware } from './server/tenantsApi';
 
 const toPosixPath = (id: string) => id.split('\\').join('/');
 
@@ -14,18 +12,6 @@ const vendorChunkMatchers = [
   { name: 'icons-chunk', matcher: /node_modules\/lucide-react\// },
   { name: 'loading-indicators', matcher: /node_modules\/react-loading-indicators\// }
 ];
-
-const resolveFirebaseChunk = (normalized: string) => {
-  if (normalized.includes('node_modules/firebase/')) {
-    const pkg = normalized.split('node_modules/firebase/')[1]?.split('/')?.[0];
-    if (pkg) return `firebase-${pkg}`;
-  }
-  if (normalized.includes('node_modules/@firebase/')) {
-    const pkg = normalized.split('node_modules/@firebase/')[1]?.split('/')?.[0];
-    if (pkg) return `firebase-${pkg}`;
-  }
-  return undefined;
-};
 
 const resolveRechartsChunk = (normalized: string) => {
   if (!normalized.includes('node_modules/recharts/')) return undefined;
@@ -39,8 +25,6 @@ const manualChunkResolver = (id: string): string | undefined => {
   const normalized = toPosixPath(id);
 
   if (normalized.includes('node_modules')) {
-    const firebaseChunk = resolveFirebaseChunk(normalized);
-    if (firebaseChunk) return firebaseChunk;
     const rechartsChunk = resolveRechartsChunk(normalized);
     if (rechartsChunk) return rechartsChunk;
 
@@ -75,16 +59,6 @@ const manualChunkResolver = (id: string): string | undefined => {
   return undefined;
 };
 
-const tenantApiPlugin = (): PluginOption => ({
-  name: 'tenant-api-mock',
-  configureServer(server: ViteDevServer) {
-    server.middlewares.use(createTenantApiMiddleware());
-  },
-  configurePreviewServer(server: PreviewServer) {
-    server.middlewares.use(createTenantApiMiddleware());
-  }
-});
-
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
@@ -92,7 +66,7 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [react(), tenantApiPlugin(), splitVendorChunkPlugin()],
+      plugins: [react(), splitVendorChunkPlugin()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)

@@ -4,7 +4,6 @@ import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Tru
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
-import { Tenant } from 'firebase-admin/auth';
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {

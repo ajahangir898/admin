@@ -10,19 +10,14 @@ View your app in AI Studio: https://ai.studio/apps/drive/1rLLRnE1S_N6jHy3zo2t2Wr
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
+**Prerequisites:** Node.js 18+, running MongoDB instance (Atlas or local)
 
+1. Install frontend deps: `npm install`
+2. Install backend deps: `cd backend && npm install`
+3. Configure environment:
+   - Root `.env` → set `VITE_API_BASE_URL` (defaults to `http://localhost:5001`)
+   - `backend/.env` → set `MONGODB_URI`, `MONGODB_DB_NAME`, and `ALLOWED_ORIGINS`
+4. Start the backend: `cd backend && npm run dev`
+5. In another terminal, start the frontend: `npm run dev`
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
-
-## Seed Firebase admin users
-
-Use the Firebase Admin SDK script to ensure that every dashboard admin has a real Auth account (and is linked to its tenant document).
-
-1. Provide Firebase Admin credentials via `FIREBASE_ADMIN_PROJECT_ID`, `FIREBASE_ADMIN_CLIENT_EMAIL`, and `FIREBASE_ADMIN_PRIVATE_KEY` (or set `FIREBASE_ADMIN_CREDENTIAL=application` and rely on `GOOGLE_APPLICATION_CREDENTIALS`).
-2. Edit `server/adminUsers.json` (auto-created from the sample on first run) with the admin emails, passwords, display names, and optional `tenantId` / `role`.
-3. Execute `npm run seed:admins` to create/update the Auth users and sync `tenants` documents with their `adminAuthUid`.
+The React SPA now persists tenant/catalog data through the MongoDB API instead of Firebase. Local sessions are stored in `localStorage`, so you can register/login without external auth providers.

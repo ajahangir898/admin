@@ -1,22 +1,20 @@
 import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
-import { env } from './config/env.js';
-import { disconnectMongo } from './db/mongo.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import { healthRouter } from './routes/health.js';
-import { tenantsRouter } from './routes/tenants.js';
-import { ensureTenantIndexes } from './services/tenantsService.js';
+import { env } from './config/env';
+import { disconnectMongo } from './db/mongo';
+import { errorHandler } from './middleware/errorHandler';
+import { healthRouter } from './routes/health';
+import { tenantsRouter } from './routes/tenants';
+import { tenantDataRouter } from './routes/tenantData';
+import { ensureTenantIndexes } from './services/tenantsService';
 
 const app = express();
 
 const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || !env.allowedOrigins.length || env.allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: env.allowedOrigins.length
+    ? env.allowedOrigins
+    : undefined,
   credentials: true
 };
 
@@ -30,6 +28,7 @@ app.get('/', (_req, res) => {
 
 app.use('/health', healthRouter);
 app.use('/api/tenants', tenantsRouter);
+app.use('/api/tenant-data', tenantDataRouter);
 
 app.use(errorHandler);
 

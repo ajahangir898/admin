@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth.js';
-import { createTenant, deleteTenant, listTenants } from '../services/tenantsService.js';
+import { createTenant, deleteTenant, listTenants } from '../services/tenantsService';
+import type { CreateTenantPayload } from '../types/tenant';
 
 const createTenantSchema = z.object({
   name: z.string().min(2),
@@ -14,9 +14,6 @@ const createTenantSchema = z.object({
 });
 
 export const tenantsRouter = Router();
-
-// Attach auth middleware if required
-tenantsRouter.use(authMiddleware);
 
 // GET /api/tenants
 tenantsRouter.get('/', async (_req, res, next) => {
@@ -31,7 +28,7 @@ tenantsRouter.get('/', async (_req, res, next) => {
 // POST /api/tenants
 tenantsRouter.post('/', async (req, res, next) => {
   try {
-    const payload = createTenantSchema.parse(req.body);
+    const payload = createTenantSchema.parse(req.body) as CreateTenantPayload;
     const tenant = await createTenant(payload);
     res.status(201).json({ data: tenant });
   } catch (error) {

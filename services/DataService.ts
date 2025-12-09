@@ -1,8 +1,22 @@
-
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload } from '../types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
-import { db } from './firebaseConfig';
-import { collection, getDocs, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore/lite';
+
+const API_BASE_URL = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL
+  ? String(import.meta.env.VITE_API_BASE_URL)
+  : '';
+
+const buildApiUrl = (path: string) => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (!API_BASE_URL) {
+    return normalizedPath;
+  }
+  const trimmedBase = API_BASE_URL.replace(/\/$/, '');
+  return `${trimmedBase}${normalizedPath}`;
+};
+
+type TenantApiListResponse = { data?: Array<Partial<Tenant> & { _id?: string }>; error?: string };
+type TenantApiItemResponse = { data?: Partial<Tenant> & { _id?: string }; error?: string };
+type TenantDataResponse<T = unknown> = { data?: T; error?: string };
 
 type SavePayload = {
   key: string;
@@ -16,14 +30,14 @@ type SaveQueueEntry = {
   resolvers: Array<{ resolve: () => void; reject: (error: unknown) => void }>;
 };
 
-const SAVE_DEBOUNCE_MS = Math.max(0, Number(import.meta.env.VITE_FIREBASE_SAVE_DEBOUNCE_MS ?? 1200));
-const DISABLE_FIREBASE_SAVE = String(import.meta.env.VITE_DISABLE_FIREBASE_SAVE ?? '').toLowerCase() === 'true';
-const SHOULD_LOG_SAVE_SKIP = Boolean(import.meta.env.DEV);
+const SAVE_DEBOUNCE_MS = Math.max(0, Number(import.meta.env?.VITE_REMOTE_SAVE_DEBOUNCE_MS ?? 1200));
+const DISABLE_REMOTE_SAVE = String(import.meta.env?.VITE_DISABLE_REMOTE_SAVE ?? '').toLowerCase() === 'true';
+const SHOULD_LOG_SAVE_SKIP = Boolean(import.meta.env?.DEV);
 
 class DataServiceImpl {
   private saveQueue = new Map<string, SaveQueueEntry>();
   private hasLoggedSaveBlock = false;
-  private hasWarnedDbMissing = false;
+
   private sanitizeTenantSlug(value?: string | null): string {
     if (!value) return '';
     return value
@@ -49,29 +63,12 @@ class DataServiceImpl {
     return items.filter(item => !item.tenantId || item.tenantId === tenantId);
   }
 
-  private getCollectionRef(collectionName: string, tenantId?: string) {
-    if (!db) throw new Error('Firebase DB not initialized');
-    return tenantId
-      ? collection(db, 'tenants', tenantId, collectionName)
-      : collection(db, collectionName);
-  }
-
-  private getCollectionDocRef(collectionName: string, id: string, tenantId?: string) {
-    if (!db) throw new Error('Firebase DB not initialized');
-    return tenantId
-      ? doc(db, 'tenants', tenantId, collectionName, id)
-      : doc(db, collectionName, id);
-  }
-
-  private getConfigDocRef(key: string, tenantId?: string) {
-    if (!db) throw new Error('Firebase DB not initialized');
-    return tenantId
-      ? doc(db, 'tenants', tenantId, 'configurations', key)
-      : doc(db, 'configurations', key);
+  private resolveTenantScope(tenantId?: string) {
+    return tenantId?.trim() ? tenantId.trim() : 'public';
   }
 
   private getSaveQueueKey(key: string, tenantId?: string) {
-    return `${tenantId || 'public'}::${key}`;
+    return `${this.resolveTenantScope(tenantId)}::${key}`;
   }
 
   private enqueueSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
@@ -108,16 +105,69 @@ class DataServiceImpl {
     }
   }
 
-  // --- Generic Helpers with Fallback ---
-  
-  private async safeFirebaseCall<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
-    try {
-      if (!db) throw new Error("Firebase DB not initialized");
-      return await operation();
-    } catch (error) {
-      console.warn(`Firebase operation failed, falling back to defaults.`, error);
-      return fallback;
+  private normalizeHeaders(headers?: HeadersInit) {
+    if (!headers) return {} as Record<string, string>;
+    if (headers instanceof Headers) {
+      return Object.fromEntries(headers.entries());
     }
+    if (Array.isArray(headers)) {
+      return headers.reduce<Record<string, string>>((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {});
+    }
+    return { ...headers };
+  }
+
+  private async requestTenantApi<T>(path: string, init?: RequestInit): Promise<T> {
+    if (typeof fetch === 'undefined') {
+      throw new Error('Fetch API is not available in this environment');
+    }
+    const { headers, body, ...rest } = init || {};
+    const normalizedHeaders = this.normalizeHeaders(headers);
+    const response = await fetch(buildApiUrl(path), {
+      credentials: 'include',
+      ...rest,
+      headers: {
+        'Content-Type': 'application/json',
+        ...normalizedHeaders
+      },
+      body
+    });
+    const raw = await response.text();
+    const payload = raw ? JSON.parse(raw) : null;
+    if (!response.ok) {
+      const message = (payload as { error?: string } | null)?.error || `Request failed (${response.status})`;
+      throw new Error(message);
+    }
+    return payload as T;
+  }
+
+  private async fetchTenantDocument<T>(key: string, tenantId?: string): Promise<T | null> {
+    const scope = this.resolveTenantScope(tenantId);
+    try {
+      const response = await this.requestTenantApi<TenantDataResponse<T>>(`/api/tenant-data/${scope}/${key}`);
+      if (response && 'data' in response) {
+        return (response.data ?? null) as T | null;
+      }
+      return null;
+    } catch (error) {
+      console.warn(`Unable to load ${key} for tenant ${scope}`, error);
+      return null;
+    }
+  }
+
+  private async persistTenantDocument<T>(key: string, data: T, tenantId?: string): Promise<void> {
+    const scope = this.resolveTenantScope(tenantId);
+    await this.requestTenantApi(`/api/tenant-data/${scope}/${key}`, {
+      method: 'PUT',
+      body: JSON.stringify({ data })
+    });
+  }
+
+  private normalizeTenantDocument(doc: Partial<Tenant> & { _id?: string }): Tenant {
+    const idValue = doc.id || doc._id || doc.subdomain || `tenant-${Date.now()}`;
+    return { ...(doc as Tenant), id: String(idValue) };
   }
 
   private async fetchMockTenants(): Promise<Tenant[]> {
@@ -125,51 +175,46 @@ class DataServiceImpl {
       return DEMO_TENANTS;
     }
     try {
-      const response = await fetch('/api/tenants');
+      const response = await fetch(buildApiUrl('/api/tenants'));
       if (!response.ok) {
         throw new Error(`Unable to load tenants (${response.status})`);
       }
       const payload = await response.json();
-      return Array.isArray(payload?.data) ? payload.data as Tenant[] : DEMO_TENANTS;
+      return Array.isArray(payload?.data) ? (payload.data as Tenant[]) : DEMO_TENANTS;
     } catch (error) {
       console.warn('Falling back to demo tenants', error);
       return DEMO_TENANTS;
     }
   }
 
-  // --- Data Access Methods ---
+  private async getCollection<T>(key: string, defaultValue: T[], tenantId?: string): Promise<T[]> {
+    const remote = await this.fetchTenantDocument<T[]>(key, tenantId);
+    if (Array.isArray(remote) && remote.length) {
+      return this.filterByTenant(remote as Array<T & { tenantId?: string }>, tenantId);
+    }
+    return defaultValue;
+  }
 
   async getProducts(tenantId?: string): Promise<Product[]> {
     const fallback = this.filterByTenant(PRODUCTS, tenantId);
-    return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(this.getCollectionRef('products', tenantId));
-      const items = snapshot.docs.map(d => ({ id: Number(d.id), ...d.data() } as Product));
-      const filtered = this.filterByTenant(items, tenantId);
-      return filtered.length ? filtered : fallback;
-    }, fallback);
+    const remote = await this.getCollection<Product>('products', [], tenantId);
+    const normalized = remote.length ? remote : fallback;
+    return normalized.map((product, index) => ({ ...product, id: product.id ?? index + 1 }));
   }
 
   async getOrders(tenantId?: string): Promise<Order[]> {
     const fallback = this.filterByTenant(RECENT_ORDERS, tenantId);
-    return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(this.getCollectionRef('orders', tenantId));
-      const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Order));
-      const filtered = this.filterByTenant(items, tenantId);
-      return filtered.length ? filtered : fallback;
-    }, fallback);
+    const remote = await this.getCollection<Order>('orders', [], tenantId);
+    return remote.length ? remote : fallback;
   }
 
   async getLandingPages(tenantId?: string): Promise<LandingPage[]> {
-    return this.get<LandingPage[]>('landing_pages', DEFAULT_LANDING_PAGES, tenantId);
+    const remote = await this.getCollection<LandingPage>('landing_pages', [], tenantId);
+    return remote.length ? remote : DEFAULT_LANDING_PAGES;
   }
 
   async getUsers(tenantId?: string): Promise<User[]> {
-    return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(this.getCollectionRef('users', tenantId));
-      const items = snapshot.docs.map(d => d.data() as User);
-      const filtered = this.filterByTenant(items, tenantId);
-      return filtered;
-    }, []);
+    return this.getCollection<User>('users', [], tenantId);
   }
 
   async getRoles(tenantId?: string): Promise<Role[]> {
@@ -177,72 +222,33 @@ class DataServiceImpl {
       { id: 'manager', name: 'Store Manager', description: 'Can manage products and orders', permissions: ['view_dashboard', 'manage_orders', 'view_orders', 'manage_products', 'view_products'] },
       { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: ['view_dashboard', 'view_orders'] }
     ];
-    return this.safeFirebaseCall(async () => {
-      const snapshot = await getDocs(this.getCollectionRef('roles', tenantId));
-      const roles = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Role));
-      const filtered = tenantId ? roles.filter(role => !(role as any).tenantId || (role as any).tenantId === tenantId) : roles;
-      return filtered.length ? filtered : defaultRoles;
-    }, defaultRoles);
+    const remote = await this.getCollection<Role>('roles', [], tenantId);
+    return remote.length ? remote : defaultRoles;
   }
 
   async get<T>(key: string, defaultValue: T, tenantId?: string): Promise<T> {
-    const isArray = Array.isArray(defaultValue);
-    
-    return this.safeFirebaseCall(async () => {
-      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
-        const docRef = this.getConfigDocRef(key, tenantId);
-        const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) {
-          return defaultValue;
-        }
-        if (key === 'logo') {
-          const data = docSnap.data() as { value?: T };
-          if (tenantId && data && (data as any).tenantId && (data as any).tenantId !== tenantId) {
-            return defaultValue;
-          }
-          return (data?.value ?? defaultValue) as T;
-        }
-        if (key === 'delivery_config') {
-          const data = docSnap.data();
-          if (Array.isArray(data)) return data as T;
-          if (Array.isArray((data as any)?.items)) {
-            const scopedArray = (data as any).items as any[];
-            return isArray ? this.filterByTenant(scopedArray, tenantId) as unknown as T : scopedArray as unknown as T;
-          }
-          return defaultValue;
-        }
-        const docData = docSnap.data() as T & { tenantId?: string };
-        if (tenantId && docData?.tenantId && docData.tenantId !== tenantId) {
-          return defaultValue;
-        }
-        return docData as T;
-      }
-      
-      if (isArray) {
-        const snapshot = await getDocs(this.getCollectionRef(key, tenantId));
-         const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        const filteredItems = this.filterByTenant(items as any[], tenantId);
-        return filteredItems.length ? filteredItems as unknown as T : defaultValue;
-      }
-      
+    const remote = await this.fetchTenantDocument<T>(key, tenantId);
+    if (remote === null || remote === undefined) {
       return defaultValue;
-    }, defaultValue);
+    }
+    if (Array.isArray(defaultValue) && Array.isArray(remote)) {
+      return this.filterByTenant(remote as Array<{ tenantId?: string }> as any, tenantId) as unknown as T;
+    }
+    return remote;
   }
-
-  // --- Config Specific Loaders ---
 
   async getThemeConfig(tenantId?: string): Promise<ThemeConfig> {
     const defaults: ThemeConfig = {
-      primaryColor: '#ec4899', // Pink-500
-      secondaryColor: '#a855f7', // Purple-500
-      tertiaryColor: '#c026d3', // Fuchsia-600
+      primaryColor: '#ec4899',
+      secondaryColor: '#a855f7',
+      tertiaryColor: '#c026d3',
       fontColor: '#0f172a',
       hoverColor: '#f97316',
       surfaceColor: '#e2e8f0',
       darkMode: false
     };
-    const config = await this.get<ThemeConfig>('theme', defaults, tenantId);
-    return { ...defaults, ...config };
+    const remote = await this.get<ThemeConfig>('theme', defaults, tenantId);
+    return { ...defaults, ...remote };
   }
 
   async getWebsiteConfig(tenantId?: string): Promise<WebsiteConfig> {
@@ -298,26 +304,20 @@ class DataServiceImpl {
       { type: 'Express', isEnabled: true, division: 'Dhaka', insideCharge: 100, outsideCharge: 200, freeThreshold: 5000, note: 'Next day delivery available' },
       { type: 'Free', isEnabled: false, division: 'Dhaka', insideCharge: 0, outsideCharge: 0, freeThreshold: 0, note: 'Promotional free shipping' }
     ];
-    // Try to get from 'configurations/delivery_config' doc first, if fail, check if it's a collection? 
-    // Stick to doc for configs
-    return this.get<DeliveryConfig[]>('delivery_config', defaults, tenantId);
+    const remote = await this.get<DeliveryConfig[]>('delivery_config', defaults, tenantId);
+    return remote.length ? remote : defaults;
   }
 
-  // --- Saving Methods ---
+  async getCatalog(type: string, defaults: any[], tenantId?: string): Promise<any[]> {
+    const remote = await this.get<any[]>(type, defaults, tenantId);
+    return remote.length ? remote : defaults;
+  }
 
   async save<T>(key: string, data: T, tenantId?: string): Promise<void> {
-    if (DISABLE_FIREBASE_SAVE) {
+    if (DISABLE_REMOTE_SAVE) {
       if (!this.hasLoggedSaveBlock && SHOULD_LOG_SAVE_SKIP) {
-        console.info('[DataService] Remote saves are disabled via VITE_DISABLE_FIREBASE_SAVE flag.');
+        console.info('[DataService] Remote saves are disabled via VITE_DISABLE_REMOTE_SAVE flag.');
         this.hasLoggedSaveBlock = true;
-      }
-      return;
-    }
-
-    if (!db) {
-      if (!this.hasWarnedDbMissing) {
-        console.warn('Firebase DB not initialized; skipping save operation.');
-        this.hasWarnedDbMissing = true;
       }
       return;
     }
@@ -332,60 +332,25 @@ class DataServiceImpl {
 
   private async commitSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
     try {
-      if (!db) return;
-
-      // Configs -> Single Doc
-      if (['theme', 'website_config', 'logo', 'courier', 'delivery_config', 'facebook_pixel'].includes(key)) {
-        const docRef = this.getConfigDocRef(key, tenantId);
-        if (key === 'logo') {
-          await setDoc(docRef, { value: (data as any) ?? null, tenantId: tenantId || null });
-        } else if (key === 'delivery_config') {
-          const scopedItems = Array.isArray(data)
-            ? data.map(item => ({ ...item, tenantId: tenantId || (item as any)?.tenantId || null }))
-            : [];
-          await setDoc(docRef, { items: scopedItems, tenantId: tenantId || null });
-        } else {
-          await setDoc(docRef, { ...(data as any), tenantId: tenantId || (data as any)?.tenantId || null });
-        }
-        return;
-      }
-
-      // Arrays -> Collection (Sync Strategy: Overwrite items)
-      if (Array.isArray(data)) {
-        for (const item of data) {
-          if (item && (item.id || item.id === 0)) {
-            const id = String(item.id);
-            const payload = tenantId ? { ...item, tenantId } : item;
-            await setDoc(this.getCollectionDocRef(key, id, tenantId), payload);
-          }
-        }
-      }
+      await this.persistTenantDocument(key, data, tenantId);
     } catch (error) {
-      console.error(`Failed to sync ${key} to Firebase`, error);
+      console.error(`Failed to persist ${key}`, error);
     }
-  }
-
-  // Helper for Catalog which shares same logic
-  async getCatalog(type: string, defaults: any[], tenantId?: string): Promise<any[]> {
-    return this.get<any[]>(type, defaults, tenantId);
   }
 
   async listTenants(): Promise<Tenant[]> {
-    if (db) {
-      try {
-        const snapshot = await getDocs(collection(db, 'tenants'));
-        const tenants = snapshot.docs.map(docSnap => {
-          const data = docSnap.data() as Tenant;
-          return { ...data, id: data?.id || docSnap.id };
-        });
-        if (tenants.length) {
-          const sorted = tenants.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-          return sorted;
-        }
-      } catch (error) {
-        console.warn('Unable to load tenants from Firestore, falling back to mock endpoint', error);
+    try {
+      const response = await this.requestTenantApi<TenantApiListResponse>('/api/tenants');
+      const tenants = Array.isArray(response?.data)
+        ? response.data.map(doc => this.normalizeTenantDocument(doc))
+        : [];
+      if (tenants.length) {
+        return tenants.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
       }
+    } catch (error) {
+      console.warn('Unable to load tenants from backend API', error);
     }
+
     return this.fetchMockTenants();
   }
 
@@ -440,35 +405,25 @@ class DataServiceImpl {
       settings: {}
     });
 
-    if (db) {
-      try {
-        const tenantRef = doc(collection(db, 'tenants'));
-        const tenant: Tenant = { ...baseTenant, id: tenantRef.id };
-        await setDoc(tenantRef, tenant);
-        return tenant;
-      } catch (error) {
-        console.warn('Failed to persist tenant to Firestore, attempting mock API fallback', error);
-      }
-    }
+    const apiPayload = {
+      name: baseTenant.name,
+      subdomain: normalizedSubdomain,
+      contactEmail: baseTenant.contactEmail,
+      contactName: baseTenant.contactName,
+      adminEmail,
+      adminPassword,
+      plan: baseTenant.plan
+    } satisfies CreateTenantPayload;
 
-    if (typeof fetch === 'undefined') {
-      throw new Error('Tenant seeding is only available in browser runtime');
-    }
-
-    const response = await fetch('/api/tenants', {
+    const apiResponse = await this.requestTenantApi<TenantApiItemResponse>('/api/tenants', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(apiPayload)
     });
-
-    if (!response.ok) {
-      const errorResponse = await response.json().catch(() => ({}));
-      throw new Error(errorResponse?.error || 'Unable to create tenant');
+    if (apiResponse?.data) {
+      return this.normalizeTenantDocument(apiResponse.data);
     }
 
-    const body = await response.json();
-    const tenant = body?.data as Tenant;
-    return tenant;
+    throw new Error('Unable to create tenant. Backend API is unavailable.');
   }
 
   async deleteTenant(tenantId: string): Promise<void> {
@@ -476,27 +431,9 @@ class DataServiceImpl {
       throw new Error('tenantId is required');
     }
 
-    if (db) {
-      try {
-        await deleteDoc(doc(db, 'tenants', tenantId));
-        return;
-      } catch (error) {
-        console.warn('Failed to delete tenant from Firestore, attempting mock API fallback', error);
-      }
-    }
-
-    if (typeof fetch === 'undefined') {
-      throw new Error('Tenant deletion is only available in browser runtime');
-    }
-
-    const response = await fetch(`/api/tenants/${tenantId}`, {
-      method: 'DELETE',
+    await this.requestTenantApi(`/api/tenants/${tenantId}`, {
+      method: 'DELETE'
     });
-
-    if (!response.ok) {
-      const errorResponse = await response.json().catch(() => ({}));
-      throw new Error(errorResponse?.error || 'Unable to delete tenant');
-    }
   }
 }
 

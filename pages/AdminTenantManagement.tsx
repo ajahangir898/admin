@@ -51,7 +51,7 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({ tenants, 
   };
 
   const primaryDomain = normalizeDomain(import.meta.env.VITE_PRIMARY_DOMAIN) || (typeof window !== 'undefined' ? window.location.hostname : '');
-  const tenantProtocol = primaryDomain.includes('localhost') || primaryDomain.startsWith('127.') ? 'http' : 'https';
+  const tenantProtocol = primaryDomain.includes('localhost:3000') || primaryDomain.startsWith('127.') ? 'http' : 'https';
   const formatTenantDomain = (subdomain?: string | null) => {
     if (!subdomain) return null;
     const slug = subdomain.trim();

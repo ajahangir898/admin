@@ -4,7 +4,6 @@ import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, CreateTenantPayload, ChatMessage } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
-import { AuthService, FirebaseUser } from './services/AuthService';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { Toaster, toast } from 'react-hot-toast';
@@ -182,29 +181,14 @@ const hexToRgb = (hex: string) => {
 };
 
 const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
-
-const AUTH_ERROR_MESSAGES: Record<string, string> = {
-  'auth/user-not-found': 'Invalid email or password.',
-  'auth/wrong-password': 'Invalid email or password.',
-  'auth/invalid-credential': 'Invalid email or password.',
-  'auth/email-already-in-use': 'Email already in use. Try logging in instead.',
-  'auth/weak-password': 'Password should be at least 6 characters.',
-  'auth/too-many-requests': 'Too many attempts. Please try again later.',
-  'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Please allow popups or try again.',
-  'auth/operation-not-supported-in-this-environment': 'Google sign-in is not supported in this browser. Try opening the site in your default browser.',
-  'auth/popup-blocked-unsupported-browser': 'Google sign-in is not supported in this browser. Please try the redirect flow.',
-  'auth/unauthorized-domain': 'This domain is not authorized for Google sign-in. Add it to Firebase Auth authorized domains.'
-};
+const SESSION_STORAGE_KEY = 'seven-days-user';
 
 const getAuthErrorMessage = (error: unknown) => {
-  if (typeof error === 'object' && error && 'code' in error) {
-    const code = (error as { code?: string }).code;
-    if (code && AUTH_ERROR_MESSAGES[code]) {
-      return AUTH_ERROR_MESSAGES[code];
-    }
-  }
   if (error instanceof Error && error.message) {
     return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
   }
   return 'Something went wrong. Please try again.';
 };
@@ -274,7 +258,6 @@ const App = () => {
   });
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   
   // Catalog State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -350,6 +333,41 @@ const App = () => {
     hostTenantSlugRef.current = hostTenantSlug;
   }, [hostTenantSlug]);
 
+  const applyTenantList = useCallback((tenantList: Tenant[]) => {
+    setTenants(tenantList);
+    const desiredSlug = hostTenantSlugRef.current ? sanitizeSubdomainSlug(hostTenantSlugRef.current) : '';
+    const matchedTenant = desiredSlug
+      ? tenantList.find((tenant) => sanitizeSubdomainSlug(tenant.subdomain || '') === desiredSlug)
+      : undefined;
+
+    setHostTenantId(matchedTenant ? matchedTenant.id : null);
+
+    if (desiredSlug && !matchedTenant && !hostTenantWarningRef.current) {
+      toast.error(`No storefront configured for ${desiredSlug}.`);
+      hostTenantWarningRef.current = true;
+    }
+
+    const activeId = activeTenantIdRef.current;
+    const activeExists = tenantList.some((tenant) => tenant.id === activeId);
+
+    if (matchedTenant) {
+      if (matchedTenant.id !== activeId) {
+        setActiveTenantId(matchedTenant.id);
+      }
+      return;
+    }
+
+    if (!activeExists && tenantList.length) {
+      setActiveTenantId(tenantList[0].id);
+    }
+  }, []);
+
+  const refreshTenants = useCallback(async () => {
+    const tenantList = await DataService.listTenants();
+    applyTenantList(tenantList);
+    return tenantList;
+  }, [applyTenantList]);
+
   useEffect(() => {
     if (!hostTenantSlug) return;
     if (hostTenantId) return;
@@ -365,13 +383,34 @@ const App = () => {
   }, [hostTenantSlug, hostTenantId, tenants]);
 
   useEffect(() => {
-    const unsubscribe = AuthService.onAuthStateChange(setAuthUser);
-    return unsubscribe;
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored) as User;
+      if (parsed) {
+        setUser(parsed);
+        if (parsed.tenantId) {
+          setActiveTenantId(parsed.tenantId);
+        }
+      }
+    } catch (error) {
+      console.warn('Unable to restore session', error);
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    }
   }, []);
 
   useEffect(() => {
-    if (!authUser) {
-      setUser(null);
+    if (typeof window === 'undefined') return;
+    if (user) {
+      window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
       if (currentViewRef.current.startsWith('admin')) {
         setCurrentView('store');
         setAdminSection('dashboard');
@@ -379,61 +418,16 @@ const App = () => {
       return;
     }
 
-    const authEmail = authUser.email?.toLowerCase() || '';
-    let resolvedUser: User | null = null;
-
-    if (authEmail === 'admin@systemnextit.com') {
-      resolvedUser = {
-        name: 'Super Admin',
-        email: authUser.email || 'admin@systemnextit.com',
-        role: 'super_admin',
-        tenantId: activeTenantId || DEFAULT_TENANT_ID
-      };
+    const resolvedTenantId = user.tenantId || activeTenantId || DEFAULT_TENANT_ID;
+    if (resolvedTenantId !== activeTenantId) {
+      setActiveTenantId(resolvedTenantId);
     }
 
-    if (!resolvedUser && authEmail) {
-      const tenantAdmin = tenants.find((tenant) => tenant.adminEmail?.toLowerCase() === authEmail);
-      if (tenantAdmin) {
-        resolvedUser = {
-          name: `${tenantAdmin.name} Admin`,
-          email: authUser.email || tenantAdmin.adminEmail || '',
-          role: 'tenant_admin',
-          tenantId: tenantAdmin.id
-        };
-      }
-    }
-
-    if (!resolvedUser && authEmail) {
-      const matchedUser = users.find((u) => u.email?.toLowerCase() === authEmail);
-      if (matchedUser) {
-        resolvedUser = {
-          ...matchedUser,
-          tenantId: matchedUser.tenantId || activeTenantId || DEFAULT_TENANT_ID,
-          role: matchedUser.role || 'customer'
-        };
-      }
-    }
-
-    if (!resolvedUser) {
-      resolvedUser = {
-        name: authUser.displayName || authUser.email || 'Customer',
-        email: authUser.email || '',
-        role: 'customer',
-        tenantId: activeTenantId || DEFAULT_TENANT_ID
-      };
-    }
-
-    setUser(resolvedUser);
-
-    if (resolvedUser.tenantId && resolvedUser.tenantId !== activeTenantId) {
-      setActiveTenantId(resolvedUser.tenantId);
-    }
-
-    if (isAdminRole(resolvedUser.role) && !currentViewRef.current.startsWith('admin')) {
+    if (isAdminRole(user.role) && !currentViewRef.current.startsWith('admin')) {
       setCurrentView('admin');
       setAdminSection('dashboard');
     }
-  }, [authUser, tenants, users, activeTenantId]);
+  }, [user, activeTenantId]);
 
   // --- INITIAL DATA LOADING ---
   useEffect(() => {
@@ -442,40 +436,14 @@ const App = () => {
       try {
         const tenantList = await DataService.listTenants();
         if (!isMounted) return;
-        setTenants(tenantList);
-
-        const desiredSlug = hostTenantSlugRef.current ? sanitizeSubdomainSlug(hostTenantSlugRef.current) : '';
-        const matchedTenant = desiredSlug
-          ? tenantList.find((tenant) => sanitizeSubdomainSlug(tenant.subdomain || '') === desiredSlug)
-          : undefined;
-
-        setHostTenantId(matchedTenant ? matchedTenant.id : null);
-
-        if (desiredSlug && !matchedTenant && !hostTenantWarningRef.current) {
-          toast.error(`No storefront configured for ${desiredSlug}.`);
-          hostTenantWarningRef.current = true;
-        }
-
-        const activeId = activeTenantIdRef.current;
-        const activeExists = tenantList.some((tenant) => tenant.id === activeId);
-
-        if (matchedTenant) {
-          if (matchedTenant.id !== activeId) {
-            setActiveTenantId(matchedTenant.id);
-          }
-          return;
-        }
-
-        if (!activeExists && tenantList.length) {
-          setActiveTenantId(tenantList[0].id);
-        }
+        applyTenantList(tenantList);
       } catch (error) {
         console.warn('Unable to load tenants', error);
       }
     };
     loadTenants();
     return () => { isMounted = false; };
-  }, [hostTenantSlug]);
+  }, [applyTenantList, hostTenantSlug]);
   useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
@@ -848,19 +816,17 @@ fbq('track', 'PageView');`;
       throw new Error('Email already registered. Try logging in instead.');
     }
     try {
-      await AuthService.register({
-        email: normalizedEmail,
-        password: newUser.password,
-        name: newUser.name
-      });
-      const { password, ...rest } = newUser;
       const scopedUser: User = {
-        ...rest,
+        ...newUser,
         email: normalizedEmail,
-        tenantId: rest.tenantId || activeTenantId,
-        role: rest.role || 'customer'
+        tenantId: newUser.tenantId || activeTenantId,
+        role: newUser.role || 'customer'
       };
       setUsers((prev) => [...prev.filter((u) => u.email !== scopedUser.email), scopedUser]);
+      setUser(scopedUser);
+      if (scopedUser.tenantId) {
+        setActiveTenantId(scopedUser.tenantId);
+      }
       return true;
     } catch (error) {
       throw new Error(getAuthErrorMessage(error));
@@ -932,34 +898,18 @@ fbq('track', 'PageView');`;
     if (tryLegacyLogin(normalizedEmail, normalizedPass)) {
       return true;
     }
-    try {
-      await AuthService.login(normalizedEmail, normalizedPass);
-      return true;
-    } catch (error) {
-      throw new Error(getAuthErrorMessage(error));
-    }
+    throw new Error('Invalid email or password.');
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      await AuthService.loginWithGoogle();
-      return true;
-    } catch (error) {
-      throw new Error(getAuthErrorMessage(error));
-    }
+    throw new Error('Google login is not available in this environment.');
   };
 
   const handleLogout = async () => {
-    try {
-      await AuthService.logout();
-    } catch (error) {
-      console.warn('Failed to sign out', error);
-    } finally {
-      setUser(null);
-      setCurrentView('store');
-      setSelectedVariant(null);
-      setAdminSection('dashboard');
-    }
+    setUser(null);
+    setCurrentView('store');
+    setSelectedVariant(null);
+    setAdminSection('dashboard');
   };
 
   const handleUpdateProfile = (updatedUser: User) => {
@@ -1062,17 +1012,27 @@ fbq('track', 'PageView');`;
     setIsTenantSeeding(true);
     try {
       const newTenant = await DataService.seedTenant(payload);
-      setTenants(prev => {
-        const filtered = prev.filter(t => t.id !== newTenant.id);
-        return [newTenant, ...filtered];
-      });
-
-      if (options.activate) {
-        handleTenantChange(newTenant.id);
+      let resolvedTenant = newTenant;
+      try {
+        const refreshed = await refreshTenants();
+        const matched = refreshed?.find((tenant) => tenant.id === newTenant.id || tenant.subdomain === newTenant.subdomain);
+        if (matched) {
+          resolvedTenant = matched;
+        }
+      } catch (refreshError) {
+        console.warn('Unable to refresh tenants after creation', refreshError);
+        setTenants(prev => {
+          const filtered = prev.filter(t => t.id !== newTenant.id);
+          return [newTenant, ...filtered];
+        });
       }
 
-      toast.success(`${newTenant.name} is ready`);
-      return newTenant;
+      if (options.activate && resolvedTenant?.id) {
+        handleTenantChange(resolvedTenant.id);
+      }
+
+      toast.success(`${resolvedTenant.name} is ready`);
+      return resolvedTenant;
     } catch (error) {
       console.error('Failed to create tenant', error);
       const message = error instanceof Error ? error.message : 'Unable to create tenant';
@@ -1089,11 +1049,20 @@ fbq('track', 'PageView');`;
     try {
       await DataService.deleteTenant(tenantId);
       let fallbackTenantId: string | null = null;
-      setTenants(prev => {
-        const updated = prev.filter(tenant => tenant.id !== tenantId);
-        fallbackTenantId = updated[0]?.id || null;
-        return updated;
-      });
+      try {
+        const latest = await refreshTenants();
+        fallbackTenantId = latest?.[0]?.id || null;
+      } catch (refreshError) {
+        console.warn('Unable to refresh tenants after deletion', refreshError);
+        let candidateId: string | null = null;
+        setTenants(prev => {
+          const updated = prev.filter(tenant => tenant.id !== tenantId);
+          candidateId = updated[0]?.id || null;
+          return updated;
+        });
+        fallbackTenantId = candidateId;
+      }
+
       if (tenantId === activeTenantId) {
         if (fallbackTenantId) {
           handleTenantChange(fallbackTenantId);

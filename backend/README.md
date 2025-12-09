@@ -6,7 +6,6 @@ Node/Express service that replaces direct Firestore access with a MongoDB-backed
 
 - Node 18+
 - MongoDB Atlas cluster (or self-hosted) with a database created
-- Firebase project (optional, only if you still rely on Firebase Auth tokens)
 
 ## Environment Variables
 
@@ -17,12 +16,7 @@ PORT=5001
 MONGODB_URI=mongodb+srv://user:password@cluster-url
 MONGODB_DB_NAME=seven_days
 ALLOWED_ORIGINS=http://localhost:5173,https://admin.yourdomain.com
-FIREBASE_ADMIN_PROJECT_ID=your-firebase-project-id
-FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk@project.iam.gserviceaccount.com
-FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
-
-You can omit the Firebase variables if you disable the auth middleware in `src/middleware/auth.ts`.
 
 ## Scripts
 

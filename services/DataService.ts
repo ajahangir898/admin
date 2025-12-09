@@ -293,7 +293,9 @@ class DataServiceImpl {
       chatGreeting: 'Hi there! How can we help today?',
       chatOfflineMessage: 'We are currently offline. Drop your message and we will reach out soon.',
       chatSupportHours: { from: '10:00', to: '22:00' },
-      chatWhatsAppFallback: true
+      chatWhatsAppFallback: true,
+      androidAppUrl: 'aaa',
+      iosAppUrl: 'aaa'
     };
     return this.get<WebsiteConfig>('website_config', defaultConfig, tenantId);
   }

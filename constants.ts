@@ -1,4 +1,3 @@
-
 import { Product, Order, ChartData, GalleryItem, LandingPage, LandingPageTemplate, Tenant } from './types';
 
 export const DEFAULT_VARIANT_COLOR = 'Default';
@@ -123,9 +122,9 @@ export const PRODUCTS: Product[] = [
     name: 'Logitech G Pro X Headset',
     price: 12500,
     originalPrice: 15000,
-    image: 'https://images.unsplash.com/photo-1599669454699-248893623040?auto=format&fit=crop&q=80&w=960',
+    image: '',
     galleryImages: [
-      'https://images.unsplash.com/photo-1599669454699-248893623040?auto=format&fit=crop&q=80&w=960',
+      '',
       'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960',
       'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960&sat=-50',
       'https://images.unsplash.com/photo-1457305237443-44c3d5a30b89?auto=format&fit=crop&q=80&w=960&sat=-100',

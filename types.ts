@@ -230,6 +230,9 @@ export interface WebsiteConfig {
   chatSurfaceColor?: string;
   chatBorderColor?: string;
   chatShadowColor?: string;
+  // App Download Links
+  androidAppUrl?: string;
+  iosAppUrl?: string;
 }
 
 export interface DeliveryConfig {

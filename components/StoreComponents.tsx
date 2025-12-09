@@ -35,24 +35,42 @@ const hexToRgb = (hex: string) => {
     const b = numeric & 255;
     return `${r}, ${g}, ${b}`;
 };
+
+type DrawerLinkItem = {
+    key: string;
+    label: string;
+    icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+    action?: () => void;
+};
+
+type CatalogGroup = {
+    key: string;
+    label: string;
+    items: string[];
+};
 interface StoreHeaderProps { 
-  onTrackOrder?: () => void;
-  onOpenAIStudio?: () => void;
-  onHomeClick?: () => void;
-  wishlistCount?: number;
+    onTrackOrder?: () => void;
+    onOpenAIStudio?: () => void;
+    onHomeClick?: () => void;
+    wishlistCount?: number;
     notificationsCount?: number;
-  user?: UserType | null;
-  onLoginClick?: () => void;
-  onLogoutClick?: () => void;
-  onProfileClick?: () => void;
-  logo?: string | null;
-  websiteConfig?: WebsiteConfig;
+    user?: UserType | null;
+    onLoginClick?: () => void;
+    onLogoutClick?: () => void;
+    onProfileClick?: () => void;
+    logo?: string | null;
+    websiteConfig?: WebsiteConfig;
     searchValue?: string;
     onSearchChange?: (value: string) => void;
     onCategoriesClick?: () => void;
     onProductsClick?: () => void;
     categoriesList?: string[];
     onCategorySelect?: (categoryName: string) => void;
+    categories?: any[];
+    subCategories?: any[];
+    childCategories?: any[];
+    brands?: any[];
+    tags?: any[];
 }
 
 export const MobileBottomNav: React.FC<{
@@ -319,45 +337,30 @@ export const MobileBottomNav: React.FC<{
 };
 
 export const StoreHeader: React.FC<StoreHeaderProps> = ({ 
-  onTrackOrder, 
-  onOpenAIStudio, 
-  onHomeClick, 
-  wishlistCount, 
+    onTrackOrder,
+    onOpenAIStudio,
+    onHomeClick,
+    wishlistCount,
     notificationsCount,
-  user, 
-  onLoginClick, 
-  onLogoutClick, 
-  onProfileClick,
-  logo,
+    user,
+    onLoginClick,
+    onLogoutClick,
+    onProfileClick,
+    logo,
     websiteConfig,
     searchValue,
     onSearchChange,
     onCategoriesClick,
     onProductsClick,
     categoriesList,
-    onCategorySelect
+    onCategorySelect,
+    categories = [],
+    subCategories = [],
+    childCategories = [],
+    brands = [],
+    tags = [],
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-    const categoryMenuRef = useRef<HTMLDivElement>(null);
-    const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
-    const notificationBadgeCount = typeof notificationsCount === 'number' && notificationsCount > 0 ? notificationsCount : 0;
-        const searchQuery = searchValue ?? '';
-        const [isListening, setIsListening] = useState(false);
-        const [liveTranscript, setLiveTranscript] = useState('');
-        const [typedSearchValue, setTypedSearchValue] = useState(searchQuery);
-        useEffect(() => {
-            setTypedSearchValue(searchQuery);
-        }, [searchQuery]);
-        const activeSearchValue = isListening && liveTranscript ? liveTranscript : typedSearchValue;
-        const emitSearchValue = useCallback((value: string) => {
-            onSearchChange?.(value);
-        }, [onSearchChange]);
-        const handleSearchInput = useCallback((value: string) => {
-            setTypedSearchValue(value);
-            emitSearchValue(value);
-        }, [emitSearchValue]);
-    
+    // Voice search and search hint overlay logic
     const [supportsVoiceSearch, setSupportsVoiceSearch] = useState(false);
     const recognitionRef = useRef<any>(null);
     const speechApiRef = useRef<any>(null);
@@ -411,7 +414,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             </div>
         );
     };
-
     const renderVoiceStreamOverlay = (positionClass = 'absolute -bottom-11 left-0 right-0') => {
         if (!isListening) return null;
         return (
@@ -423,6 +425,95 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             </div>
         );
     };
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const categoryMenuRef = useRef<HTMLDivElement>(null);
+    const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+    const notificationBadgeCount = typeof notificationsCount === 'number' && notificationsCount > 0 ? notificationsCount : 0;
+    const searchQuery = searchValue ?? '';
+    const [isListening, setIsListening] = useState(false);
+    const [liveTranscript, setLiveTranscript] = useState('');
+    const [typedSearchValue, setTypedSearchValue] = useState(searchQuery);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
+    const [activeCatalogSection, setActiveCatalogSection] = useState<string>('categories');
+    useEffect(() => {
+        setTypedSearchValue(searchQuery);
+    }, [searchQuery]);
+    const activeSearchValue = isListening && liveTranscript ? liveTranscript : typedSearchValue;
+    const emitSearchValue = useCallback((value: string) => {
+        onSearchChange?.(value);
+    }, [onSearchChange]);
+    const handleSearchInput = useCallback((value: string) => {
+        setTypedSearchValue(value);
+        emitSearchValue(value);
+    }, [emitSearchValue]);
+
+      // Catalog data from props
+            // Use destructured props directly
+            // These should be passed as props to StoreHeader
+            // If not present, default to empty array
+            const safeCategories = Array.isArray(categories) ? categories : [];
+            const safeSubCategories = Array.isArray(subCategories) ? subCategories : [];
+            const safeChildCategories = Array.isArray(childCategories) ? childCategories : [];
+            const safeBrands = Array.isArray(brands) ? brands : [];
+            const safeTags = Array.isArray(tags) ? tags : [];
+
+      const catalogGroups = useMemo<CatalogGroup[]>(() => [
+                { key: 'categories', label: 'Categories', items: (Array.isArray(categoriesList) && categoriesList.length) ? categoriesList : safeCategories.map((c: any) => c.name) },
+                { key: 'subCategories', label: 'Sub Categories', items: safeSubCategories.map((s: any) => s.name) },
+                { key: 'childCategories', label: 'Child Categories', items: safeChildCategories.map((c: any) => c.name) },
+                { key: 'brand', label: 'Brand', items: safeBrands.map((b: any) => b.name) },
+                { key: 'tags', label: 'Tags', items: safeTags.map((t: any) => t.name) },
+            ], [categoriesList, safeCategories, safeSubCategories, safeChildCategories, safeBrands, safeTags]);
+    // Drawer order: Campaign, Recommend, Catalog, FAQs, Download, Need Help
+    const mobileDrawerLinks = useMemo<DrawerLinkItem[]>(() => [
+        { key: 'campaign', label: 'Campaign', icon: Heart },
+        { key: 'recommend', label: 'Recommend', icon: Phone, action: onTrackOrder },
+        // Catalog handled separately as dropdown
+        { key: 'faqs', label: 'FAQs', icon: Info },
+    ], [onTrackOrder]);
+            // Drawer: Add app download buttons after FAQs
+            const appDownloadButtons = (
+                <div className="flex flex-col gap-3 mt-4">
+                    {websiteConfig?.androidAppUrl && (
+                        <a
+                            href={websiteConfig.androidAppUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center rounded-full bg-white shadow border border-gray-200 px-4 py-2 gap-2 hover:bg-gray-50 transition"
+                            style={{ minWidth: 220 }}
+                        >
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" style={{ height: 32 }} />
+                            <span className="ml-2 font-semibold text-gray-800 text-base">Get it on Google Play</span>
+                        </a>
+                    )}
+                    {websiteConfig?.iosAppUrl && (
+                        <a
+                            href={websiteConfig.iosAppUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center rounded-full bg-white shadow border border-gray-200 px-4 py-2 gap-2 hover:bg-gray-50 transition"
+                            style={{ minWidth: 220 }}
+                        >
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_badge_EN.svg" alt="App Store" style={{ height: 32 }} />
+                            <span className="ml-2 font-semibold text-gray-800 text-base">Download on the App Store</span>
+                        </a>
+                    )}
+                </div>
+            );
+    const toggleCatalogSection = useCallback((key: string) => {
+        setActiveCatalogSection((prev) => (prev === key ? '' : key));
+    }, []);
+    const handleDrawerNavClick = useCallback((action?: () => void) => {
+        setIsMobileMenuOpen(false);
+        action?.();
+    }, []);
+    const handleCatalogItemClick = useCallback((item: string) => {
+        onCategorySelect?.(item);
+        onCategoriesClick?.();
+        setIsMobileMenuOpen(false);
+    }, [onCategoriesClick, onCategorySelect]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -952,6 +1043,146 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             <style>{SEARCH_HINT_ANIMATION}</style>
             <header className="store-header w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       
+      {/* Mobile Drawer & Overlay */}
+            <div
+                className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                aria-hidden={!isMobileMenuOpen}
+            />
+            <aside
+                className={`fixed inset-y-0 left-0 z-[99] w-[82%] max-w-sm bg-white dark:bg-slate-900 shadow-2xl md:hidden transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                aria-hidden={!isMobileMenuOpen}
+            >
+                <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2">
+                        {logo ? (
+                            <img src={logo} alt="Store Logo" className="h-8 object-contain" />
+                        ) : (
+                            <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white">
+                                GADGET<span className="text-pink-500">SHOB</span>
+                            </span>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        aria-label="Close menu"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+                    <nav className="space-y-2">
+                        {mobileDrawerLinks.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    className="w-full flex items-center gap-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-left text-sm font-semibold text-gray-800 dark:text-gray-200 shadow-sm hover:border-purple-200 dark:hover:border-purple-400/40"
+                                    onClick={() => handleDrawerNavClick(item.action)}
+                                >
+                                    <Icon size={18} strokeWidth={1.8} className="text-gray-700 dark:text-gray-300" />
+                                    <span>{item.label}</span>
+                                </button>
+                            );
+                        })}
+                        {/* App download buttons */}
+                        {appDownloadButtons}
+                        {/* Catalog dropdown (click only) */}
+                        <div className="rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden mt-2">
+                            <button
+                                type="button"
+                                className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-slate-800/60"
+                                onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Grid size={18} className="text-gray-700 dark:text-gray-200" />
+                                    <span>Catalog</span>
+                                </div>
+                                <ChevronDown className={`transition-transform ${isCatalogDropdownOpen ? 'rotate-180' : ''}`} size={18} />
+                            </button>
+                            <div className={`border-t border-gray-200 dark:border-slate-700 divide-y divide-gray-100 dark:divide-slate-700 transition-[max-height] duration-300 ${
+                                isCatalogDropdownOpen ? 'max-h-[520px]' : 'max-h-0'
+                            } overflow-hidden bg-white dark:bg-slate-900`}
+                            >
+                                {catalogGroups.map((group) => {
+                                    const isActive = activeCatalogSection === group.key;
+                                    return (
+                                        <div key={group.key} className="bg-white dark:bg-slate-900">
+                                            <button
+                                                type="button"
+                                                className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold transition-colors ${
+                                                    isActive
+                                                        ? 'text-orange-600 bg-orange-50/70 dark:bg-white/10'
+                                                        : 'text-gray-800 dark:text-gray-100'
+                                                }`}
+                                                onClick={() => toggleCatalogSection(group.key)}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <ChevronRight
+                                                        size={16}
+                                                        className={`transition-transform ${isActive ? 'rotate-90 text-orange-500' : 'text-gray-400'}`}
+                                                    />
+                                                    <span>{group.label}</span>
+                                                </div>
+                                                {isActive ? (
+                                                    <Minus size={16} className="text-orange-500" />
+                                                ) : (
+                                                    <Plus size={16} className="text-gray-400" />
+                                                )}
+                                            </button>
+                                            <ul
+                                                className={`pl-10 pr-6 text-xs text-gray-600 dark:text-gray-300 transition-[max-height] duration-300 overflow-hidden ${
+                                                    isActive ? 'max-h-60 py-3 space-y-1.5 bg-white dark:bg-slate-900' : 'max-h-0'
+                                                }`}
+                                            >
+                                                {group.items.map((item) => (
+                                                    <li key={`${group.key}-${item}`}>
+                                                        <button
+                                                            type="button"
+                                                            className="w-full text-left hover:text-orange-600 dark:hover:text-orange-400"
+                                                            onClick={() => handleCatalogItemClick(item)}
+                                                        >
+                                                            {item}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        {/* Download buttons */}
+                        <div className="flex gap-3 mt-4 px-2">
+                            {websiteConfig?.androidAppUrl && (
+                                <a href={websiteConfig.androidAppUrl} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center border-2 border-red-500 rounded-lg bg-white px-4 py-3 shadow transition hover:bg-gray-50" style={{ minWidth: 120 }}>
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" style={{ height: 32, marginBottom: 4 }} />
+                                    <span className="font-semibold text-gray-800 text-sm">Download Android App</span>
+                                </a>
+                            )}
+                            {websiteConfig?.iosAppUrl && (
+                                <a href={websiteConfig.iosAppUrl} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center border-2 border-red-500 rounded-lg bg-white px-4 py-3 shadow transition hover:bg-gray-50" style={{ minWidth: 120 }}>
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_badge_EN.svg" alt="App Store" style={{ height: 32, marginBottom: 4 }} />
+                                    <span className="font-semibold text-gray-800 text-sm">Download iOS App</span>
+                                </a>
+                            )}
+                        </div>
+                    </nav>
+                  
+                    <div className="rounded-2xl bg-gray-900 text-white px-4 py-5 space-y-2 shadow-lg">
+                        <p className="text-sm font-semibold">Need help?</p>
+                        <p className="text-xs text-white/80">Chat with our team on WhatsApp or call us directly.</p>
+                        <div className="flex flex-col gap-1 text-sm">
+                            {websiteConfig?.phones?.[0] && <span>{websiteConfig.phones[0]}</span>}
+                            {websiteConfig?.whatsappNumber && <span>WhatsApp: {websiteConfig.whatsappNumber}</span>}
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
       {/* MOBILE HEADER SPECIFIC LAYOUT */}
             <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3 border-b border-gray-100 shadow-sm">
                 {/* Logo Row - Centered */}
@@ -998,7 +1229,12 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
 
                 {/* Action Row */}
                 <div className="flex items-center gap-3">
-                    <button className="text-gray-800 dark:text-white">
+                    <button
+                        type="button"
+                        className="text-gray-800 dark:text-white"
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        aria-label="Open menu"
+                    >
                         <Menu size={28} strokeWidth={2} />
                     </button>
 

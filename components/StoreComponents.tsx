@@ -4,6 +4,8 @@ import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Tru
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
+import { DataService } from '@/services/DataService';
+import { PRODUCTS } from '../constants';
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -341,7 +343,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     onOpenAIStudio,
     onHomeClick,
     wishlistCount,
+    wishlist = [],
+    onToggleWishlist,
     notificationsCount,
+    cart = [],
+    onToggleCart,
     user,
     onLoginClick,
     onLogoutClick,
@@ -360,7 +366,92 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     brands = [],
     tags = [],
 }) => {
-    // Voice search and search hint overlay logic
+    // Cart logic
+    const [cartItems, setCartItems] = useState<number[]>(cart);
+    useEffect(() => {
+        setCartItems(cart);
+    }, [cart]);
+
+    // Fetch cart from backend API on mount (if user is logged in)
+    useEffect(() => {
+        async function fetchCart() {
+            if (!user) return;
+            try {
+                const items = await DataService.get('cart', [], user.id);
+                setCartItems(items || []);
+            } catch (err) {
+                toast.error('Failed to load cart');
+            }
+        }
+        fetchCart();
+    }, [user]);
+
+    // Add/remove cart item
+    const handleToggleCart = useCallback((productId: number) => {
+        if (!user) {
+            toast('Please login to use cart');
+            return;
+        }
+        const isInCart = cartItems.includes(productId);
+        const update = async () => {
+            try {
+                if (isInCart) {
+                    await DataService.save('cart/remove', { productId }, user.id);
+                    setCartItems((prev) => prev.filter((id) => id !== productId));
+                } else {
+                    await DataService.save('cart/add', { productId }, user.id);
+                    setCartItems((prev) => [...prev, productId]);
+                }
+                onToggleCart?.(productId);
+            } catch (err) {
+                toast.error('Cart update failed');
+            }
+        };
+        update();
+    }, [user, cartItems, onToggleCart]);
+    const [wishlistItems, setWishlistItems] = useState<number[]>(wishlist);
+    useEffect(() => {
+        setWishlistItems(wishlist);
+    }, [wishlist]);
+
+    // Fetch wishlist from backend API on mount (if user is logged in)
+    useEffect(() => {
+        async function fetchWishlist() {
+            if (!user) return;
+            try {
+                // Example: DataService.getWishlist(user.id)
+                const items = await DataService.get('wishlist', [], user.id);
+                setWishlistItems(items || []);
+            } catch (err) {
+                toast.error('Failed to load wishlist');
+            }
+        }
+        fetchWishlist();
+    }, [user]);
+
+    // Add/remove wishlist item
+    const handleToggleWishlist = useCallback((productId: number) => {
+        if (!user) {
+            toast('Please login to use wishlist');
+            return;
+        }
+        const isWishlisted = wishlistItems.includes(productId);
+        const update = async () => {
+            try {
+                if (isWishlisted) {
+                    await DataService.save('wishlist/remove', { productId }, user.id);
+                    setWishlistItems((prev) => prev.filter((id) => id !== productId));
+                } else {
+                    await DataService.save('wishlist/add', { productId }, user.id);
+                    setWishlistItems((prev) => [...prev, productId]);
+                }
+                onToggleWishlist?.(productId);
+            } catch (err) {
+                toast.error('Wishlist update failed');
+            }
+        };
+        update();
+    }, [user, wishlistItems, onToggleWishlist]);
     const [supportsVoiceSearch, setSupportsVoiceSearch] = useState(false);
     const recognitionRef = useRef<any>(null);
     const speechApiRef = useRef<any>(null);
@@ -430,6 +521,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const notificationBadgeCount = typeof notificationsCount === 'number' && notificationsCount > 0 ? notificationsCount : 0;
+    const cartBadgeCount = cartItems.length;
+    const wishlistBadgeCount = wishlistItems.length;
     const searchQuery = searchValue ?? '';
     const [isListening, setIsListening] = useState(false);
     const [liveTranscript, setLiveTranscript] = useState('');
@@ -437,6 +530,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
     const [activeCatalogSection, setActiveCatalogSection] = useState<string>('categories');
+        // Wishlist and Cart Drawer/Modal State
+        const [isWishlistDrawerOpen, setIsWishlistDrawerOpen] = useState(false);
+        const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
     useEffect(() => {
         setTypedSearchValue(searchQuery);
     }, [searchQuery]);
@@ -1211,20 +1307,98 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="relative cursor-pointer text-gray-800 dark:text-white">
+                        <button
+                            className="relative cursor-pointer text-gray-800 dark:text-white"
+                            aria-label="Wishlist"
+                            onClick={() => setIsWishlistDrawerOpen(true)}
+                        >
                             <Heart size={24} strokeWidth={2} />
-                            {wishlistCount !== undefined && wishlistCount > 0 && (
+                            {wishlistBadgeCount > 0 && (
                                 <span className="absolute -top-1.5 -right-1 bg-pink-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
-                                    {wishlistCount}
+                                    {wishlistBadgeCount}
                                 </span>
                             )}
-                        </div>
-                        <div className="relative cursor-pointer">
+                        </button>
+                        <button
+                            className="relative cursor-pointer text-gray-800 dark:text-white"
+                            aria-label="Cart"
+                            onClick={() => setIsCartDrawerOpen(true)}
+                        >
                             <ShoppingCart size={26} className="text-gray-800 dark:text-white" strokeWidth={2} />
-                            <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
-                                0
-                            </span>
-                        </div>
+                            {cartBadgeCount > 0 && (
+                                <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900">
+                                    {cartBadgeCount}
+                                </span>
+                            )}
+                        </button>
+                                    {/* Wishlist Drawer/Modal */}
+                                    {isWishlistDrawerOpen && (
+                                        <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
+                                            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-auto p-6 relative">
+                                                <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsWishlistDrawerOpen(false)}>
+                                                    <X size={22} />
+                                                </button>
+                                                <h2 className="text-lg font-bold mb-4">My Wishlist</h2>
+                                                {wishlistItems.length === 0 ? (
+                                                    <div className="text-center text-gray-500 py-8">No items in wishlist.</div>
+                                                ) : (
+                                                    <ul className="space-y-4">
+                                                        {wishlistItems.map((id) => {
+                                                            const product = PRODUCTS.find(p => p.id === id);
+                                                            if (!product) return null;
+                                                            return (
+                                                                <li key={id} className="flex items-center gap-3 border-b pb-3">
+                                                                    <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
+                                                                        <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
+                                                                        <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
+                                                                    </div>
+                                                                    <button className="text-red-500 hover:text-red-700" onClick={() => handleToggleWishlist(id)}>
+                                                                        <Trash2 size={18} />
+                                                                    </button>
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* Cart Drawer/Modal */}
+                                    {isCartDrawerOpen && (
+                                        <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
+                                            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-auto p-6 relative">
+                                                <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsCartDrawerOpen(false)}>
+                                                    <X size={22} />
+                                                </button>
+                                                <h2 className="text-lg font-bold mb-4">My Cart</h2>
+                                                {cartItems.length === 0 ? (
+                                                    <div className="text-center text-gray-500 py-8">No items in cart.</div>
+                                                ) : (
+                                                    <ul className="space-y-4">
+                                                        {cartItems.map((id) => {
+                                                            const product = PRODUCTS.find(p => p.id === id);
+                                                            if (!product) return null;
+                                                            return (
+                                                                <li key={id} className="flex items-center gap-3 border-b pb-3">
+                                                                    <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
+                                                                        <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
+                                                                        <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
+                                                                    </div>
+                                                                    <button className="text-red-500 hover:text-red-700" onClick={() => handleToggleCart(id)}>
+                                                                        <Trash2 size={18} />
+                                                                    </button>
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                         <div className="relative cursor-pointer text-gray-800 dark:text-white">
                             <Bell size={24} strokeWidth={2} />
                             {notificationBadgeCount > 0 && (

@@ -158,7 +158,7 @@ export class ImageSearchService {
       // Extract features using MobileNet
       const features = this.model.infer(img, true) as tf.Tensor;
       const embedding = await features.data();
-      const embeddingArray = Array.from(embedding);
+      const embeddingArray: number[] = Array.from(embedding as unknown as Iterable<number>);
 
       // Cache result
       this.embeddingCache.set(imageUrl, embeddingArray);

@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import multer from 'multer';
+import multer, { StorageEngine, FileFilterCallback } from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
-import { ImageSearchService } from '../services/ImageSearchService';
+import ImageSearchService from '../services/ImageSearchService';
 
 /**
  * Image Search Routes
@@ -16,12 +16,12 @@ const router = Router();
 // Configure multer for image uploads
 const upload = multer({
   storage: multer.diskStorage({
-    destination: async (req, file, cb) => {
+    destination: async (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
       const uploadDir = path.join(process.cwd(), 'uploads', 'images');
       await fs.mkdir(uploadDir, { recursive: true });
       cb(null, uploadDir);
     },
-    filename: (req, file, cb) => {
+    filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
       const id = uuidv4();
       const ext = path.extname(file.originalname);
       cb(null, `${id}${ext}`);
@@ -30,7 +30,7 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
@@ -55,7 +55,7 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
     if (type === 'url' && req.body.url) {
       // Download image from URL
       const url = req.body.url;
-      const imageId = uuidv4();
+      imageId = uuidv4();
       const uploadDir = path.join(process.cwd(), 'uploads', 'images');
       const filePath = path.join(uploadDir, `${imageId}.jpg`);
 
@@ -74,17 +74,18 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
         console.error('URL download error:', error);
         return res.status(400).json({ error: 'Failed to download image from URL' });
       }
-    } else if (type === 'file' && req.file) {
+    } else if (type === 'file' && (req as any).file) {
       // File uploaded via multipart
-      imageId = path.parse(req.file.filename).name;
-      fileSize = req.file.size;
-      imageUrl = `${process.env.API_BASE_URL || 'http://localhost:8000'}/uploads/images/${req.file.filename}`;
+      const file = (req as any).file as Express.Multer.File;
+      imageId = path.parse(file.filename).name;
+      fileSize = file.size;
+      imageUrl = `${process.env.API_BASE_URL || 'http://localhost:8000'}/uploads/images/${file.filename}`;
     } else {
       return res.status(400).json({ error: 'No image provided' });
     }
 
     // Trigger embedding extraction (async)
-    ImageSearchService.extractAndStoreEmbedding(imageId, imageUrl).catch(error => {
+    ImageSearchService.extractAndStoreEmbedding(imageId, imageUrl).catch((error: Error) => {
       console.error('Embedding extraction error:', error);
     });
 

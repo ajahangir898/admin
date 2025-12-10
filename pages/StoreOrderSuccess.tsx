@@ -2,7 +2,7 @@
 import React from 'react';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
-import { User, WebsiteConfig } from '../types';
+import { User, WebsiteConfig, Product } from '../types';
 
 interface SuccessProps {
   onHome: () => void;
@@ -15,9 +15,13 @@ interface SuccessProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   onOpenChat?: () => void;
+  cart?: number[];
+  onToggleCart?: (id: number) => void;
+  onCheckoutFromCart?: (productId: number) => void;
+  productCatalog?: Product[];
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onOpenChat }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50 font-sans text-slate-900 flex flex-col">
       <StoreHeader 
@@ -30,6 +34,10 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         websiteConfig={websiteConfig}
         searchValue={searchValue}
         onSearchChange={onSearchChange}
+        cart={cart}
+        onToggleCart={onToggleCart}
+        onCheckoutFromCart={onCheckoutFromCart}
+        productCatalog={productCatalog}
       />
       
       <main className="flex-1 max-w-7xl mx-auto px-4 flex items-center justify-center py-12">

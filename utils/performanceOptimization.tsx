@@ -1,0 +1,424 @@
+/**
+ * Advanced Performance Optimization Utilities
+ * Image optimization, virtual scrolling, code splitting, and caching strategies
+ */
+
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+
+// ============================================================================
+// IMAGE OPTIMIZATION
+// ============================================================================
+
+export interface ImageOptimizationOptions {
+  width?: number;
+  height?: number;
+  quality?: number; // 1-100
+  format?: 'webp' | 'jpg' | 'png' | 'auto';
+  lazy?: boolean;
+}
+
+export const optimizeImage = (
+  imageUrl: string,
+  options: ImageOptimizationOptions = {}
+): string => {
+  if (!imageUrl) return '';
+  
+  // For local URLs, suggest WebP format
+  if (!imageUrl.startsWith('http')) {
+    return imageUrl.replace(/\.(jpg|png)$/i, '.webp');
+  }
+
+  const params = new URLSearchParams();
+  if (options.width) params.append('w', options.width.toString());
+  if (options.height) params.append('h', options.height.toString());
+  if (options.quality) params.append('q', Math.min(100, options.quality).toString());
+  
+  // Auto-detect format based on browser capabilities
+  const format = options.format || 'auto';
+  if (format !== 'auto') params.append('fm', format);
+
+  return `${imageUrl}${params.toString() ? '?' + params.toString() : ''}`;
+};
+
+// ============================================================================
+// VIRTUAL SCROLLING UTILITIES
+// ============================================================================
+
+export interface VirtualScrollOptions {
+  itemHeight: number;
+  containerHeight: number;
+  buffer?: number;
+}
+
+export const calculateVirtualScrollRange = (
+  scrollTop: number,
+  options: VirtualScrollOptions
+) => {
+  const { itemHeight, containerHeight, buffer = 5 } = options;
+  
+  const visibleCount = Math.ceil(containerHeight / itemHeight);
+  const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
+  const endIndex = startIndex + visibleCount + buffer * 2;
+
+  return { startIndex, endIndex, visibleCount };
+};
+
+export const useVirtualScroll = (
+  items: any[],
+  itemHeight: number,
+  containerHeight: number
+) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  const [visibleItems, setVisibleItems] = useState<any[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current) return;
+    setScrollTop(containerRef.current.scrollTop);
+  }, []);
+
+  useEffect(() => {
+    const { startIndex, endIndex } = calculateVirtualScrollRange(scrollTop, {
+      itemHeight,
+      containerHeight,
+    });
+    
+    setVisibleItems(items.slice(startIndex, endIndex));
+  }, [scrollTop, items, itemHeight, containerHeight]);
+
+  return {
+    visibleItems,
+    containerRef,
+    onScroll: handleScroll,
+    totalHeight: items.length * itemHeight,
+  };
+};
+
+// ============================================================================
+// CODE SPLITTING & LAZY LOADING
+// ============================================================================
+
+export const lazyLoadImage = (src: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => resolve(src);
+    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+  });
+};
+
+export const prefetchImage = (src: string) => {
+  const link = document.createElement('link');
+  link.rel = 'prefetch';
+  link.as = 'image';
+  link.href = src;
+  document.head.appendChild(link);
+};
+
+export const preloadScript = (src: string) => {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'script';
+  link.href = src;
+  document.head.appendChild(link);
+};
+
+// ============================================================================
+// MEMOIZATION & CACHING
+// ============================================================================
+
+export class CacheManager {
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private readonly ttl: number; // Time to live in milliseconds
+
+  constructor(ttlSeconds: number = 300) {
+    this.ttl = ttlSeconds * 1000;
+  }
+
+  set(key: string, value: any) {
+    this.cache.set(key, { data: value, timestamp: Date.now() });
+  }
+
+  get(key: string): any | null {
+    const entry = this.cache.get(key);
+    
+    if (!entry) return null;
+    
+    // Check if entry has expired
+    if (Date.now() - entry.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.data;
+  }
+
+  has(key: string): boolean {
+    return this.get(key) !== null;
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+
+  getStats() {
+    return {
+      size: this.cache.size,
+      ttl: this.ttl / 1000,
+    };
+  }
+}
+
+// Global cache instance for products
+export const productCache = new CacheManager(600); // 10 minutes
+
+// ============================================================================
+// REQUEST BATCHING
+// ============================================================================
+
+export class RequestBatcher {
+  private queue: Array<{ id: string; fn: () => Promise<any>; resolve: Function; reject: Function }> = [];
+  private processing = false;
+  private readonly batchSize: number;
+  private readonly delayMs: number;
+
+  constructor(batchSize: number = 10, delayMs: number = 100) {
+    this.batchSize = batchSize;
+    this.delayMs = delayMs;
+  }
+
+  async add<T>(id: string, fn: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ id, fn, resolve, reject });
+      
+      if (this.queue.length >= this.batchSize) {
+        this.processBatch();
+      } else if (!this.processing) {
+        setTimeout(() => this.processBatch(), this.delayMs);
+      }
+    });
+  }
+
+  private async processBatch() {
+    if (this.processing || this.queue.length === 0) return;
+    
+    this.processing = true;
+    const batch = this.queue.splice(0, this.batchSize);
+
+    for (const { fn, resolve, reject } of batch) {
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    }
+
+    this.processing = false;
+    
+    if (this.queue.length > 0) {
+      setTimeout(() => this.processBatch(), this.delayMs);
+    }
+  }
+}
+
+// ============================================================================
+// PERFORMANCE MONITORING
+// ============================================================================
+
+export class PerformanceMonitor {
+  private marks = new Map<string, number>();
+  private measures = new Map<string, number[]>();
+
+  mark(name: string) {
+    this.marks.set(name, performance.now());
+  }
+
+  measure(name: string, startMark?: string, endMark?: string) {
+    const startTime = startMark ? this.marks.get(startMark) : undefined;
+    const endTime = endMark ? this.marks.get(endMark) : performance.now();
+
+    if (!startTime || !endTime) return 0;
+
+    const duration = endTime - startTime;
+    
+    if (!this.measures.has(name)) {
+      this.measures.set(name, []);
+    }
+    
+    this.measures.get(name)!.push(duration);
+    return duration;
+  }
+
+  getStats(name: string) {
+    const values = this.measures.get(name) || [];
+    if (values.length === 0) return null;
+
+    return {
+      count: values.length,
+      min: Math.min(...values),
+      max: Math.max(...values),
+      average: values.reduce((a, b) => a + b, 0) / values.length,
+      total: values.reduce((a, b) => a + b, 0),
+    };
+  }
+
+  clear(name?: string) {
+    if (name) {
+      this.marks.delete(name);
+      this.measures.delete(name);
+    } else {
+      this.marks.clear();
+      this.measures.clear();
+    }
+  }
+}
+
+export const globalMonitor = new PerformanceMonitor();
+
+// ============================================================================
+// WEB WORKERS FOR HEAVY COMPUTATIONS
+// ============================================================================
+
+export const runInWorker = async (computation: string, data: any): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    const workerCode = `
+      self.onmessage = function(e) {
+        try {
+          const result = (${computation})(e.data);
+          self.postMessage({ success: true, result });
+        } catch (error) {
+          self.postMessage({ success: false, error: error.message });
+        }
+      }
+    `;
+
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(blob));
+
+    worker.onmessage = (e) => {
+      if (e.data.success) {
+        resolve(e.data.result);
+      } else {
+        reject(new Error(e.data.error));
+      }
+      worker.terminate();
+    };
+
+    worker.onerror = (error) => {
+      reject(error);
+      worker.terminate();
+    };
+
+    worker.postMessage(data);
+  });
+};
+
+// ============================================================================
+// LAZY IMAGE COMPONENT
+// ============================================================================
+
+export const LazyImage: React.FC<{
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  className?: string;
+  optimizationOptions?: ImageOptimizationOptions;
+}> = ({ src, alt, width, height, className = '', optimizationOptions = {} }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const optimized = optimizeImage(src, optimizationOptions);
+          
+          // Preload image
+          const img = new Image();
+          img.src = optimized;
+          img.onload = () => {
+            setImageUrl(optimized);
+            setIsLoaded(true);
+          };
+
+          if (imgRef.current) {
+            observer.unobserve(imgRef.current);
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [src, optimizationOptions]);
+
+  return (
+    <img
+      ref={imgRef}
+      src={imageUrl || ''}
+      alt={alt}
+      width={width}
+      height={height}
+      className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-50'} transition-opacity duration-300`}
+      loading="lazy"
+    />
+  );
+};
+
+// ============================================================================
+// BUNDLE ANALYSIS HELPERS
+// ============================================================================
+
+export const analyzeBundle = () => {
+  if (typeof performance === 'undefined') return null;
+
+  const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+  
+  const stats = {
+    totalSize: 0,
+    totalTime: 0,
+    resources: resources
+      .filter(r => r.initiatorType === 'script' || r.initiatorType === 'link')
+      .map(r => ({
+        name: r.name.split('/').pop(),
+        size: r.transferSize || 0,
+        time: r.duration,
+      }))
+      .sort((a, b) => b.size - a.size),
+  };
+
+  stats.totalSize = stats.resources.reduce((sum, r) => sum + r.size, 0);
+  stats.totalTime = stats.resources.reduce((sum, r) => sum + r.time, 0);
+
+  return stats;
+};
+
+// ============================================================================
+// EXPORT DEFAULT UTILITIES OBJECT
+// ============================================================================
+
+export const PerformanceUtils = {
+  optimizeImage,
+  calculateVirtualScrollRange,
+  useVirtualScroll,
+  lazyLoadImage,
+  prefetchImage,
+  preloadScript,
+  CacheManager,
+  RequestBatcher,
+  PerformanceMonitor,
+  globalMonitor,
+  productCache,
+  runInWorker,
+  LazyImage,
+  analyzeBundle,
+};
+
+export default PerformanceUtils;

@@ -4,8 +4,8 @@ import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Tru
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
-import { DataService } from '@/services/DataService';
 import { PRODUCTS } from '../constants';
+import { LazyImage } from '../utils/performanceOptimization';
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -55,7 +55,12 @@ interface StoreHeaderProps {
     onOpenAIStudio?: () => void;
     onHomeClick?: () => void;
     wishlistCount?: number;
+    wishlist?: number[];
+    onToggleWishlist?: (productId: number) => void;
     notificationsCount?: number;
+    cart?: number[];
+    onToggleCart?: (productId: number) => void;
+    onCheckoutFromCart?: (productId: number) => void;
     user?: UserType | null;
     onLoginClick?: () => void;
     onLogoutClick?: () => void;
@@ -73,6 +78,7 @@ interface StoreHeaderProps {
     childCategories?: any[];
     brands?: any[];
     tags?: any[];
+    productCatalog?: Product[];
 }
 
 export const MobileBottomNav: React.FC<{
@@ -343,11 +349,12 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     onOpenAIStudio,
     onHomeClick,
     wishlistCount,
-    wishlist = [],
+    wishlist,
     onToggleWishlist,
     notificationsCount,
-    cart = [],
+    cart,
     onToggleCart,
+    onCheckoutFromCart,
     user,
     onLoginClick,
     onLogoutClick,
@@ -365,93 +372,31 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     childCategories = [],
     brands = [],
     tags = [],
+    productCatalog,
 }) => {
-    // Cart logic
-    const [cartItems, setCartItems] = useState<number[]>(cart);
-    useEffect(() => {
-        setCartItems(cart);
-    }, [cart]);
+    const normalizedCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
+    const normalizedWishlist = useMemo(() => (Array.isArray(wishlist) ? wishlist : []), [wishlist]);
+    const catalogSource = useMemo(() => (
+        Array.isArray(productCatalog) && productCatalog.length ? productCatalog : PRODUCTS
+    ), [productCatalog]);
+    const cartItems = normalizedCart;
+    const wishlistItems = normalizedWishlist;
 
-    // Fetch cart from backend API on mount (if user is logged in)
-    useEffect(() => {
-        async function fetchCart() {
-            if (!user) return;
-            try {
-                const items = await DataService.get('cart', [], user.id);
-                setCartItems(items || []);
-            } catch (err) {
-                toast.error('Failed to load cart');
-            }
+    const handleCartItemToggle = useCallback((productId: number) => {
+        if (onToggleCart) {
+            onToggleCart(productId);
+        } else {
+            toast.error('Cart unavailable right now');
         }
-        fetchCart();
-    }, [user]);
+    }, [onToggleCart]);
 
-    // Add/remove cart item
-    const handleToggleCart = useCallback((productId: number) => {
-        if (!user) {
-            toast('Please login to use cart');
-            return;
+    const handleWishlistItemToggle = useCallback((productId: number) => {
+        if (onToggleWishlist) {
+            onToggleWishlist(productId);
+        } else {
+            toast.error('Wishlist unavailable right now');
         }
-        const isInCart = cartItems.includes(productId);
-        const update = async () => {
-            try {
-                if (isInCart) {
-                    await DataService.save('cart/remove', { productId }, user.id);
-                    setCartItems((prev) => prev.filter((id) => id !== productId));
-                } else {
-                    await DataService.save('cart/add', { productId }, user.id);
-                    setCartItems((prev) => [...prev, productId]);
-                }
-                onToggleCart?.(productId);
-            } catch (err) {
-                toast.error('Cart update failed');
-            }
-        };
-        update();
-    }, [user, cartItems, onToggleCart]);
-    const [wishlistItems, setWishlistItems] = useState<number[]>(wishlist);
-    useEffect(() => {
-        setWishlistItems(wishlist);
-    }, [wishlist]);
-
-    // Fetch wishlist from backend API on mount (if user is logged in)
-    useEffect(() => {
-        async function fetchWishlist() {
-            if (!user) return;
-            try {
-                // Example: DataService.getWishlist(user.id)
-                const items = await DataService.get('wishlist', [], user.id);
-                setWishlistItems(items || []);
-            } catch (err) {
-                toast.error('Failed to load wishlist');
-            }
-        }
-        fetchWishlist();
-    }, [user]);
-
-    // Add/remove wishlist item
-    const handleToggleWishlist = useCallback((productId: number) => {
-        if (!user) {
-            toast('Please login to use wishlist');
-            return;
-        }
-        const isWishlisted = wishlistItems.includes(productId);
-        const update = async () => {
-            try {
-                if (isWishlisted) {
-                    await DataService.save('wishlist/remove', { productId }, user.id);
-                    setWishlistItems((prev) => prev.filter((id) => id !== productId));
-                } else {
-                    await DataService.save('wishlist/add', { productId }, user.id);
-                    setWishlistItems((prev) => [...prev, productId]);
-                }
-                onToggleWishlist?.(productId);
-            } catch (err) {
-                toast.error('Wishlist update failed');
-            }
-        };
-        update();
-    }, [user, wishlistItems, onToggleWishlist]);
+    }, [onToggleWishlist]);
     const [supportsVoiceSearch, setSupportsVoiceSearch] = useState(false);
     const recognitionRef = useRef<any>(null);
     const speechApiRef = useRef<any>(null);
@@ -522,7 +467,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const notificationBadgeCount = typeof notificationsCount === 'number' && notificationsCount > 0 ? notificationsCount : 0;
     const cartBadgeCount = cartItems.length;
-    const wishlistBadgeCount = wishlistItems.length;
+    const wishlistBadgeCount = typeof wishlistCount === 'number' ? wishlistCount : wishlistItems.length;
     const searchQuery = searchValue ?? '';
     const [isListening, setIsListening] = useState(false);
     const [liveTranscript, setLiveTranscript] = useState('');
@@ -533,6 +478,15 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         // Wishlist and Cart Drawer/Modal State
         const [isWishlistDrawerOpen, setIsWishlistDrawerOpen] = useState(false);
         const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+
+    const handleCheckoutFromCartClick = useCallback((productId: number) => {
+        if (onCheckoutFromCart) {
+            onCheckoutFromCart(productId);
+            setIsCartDrawerOpen(false);
+        } else {
+            toast.error('Checkout unavailable right now');
+        }
+    }, [onCheckoutFromCart]);
     useEffect(() => {
         setTypedSearchValue(searchQuery);
     }, [searchQuery]);
@@ -873,9 +827,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
                     <div className="relative">
                         <Heart size={24} />
-                        {wishlistCount !== undefined && wishlistCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistCount}</span>
-                        )}
+                            {wishlistBadgeCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistBadgeCount}</span>
+                                )}
                     </div>
                     <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
                     </div>
@@ -1019,7 +973,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                <a href="#" className="hover:text-blue-600 transition hidden sm:inline-block">Community</a>
                <button onClick={onTrackOrder} className="hover:text-blue-600 transition">Track Order</button>
                <div className="flex items-center gap-1 cursor-pointer hover:text-blue-600 transition">
-                  <span>My Wishlist ({wishlistCount || 0})</span>
+                  <span>My Wishlist ({wishlistItems.length})</span>
                </div>
                <a href="#" className="hover:text-blue-600 transition hidden sm:inline-block">Seller Registration</a>
                <div className="border-l pl-4 border-gray-200 ml-2">
@@ -1344,7 +1298,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                                 ) : (
                                                     <ul className="space-y-4">
                                                         {wishlistItems.map((id) => {
-                                                            const product = PRODUCTS.find(p => p.id === id);
+                                                            const product = catalogSource.find(p => p.id === id);
                                                             if (!product) return null;
                                                             return (
                                                                 <li key={id} className="flex items-center gap-3 border-b pb-3">
@@ -1354,7 +1308,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                                                         <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
                                                                         <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
                                                                     </div>
-                                                                    <button className="text-red-500 hover:text-red-700" onClick={() => handleToggleWishlist(id)}>
+                                                                    <button className="text-red-500 hover:text-red-700" onClick={() => handleWishlistItemToggle(id)}>
                                                                         <Trash2 size={18} />
                                                                     </button>
                                                                 </li>
@@ -1378,7 +1332,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                                 ) : (
                                                     <ul className="space-y-4">
                                                         {cartItems.map((id) => {
-                                                            const product = PRODUCTS.find(p => p.id === id);
+                                                            const product = catalogSource.find(p => p.id === id);
                                                             if (!product) return null;
                                                             return (
                                                                 <li key={id} className="flex items-center gap-3 border-b pb-3">
@@ -1387,10 +1341,21 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                                                         <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
                                                                         <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
                                                                         <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
+                                                                        <div className="mt-3 flex gap-2">
+                                                                            <button
+                                                                                className="flex-1 rounded-lg bg-green-600 text-white text-xs font-semibold py-2 hover:bg-green-700 transition"
+                                                                                onClick={() => handleCheckoutFromCartClick(id)}
+                                                                            >
+                                                                                Checkout
+                                                                            </button>
+                                                                            <button
+                                                                                className="rounded-lg border border-red-200 text-red-500 text-xs font-semibold px-3 py-2 hover:bg-red-50 dark:border-red-500/40 dark:hover:bg-red-500/10"
+                                                                                onClick={() => handleCartItemToggle(id)}
+                                                                            >
+                                                                                Remove
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
-                                                                    <button className="text-red-500 hover:text-red-700" onClick={() => handleToggleCart(id)}>
-                                                                        <Trash2 size={18} />
-                                                                    </button>
                                                                 </li>
                                                             );
                                                         })}
@@ -1501,8 +1466,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
                 <div className="relative">
                     <Heart size={24} />
-                    {wishlistCount !== undefined && wishlistCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistCount}</span>
+                    {wishlistBadgeCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistBadgeCount}</span>
                     )}
                 </div>
                 <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
@@ -1511,7 +1476,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
                 <div className="relative">
                     <ShoppingCart size={24} />
-                    <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                    {cartBadgeCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartBadgeCount}</span>
+                    )}
                 </div>
                 <span className="hidden sm:inline text-sm font-medium">Cart</span>
                 </div>
@@ -1633,7 +1600,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
 };
 
 
-export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string; onQuickView?: (product: Product) => void; onBuyNow?: (product: Product) => void }> = ({ product, onClick, variant, onQuickView, onBuyNow }) => {
+export const ProductCard: React.FC<{ product: Product; onClick: (product: Product) => void; variant?: string; onQuickView?: (product: Product) => void; onBuyNow?: (product: Product) => void; onAddToCart?: (product: Product) => void }> = ({ product, onClick, variant, onQuickView, onBuyNow, onAddToCart }) => {
     const handleBuyNow = (event?: React.MouseEvent) => {
         event?.stopPropagation();
         if (onBuyNow) {
@@ -1647,7 +1614,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
     return (
         <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
             <div className="relative aspect-square p-4 bg-gray-50">
-                <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
+                <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
                 {product.discount && (
                     <span className="absolute top-2 left-2 bg-pink-600 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded">
                         {product.discount}
@@ -1693,6 +1660,10 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                         </button>
                         <button
                             type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAddToCart?.(product);
+                            }}
                             className="cart_btn"
                             aria-label="Add to cart"
                         >
@@ -1738,7 +1709,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 <div className="relative mt-4">
                     <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition" aria-hidden />
                     <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
-                        <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
+                        <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
                     </div>
                     {product.discount && (
                         <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
@@ -1794,6 +1765,16 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                             className="w-full btn-order py-2 rounded-xl font-bold text-sm"
                         >
                             অর্ডার করুন
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAddToCart?.(product);
+                            }}
+                            className="w-full rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-600 py-1.5 flex items-center justify-center gap-1 hover:bg-emerald-50 transition"
+                        >
+                            <ShoppingCart size={14} /> Add to cart
                         </button>
                         <button
                             type="button"

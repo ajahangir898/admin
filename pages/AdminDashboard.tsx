@@ -1,5 +1,6 @@
 import React, { useCallback, useId, useMemo, useState } from 'react';
 import { DashboardStatCard } from '../components/AdminComponents';
+import { AdminProductManager } from '../components/AdminProductManager';
 import {
   ShoppingBag,
   Truck,
@@ -339,6 +340,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     [onQuickAction]
   );
 
+  // Product management handlers
+  const handleUpdateProduct = useCallback((product: Product) => {
+    console.info('[AdminDashboard] Update product:', product.id);
+  }, []);
+
+  const handleDeleteProduct = useCallback((productId: number) => {
+    console.info('[AdminDashboard] Delete product:', productId);
+  }, []);
+
+  const handleBulkAction = useCallback((ids: number[], action: string) => {
+    console.info(`[AdminDashboard] Bulk action "${action}" on products:`, ids);
+  }, []);
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -673,6 +687,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {!featuredProducts.length && (
               <div className="p-6 text-center text-sm text-slate-500">Add products to see leaderboard.</div>
             )}
+          </div>
+        </div>
+
+        {/* Advanced Product Management Section */}
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#090b13] via-[#05060a] to-[#020203] shadow-[0_20px_45px_rgba(0,0,0,0.45)] overflow-hidden">
+          <div className="p-5 border-b border-white/10">
+            <h3 className="font-bold text-white tracking-wide">Product Management</h3>
+            <p className="text-xs text-slate-400 mt-1">Advanced filtering, sorting, and bulk operations for inventory management</p>
+          </div>
+          <div className="overflow-hidden">
+            <AdminProductManager 
+              products={products}
+              onUpdateProduct={handleUpdateProduct}
+              onDeleteProduct={handleDeleteProduct}
+              onBulkAction={handleBulkAction}
+            />
           </div>
         </div>
       </div>

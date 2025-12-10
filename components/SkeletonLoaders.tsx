@@ -97,4 +97,17 @@ const AppSkeleton: React.FC<AppSkeletonProps> = ({ variant = 'store', darkMode =
   );
 };
 
+// SkeletonCard - Individual product card skeleton for grids
+export const SkeletonCard: React.FC<{ darkMode?: boolean }> = ({ darkMode }) => (
+  <div className={`rounded-2xl p-4 shadow-lg ${darkMode ? 'bg-slate-800/70 shadow-black/30' : 'bg-white/90 shadow-slate-900/5'}`}>
+    <Skeleton height={180} className="rounded-xl" />
+    <Skeleton height={20} className="mt-4" />
+    <Skeleton height={16} width="70%" className="mt-2" />
+    <div className="flex items-center justify-between mt-4">
+      <Skeleton height={30} width="40%" />
+      <Skeleton height={36} width="36%" />
+    </div>
+  </div>
+);
+
 export default AppSkeleton;

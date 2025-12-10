@@ -183,6 +183,7 @@ const hexToRgb = (hex: string) => {
 
 const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
 const SESSION_STORAGE_KEY = 'seven-days-user';
+const CART_STORAGE_KEY = 'seven-days-cart';
 
 const getAuthErrorMessage = (error: unknown) => {
   if (error instanceof Error && error.message) {
@@ -284,6 +285,16 @@ const App = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariantSelection | null>(null);
+  const [cartItems, setCartItems] = useState<number[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = window.localStorage.getItem(CART_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Unable to parse stored cart', error);
+      return [];
+    }
+  });
   const [landingPages, setLandingPages] = useState<LandingPage[]>([]);
   const [selectedLandingPage, setSelectedLandingPage] = useState<LandingPage | null>(null);
   const [isTenantSwitching, setIsTenantSwitching] = useState(false);
@@ -333,6 +344,47 @@ const App = () => {
   useEffect(() => {
     hostTenantSlugRef.current = hostTenantSlug;
   }, [hostTenantSlug]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch (error) {
+      console.warn('Unable to persist cart locally', error);
+    }
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const remoteCart = await DataService.get('cart', [], user.id);
+        if (!cancelled && Array.isArray(remoteCart)) {
+          setCartItems(remoteCart);
+        }
+      } catch (error) {
+        console.warn('Failed to load remote cart', error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const persistCartRemotely = useCallback(async (items: number[]) => {
+    if (!user?.id) return;
+    try {
+      await DataService.save('cart', items, user.id);
+    } catch (error) {
+      console.warn('Failed to sync cart', error);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    void persistCartRemotely(cartItems);
+  }, [cartItems, persistCartRemotely, user?.id]);
 
   const applyTenantList = useCallback((tenantList: Tenant[]) => {
     setTenants(tenantList);
@@ -1102,8 +1154,46 @@ fbq('track', 'PageView');`;
     if (product.slug) {
       window.history.pushState({ slug: product.slug }, '', `/${product.slug}`);
     }
-    window.scrollTo(0,0);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
+
+  const handleCartToggle = (productId: number, options?: { silent?: boolean }) => {
+    setCartItems(prev => {
+      const exists = prev.includes(productId);
+      const next = exists ? prev.filter(id => id !== productId) : [...prev, productId];
+      if (!options?.silent) {
+        if (exists) {
+          toast('Removed from cart');
+        } else {
+          toast.success('Added to cart');
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleAddProductToCart = (
+    product: Product,
+    quantity: number = 1,
+    variant?: ProductVariantSelection | null,
+    options?: { silent?: boolean }
+  ) => {
+    setCartItems(prev => {
+      if (prev.includes(product.id)) {
+        if (!options?.silent) {
+          toast('Already in cart');
+        }
+        return prev;
+      }
+      if (!options?.silent) {
+        toast.success(`${product.name} added to cart`);
+      }
+      return [...prev, product.id];
+    });
+  };
+
   const handleCheckoutStart = (product: Product, quantity: number = 1, variant?: ProductVariantSelection) => {
     setSelectedProduct(product);
     setCheckoutQuantity(quantity);
@@ -1112,7 +1202,18 @@ fbq('track', 'PageView');`;
     if (product.slug) {
       window.history.pushState({ slug: product.slug }, '', `/${product.slug}`);
     }
-    window.scrollTo(0,0);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleCheckoutFromCart = (productId: number) => {
+    const targetProduct = products.find(p => p.id === productId);
+    if (!targetProduct) {
+      toast.error('Product unavailable for checkout');
+      return;
+    }
+    handleCheckoutStart(targetProduct, 1, ensureVariantSelection(targetProduct));
   };
   const handlePlaceOrder = (formData: any) => {
     const newOrder: Order = {
@@ -1305,12 +1406,33 @@ fbq('track', 'PageView');`;
           <>
             {currentView === 'store' && (
               <>
-                <StoreHome products={products} orders={orders} onProductClick={handleProductClick} onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} wishlistCount={wishlist.length} wishlist={wishlist} onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />
+                <StoreHome 
+                  products={products} 
+                  orders={orders} 
+                  onProductClick={handleProductClick} 
+                  onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} 
+                  wishlistCount={wishlist.length} 
+                  wishlist={wishlist} 
+                  onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} 
+                  user={user} 
+                  onLoginClick={() => setIsLoginOpen(true)} 
+                  onLogoutClick={handleLogout} 
+                  onProfileClick={() => setCurrentView('profile')} 
+                  logo={logo} 
+                  websiteConfig={websiteConfig} 
+                  searchValue={storeSearchQuery} 
+                  onSearchChange={handleStoreSearchChange} 
+                  onOpenChat={handleOpenChat}
+                  cart={cartItems}
+                  onToggleCart={handleCartToggle}
+                  onCheckoutFromCart={handleCheckoutFromCart}
+                  onAddToCart={(product, quantity, variant) => handleAddProductToCart(product, quantity, variant)}
+                />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
-                  onCartClick={() => {}} // Placeholder
+                  onCartClick={() => {}}
                   onAccountClick={() => user ? setCurrentView('profile') : setIsLoginOpen(true)}
-                  cartCount={0}
+                  cartCount={cartItems.length}
                   websiteConfig={websiteConfig}
                   onChatClick={handleOpenChat}
                   user={user}
@@ -1318,7 +1440,32 @@ fbq('track', 'PageView');`;
                 />
               </>
             )}
-            {currentView === 'detail' && selectedProduct && <StoreProductDetail product={selectedProduct} orders={orders} onBack={() => setCurrentView('store')} onProductClick={handleProductClick} wishlistCount={wishlist.length} isWishlisted={isInWishlist(selectedProduct.id)} onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} onCheckout={handleCheckoutStart} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />}
+            {currentView === 'detail' && selectedProduct && (
+              <StoreProductDetail 
+                product={selectedProduct} 
+                orders={orders} 
+                onBack={() => setCurrentView('store')} 
+                onProductClick={handleProductClick} 
+                wishlistCount={wishlist.length} 
+                isWishlisted={isInWishlist(selectedProduct.id)} 
+                onToggleWishlist={() => isInWishlist(selectedProduct.id) ? removeFromWishlist(selectedProduct.id) : addToWishlist(selectedProduct.id)} 
+                onCheckout={handleCheckoutStart} 
+                user={user} 
+                onLoginClick={() => setIsLoginOpen(true)} 
+                onLogoutClick={handleLogout} 
+                onProfileClick={() => setCurrentView('profile')} 
+                logo={logo} 
+                websiteConfig={websiteConfig} 
+                searchValue={storeSearchQuery} 
+                onSearchChange={handleStoreSearchChange} 
+                onOpenChat={handleOpenChat}
+                cart={cartItems}
+                onToggleCart={handleCartToggle}
+                onCheckoutFromCart={handleCheckoutFromCart}
+                onAddToCart={(product, quantity, variant) => handleAddProductToCart(product, quantity, variant, { silent: true })}
+                productCatalog={products}
+              />
+            )}
             {currentView === 'checkout' && selectedProduct && (
               <StoreCheckout 
                 product={selectedProduct}
@@ -1336,17 +1483,54 @@ fbq('track', 'PageView');`;
                 searchValue={storeSearchQuery}
                 onSearchChange={handleStoreSearchChange}
                 onOpenChat={handleOpenChat}
+                cart={cartItems}
+                onToggleCart={handleCartToggle}
+                onCheckoutFromCart={handleCheckoutFromCart}
+                productCatalog={products}
               />
             )}
-            {currentView === 'success' && <StoreOrderSuccess onHome={() => setCurrentView('store')} user={user} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} onProfileClick={() => setCurrentView('profile')} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />}
+            {currentView === 'success' && (
+              <StoreOrderSuccess 
+                onHome={() => setCurrentView('store')} 
+                user={user} 
+                onLoginClick={() => setIsLoginOpen(true)} 
+                onLogoutClick={handleLogout} 
+                onProfileClick={() => setCurrentView('profile')} 
+                logo={logo} 
+                websiteConfig={websiteConfig} 
+                searchValue={storeSearchQuery} 
+                onSearchChange={handleStoreSearchChange} 
+                onOpenChat={handleOpenChat}
+                cart={cartItems}
+                onToggleCart={handleCartToggle}
+                onCheckoutFromCart={handleCheckoutFromCart}
+                productCatalog={products}
+              />
+            )}
             {currentView === 'profile' && user && (
               <>
-                <StoreProfile user={user} onUpdateProfile={handleUpdateProfile} orders={orders} onHome={() => setCurrentView('store')} onLoginClick={() => setIsLoginOpen(true)} onLogoutClick={handleLogout} logo={logo} websiteConfig={websiteConfig} searchValue={storeSearchQuery} onSearchChange={handleStoreSearchChange} onOpenChat={handleOpenChat} />
+                <StoreProfile 
+                  user={user} 
+                  onUpdateProfile={handleUpdateProfile} 
+                  orders={orders} 
+                  onHome={() => setCurrentView('store')} 
+                  onLoginClick={() => setIsLoginOpen(true)} 
+                  onLogoutClick={handleLogout} 
+                  logo={logo} 
+                  websiteConfig={websiteConfig} 
+                  searchValue={storeSearchQuery} 
+                  onSearchChange={handleStoreSearchChange} 
+                  onOpenChat={handleOpenChat}
+                  cart={cartItems}
+                  onToggleCart={handleCartToggle}
+                  onCheckoutFromCart={handleCheckoutFromCart}
+                  productCatalog={products}
+                />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
-                  onCartClick={() => {}} // Placeholder
+                  onCartClick={() => {}}
                   onAccountClick={() => {}} // Already on profile
-                  cartCount={0}
+                  cartCount={cartItems.length}
                   websiteConfig={websiteConfig}
                   onChatClick={handleOpenChat}
                   user={user}

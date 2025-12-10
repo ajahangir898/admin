@@ -4,6 +4,9 @@ import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, Se
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
+import { ProductFilter, SortOption } from '../components/ProductFilter';
+import { EmptySearchState } from '../components/EmptyStates';
+import { SkeletonCard } from '../components/SkeletonLoaders';
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -42,6 +45,10 @@ interface StoreHomeProps {
   wishlistCount: number;
   wishlist: number[];
   onToggleWishlist: (id: number) => void;
+  cart?: number[];
+  onToggleCart?: (id: number) => void;
+  onCheckoutFromCart?: (productId: number) => void;
+  onAddToCart?: (product: Product, quantity: number, variant: ProductVariantSelection) => void;
   user?: User | null;
   onLoginClick?: () => void;
   onLogoutClick?: () => void;
@@ -61,6 +68,10 @@ const StoreHome = ({
   wishlistCount, 
   wishlist, 
   onToggleWishlist,
+  cart,
+  onToggleCart,
+  onCheckoutFromCart,
+  onAddToCart,
   user,
   onLoginClick,
   onLogoutClick,
@@ -75,6 +86,8 @@ const StoreHome = ({
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState<SortOption>('relevance');
+  const [isLoading, setIsLoading] = useState(false);
   const searchTerm = typeof searchValue === 'string' ? searchValue : internalSearchTerm;
   const updateSearchTerm = (value: string) => {
     if (onSearchChange) {
@@ -109,6 +122,24 @@ const StoreHome = ({
     return false;
   };
   const filteredProducts = normalizedSearch ? displayProducts.filter(matchesSearch) : displayProducts;
+  
+  const sortedProducts = (() => {
+    const products = [...filteredProducts];
+    switch (sortOption) {
+      case 'price-low':
+        return products.sort((a, b) => (a.price || 0) - (b.price || 0));
+      case 'price-high':
+        return products.sort((a, b) => (b.price || 0) - (a.price || 0));
+      case 'rating':
+        return products.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      case 'newest':
+        return products.sort((a, b) => (b.id || 0) - (a.id || 0));
+      case 'relevance':
+      default:
+        return products;
+    }
+  })();
+  
   const hasSearchQuery = Boolean(normalizedSearch);
 
   // Category Auto Scroll Logic for Style 2
@@ -213,6 +244,17 @@ const StoreHome = ({
     } else {
       onProductClick(product);
     }
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleAddProductToCartFromCard = (product: Product) => {
+    if (onAddToCart) {
+      onAddToCart(product, 1, selectInstantVariant(product));
+    } else {
+      onProductClick(product);
+    }
   };
 
   const flashSaleCountdown = [
@@ -226,7 +268,13 @@ const StoreHome = ({
       <StoreHeader 
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
+        productCatalog={displayProducts}
         wishlistCount={wishlistCount}
+        wishlist={wishlist}
+        onToggleWishlist={onToggleWishlist}
+        cart={cart}
+        onToggleCart={onToggleCart}
+        onCheckoutFromCart={onCheckoutFromCart}
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}
@@ -261,24 +309,31 @@ const StoreHome = ({
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-12">
         {hasSearchQuery ? (
           <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1 min-w-0">
                 <p className="text-xs uppercase tracking-[0.4em] text-gray-400">Search</p>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'result' : 'results'} for “{searchTerm.trim()}”.
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">
+                  {sortedProducts.length} {sortedProducts.length === 1 ? 'result' : 'results'} for "{searchTerm.trim()}".
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-300">Matching product titles, categories, brands, and tags.</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-300">Matching product titles, categories, brands, and tags.</p>
               </div>
-              <button
-                onClick={() => updateSearchTerm('')}
-                className="self-start rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-rose-400 hover:text-rose-500 dark:border-slate-700 dark:text-gray-300"
-              >
-                Clear search
-              </button>
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <ProductFilter value={sortOption} onChange={setSortOption} />
+                <button
+                  onClick={() => {
+                    updateSearchTerm('');
+                    setSortOption('relevance');
+                  }}
+                  className="rounded-full border border-gray-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition hover:border-rose-400 hover:text-rose-500 dark:border-slate-700 dark:text-gray-300 h-10 min-w-[80px] sm:min-w-[100px]"
+                  aria-label="Clear search filters"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
-            {filteredProducts.length ? (
-              <div className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
-                {filteredProducts.map((product) => (
+            {sortedProducts.length ? (
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5 auto-rows-max">
+                {sortedProducts.map((product) => (
                   <ProductCard
                     key={`search-${product.id}`}
                     product={product}
@@ -286,14 +341,12 @@ const StoreHome = ({
                     onBuyNow={handleBuyNow}
                     variant={websiteConfig?.productCardStyle}
                     onQuickView={setQuickViewProduct}
+                    onAddToCart={handleAddProductToCartFromCard}
                   />
                 ))}
               </div>
             ) : (
-              <div className="mt-8 rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 p-10 text-center text-gray-600 dark:border-slate-700 dark:bg-slate-900/40">
-                <p className="text-lg font-semibold text-gray-700 dark:text-gray-100">No products found for “{searchTerm.trim()}”.</p>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">Try another brand name, category, or keyword.</p>
-              </div>
+              <EmptySearchState searchTerm={searchTerm.trim()} onClearSearch={() => updateSearchTerm('')} />
             )}
           </section>
         ) : (
@@ -302,16 +355,18 @@ const StoreHome = ({
             <div ref={categoriesSectionRef}>
             {websiteConfig?.categorySectionStyle === 'style2' ? (
               <div className="mt-1 -mb-1">
-                <div className="flex items-end justify-between border-b border-gray-100 pb-1">
+                <div className="flex items-end justify-between border-b border-gray-100 pb-2 md:pb-1">
                   <div className="relative pb-1">
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
                   </div>
                   <a
                     href="#"
-                    className="group mb-1 flex items-center gap-1 text-sm font-bold text-gray-600 transition hover:text-blue-600 dark:text-gray-400"
+                    className="group mb-1 flex items-center gap-2 text-xs md:text-sm font-bold text-gray-600 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition dark:text-gray-400"
+                    role="button"
+                    aria-label="View all categories"
                   >
                     View All
-                    <div className="h-0 w-0 border-b-[5px] border-l-[8px] border-t-[5px] border-b-transparent border-l-blue-500 border-t-transparent transition-transform group-hover:translate-x-1"></div>
+                    <div className="h-0 w-0 border-b-[4px] border-l-[6px] border-t-[4px] border-b-transparent border-l-blue-500 border-t-transparent transition-transform group-hover:translate-x-1" />
                   </a>
                 </div>
                 <div
@@ -368,16 +423,22 @@ const StoreHome = ({
                 )}
               </div>
               <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
-                {displayProducts.map((product) => (
-                  <ProductCard
-                    key={`flash-${product.id}`}
-                    product={product}
-                    onClick={onProductClick}
-                    onBuyNow={handleBuyNow}
-                    variant={websiteConfig?.productCardStyle}
-                    onQuickView={setQuickViewProduct}
-                  />
-                ))}
+                {isLoading ? (
+                  // Show skeletons while loading
+                  [...Array(5)].map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)
+                ) : (
+                  displayProducts.map((product) => (
+                    <ProductCard
+                      key={`flash-${product.id}`}
+                      product={product}
+                      onClick={onProductClick}
+                      onBuyNow={handleBuyNow}
+                      variant={websiteConfig?.productCardStyle}
+                      onQuickView={setQuickViewProduct}
+                      onAddToCart={handleAddProductToCartFromCard}
+                    />
+                  ))
+                )}
                 {displayProducts.length > 0 && displayProducts.length < 5 && (
                   <ProductCard
                     product={{ ...displayProducts[0], id: 99 }}
@@ -385,6 +446,7 @@ const StoreHome = ({
                     onBuyNow={handleBuyNow}
                     variant={websiteConfig?.productCardStyle}
                     onQuickView={setQuickViewProduct}
+                    onAddToCart={handleAddProductToCartFromCard}
                   />
                 )}
               </div>
@@ -408,6 +470,7 @@ const StoreHome = ({
                       onBuyNow={handleBuyNow}
                       variant={websiteConfig?.productCardStyle}
                       onQuickView={setQuickViewProduct}
+                      onAddToCart={handleAddProductToCartFromCard}
                     />
                   ))}
                 {displayProducts.length > 0 && displayProducts.length < 5 && (
@@ -417,6 +480,7 @@ const StoreHome = ({
                     onBuyNow={handleBuyNow}
                     variant={websiteConfig?.productCardStyle}
                     onQuickView={setQuickViewProduct}
+                    onAddToCart={handleAddProductToCartFromCard}
                   />
                 )}
               </div>
@@ -522,6 +586,7 @@ const StoreHome = ({
                     onBuyNow={handleBuyNow}
                     variant={websiteConfig?.productCardStyle}
                     onQuickView={setQuickViewProduct}
+                    onAddToCart={handleAddProductToCartFromCard}
                   />
                 ))}
                 {displayProducts.length > 0 && displayProducts.length < 5 && (
@@ -531,6 +596,7 @@ const StoreHome = ({
                     onBuyNow={handleBuyNow}
                     variant={websiteConfig?.productCardStyle}
                     onQuickView={setQuickViewProduct}
+                    onAddToCart={handleAddProductToCartFromCard}
                   />
                 )}
               </div>

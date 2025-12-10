@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Order, WebsiteConfig } from '../types';
+import { User, Order, WebsiteConfig, Product } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { User as UserIcon, Mail, Phone, MapPin, Package, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
 
@@ -16,6 +16,10 @@ interface StoreProfileProps {
    searchValue?: string;
    onSearchChange?: (value: string) => void;
    onOpenChat?: () => void;
+   cart?: number[];
+   onToggleCart?: (id: number) => void;
+   onCheckoutFromCart?: (productId: number) => void;
+   productCatalog?: Product[];
 }
 
 const StoreProfile = ({ 
@@ -29,7 +33,11 @@ const StoreProfile = ({
    websiteConfig,
    searchValue,
    onSearchChange,
-   onOpenChat
+   onOpenChat,
+   cart,
+   onToggleCart,
+   onCheckoutFromCart,
+   productCatalog
 }: StoreProfileProps) => {
   const [activeTab, setActiveTab] = useState<'info' | 'orders'>('info');
   const [formData, setFormData] = useState({
@@ -70,6 +78,10 @@ const StoreProfile = ({
         websiteConfig={websiteConfig}
             searchValue={searchValue}
             onSearchChange={onSearchChange}
+            cart={cart}
+            onToggleCart={onToggleCart}
+            onCheckoutFromCart={onCheckoutFromCart}
+            productCatalog={productCatalog}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-8">

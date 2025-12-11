@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard } from '../components/StoreComponents';
+import { ModalLoadingSpinner } from '../components/store/LoadingSpinner';
 
 // Lazy load modals for better performance
 const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
@@ -298,17 +299,17 @@ const StoreHome = ({
       />
       
       {isTrackOrderOpen && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+        <Suspense fallback={<ModalLoadingSpinner />}>
           <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
         </Suspense>
       )}
       {isAIStudioOpen && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+        <Suspense fallback={<ModalLoadingSpinner />}>
           <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
         </Suspense>
       )}
       {quickViewProduct && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+        <Suspense fallback={<ModalLoadingSpinner />}>
           <ProductQuickViewModal
             product={quickViewProduct}
             onClose={() => setQuickViewProduct(null)}

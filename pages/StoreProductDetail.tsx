@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
-import { StoreHeader, StoreFooter, MobileBottomNav } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, MobileBottomNav } from '../components/store';
 import { ModalLoadingSpinner } from '../components/store/LoadingSpinner';
 
 // Lazy load modals for better performance
-const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
-const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
-const AddToCartSuccessModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AddToCartSuccessModal })));
+const TrackOrderModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.AIStudioModal })));
+const AddToCartSuccessModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.AddToCartSuccessModal })));
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';

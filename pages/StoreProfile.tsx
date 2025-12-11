@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { User, Order, WebsiteConfig, Product } from '../types';
-import { StoreHeader, StoreFooter } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter } from '../components/store';
 import { User as UserIcon, Mail, Phone, MapPin, Package, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
 
 interface StoreProfileProps {

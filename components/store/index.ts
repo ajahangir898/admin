@@ -1,21 +1,8 @@
-// Core components (always loaded)
-export {
-  MobileBottomNav,
-  StoreHeader,
-  StoreFooter,
-  HeroSection,
-  CategoryCircle,
-  CategoryPill,
-  SectionHeader,
-  ProductCard
-} from '../StoreComponents';
+// Navigation components
+export { MobileBottomNav, StoreHeader } from './Navigation';
 
-// Modal components (these should be lazy loaded by consuming components)
-export {
-  TrackOrderModal,
-  AIStudioModal,
-  ProductQuickViewModal,
-  AddToCartSuccessModal,
-  LoginModal,
-  StoreChatModal
-} from '../StoreComponents';
+// Layout components
+export { ProductCard, HeroSection, CategoryCircle, CategoryPill, SectionHeader, StoreFooter } from './Layout';
+
+// Modal components (lazy loaded)
+export { TrackOrderModal, AIStudioModal, ProductQuickViewModal, AddToCartSuccessModal, LoginModal, StoreChatModal } from './Modals';

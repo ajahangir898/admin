@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard } from '../components/store';
 import { ModalLoadingSpinner } from '../components/store/LoadingSpinner';
 
 // Lazy load modals for better performance
-const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
-const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
-const ProductQuickViewModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.ProductQuickViewModal })));
+const TrackOrderModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.AIStudioModal })));
+const ProductQuickViewModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.ProductQuickViewModal })));
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';

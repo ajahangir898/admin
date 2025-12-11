@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StoreHeader, StoreFooter } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter } from '../components/store';
 import { ImageSearch, ImageSearchResult } from '../components/ImageSearch';
 import { ImageSearchResults } from '../components/ImageSearchResults';
 import { imageSearchService } from '../services/ImageSearchService';

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, CreateTenantPayload, ChatMessage } from './types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, CreateTenantPayload, ChatMessage, DailyTarget } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
 import { slugify } from './services/slugify';
@@ -299,6 +299,7 @@ const App = () => {
   });
   const [landingPages, setLandingPages] = useState<LandingPage[]>([]);
   const [selectedLandingPage, setSelectedLandingPage] = useState<LandingPage | null>(null);
+  const [dailyTargets, setDailyTargets] = useState<DailyTarget[]>([]);
   const [isTenantSwitching, setIsTenantSwitching] = useState(false);
   const [isTenantSeeding, setIsTenantSeeding] = useState(false);
   const [deletingTenantId, setDeletingTenantId] = useState<string | null>(null);
@@ -523,7 +524,8 @@ const App = () => {
           subCategoriesData,
           childCategoriesData,
           brandsData,
-          tagsData
+          tagsData,
+          dailyTargetsData
         ] = await Promise.all([
           DataService.getProducts(activeTenantId),
           DataService.getOrders(activeTenantId),
@@ -541,7 +543,8 @@ const App = () => {
           DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }], activeTenantId),
           DataService.getCatalog('childcategories', [], activeTenantId),
           DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }], activeTenantId),
-          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId)
+          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId),
+          DataService.get<DailyTarget[]>('daily_targets', [], activeTenantId)
         ]);
 
         if (!isMounted) return;
@@ -572,6 +575,7 @@ const App = () => {
         setChildCategories(childCategoriesData);
         setBrands(brandsData);
         setTags(tagsData);
+        setDailyTargets(Array.isArray(dailyTargetsData) ? dailyTargetsData : []);
       } catch (error) {
         loadError = error as Error;
         console.error('Failed to load data', error);
@@ -1385,13 +1389,13 @@ fbq('track', 'PageView');`;
 
         {currentView === 'admin' ? (
           <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout} tenants={headerTenants} activeTenantId={activeTenantId} onTenantChange={tenantSwitcher} onOpenChatCenter={canAccessAdminChat ? handleOpenAdminChat : undefined} hasUnreadChat={canAccessAdminChat ? hasUnreadChat : undefined}>
-            {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
+            {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} dailyTargets={dailyTargets} onNavigateToDailyTarget={() => setAdminSection('daily_target')} /> :
              adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
              adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
              adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
              adminSection === 'inventory' ? <AdminInventory products={products} /> :
              adminSection === 'reviews' ? <AdminReviews /> :
-             adminSection === 'daily_target' ? <AdminDailyTarget /> :
+             adminSection === 'daily_target' ? <AdminDailyTarget tenantId={activeTenantId} /> :
              adminSection === 'gallery' ? <AdminGallery /> :
              adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} user={user} onUpdateProfile={handleUpdateProfile} /> :
              adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
@@ -1400,7 +1404,7 @@ fbq('track', 'PageView');`;
              adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
              adminSection === 'tenants' ? (platformOperator
                ? <AdminTenantManagement tenants={tenants} onCreateTenant={handleCreateTenant} isCreating={isTenantSeeding} onDeleteTenant={handleDeleteTenant} deletingTenantId={deletingTenantId} />
-               : <AdminDashboard orders={orders} products={products} />) :
+               : <AdminDashboard orders={orders} products={products} dailyTargets={dailyTargets} onNavigateToDailyTarget={() => setAdminSection('daily_target')} />) :
              adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
              <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
             }

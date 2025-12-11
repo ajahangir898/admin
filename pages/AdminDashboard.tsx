@@ -19,7 +19,8 @@ import {
   Search,
   ArrowUpRight,
   Wallet,
-  BarChart3
+  BarChart3,
+  Target
 } from 'lucide-react';
 import { REVENUE_DATA as DEFAULT_REVENUE_DATA, CATEGORY_DATA as DEFAULT_CATEGORY_DATA } from '../constants';
 import { Order, Product } from '../types';
@@ -178,6 +179,15 @@ interface AdminDashboardProps {
   onAddCard?: () => void;
   onQuickAction?: (action: string) => void;
   onSearch?: (query: string) => void;
+  dailyTargets?: Array<{
+    id: string;
+    title?: string;
+    startDate: string;
+    endDate: string;
+    targetAmount: number;
+    createdAt: string;
+  }>;
+  onNavigateToDailyTarget?: () => void;
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -188,7 +198,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onCreatePayment,
   onAddCard,
   onQuickAction,
-  onSearch
+  onSearch,
+  dailyTargets = [],
+  onNavigateToDailyTarget
 }) => {
   const gradientId = useId();
   const [searchQuery, setSearchQuery] = useState('');
@@ -228,6 +240,39 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const dailyLimitMax = Math.max(150000, totalRevenue * 0.65 || 150000);
   const dailyLimitUsed = Math.min(dailyLimitMax, totalRevenue * 0.38);
   const dailyLimitPercent = dailyLimitMax ? Math.round((dailyLimitUsed / dailyLimitMax) * 100) : 0;
+
+  // Calculate active daily target
+  const activeTarget = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return dailyTargets.find(target => {
+      const startDate = new Date(target.startDate);
+      const endDate = new Date(target.endDate);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+      return today >= startDate && today <= endDate;
+    });
+  }, [dailyTargets]);
+
+  // Calculate revenue within target period
+  const targetRevenue = useMemo(() => {
+    if (!activeTarget) return 0;
+    const startDate = new Date(activeTarget.startDate);
+    const endDate = new Date(activeTarget.endDate);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+    
+    return orders.filter(order => {
+      if (!ALLOWED_REVENUE_STATUSES.includes(order.status)) return false;
+      const orderDate = parseOrderDate(order.date);
+      return orderDate && orderDate >= startDate && orderDate <= endDate;
+    }).reduce((sum, order) => sum + order.amount, 0);
+  }, [activeTarget, orders]);
+
+  const targetProgress = activeTarget && activeTarget.targetAmount > 0
+    ? Math.min(100, Math.round((targetRevenue / activeTarget.targetAmount) * 100))
+    : 0;
 
   const filteredOrders = useMemo(() => {
     if (!searchQuery.trim()) return orders;
@@ -574,6 +619,74 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Daily Target Widget */}
+          {activeTarget && (
+            <div className="rounded-3xl bg-gradient-to-br from-[#1a0d10] via-[#0a050a] to-[#030304] border border-violet-500/40 shadow-[0_25px_55px_rgba(139,92,246,0.15)] p-6 space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/40 flex items-center justify-center">
+                    <Target size={20} className="text-violet-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Daily Target</h3>
+                    <p className="text-xs text-slate-400">{activeTarget.title || 'Current Period'}</p>
+                  </div>
+                </div>
+                {onNavigateToDailyTarget && (
+                  <button 
+                    onClick={onNavigateToDailyTarget}
+                    className="text-xs font-semibold text-violet-300 border border-violet-500/40 rounded-full px-3 py-1 hover:bg-violet-500/10 transition"
+                  >
+                    Manage
+                  </button>
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <div>
+                    <p className="text-xs text-slate-400">Current Progress</p>
+                    <p className="text-2xl font-black text-white">{formatCurrency(targetRevenue)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-slate-400">Target</p>
+                    <p className="text-xl font-bold text-violet-200">{formatCurrency(activeTarget.targetAmount)}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Achievement</span>
+                    <span className={`font-bold ${targetProgress >= 100 ? 'text-emerald-300' : targetProgress >= 75 ? 'text-violet-300' : 'text-amber-300'}`}>
+                      {targetProgress}%
+                    </span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        targetProgress >= 100 
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500' 
+                          : targetProgress >= 75
+                            ? 'bg-gradient-to-r from-violet-500 to-purple-500'
+                            : 'bg-gradient-to-r from-amber-500 to-orange-500'
+                      }`}
+                      style={{ width: `${targetProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Period</span>
+                  <span className="text-slate-300 font-semibold">
+                    {new Date(activeTarget.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {' - '}
+                    {new Date(activeTarget.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="rounded-3xl bg-gradient-to-b from-[#090b12] via-[#05080a] to-[#030405] p-6 border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.35)] text-slate-100">
             <h3 className="text-lg font-bold text-white mb-6 tracking-wide">Sales by Category</h3>

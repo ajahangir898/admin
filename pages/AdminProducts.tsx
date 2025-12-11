@@ -5,6 +5,8 @@ import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckC
 import { convertFileToWebP } from '../services/imageUtils';
 import { slugify } from '../services/slugify';
 import { formatCurrency } from '../utils/format';
+import { RichTextEditor } from '../components/RichTextEditor';
+import ProductPricingAndStock, { ProductPricingData } from '../components/ProductPricingAndStock';
 
 interface AdminProductsProps {
   products: Product[];
@@ -135,6 +137,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     status: 'Active'
   });
   const [initialFormData, setInitialFormData] = useState<Partial<Product> | null>(null); // To track dirty state
+  const [pricingData, setPricingData] = useState<ProductPricingData>({
+    regularPrice: 0,
+    salesPrice: 0,
+    costPrice: 0,
+    stockValue: 0,
+    sku: '',
+    isWholesale: false,
+  });
   const [tagInput, setTagInput] = useState('');
   const [colorInput, setColorInput] = useState('');
   const [sizeInput, setSizeInput] = useState('');
@@ -143,6 +153,16 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
   const viewMenuRef = useRef<HTMLDivElement>(null);
+
+  // Form Sections State
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    general: true,
+    description: true,
+    images: true,
+    variants: true,
+    pricing: true,
+    tags: true
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -184,6 +204,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     setFilterStatus('');
   };
 
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   // Filtered dropdown options based on selection
   const availableSubCategories = subCategories.filter(s => {
     const parentCat = categories.find(c => c.name === formData.category);
@@ -214,6 +241,15 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       setEditingProduct(product);
       initialData = { ...product, status: product.status || 'Active', colors: product.colors || [], sizes: product.sizes || [], galleryImages: product.galleryImages || [], slug: product.slug };
       setIsSlugTouched(true);
+      // Initialize pricing data from product
+      setPricingData({
+        regularPrice: product.price || 0,
+        salesPrice: product.originalPrice || 0,
+        costPrice: 0, // Not stored in product, can be added if needed
+        stockValue: 0, // Not stored in product, can be added if needed
+        sku: product.slug || '',
+        isWholesale: false, // Not stored in product, can be added if needed
+      });
     } else {
       setEditingProduct(null);
       initialData = {
@@ -235,6 +271,15 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         status: 'Active'
       };
       setIsSlugTouched(false);
+      // Reset pricing data
+      setPricingData({
+        regularPrice: 0,
+        salesPrice: 0,
+        costPrice: 0,
+        stockValue: 0,
+        sku: '',
+        isWholesale: false,
+      });
     }
     setFormData(initialData);
     setInitialFormData(initialData);
@@ -256,8 +301,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     e.preventDefault();
     
     // Basic validation
-    if (!formData.name || !formData.price) {
-      alert("Please fill in required fields (Name, Price)");
+    if (!formData.name || !pricingData.regularPrice) {
+      alert("Please fill in required fields (Name, Regular Price)");
       return;
     }
 
@@ -280,9 +325,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       image: primaryImage,
       galleryImages: gallery,
       slug: finalSlug,
+      // Update with pricing data
+      price: pricingData.regularPrice,
+      originalPrice: pricingData.salesPrice,
       // Ensure defaults
-      price: Number(formData.price),
-      originalPrice: Number(formData.originalPrice),
       rating: editingProduct ? editingProduct.rating : 5.0, // Default rating for new products
       reviews: editingProduct ? editingProduct.reviews : 0,
       status: formData.status || 'Active'
@@ -861,140 +907,174 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
               </div>
               
               <div className="flex-1 overflow-y-auto p-6">
-                 <form id="productForm" onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Product Name*</label>
-                          <input 
-                            type="text" 
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                            value={formData.name}
-                            onChange={e => handleNameChange(e.target.value)}
-                          />
-                       </div>
+                 <form id="productForm" onSubmit={handleSubmit} className="space-y-4">
+                    
+                    {/* GENERAL INFORMATION SECTION */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection('general')}
+                        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition font-semibold text-gray-900"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>📋 General Information</span>
+                        </span>
+                        <ChevronDown size={18} className={`transition-transform ${expandedSections.general ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {expandedSections.general && (
+                        <div className="p-4 space-y-4 bg-white">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">Product Name*</label>
+                              <input 
+                                type="text" 
+                                required
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                value={formData.name}
+                                onChange={e => handleNameChange(e.target.value)}
+                              />
+                            </div>
 
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Product URL Slug</label>
-                          <input 
-                            type="text" 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
-                            value={formData.slug || ''}
-                            onChange={e => {
-                              setIsSlugTouched(true);
-                              setFormData({ ...formData, slug: buildSlugFromName(e.target.value) });
-                            }}
-                          />
-                          <p className="text-xs text-gray-500">
-                            Link preview: {shareOrigin}/{formData.slug || 'product-name'}
-                          </p>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">Product URL Slug</label>
+                              <input 
+                                type="text" 
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                                value={formData.slug || ''}
+                                onChange={e => {
+                                  setIsSlugTouched(true);
+                                  setFormData({ ...formData, slug: buildSlugFromName(e.target.value) });
+                                }}
+                              />
+                              <p className="text-xs text-gray-500">
+                                Link: {shareOrigin}/{formData.slug || 'product-name'}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">Brand</label>
+                              <select 
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                                value={formData.brand}
+                                onChange={e => setFormData({...formData, brand: e.target.value})}
+                              >
+                                <option value="">Select Brand</option>
+                                {brands.map(b => (
+                                  <option key={b.name} value={b.name}>{b.name}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">Category*</label>
+                              <select 
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                                value={formData.category}
+                                onChange={e => setFormData({
+                                    ...formData, 
+                                    category: e.target.value,
+                                    subCategory: '', 
+                                    childCategory: '' 
+                                })}
+                              >
+                                <option value="">Select Category</option>
+                                {categories.map(c => (
+                                  <option key={c.name} value={c.name}>{c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">Sub Category</label>
+                              <select 
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                                value={formData.subCategory}
+                                onChange={e => setFormData({
+                                    ...formData, 
+                                    subCategory: e.target.value,
+                                    childCategory: ''
+                                })}
+                                disabled={!formData.category}
+                              >
+                                <option value="">Select Sub Category</option>
+                                {availableSubCategories.map(s => (
+                                  <option key={s.name} value={s.name}>{s.name}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">Child Category</label>
+                              <select 
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                                value={formData.childCategory}
+                                onChange={e => setFormData({...formData, childCategory: e.target.value})}
+                                disabled={!formData.subCategory}
+                              >
+                                <option value="">Select Child Category</option>
+                                {availableChildCategories.map(c => (
+                                  <option key={c.name} value={c.name}>{c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">Status</label>
+                              <select 
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                                value={formData.status || 'Active'}
+                                onChange={e => setFormData({...formData, status: e.target.value as any})}
+                              >
+                                <option value="Active">Active</option>
+                                <option value="Draft">Draft</option>
+                              </select>
+                            </div>
+                          </div>
                         </div>
-                       
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Brand</label>
-                          <select 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
-                            value={formData.brand}
-                            onChange={e => setFormData({...formData, brand: e.target.value})}
-                          >
-                             <option value="">Select Brand</option>
-                             {brands.map(b => (
-                               <option key={b.name} value={b.name}>{b.name}</option>
-                             ))}
-                          </select>
-                       </div>
-
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Category*</label>
-                          <select 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
-                            value={formData.category}
-                            onChange={e => setFormData({
-                                ...formData, 
-                                category: e.target.value,
-                                subCategory: '', 
-                                childCategory: '' 
-                            })}
-                          >
-                             <option value="">Select Category</option>
-                             {categories.map(c => (
-                               <option key={c.name} value={c.name}>{c.name}</option>
-                             ))}
-                          </select>
-                       </div>
-
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Sub Category</label>
-                          <select 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
-                            value={formData.subCategory}
-                            onChange={e => setFormData({
-                                ...formData, 
-                                subCategory: e.target.value,
-                                childCategory: ''
-                            })}
-                            disabled={!formData.category}
-                          >
-                             <option value="">Select Sub Category</option>
-                             {availableSubCategories.map(s => (
-                               <option key={s.name} value={s.name}>{s.name}</option>
-                             ))}
-                          </select>
-                       </div>
-
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Child Category</label>
-                          <select 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
-                            value={formData.childCategory}
-                            onChange={e => setFormData({...formData, childCategory: e.target.value})}
-                            disabled={!formData.subCategory}
-                          >
-                             <option value="">Select Child Category</option>
-                             {availableChildCategories.map(c => (
-                               <option key={c.name} value={c.name}>{c.name}</option>
-                             ))}
-                          </select>
-                       </div>
-
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Price (৳)*</label>
-                          <input 
-                            type="number" 
-                            required
-                            min="0"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                            value={formData.price}
-                            onChange={e => setFormData({...formData, price: Number(e.target.value)})}
-                          />
-                       </div>
-                       
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Original Price (৳)</label>
-                          <input 
-                            type="number" 
-                            min="0"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                            value={formData.originalPrice || ''}
-                            onChange={e => setFormData({...formData, originalPrice: Number(e.target.value)})}
-                          />
-                       </div>
-
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Status</label>
-                          <select 
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
-                            value={formData.status || 'Active'}
-                            onChange={e => setFormData({...formData, status: e.target.value as any})}
-                          >
-                             <option value="Active">Active</option>
-                             <option value="Draft">Draft</option>
-                          </select>
-                       </div>
+                      )}
                     </div>
 
-                    <div className="space-y-2">
-                       <label className="text-sm font-medium text-gray-700">Product Images* (Min: 5, Max: 10)</label>
+                    {/* DESCRIPTION SECTION */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection('description')}
+                        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition font-semibold text-gray-900"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>📝 Description</span>
+                        </span>
+                        <ChevronDown size={18} className={`transition-transform ${expandedSections.description ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {expandedSections.description && (
+                        <div className="p-4 space-y-4 bg-white">
+                          <RichTextEditor
+                            value={formData.description}
+                            onChange={(html) => setFormData({...formData, description: html})}
+                            placeholder="Enter product description..."
+                            minHeight="min-h-[300px]"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* PRODUCT IMAGES SECTION */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection('images')}
+                        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition font-semibold text-gray-900"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>🖼️ Product Images</span>
+                        </span>
+                        <ChevronDown size={18} className={`transition-transform ${expandedSections.images ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {expandedSections.images && (
+                        <div className="p-4 space-y-4 bg-white">
                        
                        <input 
                          type="file" 
@@ -1069,117 +1149,162 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                              )}
                           </div>
                        )}
+                        </div>
+                      )}
                     </div>
 
-                    <div className="space-y-2">
-                       <label className="text-sm font-medium text-gray-700">Description</label>
-                       <textarea 
-                         rows={4}
-                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none resize-none"
-                         value={formData.description}
-                         onChange={e => setFormData({...formData, description: e.target.value})}
-                       ></textarea>
-                    </div>
+                    {/* SIZE INFORMATION SECTION */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection('variants')}
+                        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition font-semibold text-gray-900"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>📐 Size Information</span>
+                        </span>
+                        <ChevronDown size={18} className={`transition-transform ${expandedSections.variants ? 'rotate-180' : ''}`} />
+                      </button>
 
-                    {/* Variant Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Palette size={16}/> Colors</label>
-                            <div className="flex gap-2">
+                      {expandedSections.variants && (
+                        <div className="p-4 space-y-4 bg-white">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Palette size={16}/> Colors</label>
+                              <div className="flex gap-2">
                                 <input 
-                                    type="text" 
-                                    placeholder="Color (Name or Hex)"
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
-                                    value={colorInput}
-                                    onChange={e => setColorInput(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addColor())}
+                                  type="text" 
+                                  placeholder="Color (Name or Hex)"
+                                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                                  value={colorInput}
+                                  onChange={e => setColorInput(e.target.value)}
+                                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addColor())}
                                 />
                                 <button type="button" onClick={addColor} className="bg-purple-100 text-purple-700 px-3 rounded-lg font-bold hover:bg-purple-200">+</button>
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-2">
+                              </div>
+                              <div className="flex flex-wrap gap-2 mt-2">
                                 {formData.colors?.map(c => (
-                                    <span key={c} className="flex items-center gap-1 bg-white border border-gray-200 pl-1 pr-2 py-1 rounded-full text-xs shadow-sm">
-                                        <span className="w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: c}}></span>
-                                        {c}
-                                        <button type="button" onClick={() => removeColor(c)} className="ml-1 text-gray-400 hover:text-red-500"><X size={12}/></button>
-                                    </span>
+                                  <span key={c} className="flex items-center gap-1 bg-white border border-gray-200 pl-1 pr-2 py-1 rounded-full text-xs shadow-sm">
+                                    <span className="w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: c}}></span>
+                                    {c}
+                                    <button type="button" onClick={() => removeColor(c)} className="ml-1 text-gray-400 hover:text-red-500"><X size={12}/></button>
+                                  </span>
                                 ))}
+                              </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Ruler size={16}/> Sizes</label>
-                            <div className="flex gap-2">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Ruler size={16}/> Sizes</label>
+                              <div className="flex gap-2">
                                 <input 
-                                    type="text" 
-                                    placeholder="Size (e.g. XL, 42)"
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
-                                    value={sizeInput}
-                                    onChange={e => setSizeInput(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSize())}
+                                  type="text" 
+                                  placeholder="Size (e.g. XL, 42)"
+                                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                                  value={sizeInput}
+                                  onChange={e => setSizeInput(e.target.value)}
+                                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSize())}
                                 />
                                 <button type="button" onClick={addSize} className="bg-purple-100 text-purple-700 px-3 rounded-lg font-bold hover:bg-purple-200">+</button>
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-2">
+                              </div>
+                              <div className="flex flex-wrap gap-2 mt-2">
                                 {formData.sizes?.map(s => (
-                                    <span key={s} className="bg-white border border-gray-200 px-2 py-1 rounded text-xs font-bold text-gray-600 flex items-center gap-1 shadow-sm">
-                                        {s}
-                                        <button type="button" onClick={() => removeSize(s)} className="text-gray-400 hover:text-red-500"><X size={12}/></button>
-                                    </span>
+                                  <span key={s} className="bg-white border border-gray-200 px-2 py-1 rounded text-xs font-bold text-gray-600 flex items-center gap-1 shadow-sm">
+                                    {s}
+                                    <button type="button" onClick={() => removeSize(s)} className="text-gray-400 hover:text-red-500"><X size={12}/></button>
+                                  </span>
                                 ))}
+                              </div>
                             </div>
+                          </div>
                         </div>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Discount Label</label>
-                          <input 
-                            type="text" 
-                            placeholder="e.g. 20% OFF"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                            value={formData.discount}
-                            onChange={e => setFormData({...formData, discount: e.target.value})}
-                          />
-                       </div>
-                       
-                       <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Tags</label>
-                          <div className="flex gap-2">
-                             <input 
-                               type="text" 
-                               placeholder="Add tag..."
-                               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                               value={tagInput}
-                               onChange={e => setTagInput(e.target.value)}
-                               onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                             />
-                             <button type="button" onClick={addTag} className="bg-gray-100 px-4 rounded-lg hover:bg-gray-200 text-gray-600 font-bold">+</button>
-                          </div>
-                          
-                          {/* Quick Tag Select from Catalog */}
-                          <div className="flex gap-2 flex-wrap mt-2">
-                             {tags.map(t => (
-                               <button 
-                                 key={t.name}
-                                 type="button"
-                                 onClick={() => addExistingTag(t.name)}
-                                 className="text-xs bg-gray-50 border border-gray-200 px-2 py-1 rounded-full text-gray-600 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition"
-                               >
-                                 + {t.name}
-                               </button>
-                             ))}
-                          </div>
+                    {/* PRICING & STOCK SECTION */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection('pricing')}
+                        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition font-semibold text-gray-900"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>💰 Pricing & Stock</span>
+                        </span>
+                        <ChevronDown size={18} className={`transition-transform ${expandedSections.pricing ? 'rotate-180' : ''}`} />
+                      </button>
 
-                          <div className="flex flex-wrap gap-2 mt-2">
-                             {formData.tags?.map(tag => (
-                               <span key={tag} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-                                 {tag} 
-                                 <button type="button" onClick={() => removeTag(tag)} className="hover:text-purple-900"><X size={12}/></button>
-                               </span>
-                             ))}
+                      {expandedSections.pricing && (
+                        <div className="p-4 bg-white">
+                          <ProductPricingAndStock
+                            initialData={pricingData}
+                            onDataChange={(data) => {
+                              setPricingData(data);
+                              // Update formData with pricing information
+                              setFormData({
+                                ...formData,
+                                price: data.regularPrice,
+                                originalPrice: data.salesPrice,
+                              });
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* TAGS & CLASSIFICATION SECTION */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection('tags')}
+                        className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition font-semibold text-gray-900"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>🏷️ Tags & Classification</span>
+                        </span>
+                        <ChevronDown size={18} className={`transition-transform ${expandedSections.tags ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {expandedSections.tags && (
+                        <div className="p-4 space-y-4 bg-white">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Tags</label>
+                            <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                placeholder="Add tag..."
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                value={tagInput}
+                                onChange={e => setTagInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                              />
+                              <button type="button" onClick={addTag} className="bg-gray-100 px-4 rounded-lg hover:bg-gray-200 text-gray-600 font-bold">+</button>
+                            </div>
+                            
+                            {/* Quick Tag Select from Catalog */}
+                            <div className="flex gap-2 flex-wrap mt-2">
+                              {tags.map(t => (
+                                <button 
+                                  key={t.name}
+                                  type="button"
+                                  onClick={() => addExistingTag(t.name)}
+                                  className="text-xs bg-gray-50 border border-gray-200 px-2 py-1 rounded-full text-gray-600 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition"
+                                >
+                                  + {t.name}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {formData.tags?.map(tag => (
+                                <span key={tag} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                                  {tag} 
+                                  <button type="button" onClick={() => removeTag(tag)} className="hover:text-purple-900"><X size={12}/></button>
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                       </div>
+                        </div>
+                      )}
                     </div>
                  </form>
               </div>

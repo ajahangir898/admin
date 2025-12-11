@@ -50,6 +50,7 @@ type CheckoutFormState = {
   division: string;
   email: string;
   address: string;
+  productDescription?: string;
   cardName?: string;
   cardNumber?: string;
   expiry?: string;
@@ -83,7 +84,8 @@ const StoreCheckout = ({
     phone: '',
     division: '',
     email: '',
-    address: ''
+    address: '',
+    productDescription: ''
   });
   const [selectedDeliveryType, setSelectedDeliveryType] = useState<'Regular' | 'Express' | 'Free'>('Regular');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -250,7 +252,7 @@ const StoreCheckout = ({
       />
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <section className="bg-white rounded-2xl shadow-sm p-4 md:p-6 sticky top-16 z-10">
+        <section className="bg-white rounded-2xl shadow-sm p-4 md:p-6 top-16 z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Checkout</p>
@@ -364,7 +366,6 @@ const StoreCheckout = ({
                       }`}
                       value={formData.fullName}
                       onChange={e => updateField('fullName', e.target.value)}
-                      onBlur={e => updateField('fullName', e.target.value)}
                       aria-invalid={!!(formErrors.fullName && touchedFields.fullName)}
                       aria-describedby={formErrors.fullName && touchedFields.fullName ? 'fullName-error' : undefined}
                     />
@@ -390,7 +391,6 @@ const StoreCheckout = ({
                       }`}
                       value={formData.phone}
                       onChange={e => updateField('phone', e.target.value)}
-                      onBlur={e => updateField('phone', e.target.value)}
                       aria-invalid={!!(formErrors.phone && touchedFields.phone)}
                       aria-describedby={formErrors.phone && touchedFields.phone ? 'phone-error' : undefined}
                     />
@@ -419,7 +419,6 @@ const StoreCheckout = ({
                       }`}
                       value={formData.email}
                       onChange={e => updateField('email', e.target.value)}
-                      onBlur={e => updateField('email', e.target.value)}
                       aria-invalid={!!(formErrors.email && touchedFields.email)}
                       aria-describedby={formErrors.email && touchedFields.email ? 'email-error' : undefined}
                     />
@@ -442,7 +441,6 @@ const StoreCheckout = ({
                       } text-gray-700 bg-white`}
                       value={formData.division}
                       onChange={e => updateField('division', e.target.value)}
-                      onBlur={e => updateField('division', e.target.value)}
                       aria-invalid={!!(formErrors.division && touchedFields.division)}
                       aria-describedby={formErrors.division && touchedFields.division ? 'division-error' : undefined}
                   >
@@ -479,7 +477,6 @@ const StoreCheckout = ({
                     }`}
                     value={formData.address}
                     onChange={e => updateField('address', e.target.value)}
-                    onBlur={e => updateField('address', e.target.value)}
                     aria-invalid={!!(formErrors.address && touchedFields.address)}
                     aria-describedby={formErrors.address && touchedFields.address ? 'address-error' : undefined}
                   ></textarea>
@@ -489,6 +486,20 @@ const StoreCheckout = ({
                     <AlertCircle size={14} /> {formErrors.address}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Add Product Description / Special Instructions</label>
+                <textarea
+                  placeholder="Add any special requests, customization details, or instructions for your order..."
+                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl transition focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:ring-opacity-50 resize-none min-h-[100px]"
+                  value={formData.productDescription || ''}
+                  onChange={e => {
+                    const value = e.target.value;
+                    setFormData(prev => ({ ...prev, productDescription: value }));
+                  }}
+                />
+                <p className="text-xs text-gray-500 mt-2">Optional: Let us know about any specific requirements or customizations</p>
               </div>
             </div>
 
@@ -559,7 +570,7 @@ const StoreCheckout = ({
           </div>
 
           <div className="w-full lg:w-96">
-            <div className="store-card p-6 rounded-3xl sticky top-24 border border-gray-100 shadow-xl shadow-emerald-50/50">
+            <div className="store-card p-6 rounded-3xl top-24 border border-gray-100 shadow-xl shadow-emerald-50/50">
               <h2 className="text-lg font-bold text-gray-800 mb-6">Order Items ({quantity} Items)</h2>
 
               <div className="flex gap-3 mb-6">

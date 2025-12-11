@@ -230,27 +230,27 @@ export const MobileBottomNav: React.FC<{
 
   // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-1 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
+    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-br from-blue-300/30 via-cyan-200/25 to-blue-200/30 backdrop-blur-xl border-t border-cyan-300/40 py-2 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-8px_32px_rgba(0,150,200,0.15),inset_0_1px_0_rgba(255,255,255,0.5)] pb-safe h-[60px]">
             {chatEnabled && onChatClick ? (
-                <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-                    <div className="relative">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-pink-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                <button onClick={onChatClick} className="flex flex-col items-center gap-1.5 transition w-1/5 group">
+                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 group-hover:text-cyan-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
                     </div>
-                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Live Chat</span>
+                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Chat</span>
                 </button>
             ) : chatFallbackLink ? (
-                <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-                    <div className="relative">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-pink-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1.5 transition w-1/5 group">
+                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 group-hover:text-cyan-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
                     </div>
-                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Live Chat</span>
+                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Chat</span>
                 </a>
             ) : (
-                <button className="flex flex-col items-center gap-1 text-gray-400 transition w-1/5 group" type="button" disabled title="Live chat unavailable">
-                    <div className="relative">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                <button className="flex flex-col items-center gap-1.5 transition w-1/5 group" type="button" disabled title="Live chat unavailable">
+                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
                     </div>
-                    <span className="text-[10px] font-medium text-gray-400">Live Chat</span>
+                    <span className="text-[9px] font-semibold text-gray-500">Chat</span>
                 </button>
             )}
       
@@ -259,22 +259,44 @@ export const MobileBottomNav: React.FC<{
                     href={whatsappLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group"
+                    className="flex flex-col items-center gap-1.5 transition w-1/5 group"
                     aria-label="Chat on WhatsApp"
                 >
-                    <Phone size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Call</span>
+                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
+                        <Phone size={20} strokeWidth={2} className="text-gray-600 group-hover:text-cyan-600" />
+                    </div>
+                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Call</span>
                 </a>
             ) : (
-                <button className="flex flex-col items-center gap-1 text-gray-400 transition w-1/5 group" title="WhatsApp number not configured" type="button" disabled>
-                    <Phone size={22} strokeWidth={2} className="text-gray-400" />
-                    <span className="text-[10px] font-medium text-gray-400">Call</span>
+                <button className="flex flex-col items-center gap-1.5 transition w-1/5 group" title="WhatsApp number not configured" type="button" disabled>
+                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
+                        <Phone size={20} strokeWidth={2} className="text-gray-400" />
+                    </div>
+                    <span className="text-[9px] font-semibold text-gray-500">Call</span>
                 </button>
             )}
       
-      <button onClick={onHomeClick} className="flex flex-col items-center gap-1 text-pink-600 transition w-1/5">
-        <Home size={26} strokeWidth={2.5} className="fill-pink-600 text-pink-600" />
-        <span className="text-[10px] font-bold text-pink-600">Home</span>
+      <button onClick={onHomeClick} className="flex flex-col items-center gap-1.5 transition w-1/5 group">
+        <div className="relative w-20 h-7  flex items-center justify-center">
+          {/* Outer Silver/Gray Ring Border */}
+          {/* <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-300 to-gray-400 shadow-[0_6px_20px_rgba(0,0,0,0.15)] group-hover:shadow-[0_8px_28px_rgba(0,0,0,0.25)] transition-shadow"></div>
+           */}
+          {/* Inner Dark Blue Background */}
+          {/* <div className="absolute inset-1.5 rounded-xl bg-gradient-to-br from-blue-900 to-blue-800 shadow-[inset_0_2px_8px_rgba(0,0,0,0.3),inset_0_-2px_6px_rgba(255,255,255,0.1)]"></div>
+           */}
+          {/* Highlight/Shine Effect */}
+          {/* <div className="absolute inset-1.5 rounded-xl bg-gradient-to-br from-blue-600/20 via-transparent to-transparent pointer-events-none"></div>
+           */}
+          {/* Home Icon from URL */}
+          <div className="relative z-10 flex items-center justify-center">
+            <img 
+              src="https://images.vexels.com/media/users/3/139729/isolated/svg/082dce112041515d39a27e2c124c3070.svg" 
+              alt="Home" 
+              className="w-12 h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
+            />
+          </div>
+        </div>
+        <span className="text-[9px] font-bold text-blue-900 group-hover:text-blue-700">Home</span>
       </button>
       
             {facebookLink ? (
@@ -283,22 +305,28 @@ export const MobileBottomNav: React.FC<{
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Facebook Page"
-                    className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group"
+                    className="flex flex-col items-center gap-1.5 transition w-1/5 group"
                 >
-                    <Facebook size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Page</span>
+                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
+                        <Facebook size={20} strokeWidth={2} className="text-gray-600 group-hover:text-cyan-600" />
+                    </div>
+                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Page</span>
                 </a>
             ) : (
-                <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition w-1/5 group">
-                    <Facebook size={22} strokeWidth={2} className="text-gray-500 group-hover:text-pink-600" />
-                    <span className="text-[10px] font-medium text-gray-500 group-hover:text-pink-600">Page</span>
+                <button className="flex flex-col items-center gap-1.5 transition w-1/5 group">
+                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
+                        <Facebook size={20} strokeWidth={2} className="text-gray-600 group-hover:text-cyan-600" />
+                    </div>
+                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Page</span>
                 </button>
             )}
       
             <div ref={accountSectionRef} className="relative flex justify-center w-1/5">
-                <button onClick={() => setIsAccountMenuOpen((prev) => !prev)} className={`flex flex-col items-center gap-1 transition w-full group ${isAccountMenuOpen ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}>
-                    <User size={22} strokeWidth={2} className={`${isAccountMenuOpen ? 'text-pink-600' : 'text-gray-500 group-hover:text-pink-600'}`} />
-                    <span className="text-[10px] font-medium">Account</span>
+                <button onClick={() => setIsAccountMenuOpen((prev) => !prev)} className={`flex flex-col items-center gap-1.5 transition w-full group`}>
+                    <div className={`relative w-10 h-10 rounded-2xl backdrop-blur-md border flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] transition ${ isAccountMenuOpen ? 'bg-gradient-to-br from-white/50 to-white/30 border-white/40 shadow-[0_12px_48px_rgba(0,120,150,0.25),inset_0_1px_0_rgba(255,255,255,0.4)]' : 'bg-gradient-to-br from-white/40 to-white/20 border-white/30 hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)]'}`}>
+                        <User size={20} strokeWidth={2} className={`${isAccountMenuOpen ? 'text-cyan-600' : 'text-gray-600 group-hover:text-cyan-600'}`} />
+                    </div>
+                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Account</span>
                 </button>
                 {isAccountMenuOpen && (
                     <div className="absolute bottom-[70px] left-1/2 -translate-x-1/2 w-[230px] rounded-3xl border border-gray-100 bg-white shadow-[0_15px_45px_rgba(15,23,42,0.15)] p-4 z-[60]">
@@ -1353,7 +1381,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                                                         <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
                                                                         <div className="mt-3 flex gap-2">
                                                                             <button
-                                                                                className="flex-1 rounded-lg bg-green-600 text-white text-xs font-semibold py-2 hover:bg-green-700 transition"
+                                                                                className="flex-1 btn-order py-1.5 text-sm"
                                                                                 onClick={() => handleCheckoutFromCartClick(id)}
                                                                             >
                                                                                 Checkout
@@ -2160,6 +2188,138 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
         );
     }
 
+    // Style 4 (Premium Footer - Two Tone)
+    if (websiteConfig?.footerStyle === 'style4') {
+        const socialLinks = websiteConfig?.socialLinks || [];
+        const quickLinks = websiteConfig?.footerQuickLinks?.length
+            ? websiteConfig.footerQuickLinks
+            : [
+                { id: 'quick-1', label: 'Return & Refund Policy', url: '#' },
+                { id: 'quick-2', label: 'Privacy Policy', url: '#' },
+                { id: 'quick-3', label: 'Terms and Conditions', url: '#' },
+                { id: 'quick-4', label: 'About us', url: '#' }
+            ];
+        const usefulLinks = websiteConfig?.footerUsefulLinks?.length
+            ? websiteConfig.footerUsefulLinks
+            : [
+                { id: 'useful-1', label: 'Why Shop Online with Us', url: '#' },
+                { id: 'useful-2', label: 'Online Payment Methods', url: '#' },
+                { id: 'useful-3', label: 'After Sales Support', url: '#' },
+                { id: 'useful-4', label: 'FAQ', url: '#' }
+            ];
+
+        return (
+            <>
+            <footer className="store-footer mt-auto">
+                {/* Top Section - Darker Background */}
+                <div className="bg-slate-700 text-white py-6 px-4">
+                    <div className="max-w-7xl mx-auto space-y-4">
+                        {/* Logo & Tagline */}
+                        <div className="text-center">
+                            {websiteConfig?.favicon && (
+                                <img src={websiteConfig.favicon} alt="Favicon" className="w-12 h-12 mx-auto mb-2 object-contain" />
+                            )}
+                            <p className="text-white text-lg font-light tracking-wide">{websiteConfig?.shortDescription || 'Get the best for less'}</p>
+                        </div>
+
+                        {/* Social Links */}
+                        {socialLinks.length > 0 && (
+                            <div className="flex justify-center gap-4">
+                                {socialLinks.map(link => (
+                                    <a
+                                        key={link.id}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        aria-label={link.platform}
+                                        className="w-14 h-14 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition transform hover:scale-110"
+                                    >
+                                        {resolveSocialIcon(link.platform)}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Bottom Section - Lighter Background */}
+                <div className="bg-slate-800 text-white py-6 px-4">
+                    <div className="max-w-7xl mx-auto space-y-6">
+                        {/* Contact Us Section */}
+                        <div className="text-center space-y-3">
+                            <h2 className="text-3xl font-bold tracking-tight">Contact Us</h2>
+                            
+                            <div className="space-y-2">
+                                {websiteConfig?.emails?.[0] && (
+                                    <div className="flex items-center justify-center gap-3">
+                                        <Mail size={24} className="text-green-400" />
+                                        <a href={`mailto:${websiteConfig.emails[0]}`} className="text-lg hover:text-green-400 transition">
+                                            {websiteConfig.emails[0]}
+                                        </a>
+                                    </div>
+                                )}
+                                {websiteConfig?.phones?.[0] && (
+                                    <div className="flex items-center justify-center gap-3">
+                                        <Phone size={24} className="text-green-400" />
+                                        <a href={`tel:${websiteConfig.phones[0]}`} className="text-lg hover:text-green-400 transition">
+                                            {websiteConfig.phones[0]}
+                                        </a>
+                                    </div>
+                                )}
+                                {websiteConfig?.addresses?.[0] && (
+                                    <div className="flex items-center justify-center gap-3">
+                                        <MapPin size={24} className="text-green-400" />
+                                        <span className="text-lg">{websiteConfig.addresses[0]}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Links Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-center md:text-left">
+                            {/* Quick Links */}
+                            <div>
+                                <h3 className="text-2xl font-bold mb-4">Quick Links</h3>
+                                <ul className="space-y-2">
+                                    {quickLinks.map(link => (
+                                        <li key={link.id}>
+                                            <a href={link.url || '#'} className="text-white/80 hover:text-green-400 transition text-lg">
+                                                {link.label}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* Useful Links */}
+                            <div>
+                                <h3 className="text-2xl font-bold mb-4">Useful Links</h3>
+                                <ul className="space-y-2">
+                                    {usefulLinks.map(link => (
+                                        <li key={link.id}>
+                                            <a href={link.url || '#'} className="text-white/80 hover:text-green-400 transition text-lg">
+                                                {link.label}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                         </div>
+
+                        {/* Copyright */}
+                        <div className="border-t border-white/10 pt-8 text-center text-sm text-white/60">
+                            <p>&copy; {new Date().getFullYear()} {websiteConfig?.websiteName || 'Store'}. All rights reserved.</p>
+                        </div>
+                    </div>
+                </div>
+               
+            </footer>
+            {floatingChatButton}
+            
+            </>
+        );
+    }
+
     // Default Footer
     return (
         <>
@@ -2228,7 +2388,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         <p>&copy; {new Date().getFullYear()} {websiteConfig?.websiteName}. All rights reserved.</p>
                     )}
                     {websiteConfig?.showPoweredBy && (
-                        <p>Powered by Saleecom</p>
+                        <p>Powered by SystemNext IT </p>
                     )}
                 </div>
             )}
@@ -2254,6 +2414,8 @@ export const StoreChatModal: React.FC<{
     const [draft, setDraft] = useState('');
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editingDraft, setEditingDraft] = useState('');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isCustomerView = context !== 'admin';
     const baseWhatsAppLink = isCustomerView ? buildWhatsAppLink(websiteConfig?.whatsappNumber) : null;
@@ -2312,6 +2474,17 @@ export const StoreChatModal: React.FC<{
     }, [isOpen, messages.length]);
 
     useEffect(() => {
+        if (!showEmojiPicker) return;
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showEmojiPicker]);
+
+    useEffect(() => {
         if (!editingMessageId) return;
         const targetExists = displayMessages.some((message) => message.id === editingMessageId);
         if (!targetExists) {
@@ -2335,6 +2508,11 @@ export const StoreChatModal: React.FC<{
             event.preventDefault();
             handleSend();
         }
+    };
+
+    const handleEmojiClick = (emoji: string) => {
+        setDraft(prev => prev + emoji);
+        setShowEmojiPicker(false);
     };
 
     const startEditing = (message: ChatMessage) => {
@@ -2506,16 +2684,38 @@ export const StoreChatModal: React.FC<{
 
                 <div className="px-4 pb-5 pt-3 border-t border-gray-100 bg-white">
                     {chatEnabled || !isCustomerView ? (
-                        <div className="live-chat-input flex items-center gap-3 px-4 py-2">
-                            <button type="button" className="text-gray-500 hover:text-gray-700" aria-label="Add attachment">
-                                <Plus size={18} />
-                            </button>
+                        <div className="live-chat-input flex items-center gap-3 px-4 py-2 relative">
                             <button type="button" className="text-gray-500 hover:text-gray-700" aria-label="Attach image">
                                 <ImageIcon size={18} />
                             </button>
-                            <button type="button" className="text-gray-500 hover:text-gray-700" aria-label="Add emoji">
-                                <Smile size={18} />
-                            </button>
+                            <div className="relative">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    className={`text-gray-500 hover:text-gray-700 transition ${showEmojiPicker ? 'text-blue-500' : ''}`}
+                                    aria-label="Add emoji"
+                                >
+                                    <Smile size={18} />
+                                </button>
+                                {showEmojiPicker && (
+                                    <div 
+                                        ref={emojiPickerRef}
+                                        className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-2xl shadow-2xl p-3 z-50 grid grid-cols-8 gap-2 w-80"
+                                        style={{ right: '-200px' }}
+                                    >
+                                        {['😀', '😂', '😍', '🥰', '😎', '🤔', '😢', '😡', '👍', '👎', '❤️', '💔', '🎉', '🎊', '✨', '⭐', '🔥', '💯', '😴', '😷', '🤐', '🤮', '🤢', '🤮', '😈', '👿', '💀', '☠️', '💫', '💥', '✅', '❌', '🙌', '🤝', '👏', '🎁', '🎈', '🎀', '🌈', '🌟', '💖', '💝', '💗', '💓', '💞', '🚀', '⚡', '🌺', '🌸', '🌼', '🍕', '🍔', '🍟', '🌮', '🍰', '🍪', '☕', '🍺', '🍻', '🥂', '🍾'].map((emoji) => (
+                                            <button
+                                                key={emoji}
+                                                onClick={() => handleEmojiClick(emoji)}
+                                                className="text-2xl hover:bg-gray-100 p-1 rounded transition hover:scale-125"
+                                                title={emoji}
+                                            >
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             <input
                                 type="text"
                                 value={draft}

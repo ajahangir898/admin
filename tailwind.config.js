@@ -39,6 +39,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+      },
       colors: {
         green: buildPalette('--color-primary-rgb', buildStops()),
         blue: buildPalette('--color-tertiary-rgb', buildStops()),

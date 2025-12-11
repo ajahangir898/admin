@@ -651,7 +651,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" className="w-5 h-5 text-green-600 rounded" checked={config.showPoweredBy} onChange={e => setConfig({...config, showPoweredBy: e.target.checked})}/>
-                            <span className="text-sm font-medium">Powered by Saleecom (Show in footer)</span>
+                            <span className="text-sm font-medium">Powered by SystemNext IT (Show in footer)</span>
                         </label>
                         <div className="flex items-center justify-between gap-3 rounded-xl border border-sky-100 bg-sky-50/70 px-4 py-3">
                             <div>

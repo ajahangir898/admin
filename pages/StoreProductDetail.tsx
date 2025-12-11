@@ -400,63 +400,69 @@ const StoreProductDetail = ({
               
               {/* Image Section */}
               <div className="w-full md:w-1/2 flex flex-col gap-4">
-                 <div 
-                   className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden relative group border border-gray-100 shadow-sm hover:shadow-lg transition-shadow cursor-zoom-in"
-                   onMouseEnter={() => {}}
-                   onMouseMove={(e) => {
-                     const rect = e.currentTarget.getBoundingClientRect();
-                     const x = ((e.clientX - rect.left) / rect.width) * 100;
-                     const y = ((e.clientY - rect.top) / rect.height) * 100;
-                     setZoomPosition({ x, y });
-                   }}
-                   onClick={() => setIsZoomOpen(true)}
-                 >
-                    <LazyImage 
-                      src={selectedImage} 
-                      alt={product.name} 
-                      className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-500" 
-                    />
-                    {/* Zoom Icon */}
-                    <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm text-gray-700 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                      <ZoomIn size={20} />
+                 <div className="flex flex-col md:flex-row gap-4 md:gap-3 h-full">
+                    {/* Thumbnail Gallery - Left Side */}
+                    <div className="flex md:flex-col gap-2 md:gap-3 order-2 md:order-1 md:w-20">
+                      {additionalImages.length > 0 && additionalImages.map((img, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedImage(img)}
+                          className={`flex-shrink-0 w-16 h-16 md:w-full md:h-20 rounded-lg border-2 p-1 transition-all overflow-hidden hover:border-orange-400 ${
+                            selectedImage === img
+                              ? 'border-orange-500 bg-orange-50 shadow-md'
+                              : 'border-gray-200 shadow-sm hover:shadow'
+                          }`}
+                          aria-label={`View image ${idx + 1}`}
+                          aria-pressed={selectedImage === img}
+                          title={`View image ${idx + 1}`}
+                        >
+                          <LazyImage src={img} alt={`View ${idx + 1}`} className="w-full h-full object-contain mix-blend-multiply" />
+                        </button>
+                      ))}
                     </div>
-                    {product.discount && (
-                      <span className="absolute top-4 left-4 bg-gradient-to-r from-green-400 to-emerald-500 text-red-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                        {product.discount}
-                      </span>
-                    )}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleWishlist();
-                      }}
-                      className={`absolute top-4 right-4 p-2 rounded-full transition-all ${
-                        isWishlisted 
-                          ? 'bg-rose-100 text-rose-600 shadow-md' 
-                          : 'bg-white text-gray-600 shadow hover:bg-rose-50'
-                      }`}
-                      aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                    >
-                      <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
-                    </button>
-                 </div>
-                 {/* Thumbnail Gallery */}
-                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                   {additionalImages.map((img, idx) => (
-                     <button
-                       key={idx} 
-                       onClick={() => setSelectedImage(img)}
-                       className={`flex-shrink-0 w-16 h-16 rounded-lg border-2 p-1 transition-all ${
-                         selectedImage === img 
-                           ? 'border-orange-500 bg-orange-50 shadow-md' 
-                           : 'border-gray-200 hover:border-orange-400 hover:shadow'
-                       }`}
-                       aria-label={`View image ${idx + 1}`}
-                       aria-pressed={selectedImage === img}
-                     >
-                       <LazyImage src={img} alt={`View ${idx + 1}`} className="w-full h-full object-contain mix-blend-multiply" />
-                     </button>
-                   ))}
+
+                    {/* Main Product Image - Right Side */}
+                    <div className="flex-1 order-1 md:order-2">
+                      <div
+                        className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden relative group border border-gray-100 shadow-sm hover:shadow-lg transition-shadow cursor-zoom-in"
+                        onMouseMove={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = ((e.clientX - rect.left) / rect.width) * 100;
+                          const y = ((e.clientY - rect.top) / rect.height) * 100;
+                          setZoomPosition({ x, y });
+                        }}
+                        onClick={() => setIsZoomOpen(true)}
+                      >
+                        <LazyImage
+                          src={selectedImage}
+                          alt={product.name}
+                          className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                        />
+                        {/* Zoom Icon */}
+                        <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm text-gray-700 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                          <ZoomIn size={20} />
+                        </div>
+                        {product.discount && (
+                          <span className="absolute top-4 left-4 bg-gradient-to-r from-green-400 to-emerald-500 text-red-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                            {product.discount}
+                          </span>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleWishlist();
+                          }}
+                          className={`absolute top-4 right-4 p-2 rounded-full transition-all ${
+                            isWishlisted
+                              ? 'bg-rose-100 text-rose-600 shadow-md'
+                              : 'bg-white text-gray-600 shadow hover:bg-rose-50'
+                          }`}
+                          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                        >
+                          <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
+                        </button>
+                      </div>
+                    </div>
                  </div>
               </div>
 
@@ -645,7 +651,12 @@ const StoreProductDetail = ({
                <div className="p-8 min-h-[200px]">
                   {activeTab === 'description' ? (
                     <div className="text-gray-600 leading-relaxed space-y-4">
-                      <p>{product.description || "No description available for this product."}</p>
+                      <div 
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ 
+                          __html: product.description || "No description available for this product." 
+                        }}
+                      />
                       <p className="text-sm italic text-gray-500">Experience premium quality with our latest collection. This product features state-of-the-art technology, ergonomic design for comfort, and durable materials that last. Perfect for daily use or special occasions.</p>
                     </div>
                   ) : (

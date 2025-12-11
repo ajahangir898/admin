@@ -3,7 +3,7 @@ import {
 	LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen,
 	FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
 	Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
-	Layers, Tag, Boxes, MessageCircle, Loader2, Check
+	Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target
 } from 'lucide-react';
 import { StatCardProps, User, Tenant } from '../types';
 
@@ -17,8 +17,8 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNavigate, logo, isOpen, onClose, userRole }) => {
-	const [isCustomizationOpen, setIsCustomizationOpen] = useState(true);
-	const [isCatalogOpen, setIsCatalogOpen] = useState(true);
+	const [isCustomizationOpen, setIsCustomizationOpen] = useState(false);
+	const [isCatalogOpen, setIsCatalogOpen] = useState(false);
 
 	const menuItems = [
 		{ id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
@@ -28,6 +28,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'tenants', icon: <Users size={18} />, label: 'Tenant Manager' },
 		{ id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management' },
 		{ id: 'reviews', icon: <MessageCircle size={18} />, label: 'Reviews' },
+		{ id: 'daily_target', icon: <Target size={18} />, label: 'Daily Target' },
 		{ id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery' },
 	];
 

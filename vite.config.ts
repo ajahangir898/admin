@@ -25,6 +25,13 @@ const manualChunkResolver = (id: string): string | undefined => {
   const normalized = toPosixPath(id);
 
   if (normalized.includes('node_modules')) {
+    // Split react-dom into smaller chunks
+    if (normalized.includes('node_modules/react-dom/')) {
+      if (normalized.includes('/client')) return 'react-dom-client';
+      if (normalized.includes('/server')) return 'react-dom-server';
+      return 'react-dom-core';
+    }
+
     const rechartsChunk = resolveRechartsChunk(normalized);
     if (rechartsChunk) return rechartsChunk;
 
@@ -83,7 +90,7 @@ export default defineConfig(({ mode }) => {
         css: true
       },
       build: {
-        chunkSizeWarningLimit: 200,
+        chunkSizeWarningLimit: 45,
         rollupOptions: {
           output: {
             manualChunks(id) {

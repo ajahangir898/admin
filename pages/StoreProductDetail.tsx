@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
 import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
-import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle } from 'lucide-react';
+import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
@@ -168,6 +168,7 @@ interface StoreProductDetailProps {
   websiteConfig?: WebsiteConfig;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onImageSearchClick?: () => void;
   onOpenChat?: () => void;
   cart?: number[];
   onToggleCart?: (id: number) => void;
@@ -193,6 +194,7 @@ const StoreProductDetail = ({
   websiteConfig,
   searchValue,
   onSearchChange,
+  onImageSearchClick,
   onOpenChat,
   cart,
   onToggleCart,
@@ -202,6 +204,8 @@ const StoreProductDetail = ({
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
   const [showCartSuccess, setShowCartSuccess] = useState(false);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
   const galleryImages = product.galleryImages && product.galleryImages.length ? product.galleryImages : [product.image];
@@ -315,6 +319,7 @@ const StoreProductDetail = ({
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
         onHomeClick={onBack}
+        onImageSearchClick={onImageSearchClick}
         wishlistCount={wishlistCount}
         cart={cart}
         onToggleCart={onToggleCart}
@@ -342,6 +347,49 @@ const StoreProductDetail = ({
         />
       )}
 
+      {/* Image Zoom Modal */}
+      {isZoomOpen && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh]">
+            <button
+              onClick={() => setIsZoomOpen(false)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition p-2"
+              aria-label="Close zoom"
+            >
+              <X size={28} />
+            </button>
+            
+            <div className="w-full h-full max-h-[90vh] overflow-auto bg-black rounded-lg">
+              <div className="relative w-full bg-black flex items-center justify-center min-h-[90vh]">
+                <img 
+                  src={selectedImage} 
+                  alt={product.name}
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+            </div>
+
+            {/* Thumbnail Gallery in Zoom Modal */}
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+              {additionalImages.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImage(img)}
+                  className={`flex-shrink-0 w-12 h-12 rounded border-2 p-0.5 transition-all ${
+                    selectedImage === img
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-600 hover:border-orange-400'
+                  }`}
+                  aria-label={`View image ${idx + 1}`}
+                >
+                  <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-contain" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           
@@ -352,19 +400,36 @@ const StoreProductDetail = ({
               
               {/* Image Section */}
               <div className="w-full md:w-1/2 flex flex-col gap-4">
-                 <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden relative group border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
+                 <div 
+                   className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden relative group border border-gray-100 shadow-sm hover:shadow-lg transition-shadow cursor-zoom-in"
+                   onMouseEnter={() => {}}
+                   onMouseMove={(e) => {
+                     const rect = e.currentTarget.getBoundingClientRect();
+                     const x = ((e.clientX - rect.left) / rect.width) * 100;
+                     const y = ((e.clientY - rect.top) / rect.height) * 100;
+                     setZoomPosition({ x, y });
+                   }}
+                   onClick={() => setIsZoomOpen(true)}
+                 >
                     <LazyImage 
                       src={selectedImage} 
                       alt={product.name} 
                       className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-500" 
                     />
+                    {/* Zoom Icon */}
+                    <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm text-gray-700 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                      <ZoomIn size={20} />
+                    </div>
                     {product.discount && (
-                      <span className="absolute top-4 left-4 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                      <span className="absolute top-4 left-4 bg-gradient-to-r from-green-400 to-emerald-500 text-red-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
                         {product.discount}
                       </span>
                     )}
                     <button 
-                      onClick={onToggleWishlist}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleWishlist();
+                      }}
                       className={`absolute top-4 right-4 p-2 rounded-full transition-all ${
                         isWishlisted 
                           ? 'bg-rose-100 text-rose-600 shadow-md' 

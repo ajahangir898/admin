@@ -36,6 +36,7 @@ interface CheckoutProps {
   deliveryConfigs?: DeliveryConfig[];
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onImageSearchClick?: () => void;
   onOpenChat?: () => void;
   cart?: number[];
   onToggleCart?: (id: number) => void;
@@ -70,6 +71,7 @@ const StoreCheckout = ({
   deliveryConfigs,
   searchValue,
   onSearchChange,
+  onImageSearchClick,
   onOpenChat,
   cart,
   onToggleCart,
@@ -232,6 +234,7 @@ const StoreCheckout = ({
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
       <StoreHeader 
         onHomeClick={onBack}
+        onImageSearchClick={onImageSearchClick}
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}

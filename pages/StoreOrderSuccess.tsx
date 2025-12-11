@@ -14,6 +14,7 @@ interface SuccessProps {
   websiteConfig?: WebsiteConfig;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onImageSearchClick?: () => void;
   onOpenChat?: () => void;
   cart?: number[];
   onToggleCart?: (id: number) => void;
@@ -21,11 +22,12 @@ interface SuccessProps {
   productCatalog?: Product[];
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onImageSearchClick, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50 font-sans text-slate-900 flex flex-col">
       <StoreHeader 
         onHomeClick={onHome}
+        onImageSearchClick={onImageSearchClick}
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}

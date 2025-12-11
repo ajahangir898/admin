@@ -54,6 +54,7 @@ interface StoreHeaderProps {
     onTrackOrder?: () => void;
     onOpenAIStudio?: () => void;
     onHomeClick?: () => void;
+    onImageSearchClick?: () => void;
     wishlistCount?: number;
     wishlist?: number[];
     onToggleWishlist?: (productId: number) => void;
@@ -348,6 +349,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     onTrackOrder,
     onOpenAIStudio,
     onHomeClick,
+    onImageSearchClick,
     wishlistCount,
     wishlist,
     onToggleWishlist,
@@ -814,6 +816,14 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white dark:border-green-600 placeholder-transparent"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <button
+                            onClick={onImageSearchClick}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition"
+                            title="Search by image"
+                            aria-label="Search by image"
+                        >
+                            <ImageIcon size={20} className="text-gray-600 dark:text-gray-400" />
+                        </button>
                         <CameraButton variant="light" />
                         <VoiceButton />
                                                 <button className="btn-search px-6 py-2 rounded-full flex items-center justify-center">
@@ -1613,14 +1623,14 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
   if (variant === 'style2') {
     return (
         <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
-            <div className="relative aspect-square p-4 bg-gray-50">
+            <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
                 <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
                 {product.discount && (
                     <span className="absolute top-2 left-2 bg-pink-600 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded">
                         {product.discount}
                     </span>
                 )}
-                <button className="absolute top-2 right-2 btn-wishlist text-current">
+                <button className="absolute top-2 right-2 btn-wishlist text-current" onClick={(e) => e.stopPropagation()}>
                     <Heart size={18} />
                 </button>
             </div>

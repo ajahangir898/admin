@@ -15,6 +15,7 @@ interface StoreProfileProps {
   websiteConfig?: WebsiteConfig;
    searchValue?: string;
    onSearchChange?: (value: string) => void;
+   onImageSearchClick?: () => void;
    onOpenChat?: () => void;
    cart?: number[];
    onToggleCart?: (id: number) => void;
@@ -33,6 +34,7 @@ const StoreProfile = ({
    websiteConfig,
    searchValue,
    onSearchChange,
+   onImageSearchClick,
    onOpenChat,
    cart,
    onToggleCart,
@@ -70,6 +72,7 @@ const StoreProfile = ({
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
       <StoreHeader 
         onHomeClick={onHome}
+        onImageSearchClick={onImageSearchClick}
         user={user}
         onLoginClick={onLoginClick}
         onLogoutClick={onLogoutClick}

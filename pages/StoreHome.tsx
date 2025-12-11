@@ -57,6 +57,7 @@ interface StoreHomeProps {
   websiteConfig?: WebsiteConfig;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onImageSearchClick?: () => void;
   onOpenChat?: () => void;
 }
 
@@ -80,6 +81,7 @@ const StoreHome = ({
   websiteConfig,
   searchValue,
   onSearchChange,
+  onImageSearchClick,
   onOpenChat
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
@@ -268,6 +270,7 @@ const StoreHome = ({
       <StoreHeader 
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
         onOpenAIStudio={() => setIsAIStudioOpen(true)}
+        onImageSearchClick={onImageSearchClick}
         productCatalog={displayProducts}
         wishlistCount={wishlistCount}
         wishlist={wishlist}

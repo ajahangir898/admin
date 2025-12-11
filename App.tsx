@@ -31,6 +31,7 @@ const AdminFacebookPixel = lazy(() => import('./pages/AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import('./pages/AdminTenantManagement'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
+const StoreImageSearch = lazy(() => import('./pages/StoreImageSearch'));
 const loadAdminComponents = () => import('./components/AdminComponents');
 const loadStoreComponents = () => import('./components/StoreComponents');
 const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminSidebar })));
@@ -106,7 +107,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   );
 };
 
-type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview';
+type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search';
 
 const sanitizeSubdomainSlug = (value?: string | null) => {
   if (!value) return '';
@@ -1411,6 +1412,7 @@ fbq('track', 'PageView');`;
                   orders={orders} 
                   onProductClick={handleProductClick} 
                   onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} 
+                  onImageSearchClick={() => setCurrentView('image-search')}
                   wishlistCount={wishlist.length} 
                   wishlist={wishlist} 
                   onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} 
@@ -1454,6 +1456,7 @@ fbq('track', 'PageView');`;
                 onLoginClick={() => setIsLoginOpen(true)} 
                 onLogoutClick={handleLogout} 
                 onProfileClick={() => setCurrentView('profile')} 
+                onImageSearchClick={() => setCurrentView('image-search')}
                 logo={logo} 
                 websiteConfig={websiteConfig} 
                 searchValue={storeSearchQuery} 
@@ -1477,6 +1480,7 @@ fbq('track', 'PageView');`;
                 onLoginClick={() => setIsLoginOpen(true)}
                 onLogoutClick={handleLogout}
                 onProfileClick={() => setCurrentView('profile')}
+                onImageSearchClick={() => setCurrentView('image-search')}
                 logo={logo}
                 websiteConfig={websiteConfig}
                 deliveryConfigs={deliveryConfig}
@@ -1492,6 +1496,7 @@ fbq('track', 'PageView');`;
             {currentView === 'success' && (
               <StoreOrderSuccess 
                 onHome={() => setCurrentView('store')} 
+                onImageSearchClick={() => setCurrentView('image-search')}
                 user={user} 
                 onLoginClick={() => setIsLoginOpen(true)} 
                 onLogoutClick={handleLogout} 
@@ -1516,6 +1521,7 @@ fbq('track', 'PageView');`;
                   onHome={() => setCurrentView('store')} 
                   onLoginClick={() => setIsLoginOpen(true)} 
                   onLogoutClick={handleLogout} 
+                  onImageSearchClick={() => setCurrentView('image-search')}
                   logo={logo} 
                   websiteConfig={websiteConfig} 
                   searchValue={storeSearchQuery} 
@@ -1545,6 +1551,17 @@ fbq('track', 'PageView');`;
                 product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}
                 onBack={handleCloseLandingPreview}
                 onSubmitLandingOrder={handleLandingOrderSubmit}
+              />
+            )}
+            {currentView === 'image-search' && (
+              <StoreImageSearch 
+                products={products}
+                websiteConfig={websiteConfig}
+                user={user}
+                onProductClick={handleProductClick}
+                onAddToCart={(product, quantity = 1) => handleAddProductToCart(product, quantity)}
+                onCheckout={(product, quantity) => handleCheckoutStart(product, quantity)}
+                onNavigate={(page) => setCurrentView(page as ViewState)}
               />
             )}
             <StoreChatModal

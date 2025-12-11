@@ -271,7 +271,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [activeTarget, orders]);
 
   const targetProgress = activeTarget && activeTarget.targetAmount > 0
-    ? Math.min(100, Math.round((targetRevenue / activeTarget.targetAmount) * 100))
+    ? Math.max(0, Math.min(100, Math.round((targetRevenue / activeTarget.targetAmount) * 100)))
     : 0;
 
   const filteredOrders = useMemo(() => {

@@ -1,7 +1,12 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
-import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, MobileBottomNav } from '../components/StoreComponents';
+
+// Lazy load modals for better performance
+const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
+const AddToCartSuccessModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AddToCartSuccessModal })));
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
@@ -335,16 +340,26 @@ const StoreProductDetail = ({
         onSearchChange={onSearchChange}
       />
       
-      {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
-      {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
+      {isTrackOrderOpen && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
+      {isAIStudioOpen && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+          <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
+        </Suspense>
+      )}
       {showCartSuccess && (
-        <AddToCartSuccessModal 
-          product={product} 
-          variant={lastAddedVariant || currentVariant}
-          quantity={quantity}
-          onClose={() => setShowCartSuccess(false)} 
-          onCheckout={() => onCheckout(product, quantity, lastAddedVariant || currentVariant)} 
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+          <AddToCartSuccessModal 
+            product={product} 
+            variant={lastAddedVariant || currentVariant}
+            quantity={quantity}
+            onClose={() => setShowCartSuccess(false)} 
+            onCheckout={() => onCheckout(product, quantity, lastAddedVariant || currentVariant)} 
+          />
+        </Suspense>
       )}
 
       {/* Image Zoom Modal */}

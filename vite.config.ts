@@ -101,6 +101,8 @@ export default defineConfig(({ mode }) => {
             },
             // Prevent inlining of dynamic imports to enable code splitting
             inlineDynamicImports: false,
+            // Optimize chunk generation
+            experimentalMinChunkSize: 10000,
           }
         }
       }

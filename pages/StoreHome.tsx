@@ -1,6 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal, ProductQuickViewModal } from '../components/StoreComponents';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard } from '../components/StoreComponents';
+
+// Lazy load modals for better performance
+const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
+const ProductQuickViewModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.ProductQuickViewModal })));
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
@@ -292,18 +297,28 @@ const StoreHome = ({
         onCategorySelect={(categoryName) => updateSearchTerm(categoryName)}
       />
       
-      {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
-      {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
+      {isTrackOrderOpen && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
+      {isAIStudioOpen && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+          <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
+        </Suspense>
+      )}
       {quickViewProduct && (
-        <ProductQuickViewModal
-          product={quickViewProduct}
-          onClose={() => setQuickViewProduct(null)}
-          onCompleteOrder={handleQuickViewOrder}
-          onViewDetails={(product) => {
-            setQuickViewProduct(null);
-            onProductClick(product);
-          }}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>}>
+          <ProductQuickViewModal
+            product={quickViewProduct}
+            onClose={() => setQuickViewProduct(null)}
+            onCompleteOrder={handleQuickViewOrder}
+            onViewDetails={(product) => {
+              setQuickViewProduct(null);
+              onProductClick(product);
+            }}
+          />
+        </Suspense>
       )}
       
       {/* Hero Section */}

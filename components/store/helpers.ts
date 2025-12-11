@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
     0% { opacity: 0; transform: translateY(40%); }

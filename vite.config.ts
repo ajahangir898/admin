@@ -91,11 +91,16 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         chunkSizeWarningLimit: 45,
+        target: 'es2015',
+        minify: 'esbuild',
+        cssCodeSplit: true,
         rollupOptions: {
           output: {
             manualChunks(id) {
               return manualChunkResolver(id);
-            }
+            },
+            // Add preload for critical chunks
+            inlineDynamicImports: false,
           }
         }
       }

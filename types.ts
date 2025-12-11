@@ -380,3 +380,13 @@ export interface LandingPage {
   updatedAt: string;
   publishedAt?: string;
 }
+
+export interface DailyTarget {
+  id: string;
+  tenantId?: string;
+  title?: string;
+  startDate: string;
+  endDate: string;
+  targetAmount: number;
+  createdAt: string;
+}

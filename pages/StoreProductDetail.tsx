@@ -1,7 +1,13 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
-import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, MobileBottomNav } from '../components/store';
+import { ModalLoadingSpinner } from '../components/store/LoadingSpinner';
+
+// Lazy load modals for better performance
+const TrackOrderModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.AIStudioModal })));
+const AddToCartSuccessModal = lazy(() => import('../components/store/Modals').then(m => ({ default: m.AddToCartSuccessModal })));
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
@@ -335,16 +341,26 @@ const StoreProductDetail = ({
         onSearchChange={onSearchChange}
       />
       
-      {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
-      {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
+      {isTrackOrderOpen && (
+        <Suspense fallback={<ModalLoadingSpinner />}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
+      {isAIStudioOpen && (
+        <Suspense fallback={<ModalLoadingSpinner />}>
+          <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
+        </Suspense>
+      )}
       {showCartSuccess && (
-        <AddToCartSuccessModal 
-          product={product} 
-          variant={lastAddedVariant || currentVariant}
-          quantity={quantity}
-          onClose={() => setShowCartSuccess(false)} 
-          onCheckout={() => onCheckout(product, quantity, lastAddedVariant || currentVariant)} 
-        />
+        <Suspense fallback={<ModalLoadingSpinner />}>
+          <AddToCartSuccessModal 
+            product={product} 
+            variant={lastAddedVariant || currentVariant}
+            quantity={quantity}
+            onClose={() => setShowCartSuccess(false)} 
+            onCheckout={() => onCheckout(product, quantity, lastAddedVariant || currentVariant)} 
+          />
+        </Suspense>
       )}
 
       {/* Image Zoom Modal */}

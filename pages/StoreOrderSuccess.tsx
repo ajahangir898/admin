@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { StoreHeader, StoreFooter } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter } from '../components/store';
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import { User, WebsiteConfig, Product } from '../types';
 

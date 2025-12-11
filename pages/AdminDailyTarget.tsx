@@ -1,21 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Target } from 'lucide-react';
+import { DailyTarget } from '../types';
+import { DataService } from '../services/DataService';
 
-type DailyTarget = {
-  id: string;
-  title?: string;
-  startDate: string;
-  endDate: string;
-  targetAmount: number;
-  createdAt: string;
-};
+interface AdminDailyTargetProps {
+  tenantId?: string;
+}
 
-const AdminDailyTarget: React.FC = () => {
+const AdminDailyTarget: React.FC<AdminDailyTargetProps> = ({ tenantId }) => {
   const [dailyTargets, setDailyTargets] = useState<DailyTarget[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [targetTitle, setTargetTitle] = useState('');
   const [targetStartDate, setTargetStartDate] = useState('');
   const [targetEndDate, setTargetEndDate] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
+
+  // Load targets from DataService
+  useEffect(() => {
+    let isMounted = true;
+    const loadTargets = async () => {
+      if (!tenantId) return;
+      try {
+        const targets = await DataService.get<DailyTarget[]>('daily_targets', [], tenantId);
+        if (isMounted && Array.isArray(targets)) {
+          setDailyTargets(targets);
+        }
+      } catch (error) {
+        console.error('Failed to load daily targets:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadTargets();
+    return () => { isMounted = false; };
+  }, [tenantId]);
+
+  // Save targets to DataService whenever they change
+  useEffect(() => {
+    if (!isLoading && tenantId) {
+      DataService.save('daily_targets', dailyTargets, tenantId);
+    }
+  }, [dailyTargets, isLoading, tenantId]);
 
   const handleCreateTarget = () => {
     if (!targetStartDate || !targetEndDate || !targetAmount) {
@@ -24,13 +51,14 @@ const AdminDailyTarget: React.FC = () => {
     }
     const newTarget: DailyTarget = {
       id: `T-${Date.now()}`,
+      tenantId,
       title: targetTitle || undefined,
       startDate: targetStartDate,
       endDate: targetEndDate,
       targetAmount: Number(targetAmount),
       createdAt: new Date().toISOString().split('T')[0]
     };
-    setDailyTargets([...dailyTargets, newTarget]);
+    setDailyTargets([newTarget, ...dailyTargets]);
     setTargetTitle('');
     setTargetStartDate('');
     setTargetEndDate('');
@@ -40,6 +68,16 @@ const AdminDailyTarget: React.FC = () => {
   const handleDeleteTarget = (id: string) => {
     setDailyTargets(dailyTargets.filter(t => t.id !== id));
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="flex items-center justify-center p-12">
+          <div className="text-slate-400">Loading targets...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">

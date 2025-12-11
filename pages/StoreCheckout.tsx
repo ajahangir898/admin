@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
-import { StoreHeader, StoreFooter } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter } from '../components/store';
 import { EmptyCartState } from '../components/EmptyStates';
 import {
   AlertCircle,

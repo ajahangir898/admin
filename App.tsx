@@ -224,8 +224,8 @@ const normalizeProductCollection = (items: Product[], tenantId?: string): Produc
 
 const SuspenseFallback = () => (
   <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
-   
-    <p className="font-medium animate-pulse"></p>
+    <Loader2 className="w-8 h-8 animate-spin" />
+    <p className="font-medium animate-pulse">Loading...</p>
   </div>
 );
 

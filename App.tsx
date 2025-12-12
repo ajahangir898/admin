@@ -506,47 +506,62 @@ const App = () => {
       setIsLoading(true);
       let loadError: Error | null = null;
       try {
+        // Load critical data first (needed for initial render)
         const [
           productsData,
-          ordersData,
-          chatMessagesData,
-          landingPagesData,
-          usersData,
-          rolesData,
           logoData,
           themeData,
           websiteData,
-          deliveryData,
-          courierData,
-          facebookPixelData,
           categoriesData,
           subCategoriesData,
-          childCategoriesData,
-          brandsData,
-          tagsData
+          brandsData
         ] = await Promise.all([
           DataService.getProducts(activeTenantId),
-          DataService.getOrders(activeTenantId),
-          DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
-          DataService.getLandingPages(activeTenantId),
-          DataService.getUsers(activeTenantId),
-          DataService.getRoles(activeTenantId),
           DataService.get<string | null>('logo', null, activeTenantId),
           DataService.getThemeConfig(activeTenantId),
           DataService.getWebsiteConfig(activeTenantId),
-          DataService.getDeliveryConfig(activeTenantId),
-          DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }, activeTenantId),
-          DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }, activeTenantId),
           DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }], activeTenantId),
           DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }], activeTenantId),
-          DataService.getCatalog('childcategories', [], activeTenantId),
-          DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }], activeTenantId),
-          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId)
+          DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }], activeTenantId)
         ]);
 
         if (!isMounted) return;
         const normalizedProducts = normalizeProductCollection(productsData, activeTenantId);
         setProducts(normalizedProducts);
+        setLogo(logoData);
+        setThemeConfig(themeData);
+        setWebsiteConfig(websiteData);
+        setCategories(categoriesData);
+        setSubCategories(subCategoriesData);
+        setBrands(brandsData);
+        setIsLoading(false);
+
+        // Load non-critical data in background (after initial render)
+        const [
+          ordersData,
+          chatMessagesData,
+          landingPagesData,
+          usersData,
+          rolesData,
+          deliveryData,
+          courierData,
+          facebookPixelData,
+          childCategoriesData,
+          tagsData
+        ] = await Promise.all([
+          DataService.getOrders(activeTenantId),
+          DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
+          DataService.getLandingPages(activeTenantId),
+          DataService.getUsers(activeTenantId),
+          DataService.getRoles(activeTenantId),
+          DataService.getDeliveryConfig(activeTenantId),
+          DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }, activeTenantId),
+          DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }, activeTenantId),
+          DataService.getCatalog('childcategories', [], activeTenantId),
+          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId)
+        ]);
+
+        if (!isMounted) return;
         setOrders(ordersData);
         const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
         skipNextChatSaveRef.current = true;
@@ -557,9 +572,6 @@ const App = () => {
         setLandingPages(landingPagesData);
         setUsers(usersData);
         setRoles(rolesData);
-        setLogo(logoData);
-        setThemeConfig(themeData);
-        setWebsiteConfig(websiteData);
         setDeliveryConfig(deliveryData);
         setCourierConfig({
           apiKey: courierData?.apiKey || '',
@@ -567,27 +579,24 @@ const App = () => {
           instruction: courierData?.instruction || ''
         });
         setFacebookPixelConfig(facebookPixelData);
-        setCategories(categoriesData);
-        setSubCategories(subCategoriesData);
         setChildCategories(childCategoriesData);
-        setBrands(brandsData);
         setTags(tagsData);
       } catch (error) {
         loadError = error as Error;
         console.error('Failed to load data', error);
-      } finally {
         if (isMounted) {
           setIsLoading(false);
-          if (tenantSwitchTargetRef.current === activeTenantId) {
-            setIsTenantSwitching(false);
-            if (loadError) {
-              toast.error('Unable to switch tenants. Please try again.');
-            } else {
-              const switchedTenant = tenantsRef.current.find((tenant) => tenant.id === activeTenantId);
-              toast.success(`Now viewing ${switchedTenant?.name || 'selected tenant'}`);
-            }
-            tenantSwitchTargetRef.current = null;
+        }
+      } finally {
+        if (isMounted && tenantSwitchTargetRef.current === activeTenantId) {
+          setIsTenantSwitching(false);
+          if (loadError) {
+            toast.error('Unable to switch tenants. Please try again.');
+          } else {
+            const switchedTenant = tenantsRef.current.find((tenant) => tenant.id === activeTenantId);
+            toast.success(`Now viewing ${switchedTenant?.name || 'selected tenant'}`);
           }
+          tenantSwitchTargetRef.current = null;
         }
       }
     };

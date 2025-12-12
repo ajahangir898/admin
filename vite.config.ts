@@ -84,13 +84,17 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         chunkSizeWarningLimit: 200,
+        minify: 'esbuild',
         rollupOptions: {
           output: {
             manualChunks(id) {
               return manualChunkResolver(id);
-            }
+            },
+            experimentalMinChunkSize: 20000
           }
-        }
+        },
+        cssCodeSplit: true,
+        reportCompressedSize: false
       }
     };
 });

@@ -7,9 +7,9 @@ import { DataService } from './services/DataService';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { Toaster, toast } from 'react-hot-toast';
-import AppSkeleton from './components/SkeletonLoaders';
 
-
+// Lazy load skeleton loaders to reduce initial bundle size
+const AppSkeleton = lazy(() => import('./components/SkeletonLoaders'));
 const StoreHome = lazy(() => import('./pages/StoreHome'));
 const StoreProductDetail = lazy(() => import('./pages/StoreProductDetail'));
 const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
@@ -1365,7 +1365,11 @@ fbq('track', 'PageView');`;
     const skeletonVariant: 'store' | 'admin' = currentView.startsWith('admin') || isAdminRole(user?.role)
       ? 'admin'
       : 'store';
-    return <AppSkeleton variant={skeletonVariant} darkMode={themeConfig.darkMode} />;
+    return (
+      <Suspense fallback={<SuspenseFallback />}>
+        <AppSkeleton variant={skeletonVariant} darkMode={themeConfig.darkMode} />
+      </Suspense>
+    );
   }
 
   return (

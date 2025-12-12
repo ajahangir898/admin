@@ -1650,15 +1650,15 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
   // Style 2 (Flash Sale - Pink/Blue)
   if (variant === 'style2') {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
-            <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
-                <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
+        <div className="bg-white rounded-xl border border-gray-200 product-card-hover transition-all group relative overflow-hidden flex flex-col gpu-accelerated">
+            <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer product-image-zoom" onClick={() => onClick(product)}>
+                <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-110" />
                 {product.discount && (
-                    <span className="absolute top-2 left-2 bg-pink-600 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded">
+                    <span className="absolute top-2 left-2 bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded badge-pulse">
                         {product.discount}
                     </span>
                 )}
-                <button className="absolute top-2 right-2 btn-wishlist text-current" onClick={(e) => e.stopPropagation()}>
+                <button className="absolute top-2 right-2 btn-wishlist text-current icon-bounce" onClick={(e) => e.stopPropagation()}>
                     <Heart size={18} />
                 </button>
             </div>
@@ -1672,7 +1672,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 </div>
 
                 <h3 
-                  className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition"
+                  className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition-colors duration-200"
                   onClick={() => onClick(product)}
                 >
                     {product.name}
@@ -1691,7 +1691,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     
                     <div className="flex gap-2">
                     <button 
-                        className="flex-1 btn-order py-1.5 text-sm"
+                        className="flex-1 btn-order py-1.5 text-sm btn-press"
                         onClick={handleBuyNow}
                     >
                             Buy Now
@@ -1702,7 +1702,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                 e.stopPropagation();
                                 onAddToCart?.(product);
                             }}
-                            className="cart_btn"
+                            className="cart_btn btn-press icon-bounce"
                             aria-label="Add to cart"
                         >
                             <ShoppingCart size={18} className="text-rose-500" />
@@ -1721,12 +1721,12 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
 
     // Default Style (Card 1)
     return (
-        <div className="group relative flex flex-col rounded-2xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
-            <span className="pointer-events-none absolute inset-x-4 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-500 opacity-60 group-hover:opacity-100" />
+        <div className="group relative flex flex-col rounded-2xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm product-card-hover transition-all duration-500 overflow-hidden gpu-accelerated">
+            <span className="pointer-events-none absolute inset-x-4 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-500 opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
 
             <div className="relative px-4 pt-4">
                 <div className="flex items-center justify-between text-[11px] font-semibold">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 uppercase tracking-wide dark:bg-emerald-500/10 dark:text-emerald-200">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 uppercase tracking-wide dark:bg-emerald-500/10 dark:text-emerald-200 animate-fadeIn">
                         <Sparkles size={12} /> {tagLabel}
                     </span>
                     {typeof product.rating === 'number' ? (
@@ -1745,16 +1745,16 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 </div>
 
                 <div className="relative mt-4">
-                    <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition" aria-hidden />
-                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
-                        <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
+                    <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition-opacity duration-300" aria-hidden />
+                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer product-image-zoom" onClick={() => onClick(product)}>
+                        <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-110" />
                     </div>
                     {product.discount && (
-                        <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                        <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm badge-pulse">
                             {product.discount}
                         </span>
                     )}
-                    <button className="absolute top-4 right-6 btn-wishlist bg-white/80 dark:bg-slate-800/70 shadow-md backdrop-blur-sm hover:scale-110 transition" aria-label="Save to wishlist">
+                    <button className="absolute top-4 right-6 btn-wishlist bg-white/80 dark:bg-slate-800/70 shadow-md backdrop-blur-sm hover:scale-110 transition-transform duration-200 icon-bounce" aria-label="Save to wishlist">
                         <Heart size={16} />
                     </button>
                 </div>
@@ -1800,7 +1800,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     <div className="flex flex-col gap-2 w-32">
                         <button
                             onClick={handleBuyNow}
-                            className="w-full btn-order py-2 rounded-xl font-bold text-sm"
+                            className="w-full btn-order py-2 rounded-xl font-bold text-sm btn-press"
                         >
                             অর্ডার করুন
                         </button>
@@ -1810,7 +1810,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                 e.stopPropagation();
                                 onAddToCart?.(product);
                             }}
-                            className="w-full rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-600 py-1.5 flex items-center justify-center gap-1 hover:bg-emerald-50 transition"
+                            className="w-full rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-600 py-1.5 flex items-center justify-center gap-1 hover:bg-emerald-50 transition-all duration-200 btn-press"
                         >
                             <ShoppingCart size={14} /> Add to cart
                         </button>
@@ -1821,7 +1821,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                 if (onQuickView) onQuickView(product);
                                 else onClick(product);
                             }}
-                            className="inline-flex items-center justify-center gap-1 rounded-xl border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-600 dark:text-gray-200 py-1.5 hover:border-emerald-400 hover:text-emerald-600 transition"
+                            className="inline-flex items-center justify-center gap-1 rounded-xl border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-600 dark:text-gray-200 py-1.5 hover:border-emerald-400 hover:text-emerald-600 transition-all duration-200 btn-press"
                         >
                             <Eye size={14} /> Quick view
                         </button>
@@ -1848,15 +1848,15 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
   if (items.length === 0) return null;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="max-w-7xl mx-auto px-4 mt-4 animate-fadeIn">
             <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm group">
                 {items.map((item, index) => (
                     <a
                         href={item.url || '#'}
                         key={item.id}
-                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                        className={`absolute inset-0 transition-all duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'}`}
                     >
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700" />
                     </a>
                 ))}
 
@@ -1864,13 +1864,13 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                     <>
                         <button
                             onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition-all duration-200 opacity-0 group-hover:opacity-100 md:opacity-100 hover:scale-110 btn-press"
                         >
                             <ChevronLeft size={20} />
                         </button>
                         <button
                             onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition-all duration-200 opacity-0 group-hover:opacity-100 md:opacity-100 hover:scale-110 btn-press"
                         >
                             <ChevronRight size={20} />
                         </button>
@@ -1880,7 +1880,7 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                                 <button
                                     key={idx}
                                     onClick={() => setCurrentIndex(idx)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
+                                    className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm hover:scale-125 ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
                                 />
                             ))}
                         </div>
@@ -1893,20 +1893,20 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
     <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
 
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition-all duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-2 group-hover:scale-110 gpu-accelerated">
             {icon}
         </div>
-        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
+        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors duration-200">{name}</span>
     </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
 
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
-        <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition-all duration-200 whitespace-nowrap group hover:scale-105 gpu-accelerated">
+        <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
             {icon}
         </div>
-        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-pink-600 tracking-wide">{name}</span>
+        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-pink-600 tracking-wide transition-colors duration-200">{name}</span>
     </div>
 );
 

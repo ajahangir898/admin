@@ -7,6 +7,8 @@ import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '..
 import { ProductFilter, SortOption } from '../components/ProductFilter';
 import { EmptySearchState } from '../components/EmptyStates';
 import { SkeletonCard } from '../components/SkeletonLoaders';
+import { Breadcrumb, BreadcrumbItem } from '../components/Breadcrumb';
+import { AdvancedSearch } from '../components/AdvancedSearch';
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -310,6 +312,17 @@ const StoreHome = ({
       <HeroSection carouselItems={websiteConfig?.carouselItems} />
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-12">
+        {/* Breadcrumb Navigation */}
+        {hasSearchQuery && (
+          <Breadcrumb 
+            items={[
+              { label: 'Home', onClick: () => updateSearchTerm('') },
+              { label: 'Search Results', path: '#' },
+              { label: searchTerm.trim() }
+            ]}
+            className="pt-4"
+          />
+        )}
         {hasSearchQuery ? (
           <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

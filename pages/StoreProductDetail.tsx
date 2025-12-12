@@ -6,6 +6,7 @@ import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharg
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
+import { Breadcrumb } from '../components/Breadcrumb';
 
 // Helper for stars
 const StarRating = ({ rating, count }: { rating: number, count?: number }) => (
@@ -391,6 +392,16 @@ const StoreProductDetail = ({
       )}
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb 
+          items={[
+            { label: 'Home', onClick: onBack },
+            { label: product.category || 'Products', path: '#' },
+            { label: product.name || 'Product Details' }
+          ]}
+          className="mb-4"
+        />
+
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Main Content: Product Details */}

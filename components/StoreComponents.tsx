@@ -1677,8 +1677,6 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 >
                     {product.name}
                 </h3>
-                
-                <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p>
 
                 <div className="mt-auto">
                     <div className="flex items-center gap-2 mb-2">
@@ -1769,9 +1767,6 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     >
                         {product.name}
                     </h3>
-                    {product.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{product.description}</p>
-                    )}
                 </div>
 
                 {product.colors && product.colors.length > 0 && (

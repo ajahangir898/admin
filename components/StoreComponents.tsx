@@ -1647,6 +1647,72 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
             onClick(product);
         }
     };
+
+  // Style 1 (Clean Card Design)
+  if (variant === 'style1') {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col">
+        {/* Discount Badge */}
+        <div className="absolute top-3 left-3 z-10">
+          {product.discount && (
+            <span className="inline-block bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+              {product.discount}
+            </span>
+          )}
+        </div>
+
+        {/* Product Image */}
+        <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
+          <LazyImage 
+            src={product.galleryImages?.[0] || product.image} 
+            alt={product.name} 
+            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" 
+          />
+        </div>
+
+        {/* Product Details */}
+        <div className="p-4 flex-1 flex flex-col">
+          {/* Product Name */}
+          <h3 
+            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 cursor-pointer hover:text-orange-500 transition"
+            onClick={() => onClick(product)}
+          >
+            {product.name}
+          </h3>
+
+          {/* Price Section */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg font-bold text-gray-900">৳{product.price}</span>
+            {product.originalPrice && (
+              <span className="text-sm text-gray-400 line-through">৳{product.originalPrice}</span>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 mt-auto">
+            <button 
+              className="flex-1 bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-md hover:bg-gray-300 transition flex items-center justify-center gap-1 text-[16px]"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart?.(product);
+              }}
+            >
+              <ShoppingCart size={17} /> Cart
+            </button>
+            <button 
+              className="flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition transform active:scale-95 btn-order"
+              onClick={handleBuyNow}
+            >  Buy Now 
+
+            </button>
+        
+
+         </div>
+        </div>
+      </div>
+    );
+  }
+
   // Style 2 (Flash Sale - Pink/Blue)
   if (variant === 'style2') {
     return (
@@ -1714,12 +1780,66 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
     );
   }
 
+  // Style 3 (Minimal Clean Design)
+  if (variant === 'style3') {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 group relative overflow-hidden flex flex-col">
+        {/* Product Image */}
+        <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
+          <LazyImage 
+            src={product.galleryImages?.[0] || product.image} 
+            alt={product.name} 
+            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" 
+          />
+        </div>
+
+        {/* Product Details */}
+        <div className="px-4 pt-2 pb-4 flex-1 flex flex-col">
+          {/* Product Name */}
+          <h3 
+            className="font-semibold text-gray-800 text-xs mb-2 line-clamp-1 cursor-pointer hover:text-rose-500 transition"
+            onClick={() => onClick(product)}
+          >
+            {product.name}
+          </h3>
+
+          {/* Price Section */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-base font-bold text-rose-500">৳{product.price}</span>
+            {product.originalPrice && (
+              <span className="text-xs text-gray-400 line-through">৳{product.originalPrice}</span>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2 mt-auto">
+            <button 
+              className="w-full bg-rose-500 text-white text-xs font-bold py-2 rounded-md hover:bg-rose-600 transition"
+              onClick={handleBuyNow}
+            >
+              Buy Now
+            </button>
+            <button 
+              className="w-full border-2 border-rose-500 text-rose-500 text-xs font-bold py-1.5 rounded-md hover:bg-rose-50 transition"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart?.(product);
+              }}
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
     const formattedPrice = formatCurrency(product.price);
     const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
     const tagLabel = product.tag || 'Trending';
     const accentMeta = product.brand || product.category || 'Curated pick';
 
-    // Default Style (Card 1)
+    // Default Style (Card 0)
     return (
         <div className="group relative flex flex-col rounded-2xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
             <span className="pointer-events-none absolute inset-x-4 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-500 opacity-60 group-hover:opacity-100" />

@@ -19,6 +19,7 @@ interface AdminSidebarProps {
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNavigate, logo, isOpen, onClose, userRole }) => {
 	const [isCustomizationOpen, setIsCustomizationOpen] = useState(false);
 	const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+	const [isBusinessReportOpen, setIsBusinessReportOpen] = useState(false);
 
 	const menuItems = [
 		{ id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
@@ -27,6 +28,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'landing_pages', icon: <FileText size={18} />, label: 'Landing page' },
 		{ id: 'tenants', icon: <Users size={18} />, label: 'Tenant Manager' },
 		{ id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management' },
+		{ id: 'expenses', icon: <DollarSign size={18} />, label: 'Site Expenses' },
+		{ id: 'customers', icon: <Users size={18} />, label: 'Customers' },
 		{ id: 'reviews', icon: <MessageCircle size={18} />, label: 'Reviews' },
 		{ id: 'daily_target', icon: <Target size={18} />, label: 'Daily Target' },
 		{ id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery' },
@@ -49,6 +52,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'website_info', label: 'Website Information' },
 		{ id: 'theme_view', label: 'Theme View' },
 		{ id: 'theme_colors', label: 'Theme Colors' },
+	];
+
+	const businessReportItems = [
+		{ id: 'business_report_expense', label: 'Expense' },
+		{ id: 'business_report_income', label: 'Income' },
+		{ id: 'business_report_due_book', label: 'Due Book' },
+		{ id: 'business_report_profit_loss', label: 'Profit / Loss' },
+		{ id: 'business_report_note', label: 'Note' },
 	];
 
 	const SidebarContent = () => (
@@ -83,6 +94,38 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 						<span>{item.label}</span>
 					</div>
 				))}
+
+				<div>
+					<div
+						onClick={() => setIsBusinessReportOpen(!isBusinessReportOpen)}
+						className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm border ${
+							activePage?.startsWith('business_report_') ? 'text-emerald-200 font-semibold bg-gradient-to-r from-[#0f1314] via-[#0c0f15] to-[#08150f] border-emerald-500/40 shadow-emerald-900/20' : 'border-white/5 text-slate-400 hover:bg-emerald-500/5 hover:text-white'
+						}`}
+					>
+						<div className="flex items-center gap-3">
+							<FileText size={18} />
+							<span>Business Report</span>
+						</div>
+						{isBusinessReportOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+					</div>
+
+					{isBusinessReportOpen && (
+						<div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
+							{businessReportItems.map(item => (
+								<div
+									key={item.id}
+									onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
+									className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition flex items-center gap-2 ${
+										activePage === item.id ? 'text-emerald-200 font-semibold bg-emerald-500/5 border border-emerald-500/40 shadow-emerald-900/20 shadow-lg' : 'text-slate-500 hover:text-white hover:bg-emerald-500/5'
+									}`}
+								>
+									<div className={`w-0 h-0 border-l-[4px] border-l-emerald-400 border-y-[4px] border-y-transparent ${activePage === item.id ? 'opacity-100' : 'opacity-0'}`}></div>
+									{item.label}
+								</div>
+							))}
+						</div>
+					)}
+				</div>
 
 				<div>
 					<div
@@ -195,7 +238,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				></div>
 			)}
 
-			<div className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#050509] shadow-2xl shadow-emerald-900/30 border-r border-emerald-500/20 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+			<div className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#050509] shadow-2xl shadow-emerald-900/30 border-r border-emerald-500/20 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col p-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 				<SidebarContent />
 			</div>
 		</>

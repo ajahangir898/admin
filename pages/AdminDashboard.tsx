@@ -357,18 +357,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap gap-2">
-          <button onClick={handleManageBalance} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-slate-100 text-sm font-semibold hover:bg-white/10 transition">
-            <Wallet size={16} />
-            Manage Balance
-          </button>
-          <button onClick={handleExport} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-slate-100 text-sm font-semibold hover:bg-white/10 transition">
-            <Download size={16} />
-            Export
-          </button>
-          <button onClick={handleCreatePayment} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-semibold border border-transparent shadow-lg shadow-orange-800/40">
-            <Plus size={16} />
-            New Payment
-          </button>
+          
+          
+      
         </div>
         <div className="flex flex-col gap-3 w-full sm:flex-row sm:items-center sm:gap-4 xl:w-auto xl:flex-row">
           <form onSubmit={handleSearchSubmit} className="relative w-full sm:flex-1 xl:w-72">
@@ -380,10 +371,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               placeholder="Search orders, clients..."
             />
           </form>
-          <button onClick={handleAddCard} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-slate-100 text-sm font-semibold hover:bg-white/10 transition">
-            <CreditCard size={16} />
-            Add Card
-          </button>
+         
         </div>
       </div>
 

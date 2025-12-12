@@ -28,6 +28,7 @@ const AdminInventory = lazy(() => import('./pages/AdminInventory'));
 const AdminReviews = lazy(() => import('./pages/AdminReviews'));
 const AdminDailyTarget = lazy(() => import('./pages/AdminDailyTarget'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
+const AdminExpenses = lazy(() => import('./pages/AdminExpenses'));
 const AdminFacebookPixel = lazy(() => import('./pages/AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import('./pages/AdminTenantManagement'));
@@ -100,7 +101,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           hasUnreadChat={hasUnreadChat}
           onMenuClick={() => setIsSidebarOpen(true)} 
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-gradient-to-b from-[#08080f]/80 via-[#0c1a12]/70 to-[#1a0b0f]/60">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-0 md:p-0 bg-gradient-to-b from-[#08080f]/80 via-[#0c1a12]/70 to-[#1a0b0f]/60">
           {children}
         </main>
       </div>
@@ -1390,6 +1391,8 @@ fbq('track', 'PageView');`;
              adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
              adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
              adminSection === 'inventory' ? <AdminInventory products={products} /> :
+             adminSection === 'expenses' ? <AdminExpenses /> :
+             adminSection === 'customers' ? <AdminReviews /> :
              adminSection === 'reviews' ? <AdminReviews /> :
              adminSection === 'daily_target' ? <AdminDailyTarget /> :
              adminSection === 'gallery' ? <AdminGallery /> :
@@ -1402,6 +1405,7 @@ fbq('track', 'PageView');`;
                ? <AdminTenantManagement tenants={tenants} onCreateTenant={handleCreateTenant} isCreating={isTenantSeeding} onDeleteTenant={handleDeleteTenant} deletingTenantId={deletingTenantId} />
                : <AdminDashboard orders={orders} products={products} />) :
              adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
+             adminSection.startsWith('business_report_') ? <AdminExpenses /> :
              <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
             }
           </AdminLayout>

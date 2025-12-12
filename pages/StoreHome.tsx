@@ -387,15 +387,16 @@ const StoreHome = ({
                 </div>
               </div>
             ) : (
-              <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+              <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800 animate-fadeIn">
                 <SectionHeader title="Categories" />
                 <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
                   {CATEGORIES.map((cat, idx) => (
-                    <CategoryCircle
-                      key={idx}
-                      name={cat.name}
-                      icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 32, strokeWidth: 1.5 })}
-                    />
+                    <div key={idx} className="animate-fadeInUp" style={{ animationDelay: `${idx * 0.05}s` }}>
+                      <CategoryCircle
+                        name={cat.name}
+                        icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 32, strokeWidth: 1.5 })}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -407,12 +408,13 @@ const StoreHome = ({
               <div className="mb-1 flex items-center gap-3">
                 <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
                 {showFlashSaleCounter && (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-100 via-white to-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-pink-900 shadow-[0_4px_12px_rgba(244,114,182,0.25)]">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-100 via-white to-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-pink-900 shadow-[0_4px_12px_rgba(244,114,182,0.25)] animate-fadeIn badge-pulse">
                     <div className="flex items-center gap-1 text-sky-700">
-                      {flashSaleCountdown.map((segment) => (
+                      {flashSaleCountdown.map((segment, index) => (
                         <span
                           key={segment.label}
-                          className="flex min-w-[44px] flex-col items-center justify-center rounded-md border border-sky-200 bg-white px-2 py-0.5 text-sky-700 shadow-sm leading-tight"
+                          className="flex min-w-[44px] flex-col items-center justify-center rounded-md border border-sky-200 bg-white px-2 py-0.5 text-sky-700 shadow-sm leading-tight transition-all duration-300 hover:scale-105"
+                          style={{ animationDelay: `${index * 0.1}s` }}
                         >
                           <span className="text-[11px] font-black">{segment.value}</span>
                           <span className="text-[7px] font-semibold uppercase tracking-tight text-sky-500">{segment.label}</span>
@@ -421,6 +423,7 @@ const StoreHome = ({
                     </div>
                     <span className="relative flex items-center gap-2 text-pink-700">
                       <span className="h-2 w-2 animate-ping rounded-full bg-rose-500" />
+                      <span className="absolute h-2 w-2 rounded-full bg-rose-500" />
                     </span>
                   </div>
                 )}
@@ -430,16 +433,17 @@ const StoreHome = ({
                   // Show skeletons while loading
                   [...Array(5)].map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)
                 ) : (
-                  displayProducts.map((product) => (
-                    <ProductCard
-                      key={`flash-${product.id}`}
-                      product={product}
-                      onClick={onProductClick}
-                      onBuyNow={handleBuyNow}
-                      variant={websiteConfig?.productCardStyle}
-                      onQuickView={setQuickViewProduct}
-                      onAddToCart={handleAddProductToCartFromCard}
-                    />
+                  displayProducts.map((product, index) => (
+                    <div key={`flash-${product.id}`} className="animate-fadeInUp" style={{ animationDelay: `${index * 0.05}s` }}>
+                      <ProductCard
+                        product={product}
+                        onClick={onProductClick}
+                        onBuyNow={handleBuyNow}
+                        variant={websiteConfig?.productCardStyle}
+                        onQuickView={setQuickViewProduct}
+                        onAddToCart={handleAddProductToCartFromCard}
+                      />
+                    </div>
                   ))
                 )}
                 {displayProducts.length > 0 && displayProducts.length < 5 && (

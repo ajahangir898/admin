@@ -1848,15 +1848,15 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
   if (items.length === 0) return null;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="max-w-7xl mx-auto px-4 mt-4 animate-fadeIn">
             <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm group">
                 {items.map((item, index) => (
                     <a
                         href={item.url || '#'}
                         key={item.id}
-                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                        className={`absolute inset-0 transition-all duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'}`}
                     >
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700" />
                     </a>
                 ))}
 
@@ -1864,13 +1864,13 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                     <>
                         <button
                             onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition-all duration-200 opacity-0 group-hover:opacity-100 md:opacity-100 hover:scale-110 btn-press"
                         >
                             <ChevronLeft size={20} />
                         </button>
                         <button
                             onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition-all duration-200 opacity-0 group-hover:opacity-100 md:opacity-100 hover:scale-110 btn-press"
                         >
                             <ChevronRight size={20} />
                         </button>
@@ -1880,7 +1880,7 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                                 <button
                                     key={idx}
                                     onClick={() => setCurrentIndex(idx)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
+                                    className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm hover:scale-125 ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
                                 />
                             ))}
                         </div>
@@ -1893,20 +1893,20 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
     <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
 
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition-all duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-2 group-hover:scale-110 gpu-accelerated">
             {icon}
         </div>
-        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
+        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors duration-200">{name}</span>
     </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
 
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
-        <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition-all duration-200 whitespace-nowrap group hover:scale-105 gpu-accelerated">
+        <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
             {icon}
         </div>
-        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-pink-600 tracking-wide">{name}</span>
+        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-pink-600 tracking-wide transition-colors duration-200">{name}</span>
     </div>
 );
 

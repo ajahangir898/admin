@@ -349,11 +349,11 @@ const StoreProductDetail = ({
 
       {/* Image Zoom Modal */}
       {isZoomOpen && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-          <div className="relative w-full max-w-2xl max-h-[90vh]">
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="relative w-full max-w-2xl max-h-[90vh] animate-scaleIn">
             <button
               onClick={() => setIsZoomOpen(false)}
-              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition p-2"
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-all duration-200 p-2 hover:scale-110 btn-press"
               aria-label="Close zoom"
             >
               <X size={28} />
@@ -364,7 +364,7 @@ const StoreProductDetail = ({
                 <img 
                   src={selectedImage} 
                   alt={product.name}
-                  className="w-full h-auto object-contain"
+                  className="w-full h-auto object-contain animate-zoomIn"
                 />
               </div>
             </div>
@@ -424,7 +424,7 @@ const StoreProductDetail = ({
                     {/* Main Product Image - Right Side */}
                     <div className="flex-1 order-1 md:order-2">
                       <div
-                        className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden relative group border border-gray-100 shadow-sm hover:shadow-lg transition-shadow cursor-zoom-in"
+                        className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden relative group border border-gray-100 shadow-sm hover:shadow-lg transition-shadow cursor-zoom-in product-image-zoom animate-fadeIn"
                         onMouseMove={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
                           const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -436,14 +436,14 @@ const StoreProductDetail = ({
                         <LazyImage
                           src={selectedImage}
                           alt={product.name}
-                          className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                          className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-500 gpu-accelerated"
                         />
                         {/* Zoom Icon */}
-                        <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm text-gray-700 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                        <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm text-gray-700 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg animate-bounceIn hover:scale-110">
                           <ZoomIn size={20} />
                         </div>
                         {product.discount && (
-                          <span className="absolute top-4 left-4 bg-gradient-to-r from-green-400 to-emerald-500 text-red-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                          <span className="absolute top-4 left-4 bg-gradient-to-r from-green-400 to-emerald-500 text-red-600 text-xs font-bold px-3 py-1 rounded-full shadow-md badge-pulse">
                             {product.discount}
                           </span>
                         )}
@@ -452,14 +452,14 @@ const StoreProductDetail = ({
                             e.stopPropagation();
                             onToggleWishlist();
                           }}
-                          className={`absolute top-4 right-4 p-2 rounded-full transition-all ${
+                          className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-300 hover:scale-110 btn-press ${
                             isWishlisted
-                              ? 'bg-rose-100 text-rose-600 shadow-md'
+                              ? 'bg-rose-100 text-rose-600 shadow-md wishlist-heart active'
                               : 'bg-white text-gray-600 shadow hover:bg-rose-50'
                           }`}
                           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                         >
-                          <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
+                          <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} className={isWishlisted ? 'animate-heartbeat' : ''} />
                         </button>
                       </div>
                     </div>

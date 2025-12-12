@@ -1343,7 +1343,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                                                     <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
                                                                     <div className="flex-1 min-w-0">
                                                                         <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
-                                                                        <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
                                                                         <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
                                                                     </div>
                                                                     <button className="text-red-500 hover:text-red-700" onClick={() => handleWishlistItemToggle(id)}>
@@ -1377,7 +1376,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                                                     <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
                                                                     <div className="flex-1 min-w-0">
                                                                         <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
-                                                                        <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
                                                                         <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
                                                                         <div className="mt-3 flex gap-2">
                                                                             <button
@@ -2794,7 +2792,6 @@ export const ProductQuickViewModal: React.FC<{
                     <div>
                         <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Quick view</p>
                         <h3 className="text-2xl font-black text-gray-900 mt-2">{product.name}</h3>
-                        <p className="text-sm text-gray-500 mt-2 line-clamp-3">{product.description}</p>
                     </div>
 
                     <div className="flex items-center gap-3">

@@ -40,7 +40,11 @@ const StoreSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode }) => (
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {productPlaceholders.map((_, index) => (
-          <div key={`store-card-${index}`} className={`rounded-2xl p-4 shadow-lg ${darkMode ? 'bg-slate-800/70 shadow-black/30' : 'bg-white/90 shadow-slate-900/5'}`}>
+          <div 
+            key={`store-card-${index}`} 
+            className={`rounded-2xl p-4 shadow-lg animate-fadeInUp ${darkMode ? 'bg-slate-800/70 shadow-black/30' : 'bg-white/90 shadow-slate-900/5'}`}
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
             <Skeleton height={180} className="rounded-xl" />
             <Skeleton height={20} className="mt-4" />
             <Skeleton height={16} width="70%" className="mt-2" />
@@ -99,7 +103,7 @@ const AppSkeleton: React.FC<AppSkeletonProps> = ({ variant = 'store', darkMode =
 
 // SkeletonCard - Individual product card skeleton for grids
 export const SkeletonCard: React.FC<{ darkMode?: boolean }> = ({ darkMode }) => (
-  <div className={`rounded-2xl p-4 shadow-lg ${darkMode ? 'bg-slate-800/70 shadow-black/30' : 'bg-white/90 shadow-slate-900/5'}`}>
+  <div className={`rounded-2xl p-4 shadow-lg animate-fadeInUp shimmer-effect ${darkMode ? 'bg-slate-800/70 shadow-black/30' : 'bg-white/90 shadow-slate-900/5'}`}>
     <Skeleton height={180} className="rounded-xl" />
     <Skeleton height={20} className="mt-4" />
     <Skeleton height={16} width="70%" className="mt-2" />

@@ -1650,15 +1650,15 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
   // Style 2 (Flash Sale - Pink/Blue)
   if (variant === 'style2') {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
-            <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
-                <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
+        <div className="bg-white rounded-xl border border-gray-200 product-card-hover transition-all group relative overflow-hidden flex flex-col gpu-accelerated">
+            <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer product-image-zoom" onClick={() => onClick(product)}>
+                <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-110" />
                 {product.discount && (
-                    <span className="absolute top-2 left-2 bg-pink-600 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded">
+                    <span className="absolute top-2 left-2 bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded badge-pulse">
                         {product.discount}
                     </span>
                 )}
-                <button className="absolute top-2 right-2 btn-wishlist text-current" onClick={(e) => e.stopPropagation()}>
+                <button className="absolute top-2 right-2 btn-wishlist text-current icon-bounce" onClick={(e) => e.stopPropagation()}>
                     <Heart size={18} />
                 </button>
             </div>
@@ -1672,7 +1672,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 </div>
 
                 <h3 
-                  className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition"
+                  className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition-colors duration-200"
                   onClick={() => onClick(product)}
                 >
                     {product.name}
@@ -1691,7 +1691,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     
                     <div className="flex gap-2">
                     <button 
-                        className="flex-1 btn-order py-1.5 text-sm"
+                        className="flex-1 btn-order py-1.5 text-sm btn-press"
                         onClick={handleBuyNow}
                     >
                             Buy Now
@@ -1702,7 +1702,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                 e.stopPropagation();
                                 onAddToCart?.(product);
                             }}
-                            className="cart_btn"
+                            className="cart_btn btn-press icon-bounce"
                             aria-label="Add to cart"
                         >
                             <ShoppingCart size={18} className="text-rose-500" />
@@ -1721,12 +1721,12 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
 
     // Default Style (Card 1)
     return (
-        <div className="group relative flex flex-col rounded-2xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
-            <span className="pointer-events-none absolute inset-x-4 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-500 opacity-60 group-hover:opacity-100" />
+        <div className="group relative flex flex-col rounded-2xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm product-card-hover transition-all duration-500 overflow-hidden gpu-accelerated">
+            <span className="pointer-events-none absolute inset-x-4 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-500 opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
 
             <div className="relative px-4 pt-4">
                 <div className="flex items-center justify-between text-[11px] font-semibold">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 uppercase tracking-wide dark:bg-emerald-500/10 dark:text-emerald-200">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 uppercase tracking-wide dark:bg-emerald-500/10 dark:text-emerald-200 animate-fadeIn">
                         <Sparkles size={12} /> {tagLabel}
                     </span>
                     {typeof product.rating === 'number' ? (
@@ -1745,16 +1745,16 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 </div>
 
                 <div className="relative mt-4">
-                    <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition" aria-hidden />
-                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
-                        <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
+                    <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition-opacity duration-300" aria-hidden />
+                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer product-image-zoom" onClick={() => onClick(product)}>
+                        <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-110" />
                     </div>
                     {product.discount && (
-                        <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                        <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm badge-pulse">
                             {product.discount}
                         </span>
                     )}
-                    <button className="absolute top-4 right-6 btn-wishlist bg-white/80 dark:bg-slate-800/70 shadow-md backdrop-blur-sm hover:scale-110 transition" aria-label="Save to wishlist">
+                    <button className="absolute top-4 right-6 btn-wishlist bg-white/80 dark:bg-slate-800/70 shadow-md backdrop-blur-sm hover:scale-110 transition-transform duration-200 icon-bounce" aria-label="Save to wishlist">
                         <Heart size={16} />
                     </button>
                 </div>
@@ -1800,7 +1800,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     <div className="flex flex-col gap-2 w-32">
                         <button
                             onClick={handleBuyNow}
-                            className="w-full btn-order py-2 rounded-xl font-bold text-sm"
+                            className="w-full btn-order py-2 rounded-xl font-bold text-sm btn-press"
                         >
                             অর্ডার করুন
                         </button>
@@ -1810,7 +1810,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                 e.stopPropagation();
                                 onAddToCart?.(product);
                             }}
-                            className="w-full rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-600 py-1.5 flex items-center justify-center gap-1 hover:bg-emerald-50 transition"
+                            className="w-full rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-600 py-1.5 flex items-center justify-center gap-1 hover:bg-emerald-50 transition-all duration-200 btn-press"
                         >
                             <ShoppingCart size={14} /> Add to cart
                         </button>
@@ -1821,7 +1821,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                 if (onQuickView) onQuickView(product);
                                 else onClick(product);
                             }}
-                            className="inline-flex items-center justify-center gap-1 rounded-xl border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-600 dark:text-gray-200 py-1.5 hover:border-emerald-400 hover:text-emerald-600 transition"
+                            className="inline-flex items-center justify-center gap-1 rounded-xl border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-600 dark:text-gray-200 py-1.5 hover:border-emerald-400 hover:text-emerald-600 transition-all duration-200 btn-press"
                         >
                             <Eye size={14} /> Quick view
                         </button>

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, FolderOpen } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
@@ -476,11 +477,18 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     const newImages = imageUrls.filter(url => !currentGallery.includes(url));
     
     if (currentGallery.length + newImages.length > maxFiles) {
-      alert(`You can have up to ${maxFiles} images total. Currently you have ${currentGallery.length} images.`);
+      toast.error(`You can have up to ${maxFiles} images total. Currently you have ${currentGallery.length} images.`, {
+        duration: 4000,
+        position: 'top-center'
+      });
       return;
     }
     
     setFormData({ ...formData, galleryImages: [...currentGallery, ...newImages] });
+    toast.success(`Added ${newImages.length} image${newImages.length !== 1 ? 's' : ''} from gallery`, {
+      duration: 3000,
+      position: 'top-center'
+    });
   };
 
   // Bulk Handlers

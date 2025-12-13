@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, CheckCircle, Image as ImageIcon } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { GalleryItem } from '../types';
 import { DataService } from '../services/DataService';
 import { GALLERY_IMAGES } from '../constants';
@@ -59,7 +60,10 @@ export const GalleryPicker: React.FC<GalleryPickerProps> = ({
         if (selectedImageUrls.length < maxSelection) {
           setSelectedImageUrls([...selectedImageUrls, imageUrl]);
         } else {
-          alert(`You can select up to ${maxSelection} images.`);
+          toast.error(`You can select up to ${maxSelection} images.`, {
+            duration: 3000,
+            position: 'top-center'
+          });
         }
       }
     } else {
@@ -72,7 +76,10 @@ export const GalleryPicker: React.FC<GalleryPickerProps> = ({
       onSelect(selectedImageUrls);
       onClose();
     } else {
-      alert('Please select at least one image.');
+      toast.error('Please select at least one image.', {
+        duration: 3000,
+        position: 'top-center'
+      });
     }
   };
 

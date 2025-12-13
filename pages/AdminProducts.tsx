@@ -1,12 +1,14 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, FolderOpen } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
 import { slugify } from '../services/slugify';
 import { formatCurrency } from '../utils/format';
 import { RichTextEditor } from '../components/RichTextEditor';
 import ProductPricingAndStock, { ProductPricingData } from '../components/ProductPricingAndStock';
+import { GalleryPicker } from '../components/GalleryPicker';
 
 interface AdminProductsProps {
   products: Product[];
@@ -149,6 +151,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [colorInput, setColorInput] = useState('');
   const [sizeInput, setSizeInput] = useState('');
   const [isSlugTouched, setIsSlugTouched] = useState(false);
+  const [isGalleryPickerOpen, setIsGalleryPickerOpen] = useState(false);
   
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -464,6 +467,28 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     const [movedItem] = updated.splice(fromIndex, 1);
     updated.splice(toIndex, 0, movedItem);
     setFormData({ ...formData, galleryImages: updated });
+  };
+
+  const handleGalleryImagesSelected = (imageUrls: string[]) => {
+    const currentGallery = formData.galleryImages || [];
+    const maxFiles = 10;
+    
+    // Filter out images that are already in the gallery
+    const newImages = imageUrls.filter(url => !currentGallery.includes(url));
+    
+    if (currentGallery.length + newImages.length > maxFiles) {
+      toast.error(`You can have up to ${maxFiles} images total. Currently you have ${currentGallery.length} images.`, {
+        duration: 4000,
+        position: 'top-center'
+      });
+      return;
+    }
+    
+    setFormData({ ...formData, galleryImages: [...currentGallery, ...newImages] });
+    toast.success(`Added ${newImages.length} image${newImages.length !== 1 ? 's' : ''} from gallery`, {
+      duration: 3000,
+      position: 'top-center'
+    });
   };
 
   // Bulk Handlers
@@ -1086,15 +1111,29 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                        />
 
                        {!formData.galleryImages || formData.galleryImages.length === 0 ? (
-                          <div 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-gray-300 rounded-xl h-40 flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition group"
-                          >
-                             <div className="bg-purple-100 p-2 rounded-full text-purple-600 mb-2 group-hover:scale-110 transition">
-                               <Upload size={20} />
-                             </div>
-                             <p className="text-sm text-gray-500 font-medium">Click to upload images</p>
-                             <p className="text-xs text-gray-400">JPG, PNG • 640px WebP • Max 2MB each</p>
+                          <div className="space-y-3">
+                            <div 
+                              onClick={() => fileInputRef.current?.click()}
+                              className="border-2 border-dashed border-gray-300 rounded-xl h-40 flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition group"
+                            >
+                               <div className="bg-purple-100 p-2 rounded-full text-purple-600 mb-2 group-hover:scale-110 transition">
+                                 <Upload size={20} />
+                               </div>
+                               <p className="text-sm text-gray-500 font-medium">Click to upload images</p>
+                               <p className="text-xs text-gray-400">JPG, PNG • 640px WebP • Max 2MB each</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 border-t border-gray-200"></div>
+                              <span className="text-xs text-gray-400 font-medium">OR</span>
+                              <div className="flex-1 border-t border-gray-200"></div>
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => setIsGalleryPickerOpen(true)}
+                              className="w-full py-3 border-2 border-blue-300 bg-blue-50 rounded-xl text-sm font-semibold text-blue-700 hover:bg-blue-100 hover:border-blue-400 transition flex items-center justify-center gap-2"
+                            >
+                              <FolderOpen size={18} /> Choose from Gallery
+                            </button>
                           </div>
                        ) : (
                           <div className="space-y-3">
@@ -1139,13 +1178,22 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                                 ))}
                              </div>
                              {formData.galleryImages.length < 10 && (
-                                <button 
-                                  type="button"
-                                  onClick={() => fileInputRef.current?.click()}
-                                  className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-purple-500 hover:text-purple-600 transition flex items-center justify-center gap-2"
-                                >
-                                  <Plus size={16} /> Add More Images ({formData.galleryImages.length}/10)
-                                </button>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <button 
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-purple-500 hover:text-purple-600 transition flex items-center justify-center gap-2"
+                                  >
+                                    <Upload size={16} /> Upload ({formData.galleryImages.length}/10)
+                                  </button>
+                                  <button 
+                                    type="button"
+                                    onClick={() => setIsGalleryPickerOpen(true)}
+                                    className="py-2.5 border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-100 hover:border-blue-400 transition flex items-center justify-center gap-2"
+                                  >
+                                    <FolderOpen size={16} /> From Gallery
+                                  </button>
+                                </div>
                              )}
                           </div>
                        )}
@@ -1379,6 +1427,16 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
            </div>
         </div>
       )}
+
+      {/* Gallery Picker Modal */}
+      <GalleryPicker
+        isOpen={isGalleryPickerOpen}
+        onClose={() => setIsGalleryPickerOpen(false)}
+        onSelect={handleGalleryImagesSelected}
+        multiSelect={true}
+        maxSelection={10 - (formData.galleryImages?.length || 0)}
+        currentImages={formData.galleryImages || []}
+      />
 
     </div>
   );

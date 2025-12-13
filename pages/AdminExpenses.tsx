@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, Calendar, Printer, Filter, Image as ImageIcon, Edit2, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { ExpenseService, ExpenseDTO } from '../services/ExpenseService';
 import { CategoryService, CategoryDTO } from '../services/CategoryService';
+import { SkeletonTable } from '../components/SkeletonLoaders';
 
 interface ExpenseItem {
   id: string;
@@ -345,6 +346,19 @@ const AdminExpenses: React.FC = () => {
         </div>
 
         <div className="mt-3 overflow-x-auto">
+          {loading ? (
+            <SkeletonTable rows={5} columns={8} darkMode={true} />
+          ) : error ? (
+            <div className="py-10 text-center text-red-400">{error}</div>
+          ) : paged.length === 0 ? (
+            <div className="py-16 text-center">
+              <div className="flex flex-col items-center text-slate-400">
+                <ImageIcon className="w-10 h-10 mb-2" />
+                <div className="font-semibold">No Data Found!</div>
+                <div className="text-xs">Please add some data to show here.</div>
+              </div>
+            </div>
+          ) : (
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-slate-300 border-b border-white/10">
@@ -359,22 +373,7 @@ const AdminExpenses: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr><td colSpan={8} className="py-10 text-center text-slate-300">Loading...</td></tr>
-              ) : error ? (
-                <tr><td colSpan={8} className="py-10 text-center text-red-400">{error}</td></tr>
-              ) : paged.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-16">
-                    <div className="flex flex-col items-center text-slate-400">
-                      <ImageIcon className="w-10 h-10 mb-2" />
-                      <div className="font-semibold">No Data Found!</div>
-                      <div className="text-xs">Please add some data to show here.</div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paged.map(i => (
+              {paged.map(i => (
                   <tr key={i.id} className="border-b border-white/5">
                     <td className="p-2"><input type="checkbox" /></td>
                     <td className="p-2">
@@ -394,10 +393,10 @@ const AdminExpenses: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
+                ))}
             </tbody>
           </table>
+          )}
         </div>
       </div>
 

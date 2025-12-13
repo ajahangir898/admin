@@ -1,4 +1,4 @@
-import React, { useCallback, useId, useMemo, useState } from 'react';
+import React, { useCallback, useId, useMemo, useState, useEffect } from 'react';
 import { DashboardStatCard } from '../components/AdminComponents';
 import { AdminProductManager } from '../components/AdminProductManager';
 import {
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { REVENUE_DATA as DEFAULT_REVENUE_DATA, CATEGORY_DATA as DEFAULT_CATEGORY_DATA } from '../constants';
 import { Order, Product } from '../types';
+import { SkeletonGridMetrics, SkeletonTable } from '../components/SkeletonLoaders';
 
 const COLORS = [
   'rgb(var(--color-primary-rgb))',
@@ -192,6 +193,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const gradientId = useId();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const revenueData = useMemo(() => buildWeeklyRevenueData(orders), [orders]);
   const revenueGeometry = useMemo(() => buildAreaGeometry(revenueData), [revenueData]);
@@ -375,325 +383,339 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
+      {isLoading ? (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {highlightCards.map((card) => (
-              <div key={card.id} className={`rounded-3xl border border-white/10 bg-gradient-to-br ${card.accent} via-transparent to-[#050507] p-6 shadow-[0_20px_45px_rgba(0,0,0,0.45)]`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">{card.label}</p>
-                    <p className="mt-2 text-3xl font-black text-white">{card.value}</p>
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    {card.icon}
-                  </div>
-                </div>
-                <div className="mt-6 flex items-center gap-2 text-xs text-slate-400">
-                  <span className="text-emerald-300 font-semibold flex items-center gap-1">
-                    <ArrowUpRight size={12} />
-                    {card.delta}
-                  </span>
-                  <span>{card.description}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-8">
-            <DashboardStatCard title="Today Orders" value={todayOrders} icon={<ShoppingBag />} colorClass="secondary" />
-            <DashboardStatCard title="Courier Orders" value={courierOrders} icon={<Truck />} colorClass="primary" />
-            <DashboardStatCard title="Confirmed Orders" value={confirmedOrders} icon={<CheckCircle />} colorClass="primary" />
-            <DashboardStatCard title="Pending Orders" value={pendingOrders} icon={<Clock />} colorClass="secondary" />
-            <DashboardStatCard title="Hold Orders" value={Math.max(1, Math.round(pendingOrders * 0.35))} icon={<PauseCircle />} colorClass="secondary-strong" />
-            <DashboardStatCard title="Cancelled Orders" value={cancelledOrders} icon={<XCircle />} colorClass="secondary" />
-            <DashboardStatCard title="Delivered Orders" value={deliveredOrders} icon={<PackageCheck />} colorClass="primary-strong" />
-            <DashboardStatCard title="Return Orders" value={returnsCount} icon={<ArchiveRestore />} colorClass="primary" />
-          </div>
-
-          <div className="rounded-3xl bg-gradient-to-b from-[#0b0d15] via-[#06070b] to-[#040305] border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.45)] p-6 space-y-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Cash Flow</p>
-                <p className="text-3xl font-black text-white mt-1">{formatCurrency(cashFlow)}</p>
-                <div className="flex items-center gap-3 text-xs text-slate-400 mt-2">
-                  <span className="text-emerald-300 font-semibold inline-flex items-center gap-1">
-                    <ArrowUpRight size={12} />
-                    +8%
-                  </span>
-                  <span>Weekly overview</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                {['Income', 'Expense', 'Saving'].map((tab) => (
-                  <button key={tab} className={`px-3 py-1 rounded-full border border-white/10 ${tab === 'Income' ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 transition'}`}>
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="h-72 w-full">
-              <svg viewBox={`0 0 ${revenueGeometry.width} ${revenueGeometry.height}`} preserveAspectRatio="none" className="w-full h-full">
-                <defs>
-                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f87171" stopOpacity="0.35" />
-                    <stop offset="95%" stopColor="#f87171" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <path d={revenueGeometry.fillPath} fill={`url(#${gradientId})`} />
-                <path d={revenueGeometry.strokePath} fill="none" stroke="#f87171" strokeWidth="3" strokeLinecap="round" />
-                {revenueGeometry.points.map((point) => (
-                  <g key={point.label}>
-                    <circle cx={point.x} cy={point.y} r={5} fill="#0b0f14" stroke="#f87171" strokeWidth={2} />
-                    <title>{`${point.label}: ${formatCurrency(point.value)}`}</title>
-                  </g>
-                ))}
-              </svg>
-              <div className="mt-4 grid grid-cols-7 text-[11px] text-slate-400">
-                {revenueData.map((item) => (
-                  <span key={item.name} className="text-center font-semibold">
-                    {item.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl p-6 flex flex-col gap-4 border border-red-500/40 shadow-lg shadow-red-900/30 relative overflow-hidden bg-gradient-to-br from-[#1a0d10] via-[#120712] to-[#050407] text-slate-100">
-              <div className="z-10">
-                <p className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2 tracking-wide uppercase">
-                  Total Order <TrendingUp size={16} className="text-red-400" />
-                </p>
-                <h2 className="text-4xl font-black text-white">{totalOrders}</h2>
-                <p className="text-xs text-slate-400 mt-2">
-                  vs last month <span className="text-emerald-400 font-bold">+12%</span>
-                </p>
-              </div>
-              <div className="z-10 text-right">
-                <p className="text-sm font-semibold text-slate-300 mb-2">Total Sales</p>
-                <h2 className="text-4xl font-black text-red-200">{formatCurrency(totalRevenue)}</h2>
-                <p className="text-xs text-slate-500 mt-2">Net revenue</p>
-              </div>
-              <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-4 translate-x-4 text-red-500">
-                <LayoutGrid size={150} />
-              </div>
-            </div>
-            <div className="rounded-2xl p-6 flex items-center justify-between border border-emerald-500/40 shadow-lg shadow-emerald-900/30 relative overflow-hidden bg-gradient-to-br from-[#031912] via-[#04150f] to-[#020605] text-emerald-50 gap-4">
-              <div className="z-10">
-                <p className="text-sm font-semibold text-emerald-200 mb-2 tracking-wide uppercase">Total Products</p>
-                <h2 className="text-4xl font-black text-white">{products.length}</h2>
-                <p className="text-xs text-emerald-200/70 mt-2">In stock</p>
-              </div>
-              <div className="h-16 w-16 bg-white/10 rounded-full flex items-center justify-center text-emerald-300 shadow-2xl shadow-emerald-900/50 z-10 border border-emerald-500/40">
-                <Layers size={32} />
-              </div>
-              <div className="absolute left-0 bottom-0 opacity-10 transform translate-y-4 -translate-x-4 text-emerald-500">
-                <Layers size={150} />
-              </div>
-            </div>
-          </div>
+          <SkeletonGridMetrics count={3} darkMode={true} />
+          <SkeletonTable rows={3} columns={4} darkMode={true} />
         </div>
-
-        <div className="space-y-6">
-          <div className="rounded-3xl bg-gradient-to-br from-[#241612] via-[#130b08] to-[#050304] border border-white/10 shadow-[0_25px_55px_rgba(0,0,0,0.45)] p-6 text-white space-y-8">
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-3 py-1">
-                <span className="text-white">Credit</span>
-                <span className="px-3 py-0.5 rounded-full border border-white/10 text-slate-400">Debit</span>
-              </div>
-              <button onClick={handleAddCard} className="text-orange-300 inline-flex items-center gap-1">
-                <Plus size={12} /> Add Card
-              </button>
-            </div>
+      ) : (
+      <><div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
             <div className="space-y-6">
-              <div className="flex flex-col gap-2">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Card Number</p>
-                <p className="text-xl font-black tracking-[0.2em] mt-2">**** **** 6541</p>
-              </div>
-              <div className="flex items-center justify-between text-sm text-slate-300">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em]">Card Holder</p>
-                  <p className="text-base font-semibold mt-1">Anjuman Sharear</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs uppercase tracking-[0.3em]">Expires</p>
-                  <p className="text-base font-semibold mt-1">12/27</p>
-                </div>
-              </div>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {(() => {
+                  interface HighlightCard {
+                    id: string;
+                    label: string;
+                    value: string | number;
+                    delta: string;
+                    description: string;
+                    icon: React.ReactNode;
+                    accent: string;
+                  }
 
-          <div className="rounded-3xl bg-gradient-to-br from-[#080a12] via-[#05070a] to-[#030304] border border-white/10 shadow-[0_25px_55px_rgba(0,0,0,0.45)] p-6 space-y-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">Quick Action</h3>
-              <button onClick={() => handleQuickAction('manage_limits')} className="text-xs font-semibold text-slate-300 border border-white/10 rounded-full px-3 py-1 hover:bg-white/10 transition">
-                Manage
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {QUICK_ACTIONS.map((action) => (
-                <button key={action} onClick={() => handleQuickAction(action)} className="rounded-2xl border border-white/10 bg-white/5 text-sm font-semibold text-slate-100 py-3 hover:bg-white/10 transition">
-                  {action}
-                </button>
-              ))}
-            </div>
-            <div className="pt-5 border-t border-white/5 space-y-4">
-              <div>
-                <p className="text-sm text-slate-400">Daily Limit</p>
-                <p className="text-xl font-black text-white">
-                  {formatCurrency(dailyLimitUsed)}
-                  <span className="text-sm text-slate-500 font-medium"> used from {formatCurrency(dailyLimitMax)}</span>
-                </p>
-              </div>
-              <div className="h-2 rounded-full bg-white/5">
-                <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-red-500" style={{ width: `${dailyLimitPercent}%` }}></div>
-              </div>
-              <div className="space-y-3">
-                {smartSpendingLimits.map((limit) => (
-                  <div key={limit.label} className="flex items-center gap-3 text-xs text-slate-400">
-                    <span className="w-24 text-slate-300 font-semibold">{limit.label}</span>
-                    <div className="flex-1 h-1.5 rounded-full bg-white/5">
-                      <div className={`h-full rounded-full bg-gradient-to-r ${limit.gradient}`} style={{ width: `${limit.percent}%` }}></div>
+                  return highlightCards.map((card: HighlightCard) => (
+                    <div key={card.id} className={`rounded-3xl border border-white/10 bg-gradient-to-br ${card.accent} via-transparent to-[#050507] p-6 shadow-[0_20px_45px_rgba(0,0,0,0.45)]`}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.35em] text-slate-400">{card.label}</p>
+                          <p className="mt-2 text-3xl font-black text-white">{card.value}</p>
+                        </div>
+                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                          {card.icon}
+                        </div>
+                      </div>
+                      <div className="mt-6 flex items-center gap-2 text-xs text-slate-400">
+                        <span className="text-emerald-300 font-semibold flex items-center gap-1">
+                          <ArrowUpRight size={12} />
+                          {card.delta}
+                        </span>
+                        <span>{card.description}</span>
+                      </div>
                     </div>
-                    <span className="w-10 text-right text-slate-200 font-semibold">{limit.percent}%</span>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
-            </div>
-          </div>
 
-          <div className="rounded-3xl bg-gradient-to-b from-[#090b12] via-[#05080a] to-[#030405] p-6 border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.35)] text-slate-100">
-            <h3 className="text-lg font-bold text-white mb-6 tracking-wide">Sales by Category</h3>
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-48 h-48 rounded-full relative shadow-inner shadow-black/60" style={{ background: `conic-gradient(${pieGradient})` }}>
-                <div className="absolute inset-6 bg-[#05070b] rounded-full flex flex-col items-center justify-center text-center border border-white/10">
-                  <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Total</span>
-                  <span className="text-2xl font-black text-white">{formatCurrency(categoryData.reduce((sum, entry) => sum + entry.value, 0))}</span>
-                  <span className="text-[11px] text-slate-400">by category</span>
-                </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-8">
+                <DashboardStatCard title="Today Orders" value={todayOrders} icon={<ShoppingBag />} colorClass="secondary" />
+                <DashboardStatCard title="Courier Orders" value={courierOrders} icon={<Truck />} colorClass="primary" />
+                <DashboardStatCard title="Confirmed Orders" value={confirmedOrders} icon={<CheckCircle />} colorClass="primary" />
+                <DashboardStatCard title="Pending Orders" value={pendingOrders} icon={<Clock />} colorClass="secondary" />
+                <DashboardStatCard title="Hold Orders" value={Math.max(1, Math.round(pendingOrders * 0.35))} icon={<PauseCircle />} colorClass="secondary-strong" />
+                <DashboardStatCard title="Cancelled Orders" value={cancelledOrders} icon={<XCircle />} colorClass="secondary" />
+                <DashboardStatCard title="Delivered Orders" value={deliveredOrders} icon={<PackageCheck />} colorClass="primary-strong" />
+                <DashboardStatCard title="Return Orders" value={returnsCount} icon={<ArchiveRestore />} colorClass="primary" />
               </div>
-              <div className="w-full space-y-3">
-                {categoryData.map((item, index) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm text-slate-200">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full" style={{ background: COLORS[index % COLORS.length] }} />
-                      <span className="font-semibold">{item.name}</span>
-                    </div>
-                    <span className="text-slate-400 font-bold">{formatCurrency(item.value)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0b12] via-[#05060a] to-[#030304] shadow-[0_20px_45px_rgba(0,0,0,0.45)] overflow-hidden">
-          <div className="p-5 border-b border-white/10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="font-bold text-white tracking-wide">Recent Orders</h3>
-            <button onClick={() => handleQuickAction('view_all_orders')} className="text-xs font-semibold text-white/90 border border-red-400/40 px-3 py-1.5 rounded-full bg-gradient-to-r from-red-600/70 to-emerald-500/70 hover:shadow-lg hover:shadow-emerald-900/30 transition">
-              View All
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-white/5 text-slate-400 font-semibold uppercase tracking-[0.2em] text-[11px]">
-                <tr>
-                  <th className="px-5 py-4">Order ID</th>
-                  <th className="px-5 py-4">Customer</th>
-                  <th className="px-5 py-4">Amount</th>
-                  <th className="px-5 py-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-slate-200">
-                {visibleOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-white/5 transition">
-                    <td className="px-5 py-4 font-black text-white tracking-wide">{order.id}</td>
-                    <td className="px-5 py-4">
-                      <div className="font-semibold text-white">{order.customer}</div>
-                      <div className="text-xs text-slate-500 mt-1">{order.date}</div>
-                    </td>
-                    <td className="px-5 py-4 text-emerald-200 font-semibold">{formatCurrency(order.amount)}</td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${
-                          order.status === 'Pending'
-                            ? 'bg-amber-500/10 text-amber-200 border-amber-400/40'
-                            : order.status === 'Confirmed'
-                              ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/40'
-                              : order.status === 'Delivered'
-                                ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/40'
-                                : order.status === 'Shipped'
-                                  ? 'bg-sky-500/15 text-sky-200 border-sky-400/40'
-                                  : 'bg-white/5 text-slate-300 border-white/10'
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {!visibleOrders.length && (
-                  <tr>
-                    <td colSpan={4} className="px-5 py-6 text-center text-slate-500 text-sm">
-                      No orders match “{searchQuery}”.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#090b13] via-[#05060a] to-[#020203] shadow-[0_20px_45px_rgba(0,0,0,0.45)] overflow-hidden">
-          <div className="p-5 border-b border-white/10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="font-bold text-white tracking-wide">Top Products</h3>
-            <button onClick={() => handleQuickAction('filter_top_products')} className="text-xs font-semibold text-white/90 border border-emerald-400/40 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/70 to-red-500/70 hover:shadow-lg hover:shadow-red-900/30 transition">
-              December
-            </button>
-          </div>
-          <div className="divide-y divide-white/5">
-            {featuredProducts.map((product) => (
-              <div key={product.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 bg-white/10 rounded-lg flex-shrink-0 border border-white/10 overflow-hidden">
-                    <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
-                  </div>
+              <div className="rounded-3xl bg-gradient-to-b from-[#0b0d15] via-[#06070b] to-[#040305] border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.45)] p-6 space-y-6">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <p className="text-sm font-bold text-white line-clamp-1">{product.name}</p>
-                    <p className="text-xs text-slate-400 font-medium">{formatCurrency(product.price)}</p>
+                    <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Cash Flow</p>
+                    <p className="text-3xl font-black text-white mt-1">{formatCurrency(cashFlow)}</p>
+                    <div className="flex items-center gap-3 text-xs text-slate-400 mt-2">
+                      <span className="text-emerald-300 font-semibold inline-flex items-center gap-1">
+                        <ArrowUpRight size={12} />
+                        +8%
+                      </span>
+                      <span>Weekly overview</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                    {['Income', 'Expense', 'Saving'].map((tab) => (
+                      <button key={tab} className={`px-3 py-1 rounded-full border border-white/10 ${tab === 'Income' ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 transition'}`}>
+                        {tab}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <span className="bg-emerald-500/15 text-emerald-200 text-xs font-bold px-2 py-1 rounded-full border border-emerald-400/40 flex items-center gap-1">
-                  {product.stock ?? 0}
-                  <TrendingUp size={10} />
-                </span>
+                <div className="h-72 w-full">
+                  <svg viewBox={`0 0 ${revenueGeometry.width} ${revenueGeometry.height}`} preserveAspectRatio="none" className="w-full h-full">
+                    <defs>
+                      <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f87171" stopOpacity="0.35" />
+                        <stop offset="95%" stopColor="#f87171" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d={revenueGeometry.fillPath} fill={`url(#${gradientId})`} />
+                    <path d={revenueGeometry.strokePath} fill="none" stroke="#f87171" strokeWidth="3" strokeLinecap="round" />
+                    {(revenueGeometry.points as Array<{ x: number; y: number; value: number; label: string; }>).map((point) => (
+                      <g key={point.label}>
+                        <circle cx={point.x} cy={point.y} r={5} fill="#0b0f14" stroke="#f87171" strokeWidth={2} />
+                        <title>{`${point.label}: ${formatCurrency(point.value)}`}</title>
+                      </g>
+                    ))}
+                  </svg>
+                  <div className="mt-4 grid grid-cols-7 text-[11px] text-slate-400">
+                    {revenueData.map((item) => (
+                      <span key={item.name} className="text-center font-semibold">
+                        {item.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ))}
-            {!featuredProducts.length && (
-              <div className="p-6 text-center text-sm text-slate-500">Add products to see leaderboard.</div>
-            )}
-          </div>
-        </div>
 
-        {/* Advanced Product Management Section */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#090b13] via-[#05060a] to-[#020203] shadow-[0_20px_45px_rgba(0,0,0,0.45)] overflow-hidden">
-          <div className="p-5 border-b border-white/10">
-            <h3 className="font-bold text-white tracking-wide">Product Management</h3>
-            <p className="text-xs text-slate-400 mt-1">Advanced filtering, sorting, and bulk operations for inventory management</p>
-          </div>
-          <div className="overflow-hidden">
-            <AdminProductManager 
-              products={products}
-              onUpdateProduct={handleUpdateProduct}
-              onDeleteProduct={handleDeleteProduct}
-              onBulkAction={handleBulkAction}
-            />
-          </div>
-        </div>
-      </div>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="rounded-2xl p-6 flex flex-col gap-4 border border-red-500/40 shadow-lg shadow-red-900/30 relative overflow-hidden bg-gradient-to-br from-[#1a0d10] via-[#120712] to-[#050407] text-slate-100">
+                  <div className="z-10">
+                    <p className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2 tracking-wide uppercase">
+                      Total Order <TrendingUp size={16} className="text-red-400" />
+                    </p>
+                    <h2 className="text-4xl font-black text-white">{totalOrders}</h2>
+                    <p className="text-xs text-slate-400 mt-2">
+                      vs last month <span className="text-emerald-400 font-bold">+12%</span>
+                    </p>
+                  </div>
+                  <div className="z-10 text-right">
+                    <p className="text-sm font-semibold text-slate-300 mb-2">Total Sales</p>
+                    <h2 className="text-4xl font-black text-red-200">{formatCurrency(totalRevenue)}</h2>
+                    <p className="text-xs text-slate-500 mt-2">Net revenue</p>
+                  </div>
+                  <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-4 translate-x-4 text-red-500">
+                    <LayoutGrid size={150} />
+                  </div>
+                </div>
+                <div className="rounded-2xl p-6 flex items-center justify-between border border-emerald-500/40 shadow-lg shadow-emerald-900/30 relative overflow-hidden bg-gradient-to-br from-[#031912] via-[#04150f] to-[#020605] text-emerald-50 gap-4">
+                  <div className="z-10">
+                    <p className="text-sm font-semibold text-emerald-200 mb-2 tracking-wide uppercase">Total Products</p>
+                    <h2 className="text-4xl font-black text-white">{products.length}</h2>
+                    <p className="text-xs text-emerald-200/70 mt-2">In stock</p>
+                  </div>
+                  <div className="h-16 w-16 bg-white/10 rounded-full flex items-center justify-center text-emerald-300 shadow-2xl shadow-emerald-900/50 z-10 border border-emerald-500/40">
+                    <Layers size={32} />
+                  </div>
+                  <div className="absolute left-0 bottom-0 opacity-10 transform translate-y-4 -translate-x-4 text-emerald-500">
+                    <Layers size={150} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="rounded-3xl bg-gradient-to-br from-[#241612] via-[#130b08] to-[#050304] border border-white/10 shadow-[0_25px_55px_rgba(0,0,0,0.45)] p-6 text-white space-y-8">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
+                  <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-3 py-1">
+                    <span className="text-white">Credit</span>
+                    <span className="px-3 py-0.5 rounded-full border border-white/10 text-slate-400">Debit</span>
+                  </div>
+                  <button onClick={handleAddCard} className="text-orange-300 inline-flex items-center gap-1">
+                    <Plus size={12} /> Add Card
+                  </button>
+                </div>
+                <div className="space-y-6">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Card Number</p>
+                    <p className="text-xl font-black tracking-[0.2em] mt-2">**** **** 6541</p>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-slate-300">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em]">Card Holder</p>
+                      <p className="text-base font-semibold mt-1">Anjuman Sharear</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs uppercase tracking-[0.3em]">Expires</p>
+                      <p className="text-base font-semibold mt-1">12/27</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-gradient-to-br from-[#080a12] via-[#05070a] to-[#030304] border border-white/10 shadow-[0_25px_55px_rgba(0,0,0,0.45)] p-6 space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-white">Quick Action</h3>
+                  <button onClick={() => handleQuickAction('manage_limits')} className="text-xs font-semibold text-slate-300 border border-white/10 rounded-full px-3 py-1 hover:bg-white/10 transition">
+                    Manage
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {QUICK_ACTIONS.map((action) => (
+                    <button key={action} onClick={() => handleQuickAction(action)} className="rounded-2xl border border-white/10 bg-white/5 text-sm font-semibold text-slate-100 py-3 hover:bg-white/10 transition">
+                      {action}
+                    </button>
+                  ))}
+                </div>
+                <div className="pt-5 border-t border-white/5 space-y-4">
+                  <div>
+                    <p className="text-sm text-slate-400">Daily Limit</p>
+                    <p className="text-xl font-black text-white">
+                      {formatCurrency(dailyLimitUsed)}
+                      <span className="text-sm text-slate-500 font-medium"> used from {formatCurrency(dailyLimitMax)}</span>
+                    </p>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/5">
+                    <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-red-500" style={{ width: `${dailyLimitPercent}%` }}></div>
+                  </div>
+                  <div className="space-y-3">
+                    {smartSpendingLimits.map((limit) => (
+                      <div key={limit.label} className="flex items-center gap-3 text-xs text-slate-400">
+                        <span className="w-24 text-slate-300 font-semibold">{limit.label}</span>
+                        <div className="flex-1 h-1.5 rounded-full bg-white/5">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${limit.gradient}`} style={{ width: `${limit.percent}%` }}></div>
+                        </div>
+                        <span className="w-10 text-right text-slate-200 font-semibold">{limit.percent}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-gradient-to-b from-[#090b12] via-[#05080a] to-[#030405] p-6 border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.35)] text-slate-100">
+                <h3 className="text-lg font-bold text-white mb-6 tracking-wide">Sales by Category</h3>
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-48 h-48 rounded-full relative shadow-inner shadow-black/60" style={{ background: `conic-gradient(${pieGradient})` }}>
+                    <div className="absolute inset-6 bg-[#05070b] rounded-full flex flex-col items-center justify-center text-center border border-white/10">
+                      <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Total</span>
+                      <span className="text-2xl font-black text-white">{formatCurrency(categoryData.reduce((sum, entry) => sum + entry.value, 0))}</span>
+                      <span className="text-[11px] text-slate-400">by category</span>
+                    </div>
+                  </div>
+                  <div className="w-full space-y-3">
+                    {categoryData.map((item, index) => (
+                      <div key={item.name} className="flex items-center justify-between text-sm text-slate-200">
+                        <div className="flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-full" style={{ background: COLORS[index % COLORS.length] }} />
+                          <span className="font-semibold">{item.name}</span>
+                        </div>
+                        <span className="text-slate-400 font-bold">{formatCurrency(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a0b12] via-[#05060a] to-[#030304] shadow-[0_20px_45px_rgba(0,0,0,0.45)] overflow-hidden">
+                <div className="p-5 border-b border-white/10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="font-bold text-white tracking-wide">Recent Orders</h3>
+                  <button onClick={() => handleQuickAction('view_all_orders')} className="text-xs font-semibold text-white/90 border border-red-400/40 px-3 py-1.5 rounded-full bg-gradient-to-r from-red-600/70 to-emerald-500/70 hover:shadow-lg hover:shadow-emerald-900/30 transition">
+                    View All
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-white/5 text-slate-400 font-semibold uppercase tracking-[0.2em] text-[11px]">
+                      <tr>
+                        <th className="px-5 py-4">Order ID</th>
+                        <th className="px-5 py-4">Customer</th>
+                        <th className="px-5 py-4">Amount</th>
+                        <th className="px-5 py-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-slate-200">
+                      {visibleOrders.map((order) => (
+                        <tr key={order.id} className="hover:bg-white/5 transition">
+                          <td className="px-5 py-4 font-black text-white tracking-wide">{order.id}</td>
+                          <td className="px-5 py-4">
+                            <div className="font-semibold text-white">{order.customer}</div>
+                            <div className="text-xs text-slate-500 mt-1">{order.date}</div>
+                          </td>
+                          <td className="px-5 py-4 text-emerald-200 font-semibold">{formatCurrency(order.amount)}</td>
+                          <td className="px-5 py-4">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${order.status === 'Pending'
+                                  ? 'bg-amber-500/10 text-amber-200 border-amber-400/40'
+                                  : order.status === 'Confirmed'
+                                    ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/40'
+                                    : order.status === 'Delivered'
+                                      ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/40'
+                                      : order.status === 'Shipped'
+                                        ? 'bg-sky-500/15 text-sky-200 border-sky-400/40'
+                                        : 'bg-white/5 text-slate-300 border-white/10'}`}
+                            >
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {!visibleOrders.length && (
+                        <tr>
+                          <td colSpan={4} className="px-5 py-6 text-center text-slate-500 text-sm">
+                            No orders match “{searchQuery}”.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#090b13] via-[#05060a] to-[#020203] shadow-[0_20px_45px_rgba(0,0,0,0.45)] overflow-hidden">
+                <div className="p-5 border-b border-white/10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="font-bold text-white tracking-wide">Top Products</h3>
+                  <button onClick={() => handleQuickAction('filter_top_products')} className="text-xs font-semibold text-white/90 border border-emerald-400/40 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/70 to-red-500/70 hover:shadow-lg hover:shadow-red-900/30 transition">
+                    December
+                  </button>
+                </div>
+                <div className="divide-y divide-white/5">
+                  {featuredProducts.map((product) => (
+                    <div key={product.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition cursor-pointer">
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 bg-white/10 rounded-lg flex-shrink-0 border border-white/10 overflow-hidden">
+                          <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white line-clamp-1">{product.name}</p>
+                          <p className="text-xs text-slate-400 font-medium">{formatCurrency(product.price)}</p>
+                        </div>
+                      </div>
+                      <span className="bg-emerald-500/15 text-emerald-200 text-xs font-bold px-2 py-1 rounded-full border border-emerald-400/40 flex items-center gap-1">
+                        {product.stock ?? 0}
+                        <TrendingUp size={10} />
+                      </span>
+                    </div>
+                  ))}
+                  {!featuredProducts.length && (
+                    <div className="p-6 text-center text-sm text-slate-500">Add products to see leaderboard.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Advanced Product Management Section */}
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#090b13] via-[#05060a] to-[#020203] shadow-[0_20px_45px_rgba(0,0,0,0.45)] overflow-hidden">
+                <div className="p-5 border-b border-white/10">
+                  <h3 className="font-bold text-white tracking-wide">Product Management</h3>
+                  <p className="text-xs text-slate-400 mt-1">Advanced filtering, sorting, and bulk operations for inventory management</p>
+                </div>
+                <div className="overflow-hidden">
+                  <AdminProductManager
+                    products={products}
+                    onUpdateProduct={handleUpdateProduct}
+                    onDeleteProduct={handleDeleteProduct}
+                    onBulkAction={handleBulkAction} />
+                </div>
+              </div>
+            </div></>
+      )}
     </div>
   );
 };

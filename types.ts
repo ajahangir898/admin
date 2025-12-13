@@ -380,3 +380,49 @@ export interface LandingPage {
   updatedAt: string;
   publishedAt?: string;
 }
+
+// Due List Types
+export type EntityType = 'Customer' | 'Supplier' | 'Employee';
+export type TransactionDirection = 'INCOME' | 'EXPENSE';
+export type TransactionStatus = 'Pending' | 'Paid' | 'Cancelled';
+
+export interface DueEntity {
+  _id?: string;
+  name: string;
+  phone: string;
+  type: EntityType;
+  totalOwedToMe: number;
+  totalIOweThemNumber: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DueTransaction {
+  _id?: string;
+  entityId: string;
+  entityName: string;
+  amount: number;
+  direction: TransactionDirection;
+  transactionDate: string;
+  dueDate?: string;
+  notes?: string;
+  status: TransactionStatus;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateDueTransactionPayload {
+  entityId: string;
+  entityName: string;
+  amount: number;
+  direction: TransactionDirection;
+  transactionDate: string;
+  dueDate?: string;
+  notes?: string;
+}
+
+export interface CreateEntityPayload {
+  name: string;
+  phone: string;
+  type: EntityType;
+}

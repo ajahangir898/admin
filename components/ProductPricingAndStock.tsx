@@ -16,7 +16,7 @@ export interface ProductPricingData {
 
 const ProductPricingAndStock: React.FC<ProductPricingAndStockProps> = ({
   onDataChange,
-  initialData = {}
+  initialData = {} as Partial<ProductPricingData>
 }) => {
   const [formData, setFormData] = useState<ProductPricingData>({
     regularPrice: initialData?.regularPrice ?? 0,

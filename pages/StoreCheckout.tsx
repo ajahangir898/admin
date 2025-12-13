@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { EmptyCartState } from '../components/EmptyStates';
+import { SkeletonForm } from '../components/SkeletonLoaders';
 import {
   AlertCircle,
   ArrowLeft,
@@ -95,6 +96,12 @@ const StoreCheckout = ({
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [alertState, setAlertState] = useState<{ type: 'error' | 'success' | null; message: string }>({ type: null, message: '' });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (deliveryConfigs && deliveryConfigs.length) {
@@ -303,7 +310,14 @@ const StoreCheckout = ({
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 space-y-8">
-            {deliveryConfigs && deliveryConfigs.length > 0 && (
+            {isLoading && (
+              <div className="space-y-8">
+                <SkeletonForm fields={6} darkMode={false} />
+              </div>
+            )}
+            {!isLoading && (
+              <>
+                {deliveryConfigs && deliveryConfigs.length > 0 && (
               <div className="store-card p-6 rounded-3xl border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800">Delivery Options</h2>
@@ -567,6 +581,8 @@ const StoreCheckout = ({
                 </div>
               </div>
             </div>
+            </>
+            )}
           </div>
 
           <div className="w-full lg:w-96">

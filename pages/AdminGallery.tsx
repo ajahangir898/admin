@@ -5,6 +5,7 @@ import { GALLERY_IMAGES } from '../constants';
 import { GalleryItem } from '../types';
 import { DataService } from '../services/DataService';
 import { convertFileToWebP } from '../services/imageUtils';
+import { SkeletonImageGrid } from '../components/SkeletonLoaders';
 
 const AdminGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,7 +109,9 @@ const AdminGallery: React.FC = () => {
 
       {/* Grid Content */}
       <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30">
-         {filteredImages.length > 0 ? (
+         {!isLoaded ? (
+            <SkeletonImageGrid count={8} cols="grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" darkMode={false} />
+         ) : filteredImages.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                {filteredImages.map(item => (
                   <div 

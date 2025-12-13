@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { ImageSearch, ImageSearchResult } from '../components/ImageSearch';
 import { ImageSearchResults } from '../components/ImageSearchResults';
+import { SkeletonImageGrid } from '../components/SkeletonLoaders';
 import { imageSearchService } from '../services/ImageSearchService';
 import { Product, WebsiteConfig, User, Order } from '../types';
 import { ArrowLeft } from 'lucide-react';
@@ -28,6 +29,12 @@ export const StoreImageSearch: React.FC<StoreImageSearchProps> = ({
   const [searchResults, setSearchResults] = useState<ImageSearchResult | null>(null);
   const [searchImage, setSearchImage] = useState<string>('');
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleImageSearch = useCallback(
     async (imageId: string, imageUrl: string): Promise<ImageSearchResult> => {
@@ -103,6 +110,13 @@ export const StoreImageSearch: React.FC<StoreImageSearchProps> = ({
       <StoreHeader websiteConfig={websiteConfig} user={user} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
+        {isLoading && (
+          <div className="space-y-6">
+            <SkeletonImageGrid columns={3} count={6} darkMode={false} />
+          </div>
+        )}
+        {!isLoading && (
+          <>
         {searchResults ? (
           // Results view
           <div className="space-y-6">
@@ -202,6 +216,8 @@ export const StoreImageSearch: React.FC<StoreImageSearchProps> = ({
               </ul>
             </div>
           </div>
+        )}
+        </>
         )}
       </main>
 

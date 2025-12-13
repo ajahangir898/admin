@@ -6,7 +6,7 @@ import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
 import { ProductFilter, SortOption } from '../components/ProductFilter';
 import { EmptySearchState } from '../components/EmptyStates';
-import { SkeletonCard } from '../components/SkeletonLoaders';
+import { SkeletonCard, SkeletonImageGrid } from '../components/SkeletonLoaders';
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -89,7 +89,13 @@ const StoreHome = ({
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
   const searchTerm = typeof searchValue === 'string' ? searchValue : internalSearchTerm;
   const updateSearchTerm = (value: string) => {
     if (onSearchChange) {

@@ -32,6 +32,7 @@ const AdminExpenses = lazy(() => import('./pages/AdminExpenses'));
 const AdminFacebookPixel = lazy(() => import('./pages/AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import('./pages/AdminTenantManagement'));
+const AdminDueList = lazy(() => import('./pages/AdminDueList'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 const StoreImageSearch = lazy(() => import('./pages/StoreImageSearch'));
 const loadAdminComponents = () => import('./components/AdminComponents');
@@ -1390,6 +1391,7 @@ fbq('track', 'PageView');`;
              adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
              adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
              adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
+             adminSection === 'due_list' ? <AdminDueList user={user} onLogout={handleLogout} /> :
              adminSection === 'inventory' ? <AdminInventory products={products} /> :
              adminSection === 'expenses' ? <AdminExpenses /> :
              adminSection === 'customers' ? <AdminReviews /> :

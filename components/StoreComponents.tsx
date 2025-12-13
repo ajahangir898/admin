@@ -1785,7 +1785,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
     return (
       <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 group relative overflow-hidden flex flex-col">
         {/* Product Image */}
-        <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
+        <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}> 
           <LazyImage 
             src={product.galleryImages?.[0] || product.image} 
             alt={product.name} 

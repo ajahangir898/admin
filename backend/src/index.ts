@@ -9,6 +9,7 @@ import { tenantsRouter } from './routes/tenants';
 import { tenantDataRouter } from './routes/tenantData';
 import { ensureTenantIndexes } from './services/tenantsService';
 import { expensesRouter } from './routes/expenses';
+import dueListRoutes from './routes/dueListRoutes';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/health', healthRouter);
 app.use('/api/tenants', tenantsRouter);
 app.use('/api/tenant-data', tenantDataRouter);
 app.use('/api/expenses', expensesRouter);
+app.use('/api', dueListRoutes);
 
 app.use(errorHandler);
 

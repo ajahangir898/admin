@@ -6,6 +6,7 @@ import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharg
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
+import { SkeletonCard } from '../components/SkeletonLoaders';
 
 // Helper for stars
 const StarRating = ({ rating, count }: { rating: number, count?: number }) => (
@@ -208,6 +209,13 @@ const StoreProductDetail = ({
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, [product.id]);
   const galleryImages = product.galleryImages && product.galleryImages.length ? product.galleryImages : [product.image];
   const [selectedImage, setSelectedImage] = useState(galleryImages[0]);
   const fallbackColor = product.variantDefaults?.color || 'Default';
@@ -699,7 +707,10 @@ const StoreProductDetail = ({
             <div className="store-card rounded-xl p-5">
                <h3 className="font-bold text-lg text-gray-800 mb-4 pb-2 border-b border-gray-100">Related Products</h3>
                <div className="space-y-4">
-                  {relatedProducts.map(({ product: related, matchType, reason, stockCount }) => (
+                  {isLoading ? (
+                    [...Array(3)].map((_, i) => <div key={`skeleton-${i}`} className="h-20 bg-gray-100 rounded animate-pulse" />)
+                  ) : (
+                  relatedProducts.map(({ product: related, matchType, reason, stockCount }) => (
                     <div 
                       key={related.id} 
                       onClick={() => onProductClick(related)}
@@ -726,7 +737,8 @@ const StoreProductDetail = ({
                           </div>
                        </div>
                     </div>
-                  ))}
+                  ))
+                  )}
                </div>
             </div>
 

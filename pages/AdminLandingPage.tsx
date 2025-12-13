@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, LandingPage } from '../types';
 import { LandingPagePanel } from '../components/LandingPageComponents';
 import { MonitorSmartphone } from 'lucide-react';
+import { SkeletonGridMetrics } from '../components/SkeletonLoaders';
 
 interface AdminLandingPageProps {
   products: Product[];
@@ -20,6 +21,12 @@ const AdminLandingPage: React.FC<AdminLandingPageProps> = ({
   onTogglePublish,
   onPreviewLandingPage
 }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <div className="space-y-8">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-tr from-[#12043a] via-[#4f1cb8] to-[#2eb8ff] text-white shadow-2xl">
@@ -85,12 +92,18 @@ const AdminLandingPage: React.FC<AdminLandingPageProps> = ({
 
       <LandingPagePanel
         products={products}
-        landingPages={landingPages}
+        landingPages={isLoading ? [] : landingPages}
         onCreateLandingPage={onCreateLandingPage}
         onUpdateLandingPage={onUpdateLandingPage}
         onTogglePublish={onTogglePublish}
         onPreview={onPreviewLandingPage}
       />
+      
+      {isLoading && (
+        <div className="space-y-6">
+          <SkeletonGridMetrics count={3} darkMode={false} />
+        </div>
+      )}
     </div>
   );
 };

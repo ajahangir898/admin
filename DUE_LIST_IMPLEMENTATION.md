@@ -72,7 +72,7 @@ deleteTransaction(id)                 // Delete transaction
 #### **AdminDueList Page** - [admin/pages/AdminDueList.tsx](admin/pages/AdminDueList.tsx)
 
 **Features:**
-- Header with totals: "You Will Get" (₹X) + "You Will Give" (₹X)
+- Header with totals: "You Will Get" (৳X) + "You Will Give" (৳X)
 - Action buttons: Due History, + New Due
 - **Sidebar:**
   - 3 tabs: Customer, Supplier, Employee
@@ -254,7 +254,7 @@ Display in main content area
 - [x] Inline entity creation
 - [x] Form validation
 - [x] Status badges (color-coded)
-- [x] Amount formatting with ₹ symbol
+- [x] Amount formatting with ৳ symbol
 - [x] Loading states
 - [x] Error handling
 - [x] Empty state messages

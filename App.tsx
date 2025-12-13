@@ -1391,7 +1391,8 @@ fbq('track', 'PageView');`;
              adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
              adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
              adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
-             adminSection === 'due_list' ? <AdminDueList user={user} onLogout={handleLogout} /> :
+             adminSection === 'due_list' || adminSection === 'business_report_due_book'
+               ? <AdminDueList user={user} onLogout={handleLogout} /> :
              adminSection === 'inventory' ? <AdminInventory products={products} /> :
              adminSection === 'expenses' ? <AdminExpenses /> :
              adminSection === 'customers' ? <AdminReviews /> :

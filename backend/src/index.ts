@@ -11,6 +11,8 @@ import { tenantsRouter } from './routes/tenants';
 import { tenantDataRouter } from './routes/tenantData';
 import { ensureTenantIndexes } from './services/tenantsService';
 import { expensesRouter } from './routes/expenses';
+import { profitLossRouter } from './routes/profitLoss';
+import { incomesRouter } from './routes/incomes';
 import dueListRoutes from './routes/dueListRoutes';
 import uploadRouter from './routes/upload';
 
@@ -41,6 +43,8 @@ app.use('/health', healthRouter);
 app.use('/api/tenants', tenantsRouter);
 app.use('/api/tenant-data', tenantDataRouter);
 app.use('/api/expenses', expensesRouter);
+app.use('/api/incomes', incomesRouter);
+app.use('/api/profit-loss', profitLossRouter);
 app.use('/api', dueListRoutes);
 app.use('/', uploadRouter);
 

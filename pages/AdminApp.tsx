@@ -24,11 +24,13 @@ const AdminReviews = lazy(() => import('./AdminReviews'));
 const AdminDailyTarget = lazy(() => import('./AdminDailyTarget'));
 const AdminGallery = lazy(() => import('./AdminGallery'));
 const AdminExpenses = lazy(() => import('./AdminExpenses'));
+const AdminProfitLoss = lazy(() => import('./AdminProfitLoss'));
+const AdminIncome = lazy(() => import('./AdminIncome'));
+const AdminNote = lazy(() => import('./AdminNote'));
 const AdminFacebookPixel = lazy(() => import('./AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import('./AdminTenantManagement'));
 const AdminDueList = lazy(() => import('./AdminDueList'));
-const AdminProfitLoss = lazy(() => import('./AdminProfitLoss'));
 const loadAdminComponents = () => import('../components/AdminComponents');
 const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminSidebar })));
 const AdminHeader = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminHeader })));
@@ -323,9 +325,10 @@ const AdminApp: React.FC<AdminAppProps> = ({
            ? <AdminTenantManagement tenants={tenants} onCreateTenant={async () => {}} isCreating={false} onDeleteTenant={async () => {}} deletingTenantId={null} />
            : <AdminDashboard orders={orders} products={products} />) :
          adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
-         adminSection === 'business_report_profit_loss' ? <AdminProfitLoss orders={orders} onBack={() => setAdminSection('dashboard')} /> :
+         adminSection === 'business_report_profit_loss' ? <AdminProfitLoss orders={orders} products={products} /> :
          adminSection === 'business_report_expense' ? <AdminExpenses /> :
-         adminSection === 'business_report_income' ? <AdminExpenses /> :
+         adminSection === 'business_report_income' ? <AdminIncome /> :
+         adminSection === 'business_report_note' ? <AdminNote /> :
          adminSection.startsWith('business_report_') ? <AdminExpenses /> :
          <AdminCustomization logo={logo} onUpdateLogo={onUpdateLogo} themeConfig={themeConfig} onUpdateTheme={onUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={onUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
         }

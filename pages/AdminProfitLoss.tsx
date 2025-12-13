@@ -1,399 +1,574 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { ArrowLeft, Download, RefreshCw, Calendar, ChevronDown, ChevronUp, Printer } from 'lucide-react';
-import { Order } from '../types';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import {
+  Calendar,
+  Download,
+  Printer,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingCart,
+  Truck,
+  CreditCard,
+  PiggyBank,
+  Receipt,
+  ChevronRight,
+  ArrowUpRight,
+  ArrowDownRight,
+  Loader2,
+} from 'lucide-react';
+import { ProfitLossService, ProfitLossSummary } from '../services/ProfitLossService';
+import { ExpenseService } from '../services/ExpenseService';
+import { Order, Product } from '../types';
 
 interface AdminProfitLossProps {
-  orders: Order[];
-  onBack?: () => void;
+  orders?: Order[];
+  products?: Product[];
 }
 
-interface DateRange {
-  from: string;
-  to: string;
-}
+const formatCurrency = (amount: number) =>
+  `৳${Math.abs(amount).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const AdminProfitLoss: React.FC<AdminProfitLossProps> = ({ orders, onBack }) => {
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>(() => {
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+const AdminProfitLoss: React.FC<AdminProfitLossProps> = ({ orders = [], products = [] }) => {
+  // Date range state - default to last 30 days
+  const [dateRange, setDateRange] = useState(() => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - 30);
     return {
-      from: thirtyDaysAgo.toISOString().split('T')[0],
-      to: today.toISOString().split('T')[0]
+      from: from.toISOString().split('T')[0],
+      to: to.toISOString().split('T')[0],
     };
   });
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const datePickerRef = useRef<HTMLDivElement>(null);
 
-  // Filter orders by date range and completed status
+  const [summary, setSummary] = useState<ProfitLossSummary>({
+    profitFromSale: { sellingPrice: 0, purchasePrice: 0, deliveryPrice: 0, profit: 0 },
+    otherIncome: 0,
+    otherExpense: 0,
+    totalProfitLoss: 0,
+    orderCount: 0,
+    expenseCount: 0,
+    incomeCount: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Filter orders by date range
   const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
+    const fromDate = new Date(dateRange.from);
+    fromDate.setHours(0, 0, 0, 0);
+    const toDate = new Date(dateRange.to);
+    toDate.setHours(23, 59, 59, 999);
+
+    return orders.filter((order) => {
       const orderDate = new Date(order.date);
-      const fromDate = new Date(dateRange.from);
-      const toDate = new Date(dateRange.to);
-      toDate.setHours(23, 59, 59, 999);
-      
-      const inDateRange = orderDate >= fromDate && orderDate <= toDate;
-      const isCompleted = order.status === 'Delivered' || order.status === 'Completed';
-      
-      return inDateRange && isCompleted;
+      return orderDate >= fromDate && orderDate <= toDate;
     });
   }, [orders, dateRange]);
 
-  // Calculate profit/loss metrics
-  const metrics = useMemo(() => {
-    let totalSelling = 0;
-    let totalPurchasePrice = 0;
-    let totalDeliveryPrice = 0;
+  // Calculate summary from local data
+  const calculateLocalSummary = useCallback(async () => {
+    try {
+      // Get expenses for the date range
+      const expenseRes = await ExpenseService.list({
+        from: dateRange.from,
+        to: dateRange.to,
+        status: 'Published',
+      });
 
-    filteredOrders.forEach(order => {
-      // Selling price (total order value)
-      totalSelling += order.total || 0;
-      
-      // Purchase price (cost price - usually stored as originalPrice or we estimate as 60% of selling)
-      // In a real system, you'd have cost price per product
-      const estimatedCost = (order.total || 0) * 0.6; // 60% cost assumption
-      totalPurchasePrice += estimatedCost;
-      
-      // Delivery price from order
-      totalDeliveryPrice += order.deliveryCharge || 0;
-    });
+      // Map products by ID for cost lookup
+      const productMap = new Map(products.map((p) => [p.id, p]));
 
-    const profitFromSale = totalSelling - totalPurchasePrice - totalDeliveryPrice;
+      // Calculate profit from sales
+      const validOrders = filteredOrders.filter((o) =>
+        ['Delivered', 'Confirmed', 'Shipped', 'Pending'].includes(o.status)
+      );
 
-    return {
-      selling: totalSelling,
-      purchasePrice: totalPurchasePrice,
-      deliveryPrice: totalDeliveryPrice,
-      profitFromSale,
-      // These would come from other data sources in a complete system
-      otherIncome: 0,
-      otherExpense: 0,
-      totalProfitLoss: profitFromSale // + otherIncome - otherExpense
-    };
-  }, [filteredOrders]);
+      // Calculate selling price (order amount minus delivery)
+      const sellingPrice = validOrders.reduce(
+        (sum, o) => sum + (o.amount - (o.deliveryCharge || 0)),
+        0
+      );
 
-  const formatCurrency = (amount: number) => {
-    return `৳ ${amount.toLocaleString('en-BD', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      // Calculate purchase price (sum of product costs)
+      // For now, estimate as 60% of selling price if cost not available
+      let purchasePrice = 0;
+      validOrders.forEach((order) => {
+        const product = order.productId ? productMap.get(order.productId) : null;
+        const quantity = order.quantity || 1;
+        if (product) {
+          // Use originalPrice as cost if available, else estimate
+          const costPerUnit = product.originalPrice
+            ? product.originalPrice * 0.6
+            : product.price * 0.6;
+          purchasePrice += costPerUnit * quantity;
+        } else {
+          // Estimate cost as 60% of selling price
+          purchasePrice += (order.amount - (order.deliveryCharge || 0)) * 0.6;
+        }
+      });
+
+      // Calculate delivery charges
+      const deliveryPrice = validOrders.reduce((sum, o) => sum + (o.deliveryCharge || 0), 0);
+
+      // Profit from sale
+      const profitFromSale = sellingPrice - purchasePrice;
+
+      // Other expenses from expense service
+      const otherExpense = expenseRes.items.reduce((sum, e) => sum + e.amount, 0);
+
+      // TODO: Implement income tracking separately
+      // For now, other income is 0 unless we have an income service
+      const otherIncome = 0;
+
+      // Total profit/loss
+      const totalProfitLoss = profitFromSale + otherIncome - otherExpense;
+
+      return {
+        profitFromSale: {
+          sellingPrice,
+          purchasePrice,
+          deliveryPrice,
+          profit: profitFromSale,
+        },
+        otherIncome,
+        otherExpense,
+        totalProfitLoss,
+        orderCount: validOrders.length,
+        expenseCount: expenseRes.items.length,
+        incomeCount: 0,
+      };
+    } catch (error) {
+      console.error('Error calculating profit/loss:', error);
+      // Return calculation from orders only
+      return ProfitLossService.calculateFromData(
+        filteredOrders.map((o) => ({
+          amount: o.amount,
+          deliveryCharge: o.deliveryCharge,
+          status: o.status,
+          productCost: 0,
+        })),
+        [],
+        []
+      );
+    }
+  }, [filteredOrders, products, dateRange]);
+
+  // Fetch/calculate data
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Try API first
+      const apiSummary = await ProfitLossService.getSummary({
+        from: dateRange.from,
+        to: dateRange.to,
+      });
+
+      // If API returns data, use it
+      if (apiSummary.orderCount > 0 || apiSummary.expenseCount > 0) {
+        setSummary(apiSummary);
+      } else {
+        // Fall back to local calculation
+        const localSummary = await calculateLocalSummary();
+        setSummary(localSummary);
+      }
+    } catch (error) {
+      // Fall back to local calculation
+      const localSummary = await calculateLocalSummary();
+      setSummary(localSummary);
+    } finally {
+      setLoading(false);
+    }
+  }, [dateRange, calculateLocalSummary]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
   };
 
-  const formatDateDisplay = () => {
-    const from = new Date(dateRange.from);
-    const to = new Date(dateRange.to);
-    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-    return `${from.toLocaleDateString('en-US', options)} - ${to.toLocaleDateString('en-US', options)}`;
-  };
-
-  const handleRefresh = () => {
-    // Trigger re-calculation by resetting date to same values
-    setDateRange({ ...dateRange });
+  const handleDownload = () => {
+    ProfitLossService.downloadReport(summary, dateRange);
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Profit/Loss Report</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; background: #fff; color: #333; }
-          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
-          .title { font-size: 24px; font-weight: bold; }
-          .date-range { color: #666; font-size: 14px; }
-          .section { margin-bottom: 24px; }
-          .section-title { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
-          .card { background: #f9f9f9; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-          .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-          .row:last-child { border-bottom: none; }
-          .row-label { color: #555; }
-          .row-value { font-weight: 600; }
-          .row-value.positive { color: #22c55e; }
-          .row-value.negative { color: #ef4444; }
-          .total-card { background: #f0f9ff; border: 2px solid #3b82f6; }
-          .total-label { font-weight: bold; color: #1e40af; }
-          .total-value { font-size: 24px; font-weight: bold; color: ${metrics.totalProfitLoss >= 0 ? '#22c55e' : '#ef4444'}; }
-          .footer { margin-top: 40px; text-align: center; color: #888; font-size: 12px; }
-          @media print { body { padding: 20px; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="title">Profit/Loss Report</div>
-          <div class="date-range">${formatDateDisplay()}</div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Profit From Sale</div>
-          <div class="card">
-            <div class="row">
-              <span class="row-label">Selling</span>
-              <span class="row-value">${formatCurrency(metrics.selling)}</span>
-            </div>
-            <div class="row">
-              <span class="row-label">Purchase Price of the Product</span>
-              <span class="row-value negative">(-) ${formatCurrency(metrics.purchasePrice)}</span>
-            </div>
-            <div class="row">
-              <span class="row-label">Delivery Price of the Product</span>
-              <span class="row-value negative">(-) ${formatCurrency(metrics.deliveryPrice)}</span>
-            </div>
-            <div class="row" style="border-top: 2px solid #ddd; margin-top: 8px; padding-top: 16px;">
-              <span class="row-label" style="font-weight: 600; color: #3b82f6;">Profit from Sale</span>
-              <span class="row-value positive">(+) ${formatCurrency(metrics.profitFromSale)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Other Income</div>
-          <div class="card">
-            <div class="row">
-              <span class="row-label" style="font-weight: 600;">Gross Income (Other)</span>
-              <span class="row-value positive">(+) ${formatCurrency(metrics.otherIncome)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Other Expense</div>
-          <div class="card">
-            <div class="row">
-              <span class="row-label" style="font-weight: 600;">Total Expense (Other)</span>
-              <span class="row-value negative">(-) ${formatCurrency(metrics.otherExpense)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="card total-card">
-            <div class="row" style="border: none;">
-              <div>
-                <div class="total-label">TOTAL PROFIT/LOSS</div>
-                <div style="font-size: 12px; color: #666; margin-top: 4px;">(Profit from sale + other income) - Total cost</div>
-              </div>
-              <span class="total-value">${formatCurrency(metrics.totalProfitLoss)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer">
-          <p>Generated on ${new Date().toLocaleString()}</p>
-        </div>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
+    ProfitLossService.printReport(summary, dateRange);
   };
 
+  const isProfitable = summary.totalProfitLoss >= 0;
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="p-6 bg-[#0a0a0f] min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          {onBack && (
-            <button 
-              onClick={onBack}
-              className="p-2 hover:bg-gray-200 rounded-lg transition"
-            >
-              <ArrowLeft size={20} className="text-gray-600" />
-            </button>
-          )}
-          <h1 className="text-xl font-bold text-gray-800">Profit Loss Report</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            {isProfitable ? (
+              <TrendingUp className="w-7 h-7 text-emerald-500" />
+            ) : (
+              <TrendingDown className="w-7 h-7 text-red-500" />
+            )}
+            Profit / Loss Report
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            Track your business performance and financial health
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600/30 transition border border-emerald-500/30"
           >
-            <Printer size={18} />
-            Download/Print
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Download</span>
           </button>
-
-          <div className="relative" ref={datePickerRef}>
-            <button 
-              onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-            >
-              <Calendar size={16} className="text-gray-500" />
-              <span className="text-sm text-gray-700">{formatDateDisplay()}</span>
-            </button>
-
-            {isDatePickerOpen && (
-              <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 min-w-[280px]">
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">From</label>
-                    <input
-                      type="date"
-                      value={dateRange.from}
-                      onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">To</label>
-                    <input
-                      type="date"
-                      value={dateRange.to}
-                      onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <button
-                    onClick={() => setIsDatePickerOpen(false)}
-                    className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button 
-            onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition border border-blue-500/30"
           >
-            <RefreshCw size={16} className="text-gray-500" />
-            <span className="text-sm text-gray-700">Refresh</span>
+            <Printer className="w-4 h-4" />
+            <span className="hidden sm:inline">Print</span>
+          </button>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-700 transition border border-slate-600/50"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
-      {/* Report Content */}
-      <div className="max-w-4xl">
-        {/* Column Headers */}
-        <div className="flex justify-between items-center mb-4 px-4">
-          <span className="text-blue-600 font-semibold">Description</span>
-          <span className="text-blue-600 font-semibold">Total</span>
-        </div>
-
-        {/* Profit From Sale Section */}
-        <div className="mb-6">
-          <div className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-4 border-b border-gray-300 pb-2">
-            Profit From Sale
+      {/* Date Range Filter */}
+      <div className="bg-[#12121a] rounded-xl p-4 mb-6 border border-white/5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Calendar className="w-5 h-5" />
+            <span className="text-sm font-medium">Date Range:</span>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2">
-                <span className="text-gray-600">Selling</span>
-                <span className="font-medium text-gray-900">{formatCurrency(metrics.selling)}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 text-gray-500">
-                <span>Purchase Price of the Product</span>
-                <span>(-) {formatCurrency(metrics.purchasePrice)}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 text-gray-500">
-                <span>Delivery Price of the Product</span>
-                <span>(-) {formatCurrency(metrics.deliveryPrice)}</span>
-              </div>
-              <div className="flex justify-between items-center py-3 border-t border-gray-200 mt-2">
-                <span className="text-blue-600 font-medium">Profit from Sale</span>
-                <span className="text-green-600 font-semibold">(+) {formatCurrency(metrics.profitFromSale)}</span>
-              </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={dateRange.from}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, from: e.target.value }))}
+              className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            />
+            <span className="text-slate-500">—</span>
+            <input
+              type="date"
+              value={dateRange.to}
+              onChange={(e) => setDateRange((prev) => ({ ...prev, to: e.target.value }))}
+              className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            />
+          </div>
+          <div className="flex gap-2 ml-auto">
+            {['7d', '30d', '90d', 'All'].map((preset) => (
+              <button
+                key={preset}
+                onClick={() => {
+                  const to = new Date();
+                  const from = new Date();
+                  if (preset === '7d') from.setDate(from.getDate() - 7);
+                  else if (preset === '30d') from.setDate(from.getDate() - 30);
+                  else if (preset === '90d') from.setDate(from.getDate() - 90);
+                  else from.setFullYear(2020, 0, 1);
+                  setDateRange({
+                    from: from.toISOString().split('T')[0],
+                    to: to.toISOString().split('T')[0],
+                  });
+                }}
+                className="px-3 py-1 text-xs rounded-full border border-slate-700 text-slate-400 hover:bg-slate-700/50 hover:text-white transition"
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-              {/* See Details Button */}
-              <div className="flex justify-center pt-2">
-                <button
-                  onClick={() => setIsDetailsOpen(!isDetailsOpen)}
-                  className="px-6 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium text-sm"
-                >
-                  {isDetailsOpen ? 'Hide Details' : 'See Details'}
-                </button>
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Summary Card */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Profit From Sale Section */}
+            <div className="bg-gradient-to-br from-[#12121a] to-[#0d0d14] rounded-xl border border-white/5 overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/5 bg-emerald-500/5">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-emerald-500" />
+                  Profit From Sale
+                </h2>
               </div>
-
-              {/* Expanded Details */}
-              {isDetailsOpen && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Order Breakdown ({filteredOrders.length} orders)</h4>
-                  {filteredOrders.length > 0 ? (
-                    <div className="max-h-60 overflow-y-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="text-left p-2 text-gray-600">Order ID</th>
-                            <th className="text-left p-2 text-gray-600">Date</th>
-                            <th className="text-right p-2 text-gray-600">Amount</th>
-                            <th className="text-right p-2 text-gray-600">Delivery</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredOrders.slice(0, 20).map((order, idx) => (
-                            <tr key={order.id || idx} className="border-b border-gray-100">
-                              <td className="p-2 text-gray-800">#{order.id?.toString().slice(-6) || idx + 1}</td>
-                              <td className="p-2 text-gray-600">{new Date(order.date).toLocaleDateString()}</td>
-                              <td className="p-2 text-right text-gray-800">{formatCurrency(order.total || 0)}</td>
-                              <td className="p-2 text-right text-gray-600">{formatCurrency(order.deliveryCharge || 0)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {filteredOrders.length > 20 && (
-                        <p className="text-center text-gray-500 text-sm mt-2">
-                          Showing 20 of {filteredOrders.length} orders
-                        </p>
-                      )}
+              <div className="p-6 space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-blue-400" />
                     </div>
+                    <div>
+                      <p className="text-slate-400 text-sm">Selling Price</p>
+                      <p className="text-xs text-slate-500">Total revenue from sales</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-white">
+                      {formatCurrency(summary.profitFromSale.sellingPrice)}
+                    </p>
+                    <button className="text-xs text-emerald-400 hover:underline flex items-center gap-1 ml-auto">
+                      See Details <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm">Purchase Price</p>
+                      <p className="text-xs text-slate-500">Cost of goods sold</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-white">
+                      {formatCurrency(summary.profitFromSale.purchasePrice)}
+                    </p>
+                    <button className="text-xs text-emerald-400 hover:underline flex items-center gap-1 ml-auto">
+                      See Details <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                      <Truck className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm">Delivery Price</p>
+                      <p className="text-xs text-slate-500">Shipping charges collected</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-white">
+                      {formatCurrency(summary.profitFromSale.deliveryPrice)}
+                    </p>
+                    <button className="text-xs text-emerald-400 hover:underline flex items-center gap-1 ml-auto">
+                      See Details <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Other Income Section */}
+            <div className="bg-gradient-to-br from-[#12121a] to-[#0d0d14] rounded-xl border border-white/5 overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/5 bg-green-500/5">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <PiggyBank className="w-5 h-5 text-green-500" />
+                  Other Income
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                      <ArrowUpRight className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm">Gross Income</p>
+                      <p className="text-xs text-slate-500">Income from other sources</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-green-400">
+                      {formatCurrency(summary.otherIncome)}
+                    </p>
+                    <button className="text-xs text-emerald-400 hover:underline flex items-center gap-1 ml-auto">
+                      See Details <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Other Expense Section */}
+            <div className="bg-gradient-to-br from-[#12121a] to-[#0d0d14] rounded-xl border border-white/5 overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/5 bg-red-500/5">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <Receipt className="w-5 h-5 text-red-500" />
+                  Other Expense
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+                      <ArrowDownRight className="w-5 h-5 text-red-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm">Total Expense</p>
+                      <p className="text-xs text-slate-500">Operating & misc expenses</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-red-400">
+                      {formatCurrency(summary.otherExpense)}
+                    </p>
+                    <button className="text-xs text-emerald-400 hover:underline flex items-center gap-1 ml-auto">
+                      See Details <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Sidebar - Summary */}
+          <div className="space-y-6">
+            {/* Total Profit/Loss Card */}
+            <div
+              className={`rounded-xl border overflow-hidden ${
+                isProfitable
+                  ? 'bg-gradient-to-br from-emerald-900/30 to-emerald-950/50 border-emerald-500/30'
+                  : 'bg-gradient-to-br from-red-900/30 to-red-950/50 border-red-500/30'
+              }`}
+            >
+              <div className="p-6 text-center">
+                <div
+                  className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
+                    isProfitable ? 'bg-emerald-500/20' : 'bg-red-500/20'
+                  }`}
+                >
+                  {isProfitable ? (
+                    <TrendingUp className="w-8 h-8 text-emerald-400" />
                   ) : (
-                    <p className="text-center text-gray-500 py-4">No completed orders in selected date range</p>
+                    <TrendingDown className="w-8 h-8 text-red-400" />
                   )}
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Other Income Section */}
-        <div className="mb-6">
-          <div className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-4 border-b border-gray-300 pb-2">
-            Other Income
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex justify-between items-center py-2">
-              <span className="font-medium text-gray-800">Gross Income (Other)</span>
-              <span className="text-green-600 font-semibold">(+) {formatCurrency(metrics.otherIncome)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Other Expense Section */}
-        <div className="mb-6">
-          <div className="text-xs text-gray-500 uppercase tracking-wider mb-2 px-4 border-b border-gray-300 pb-2">
-            Other Expense
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex justify-between items-center py-2">
-              <span className="font-medium text-gray-800">Total Expense (Other)</span>
-              <span className="text-red-500 font-semibold">(-) {formatCurrency(metrics.otherExpense)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Profit/Loss Section */}
-        <div className="mb-6">
-          <div className="bg-gray-50 rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-bold text-gray-800 text-lg">TOTAL PROFIT/LOSS</span>
-                <p className="text-sm text-gray-500 mt-1">(Profit from sale + other income) - Total cost</p>
+                <p className="text-slate-400 text-sm mb-2">TOTAL PROFIT / LOSS</p>
+                <p
+                  className={`text-3xl font-bold ${
+                    isProfitable ? 'text-emerald-400' : 'text-red-400'
+                  }`}
+                >
+                  {isProfitable ? '+' : '-'}
+                  {formatCurrency(summary.totalProfitLoss)}
+                </p>
+                <p className="text-xs text-slate-500 mt-2">
+                  {formatDate(new Date(dateRange.from))} - {formatDate(new Date(dateRange.to))}
+                </p>
               </div>
-              <span className={`text-2xl font-bold ${metrics.totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(metrics.totalProfitLoss)}
-              </span>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="bg-[#12121a] rounded-xl border border-white/5 p-6">
+              <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">
+                Quick Stats
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-sm">Orders</span>
+                  <span className="text-white font-semibold">{summary.orderCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-sm">Expenses</span>
+                  <span className="text-white font-semibold">{summary.expenseCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-sm">Other Income</span>
+                  <span className="text-white font-semibold">{summary.incomeCount}</span>
+                </div>
+                <hr className="border-white/5" />
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-sm">Gross Margin</span>
+                  <span
+                    className={`font-semibold ${
+                      summary.profitFromSale.sellingPrice > 0
+                        ? summary.profitFromSale.profit >= 0
+                          ? 'text-emerald-400'
+                          : 'text-red-400'
+                        : 'text-slate-500'
+                    }`}
+                  >
+                    {summary.profitFromSale.sellingPrice > 0
+                      ? `${((summary.profitFromSale.profit / summary.profitFromSale.sellingPrice) * 100).toFixed(1)}%`
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-sm">Net Margin</span>
+                  <span
+                    className={`font-semibold ${
+                      summary.profitFromSale.sellingPrice > 0
+                        ? summary.totalProfitLoss >= 0
+                          ? 'text-emerald-400'
+                          : 'text-red-400'
+                        : 'text-slate-500'
+                    }`}
+                  >
+                    {summary.profitFromSale.sellingPrice > 0
+                      ? `${((summary.totalProfitLoss / summary.profitFromSale.sellingPrice) * 100).toFixed(1)}%`
+                      : 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Breakdown */}
+            <div className="bg-[#12121a] rounded-xl border border-white/5 p-6">
+              <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">
+                Breakdown
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-blue-400">+ Sales Revenue</span>
+                  <span className="text-white">
+                    {formatCurrency(summary.profitFromSale.sellingPrice)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-orange-400">- Cost of Goods</span>
+                  <span className="text-white">
+                    {formatCurrency(summary.profitFromSale.purchasePrice)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-400">+ Other Income</span>
+                  <span className="text-white">{formatCurrency(summary.otherIncome)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-red-400">- Other Expenses</span>
+                  <span className="text-white">{formatCurrency(summary.otherExpense)}</span>
+                </div>
+                <hr className="border-white/5 my-2" />
+                <div className="flex items-center justify-between font-semibold">
+                  <span className={isProfitable ? 'text-emerald-400' : 'text-red-400'}>
+                    = {isProfitable ? 'Net Profit' : 'Net Loss'}
+                  </span>
+                  <span className={isProfitable ? 'text-emerald-400' : 'text-red-400'}>
+                    {formatCurrency(summary.totalProfitLoss)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

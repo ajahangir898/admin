@@ -1,12 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Plus, Search, Edit, Trash2, X, Save, Image as ImageIcon, Upload, CheckCircle, Tag as TagIcon, Layers, Folder } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Save, Image as ImageIcon, Upload, CheckCircle, Tag as TagIcon, Layers, Folder, FolderTree, Bookmark, Hash } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
 import { SkeletonTable } from '../components/SkeletonLoaders';
 
 interface AdminCatalogProps {
   view: string; // 'catalog_categories', 'catalog_subcategories', etc.
+  onNavigate?: (view: string) => void; // Add navigation callback
   
   // Data props
   categories: Category[];
@@ -39,6 +40,7 @@ interface AdminCatalogProps {
 
 const AdminCatalog: React.FC<AdminCatalogProps> = ({
   view,
+  onNavigate,
   categories, subCategories, childCategories, brands, tags,
   onAddCategory, onUpdateCategory, onDeleteCategory,
   onAddSubCategory, onUpdateSubCategory, onDeleteSubCategory,
@@ -49,6 +51,28 @@ const AdminCatalog: React.FC<AdminCatalogProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
+  
+  // Tab navigation items
+  const catalogTabs = [
+    { id: 'catalog_categories', label: 'Categories', icon: <Folder size={18} /> },
+    { id: 'catalog_subcategories', label: 'Sub Categories', icon: <FolderTree size={18} /> },
+    { id: 'catalog_childcategories', label: 'Child Categories', icon: <Layers size={18} /> },
+    { id: 'catalog_brands', label: 'Brands', icon: <Bookmark size={18} /> },
+    { id: 'catalog_tags', label: 'Tags', icon: <Hash size={18} /> },
+  ];
+
+  const TabButton: React.FC<{ id: string; label: string; icon?: React.ReactNode }> = ({ id, label, icon }) => (
+    <button
+      onClick={() => onNavigate?.(id)}
+      className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition whitespace-nowrap ${
+        view === id
+          ? 'border-emerald-500 text-emerald-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700'
+      }`}
+    >
+      {icon} {label}
+    </button>
+  );
   
   // Generic Form Data
   const [formData, setFormData] = useState<any>({});
@@ -156,18 +180,29 @@ const AdminCatalog: React.FC<AdminCatalogProps> = ({
   );
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-0 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50 pt-4 pb-4 px-6">
         <div>
-           <h2 className="text-2xl font-bold text-gray-800">{getTitle()}</h2>
+           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <Layers className="w-7 h-7 text-emerald-600" />
+              Catalog
+           </h2>
            <p className="text-sm text-gray-500">Manage your product catalog structure</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 text-red-900 rounded-lg transition text-sm font-medium bg-red-100 hover:bg-red-200 hover:shadow-md"
+          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition text-sm font-medium bg-emerald-600 hover:bg-emerald-700 hover:shadow-md"
         >
-          <Plus size={16} /> Add New
+          <Plus size={16} /> Add {getTitle().slice(0, -1)}
         </button>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white px-2">
+        {catalogTabs.map((tab) => (
+          <TabButton key={tab.id} id={tab.id} label={tab.label} icon={tab.icon} />
+        ))}
       </div>
 
       {/* Main Content Card */}

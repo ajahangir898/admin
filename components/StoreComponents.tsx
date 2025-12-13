@@ -1797,7 +1797,10 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
         <div className="px-4 pt-2 pb-4 flex-1 flex flex-col">
           {/* Product Name */}
           <h3 
-            className="font-semibold text-gray-800 text-xs mb-2 line-clamp-1 cursor-pointer hover:text-rose-500 transition"
+            className="font-semibold text-gray-800 text-xs mb-2 line-clamp-1 cursor-pointer transition"
+            style={{ '--hover-color': 'rgba(var(--color-primary-rgb), 1)' } as React.CSSProperties}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--color-primary-rgb), 1)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '')}
             onClick={() => onClick(product)}
           >
             {product.name}
@@ -1805,7 +1808,12 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
 
           {/* Price Section */}
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-base font-bold text-rose-500">৳{product.price}</span>
+            <span 
+              className="text-base font-bold"
+              style={{ color: 'rgba(var(--color-primary-rgb), 1)' }}
+            >
+              ৳{product.price}
+            </span>
             {product.originalPrice && (
               <span className="text-xs text-gray-400 line-through">৳{product.originalPrice}</span>
             )}
@@ -1814,13 +1822,24 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
           {/* Action Buttons */}
           <div className="flex flex-col gap-2 mt-auto">
             <button 
-              className="w-full bg-rose-500 text-white text-xs font-bold py-2 rounded-md hover:bg-rose-600 transition"
+              className="w-full text-white text-xs font-bold py-2 rounded-md transition btn-order"
               onClick={handleBuyNow}
             >
               Buy Now
             </button>
             <button 
-              className="w-full border-2 border-rose-500 text-rose-500 text-xs font-bold py-1.5 rounded-md hover:bg-rose-50 transition"
+              className="w-full text-xs font-bold py-1.5 rounded-md transition border-2"
+              style={{ 
+                borderColor: 'rgba(var(--color-primary-rgb), 1)', 
+                color: 'rgba(var(--color-primary-rgb), 1)',
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(var(--color-primary-rgb), 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToCart?.(product);

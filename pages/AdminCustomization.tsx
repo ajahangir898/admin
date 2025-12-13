@@ -681,13 +681,13 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         {activeTab === 'theme_view' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  { title: 'Header Section', key: 'headerStyle', count: 2 },
-                  { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 4 },
-                  { title: 'Brand Section', key: 'brandSectionStyle', count: 1, hasNone: true },
-                  { title: 'Category Section', key: 'categorySectionStyle', count: 4, hasNone: true },
-                  { title: 'Product Section', key: 'productSectionStyle', count: 1 },
+                  { title: 'Header Section', key: 'headerStyle', count: 5 },
+                  { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 5 },
+                  { title: 'Brand Section', key: 'brandSectionStyle', count: 5, hasNone: true },
+                  { title: 'Category Section', key: 'categorySectionStyle', count: 5, hasNone: true },
+                  { title: 'Product Section', key: 'productSectionStyle', count: 5 },
                   { title: 'Product Card', key: 'productCardStyle', count: 5 },
-                  { title: 'Footer Section', key: 'footerStyle', count: 4 },
+                  { title: 'Footer Section', key: 'footerStyle', count: 5 },
                   { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }
                 ].map((section) => (
                     <div key={section.title} className="space-y-3">

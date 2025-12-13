@@ -95,68 +95,30 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					</div>
 				))}
 
-				<div>
-					<div
-						onClick={() => setIsBusinessReportOpen(!isBusinessReportOpen)}
-						className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm border ${
-							activePage?.startsWith('business_report_') ? 'text-emerald-200 font-semibold bg-gradient-to-r from-[#0f1314] via-[#0c0f15] to-[#08150f] border-emerald-500/40 shadow-emerald-900/20' : 'border-white/5 text-slate-400 hover:bg-emerald-500/5 hover:text-white'
-						}`}
-					>
-						<div className="flex items-center gap-3">
-							<FileText size={18} />
-							<span>Business Report</span>
-						</div>
-						{isBusinessReportOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-					</div>
-
-					{isBusinessReportOpen && (
-						<div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
-							{businessReportItems.map(item => (
-								<div
-									key={item.id}
-									onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
-									className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition flex items-center gap-2 ${
-										activePage === item.id ? 'text-emerald-200 font-semibold bg-emerald-500/5 border border-emerald-500/40 shadow-emerald-900/20 shadow-lg' : 'text-slate-500 hover:text-white hover:bg-emerald-500/5'
-									}`}
-								>
-									<div className={`w-0 h-0 border-l-[4px] border-l-emerald-400 border-y-[4px] border-y-transparent ${activePage === item.id ? 'opacity-100' : 'opacity-0'}`}></div>
-									{item.label}
-								</div>
-							))}
-						</div>
-					)}
+				{/* Business Report - Single Menu Item */}
+				<div
+					onClick={() => { onNavigate && onNavigate('business_report_expense'); onClose && onClose(); }}
+					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
+						activePage?.startsWith('business_report_')
+							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40 shadow-lg shadow-emerald-900/30'
+							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
+					}`}
+				>
+					<FileText size={18} />
+					<span>Business Report</span>
 				</div>
 
-				<div>
-					<div
-						onClick={() => setIsCatalogOpen(!isCatalogOpen)}
-						className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm border ${
-							activePage?.startsWith('catalog_') ? 'text-emerald-200 font-semibold bg-gradient-to-r from-[#0f1314] via-[#0c0f15] to-[#08150f] border-emerald-500/40 shadow-emerald-900/20' : 'border-white/5 text-slate-400 hover:bg-emerald-500/5 hover:text-white'
-						}`}
-					>
-						<div className="flex items-center gap-3">
-							<Layers size={18} />
-							<span>Catalog</span>
-						</div>
-						{isCatalogOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-					</div>
-
-					{isCatalogOpen && (
-						<div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
-							{catalogItems.map(item => (
-								<div
-									key={item.id}
-									onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
-									className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition flex items-center gap-2 ${
-										activePage === item.id ? 'text-emerald-200 font-semibold bg-emerald-500/5 border border-emerald-500/40 shadow-emerald-900/20 shadow-lg' : 'text-slate-500 hover:text-white hover:bg-emerald-500/5'
-									}`}
-								>
-									<div className={`w-0 h-0 border-l-[4px] border-l-emerald-400 border-y-[4px] border-y-transparent ${activePage === item.id ? 'opacity-100' : 'opacity-0'}`}></div>
-									{item.label}
-								</div>
-							))}
-						</div>
-					)}
+				{/* Catalog - Single Menu Item */}
+				<div
+					onClick={() => { onNavigate && onNavigate('catalog_categories'); onClose && onClose(); }}
+					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
+						activePage?.startsWith('catalog_')
+							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40 shadow-lg shadow-emerald-900/30'
+							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
+					}`}
+				>
+					<Layers size={18} />
+					<span>Catalog</span>
 				</div>
 
 				<div>

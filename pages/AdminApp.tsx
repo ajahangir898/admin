@@ -17,6 +17,7 @@ const AdminCustomization = lazy(() => import('./AdminCustomization'));
 const AdminSettings = lazy(() => import('./AdminSettings'));
 const AdminControl = lazy(() => import('./AdminControl'));
 const AdminCatalog = lazy(() => import('./AdminCatalog'));
+const AdminBusinessReport = lazy(() => import('./AdminBusinessReport'));
 const AdminDeliverySettings = lazy(() => import('./AdminDeliverySettings'));
 const AdminCourierSettings = lazy(() => import('./AdminCourierSettings'));
 const AdminInventory = lazy(() => import('./AdminInventory'));
@@ -309,7 +310,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={onUpdateOrder} /> :
          adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} onBulkDelete={onBulkDeleteProducts} onBulkUpdate={onBulkUpdateProducts} tenantId={activeTenantId} /> :
          adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
-         adminSection === 'due_list' || adminSection === 'business_report_due_book' ? <AdminDueList user={user} onLogout={onLogout} /> :
+         adminSection === 'due_list' ? <AdminDueList user={user} onLogout={onLogout} /> :
          adminSection === 'inventory' ? <AdminInventory products={products} /> :
          adminSection === 'expenses' ? <AdminExpenses /> :
          adminSection === 'customers' ? <AdminReviews /> :
@@ -324,12 +325,8 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'tenants' ? (platformOperator
            ? <AdminTenantManagement tenants={tenants} onCreateTenant={async () => {}} isCreating={false} onDeleteTenant={async () => {}} deletingTenantId={null} />
            : <AdminDashboard orders={orders} products={products} />) :
-         adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
-         adminSection === 'business_report_profit_loss' ? <AdminProfitLoss orders={orders} products={products} /> :
-         adminSection === 'business_report_expense' ? <AdminExpenses /> :
-         adminSection === 'business_report_income' ? <AdminIncome /> :
-         adminSection === 'business_report_note' ? <AdminNote /> :
-         adminSection.startsWith('business_report_') ? <AdminExpenses /> :
+         adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} onNavigate={setAdminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
+         adminSection.startsWith('business_report_') ? <AdminBusinessReport initialTab={adminSection} orders={orders} products={products} user={user} onLogout={onLogout} /> :
          <AdminCustomization logo={logo} onUpdateLogo={onUpdateLogo} themeConfig={themeConfig} onUpdateTheme={onUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={onUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
         }
       </Suspense>

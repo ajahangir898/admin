@@ -373,8 +373,8 @@ const AdminExpenses: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {paged.map(i => (
-                  <tr key={i.id} className="border-b border-white/5">
+              {paged.map((i, idx) => (
+                  <tr key={i.id || `expense-${idx}`} className="border-b border-white/5">
                     <td className="p-2"><input type="checkbox" /></td>
                     <td className="p-2">
                       {i.imageUrl ? <img src={i.imageUrl} alt="receipt" className="w-10 h-10 rounded object-cover"/> : <div className="w-10 h-10 bg-white/5 rounded flex items-center justify-center"><ImageIcon className="w-5 h-5 text-slate-400"/></div>}

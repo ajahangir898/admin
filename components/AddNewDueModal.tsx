@@ -258,7 +258,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
 
               {/* Amount */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-700">Amount (in ₹)</label>
+                <label className="block text-sm font-semibold text-gray-700">Amount (in ৳)</label>
                 <input
                   type="number"
                   min="0.01"

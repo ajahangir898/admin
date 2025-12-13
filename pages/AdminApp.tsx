@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Suspense, lazy } from 'react';
 import { 
-  Product, Order, User, ThemeConfig, Role, Category, SubCategory, 
+  Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, 
   ChildCategory, Brand, Tag, DeliveryConfig, CourierConfig, Tenant, 
   CreateTenantPayload, FacebookPixelConfig, ChatMessage 
 } from '../types';
@@ -28,6 +28,7 @@ const AdminFacebookPixel = lazy(() => import('./AdminFacebookPixel'));
 const AdminLandingPage = lazy(() => import('./AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import('./AdminTenantManagement'));
 const AdminDueList = lazy(() => import('./AdminDueList'));
+const AdminProfitLoss = lazy(() => import('./AdminProfitLoss'));
 const loadAdminComponents = () => import('../components/AdminComponents');
 const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminSidebar })));
 const AdminHeader = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminHeader })));
@@ -40,6 +41,7 @@ interface AdminAppProps {
   products: Product[];
   logo: string | null;
   themeConfig: ThemeConfig;
+  websiteConfig?: WebsiteConfig;
   deliveryConfig: DeliveryConfig[];
   courierConfig: CourierConfig;
   facebookPixelConfig: FacebookPixelConfig;
@@ -53,6 +55,7 @@ interface AdminAppProps {
   onBulkUpdateProducts: (ids: number[], updates: Partial<Product>) => void;
   onUpdateLogo: (logo: string | null) => void;
   onUpdateTheme: (config: ThemeConfig) => void;
+  onUpdateWebsiteConfig: (config: WebsiteConfig) => void;
   onUpdateDeliveryConfig: (configs: DeliveryConfig[]) => void;
   onUpdateCourierConfig: (config: CourierConfig) => void;
   onUpdateProfile: (user: User) => void;
@@ -137,6 +140,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
   products,
   logo,
   themeConfig,
+  websiteConfig,
   deliveryConfig,
   courierConfig,
   facebookPixelConfig,
@@ -150,6 +154,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
   onBulkUpdateProducts,
   onUpdateLogo,
   onUpdateTheme,
+  onUpdateWebsiteConfig,
   onUpdateDeliveryConfig,
   onUpdateCourierConfig,
   onUpdateProfile,
@@ -300,7 +305,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
       <Suspense fallback={<div className="flex items-center justify-center h-96 text-gray-400">Loading...</div>}>
         {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
          adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={onUpdateOrder} /> :
-         adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} onBulkDelete={onBulkDeleteProducts} onBulkUpdate={onBulkUpdateProducts} /> :
+         adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} onBulkDelete={onBulkDeleteProducts} onBulkUpdate={onBulkUpdateProducts} tenantId={activeTenantId} /> :
          adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
          adminSection === 'due_list' || adminSection === 'business_report_due_book' ? <AdminDueList user={user} onLogout={onLogout} /> :
          adminSection === 'inventory' ? <AdminInventory products={products} /> :
@@ -318,8 +323,11 @@ const AdminApp: React.FC<AdminAppProps> = ({
            ? <AdminTenantManagement tenants={tenants} onCreateTenant={async () => {}} isCreating={false} onDeleteTenant={async () => {}} deletingTenantId={null} />
            : <AdminDashboard orders={orders} products={products} />) :
          adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
+         adminSection === 'business_report_profit_loss' ? <AdminProfitLoss orders={orders} onBack={() => setAdminSection('dashboard')} /> :
+         adminSection === 'business_report_expense' ? <AdminExpenses /> :
+         adminSection === 'business_report_income' ? <AdminExpenses /> :
          adminSection.startsWith('business_report_') ? <AdminExpenses /> :
-         <AdminCustomization logo={logo} onUpdateLogo={onUpdateLogo} themeConfig={themeConfig} onUpdateTheme={onUpdateTheme} websiteConfig={{}} onUpdateWebsiteConfig={() => {}} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
+         <AdminCustomization logo={logo} onUpdateLogo={onUpdateLogo} themeConfig={themeConfig} onUpdateTheme={onUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={onUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
         }
       </Suspense>
     </AdminLayout>

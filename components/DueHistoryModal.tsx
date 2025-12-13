@@ -151,7 +151,7 @@ const DueHistoryModal: React.FC<DueHistoryModalProps> = ({ isOpen, onClose }) =>
                     <p className={`font-semibold ${
                       transaction.direction === 'INCOME' ? 'text-red-600' : 'text-green-600'
                     }`}>
-                      {transaction.direction === 'INCOME' ? '+' : '-'}₹{transaction.amount.toLocaleString()}
+                      {transaction.direction === 'INCOME' ? '+' : '-'}৳{transaction.amount.toLocaleString()}
                     </p>
                   </div>
                   <div className="col-span-2">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface ProductPricingAndStockProps {
   onDataChange?: (data: ProductPricingData) => void;
@@ -28,6 +28,7 @@ const ProductPricingAndStock: React.FC<ProductPricingAndStockProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const isInitialMount = useRef(true);
 
   // Validate required fields
   const validateField = (field: string, value: any) => {
@@ -65,56 +66,60 @@ const ProductPricingAndStock: React.FC<ProductPricingAndStockProps> = ({
     validateField(field, newValue);
   };
 
-  // Notify parent of changes
+  // Notify parent of changes (skip initial mount to prevent infinite loop)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     if (onDataChange) {
       onDataChange(formData);
     }
   }, [formData, onDataChange]);
 
   return (
-    <div className="pricing-and-stock-container">
-      <div className="pricing-and-stock-header">
-        <h3 className="pricing-and-stock-title">Price And Stock</h3>
-        <label className="wholesale-checkbox-label">
+    <div className="flex flex-col gap-6 p-6 border border-gray-200 rounded-lg bg-white">
+      <div className="flex justify-between items-center flex-wrap gap-4">
+        <h3 className="text-lg font-semibold text-gray-800 m-0">Price And Stock</h3>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={formData.isWholesale}
             onChange={(e) => handleInputChange(e, 'isWholesale')}
-            className="wholesale-checkbox"
+            className="w-5 h-5 cursor-pointer accent-emerald-500"
           />
-          <span className="wholesale-text">Is Wholesale</span>
+          <span className="text-sm font-medium text-gray-700">Is Wholesale</span>
         </label>
       </div>
 
       {/* Price Row */}
-      <div className="pricing-row">
-        <div className="form-group">
-          <label className="form-label">
-            Regular Price<span className="required-asterisk">*</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-500 capitalize">
+            Regular Price<span className="text-red-500 ml-1">*</span>
           </label>
           <input
             type="number"
             value={formData.regularPrice || ''}
             onChange={(e) => handleInputChange(e, 'regularPrice')}
             placeholder="900"
-            className={`form-input ${errors.regularPrice ? 'input-error' : ''}`}
+            className={`px-4 py-3 border rounded-md text-base text-gray-800 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-300 ${errors.regularPrice ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-300'}`}
             min="0"
             step="0.01"
           />
           {errors.regularPrice && (
-            <p className="error-message">{errors.regularPrice}</p>
+            <p className="text-xs text-red-500 m-0 mt-1">{errors.regularPrice}</p>
           )}
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Sales Price</label>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-500 capitalize">Sales Price</label>
           <input
             type="number"
             value={formData.salesPrice || ''}
             onChange={(e) => handleInputChange(e, 'salesPrice')}
             placeholder="675"
-            className="form-input"
+            className="px-4 py-3 border border-gray-300 rounded-md text-base text-gray-800 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-300"
             min="0"
             step="0.01"
           />
@@ -122,184 +127,49 @@ const ProductPricingAndStock: React.FC<ProductPricingAndStockProps> = ({
       </div>
 
       {/* Cost, Stock, SKU Row */}
-      <div className="cost-stock-sku-row">
-        <div className="form-group">
-          <label className="form-label">Cost Price</label>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-500 capitalize">Cost Price</label>
           <input
             type="number"
             value={formData.costPrice || ''}
             onChange={(e) => handleInputChange(e, 'costPrice')}
             placeholder="340"
-            className="form-input"
+            className="px-4 py-3 border border-gray-300 rounded-md text-base text-gray-800 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-300"
             min="0"
             step="0.01"
           />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">
-            Stock Quantity<span className="required-asterisk">*</span>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-500 capitalize">
+            Stock Quantity<span className="text-red-500 ml-1">*</span>
           </label>
           <input
             type="number"
             value={formData.stockValue || ''}
             onChange={(e) => handleInputChange(e, 'stockValue')}
             placeholder="10"
-            className={`form-input ${errors.stockValue ? 'input-error' : ''}`}
+            className={`px-4 py-3 border rounded-md text-base text-gray-800 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-300 ${errors.stockValue ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-300'}`}
             min="0"
             step="1"
           />
           {errors.stockValue && (
-            <p className="error-message">{errors.stockValue}</p>
+            <p className="text-xs text-red-500 m-0 mt-1">{errors.stockValue}</p>
           )}
         </div>
 
-        <div className="form-group">
-          <label className="form-label">SKU</label>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-500 capitalize">SKU</label>
           <input
             type="text"
             value={formData.sku}
             onChange={(e) => handleInputChange(e, 'sku')}
             placeholder="CS-FROG-EDU-TOY"
-            className="form-input"
+            className="px-4 py-3 border border-gray-300 rounded-md text-base text-gray-800 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-300"
           />
         </div>
       </div>
-
-      <style jsx>{`
-        .pricing-and-stock-container {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-          padding: 1.5rem;
-          border: 1px solid #e5e7eb;
-          border-radius: 0.5rem;
-          background-color: #ffffff;
-        }
-
-        .pricing-and-stock-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .pricing-and-stock-title {
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #1f2937;
-          margin: 0;
-        }
-
-        .wholesale-checkbox-label {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          cursor: pointer;
-          user-select: none;
-        }
-
-        .wholesale-checkbox {
-          width: 1.25rem;
-          height: 1.25rem;
-          cursor: pointer;
-          accent-color: #10b981;
-        }
-
-        .wholesale-text {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-        }
-
-        .pricing-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-
-        .cost-stock-sku-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 1rem;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .form-label {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #6b7280;
-          text-transform: capitalize;
-        }
-
-        .required-asterisk {
-          color: #ef4444;
-          margin-left: 0.25rem;
-        }
-
-        .form-input {
-          padding: 0.75rem 1rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.375rem;
-          font-size: 1rem;
-          color: #1f2937;
-          background-color: #ffffff;
-          transition: all 0.2s ease;
-        }
-
-        .form-input:focus {
-          outline: none;
-          border-color: #10b981;
-          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-
-        .form-input.input-error {
-          border-color: #ef4444;
-          background-color: #fef2f2;
-        }
-
-        .form-input.input-error:focus {
-          border-color: #ef4444;
-          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-        }
-
-        .form-input::placeholder {
-          color: #d1d5db;
-        }
-
-        .error-message {
-          font-size: 0.75rem;
-          color: #ef4444;
-          margin: 0;
-          margin-top: 0.25rem;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-          .pricing-and-stock-container {
-            padding: 1rem;
-            gap: 1rem;
-          }
-
-          .pricing-row {
-            grid-template-columns: 1fr;
-          }
-
-          .cost-stock-sku-row {
-            grid-template-columns: 1fr;
-          }
-
-          .pricing-and-stock-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-          }
-        }
-      `}</style>
     </div>
   );
 };

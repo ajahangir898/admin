@@ -1395,6 +1395,7 @@ fbq('track', 'PageView');`;
     products={products}
     logo={logo}
     themeConfig={themeConfig}
+    websiteConfig={websiteConfig}
     deliveryConfig={deliveryConfig}
     courierConfig={courierConfig}
     facebookPixelConfig={facebookPixelConfig}
@@ -1408,6 +1409,7 @@ fbq('track', 'PageView');`;
     onBulkUpdateProducts={handleBulkUpdateProducts}
     onUpdateLogo={handleUpdateLogo}
     onUpdateTheme={handleUpdateTheme}
+    onUpdateWebsiteConfig={handleUpdateWebsiteConfig}
     onUpdateDeliveryConfig={handleUpdateDeliveryConfig}
     onUpdateCourierConfig={handleUpdateCourierConfig}
     onUpdateProfile={handleUpdateProfile}

@@ -308,16 +308,18 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }}
           data-placeholder={placeholder}
         />
-        
-        {/* CSS-based placeholder when editor is empty */}
-        <style jsx>{`
+      </div>
+
+      {/* Global styles for placeholder - injected once */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
           div[data-placeholder]:empty:before {
             content: attr(data-placeholder);
             color: #9ca3af;
             pointer-events: none;
           }
-        `}</style>
-      </div>
+        `
+      }} />
 
       {/* Hidden file input for image upload */}
       <input

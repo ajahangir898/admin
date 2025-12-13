@@ -1,6 +1,8 @@
 import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
+import path from 'path';
+import mongoose from 'mongoose';
 import { env } from './config/env';
 import { disconnectMongo } from './db/mongo';
 import { errorHandler } from './middleware/errorHandler';
@@ -10,19 +12,26 @@ import { tenantDataRouter } from './routes/tenantData';
 import { ensureTenantIndexes } from './services/tenantsService';
 import { expensesRouter } from './routes/expenses';
 import dueListRoutes from './routes/dueListRoutes';
+import uploadRouter from './routes/upload';
 
 const app = express();
 
 const corsOptions: cors.CorsOptions = {
   origin: env.allowedOrigins.length
     ? env.allowedOrigins
-    : undefined,
-  credentials: true
+    : true, // Allow all origins in development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '500kb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(morgan('dev'));
+
+// Serve static files for uploaded images
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/', (_req, res) => {
   res.json({ name: 'seven-days-backend', version: '0.1.0' });
@@ -33,10 +42,22 @@ app.use('/api/tenants', tenantsRouter);
 app.use('/api/tenant-data', tenantDataRouter);
 app.use('/api/expenses', expensesRouter);
 app.use('/api', dueListRoutes);
+app.use('/', uploadRouter);
 
 app.use(errorHandler);
 
 const bootstrap = async () => {
+  // Connect Mongoose for Entity/Transaction models
+  try {
+    await mongoose.connect(env.mongoUri, {
+      dbName: env.mongoDbName,
+    });
+    console.log('[backend] Mongoose connected to MongoDB');
+  } catch (err) {
+    console.error('[backend] Mongoose connection error:', err);
+    process.exit(1);
+  }
+
   await ensureTenantIndexes();
   const server = app.listen(env.port, () => {
     console.log(`[backend] API listening on port ${env.port}`);
@@ -45,6 +66,7 @@ const bootstrap = async () => {
   const shutdown = async () => {
     console.log('\n[backend] Shutting down...');
     server.close(async () => {
+      await mongoose.disconnect();
       await disconnectMongo();
       process.exit(0);
     });

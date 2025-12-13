@@ -1,12 +1,14 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
+import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
 import { formatCurrency } from '../utils/format';
 import { RichTextEditor } from '../components/RichTextEditor';
 import ProductPricingAndStock, { ProductPricingData } from '../components/ProductPricingAndStock';
+import toast from 'react-hot-toast';
 
 interface AdminProductsProps {
   products: Product[];
@@ -20,6 +22,7 @@ interface AdminProductsProps {
   onDeleteProduct: (id: number) => void;
   onBulkDelete: (ids: number[]) => void;
   onBulkUpdate: (ids: number[], updates: Partial<Product>) => void;
+  tenantId?: string;
 }
 
 type ViewMode = 'extraLargeIcons' | 'largeIcons' | 'mediumIcons' | 'smallIcons' | 'list' | 'details';
@@ -99,8 +102,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   onUpdateProduct, 
   onDeleteProduct,
   onBulkDelete,
-  onBulkUpdate
+  onBulkUpdate,
+  tenantId
 }) => {
+  const activeTenantId = tenantId || 'default';
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -416,6 +421,21 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     setFormData(updated);
   };
 
+  // Memoized handler for RichTextEditor to prevent infinite re-renders
+  const handleDescriptionChange = useCallback((html: string) => {
+    setFormData(prev => ({ ...prev, description: html }));
+  }, []);
+
+  // Memoized handler for ProductPricingAndStock to prevent infinite re-renders
+  const handlePricingDataChange = useCallback((data: ProductPricingData) => {
+    setPricingData(data);
+    setFormData(prev => ({
+      ...prev,
+      price: data.regularPrice,
+      originalPrice: data.salesPrice,
+    }));
+  }, []);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
     const files = input.files;
@@ -425,35 +445,78 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     const maxFiles = 10;
 
     if (currentGallery.length + files.length > maxFiles) {
-      alert(`You can upload up to ${maxFiles} images. You're adding ${files.length}, which would exceed the limit.`);
+      toast.error(`You can upload up to ${maxFiles} images. You're adding ${files.length}, which would exceed the limit.`);
       if (input) input.value = '';
       return;
     }
 
-    const convertedImages: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.size > 2 * 1024 * 1024) {
-        alert(`File "${file.name}" is too large. Each file must be under 2MB.`);
-        if (input) input.value = '';
-        return;
+    // Show uploading toast
+    const loadingToast = toast.loading(`Uploading ${files.length} image(s)...`);
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        // File size validation
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`File "${file.name}" is too large. Each file must be under 5MB.`);
+          if (input) input.value = '';
+          toast.dismiss(loadingToast);
+          return;
+        }
+
+        try {
+          // Upload to server
+          const imageUrl = await uploadImageToServer(file, activeTenantId || 'default');
+          uploadedUrls.push(imageUrl);
+
+          // Update progress
+          toast.loading(
+            `Uploading ${i + 1}/${files.length}...`,
+            { id: loadingToast }
+          );
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}`, error);
+          toast.error(`Unable to upload "${file.name}". ${error instanceof Error ? error.message : 'Please try again.'}`);
+          if (input) input.value = '';
+          toast.dismiss(loadingToast);
+          return;
+        }
       }
+
+      // Success
+      setFormData({
+        ...formData,
+        galleryImages: [...currentGallery, ...uploadedUrls]
+      });
+
+      toast.success(`Successfully uploaded ${uploadedUrls.length} image(s)`, { id: loadingToast });
+
+      if (input) input.value = '';
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('An unexpected error occurred during upload');
+      toast.dismiss(loadingToast);
+    }
+  };
+
+  const removeGalleryImage = async (index: number) => {
+    const imageToRemove = formData.galleryImages?.[index];
+    
+    if (imageToRemove) {
       try {
-        const converted = await convertFileToWebP(file, { quality: 0.82, maxDimension: 640 });
-        convertedImages.push(converted);
+        // Delete from server if it's a server URL (either relative or full URL)
+        if (imageToRemove.includes('/uploads/')) {
+          await deleteImageFromServer(imageToRemove, activeTenantId);
+        }
       } catch (error) {
-        console.error(`Failed to process ${file.name}`, error);
-        alert(`Unable to process "${file.name}". Please try another file.`);
-        if (input) input.value = '';
-        return;
+        console.error('Failed to delete image from server:', error);
+        toast.error('Failed to delete image');
       }
     }
 
-    setFormData({ ...formData, galleryImages: [...currentGallery, ...convertedImages] });
-    if (input) input.value = '';
-  };
-
-  const removeGalleryImage = (index: number) => {
     const updated = [...(formData.galleryImages || [])];
     updated.splice(index, 1);
     setFormData({ ...formData, galleryImages: updated });
@@ -1051,8 +1114,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                       {expandedSections.description && (
                         <div className="p-4 space-y-4 bg-white">
                           <RichTextEditor
-                            value={formData.description}
-                            onChange={(html) => setFormData({...formData, description: html})}
+                            value={formData.description || ''}
+                            onChange={handleDescriptionChange}
                             placeholder="Enter product description..."
                             minHeight="min-h-[300px]"
                           />
@@ -1237,15 +1300,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                         <div className="p-4 bg-white">
                           <ProductPricingAndStock
                             initialData={pricingData}
-                            onDataChange={(data) => {
-                              setPricingData(data);
-                              // Update formData with pricing information
-                              setFormData({
-                                ...formData,
-                                price: data.regularPrice,
-                                originalPrice: data.salesPrice,
-                              });
-                            }}
+                            onDataChange={handlePricingDataChange}
                           />
                         </div>
                       )}

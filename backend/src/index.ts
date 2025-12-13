@@ -21,6 +21,8 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(cors(corsOptions));
+// Increased limit to 10mb to support product images stored as base64 data URLs
+// Products can have up to 10 images, each converted to WebP (640px, 0.82 quality)
 app.use(express.json({ limit: '10mb' }));
 app.use(morgan('dev'));
 

@@ -7,6 +7,7 @@ import {
   CreateTenantPayload, FacebookPixelConfig, ChatMessage 
 } from '../types';
 import { DataService } from '../services/DataService';
+import * as authService from '../services/authService';
 import { toast } from 'react-hot-toast';
 import { Monitor, LayoutDashboard } from 'lucide-react';
 
@@ -16,6 +17,7 @@ const AdminProducts = lazy(() => import('./AdminProducts'));
 const AdminCustomization = lazy(() => import('./AdminCustomization'));
 const AdminSettings = lazy(() => import('./AdminSettings'));
 const AdminControl = lazy(() => import('./AdminControl'));
+const AdminControlNew = lazy(() => import('./AdminControlNew'));
 const AdminCatalog = lazy(() => import('./AdminCatalog'));
 const AdminBusinessReport = lazy(() => import('./AdminBusinessReport'));
 const AdminDeliverySettings = lazy(() => import('./AdminDeliverySettings'));
@@ -196,8 +198,8 @@ const AdminApp: React.FC<AdminAppProps> = ({
           tagsData,
           landingPagesData,
         ] = await Promise.all([
-          DataService.getUsers(activeTenantId),
-          DataService.getRoles(activeTenantId),
+          authService.getAdminUsers(),
+          authService.getRoles(),
           DataService.getCatalog('categories', [], activeTenantId),
           DataService.getCatalog('subcategories', [], activeTenantId),
           DataService.getCatalog('childcategories', [], activeTenantId),
@@ -245,22 +247,108 @@ const AdminApp: React.FC<AdminAppProps> = ({
   const headerTenants = platformOperator ? tenants : (selectedTenantRecord ? [selectedTenantRecord] : []);
   const tenantSwitcher = platformOperator ? onTenantChange : undefined;
 
-  const handleAddRole = (newRole: Role) => {
-    const scopedRole = { ...newRole, tenantId: newRole.tenantId || activeTenantId };
-    setRoles([...roles, scopedRole]);
+  const handleAddRole = async (newRole: Role) => {
+    try {
+      await authService.createRole({
+        name: newRole.name,
+        description: newRole.description,
+        permissions: (newRole.permissions || []) as any,
+        tenantId: newRole.tenantId || activeTenantId
+      });
+      // Refresh roles list from server
+      const refreshedRoles = await authService.getRoles();
+      setRoles(refreshedRoles as unknown as Role[]);
+      toast.success('Role created successfully');
+    } catch (error) {
+      console.error('Failed to create role:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create role';
+      toast.error(errorMessage);
+      throw error;
+    }
   };
 
-  const handleUpdateRole = (updatedRole: Role) => {
-    const scopedRole = { ...updatedRole, tenantId: updatedRole.tenantId || activeTenantId };
-    setRoles(roles.map(r => r.id === scopedRole.id ? scopedRole : r));
+  const handleUpdateRole = async (roleId: string, updates: Partial<Role>) => {
+    try {
+      await authService.updateRole(roleId, updates as any);
+      // Refresh roles list from server to ensure consistency
+      const refreshedRoles = await authService.getRoles();
+      setRoles(refreshedRoles as unknown as Role[]);
+      toast.success('Role updated successfully');
+    } catch (error) {
+      console.error('Failed to update role:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update role');
+      throw error;
+    }
   };
 
-  const handleDeleteRole = (roleId: string) => {
-    setRoles(roles.filter(r => r.id !== roleId));
+  const handleDeleteRole = async (roleId: string) => {
+    try {
+      await authService.deleteRole(roleId);
+      // Refresh roles list from server to ensure consistency
+      const refreshedRoles = await authService.getRoles();
+      setRoles(refreshedRoles as unknown as Role[]);
+      toast.success('Role deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete role:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete role');
+      throw error;
+    }
   };
 
-  const handleUpdateUserRole = (userEmail: string, roleId: string) => {
-    setUsers(users.map(u => u.email === userEmail ? { ...u, roleId: roleId || undefined } : u));
+  const handleUpdateUserRole = async (userEmail: string, roleId: string) => {
+    try {
+      await authService.updateUserRole(userEmail, roleId);
+      // Refresh users list from server to ensure consistency
+      const refreshedUsers = await authService.getAdminUsers();
+      setUsers(refreshedUsers);
+      toast.success('User role updated successfully');
+    } catch (error) {
+      console.error('Failed to update user role:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update user role');
+    }
+  };
+
+  const handleAddUser = async (userData: Omit<User, '_id' | 'id'>) => {
+    try {
+      await authService.createUser({ ...userData, role: userData.role || 'staff' });
+      // Refresh users list from server
+      const refreshedUsers = await authService.getAdminUsers();
+      setUsers(refreshedUsers);
+      toast.success('User created successfully');
+    } catch (error) {
+      console.error('Failed to create user:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
+      toast.error(errorMessage);
+      throw error;
+    }
+  };
+
+  const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
+    try {
+      await authService.updateUser(userId, updates);
+      // Refresh users list from server to ensure consistency
+      const refreshedUsers = await authService.getAdminUsers();
+      setUsers(refreshedUsers);
+      toast.success('User updated successfully');
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update user');
+      throw error;
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await authService.deleteUser(userId);
+      // Refresh users list from server to ensure consistency
+      const refreshedUsers = await authService.getAdminUsers();
+      setUsers(refreshedUsers);
+      toast.success('User deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete user');
+      throw error;
+    }
   };
 
   const handleCreateLandingPage = (page: any) => {
@@ -321,7 +409,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={onUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={onUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={(cfg) => onUpdateCourierConfig(cfg)} onBack={() => setAdminSection('settings')} /> :
-         adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
+         adminSection === 'admin' ? <AdminControlNew users={users} roles={roles as any} onAddUser={handleAddUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onAddRole={handleAddRole as any} onUpdateRole={handleUpdateRole as any} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} currentUser={user} tenantId={activeTenantId} /> :
          adminSection === 'tenants' ? (platformOperator
            ? <AdminTenantManagement tenants={tenants} onCreateTenant={async () => {}} isCreating={false} onDeleteTenant={async () => {}} deletingTenantId={null} />
            : <AdminDashboard orders={orders} products={products} />) :

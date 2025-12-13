@@ -741,14 +741,14 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
         {/* THEME COLORS TAB */}
         {activeTab === 'theme_colors' && (
-            <div className="space-y-8 max-w-2xl">
+            <div className="space-y-8 max-w-1xl">
                  <div>
                      <h3 className="font-bold text-xl mb-4">Theme Colors</h3>
                      <p className="text-gray-500 text-sm mb-6">Dial in your storefront + admin palette with core accents, typography, hover states, and surface washes.</p>
                      
                      <div className="space-y-4">
                          {themeColorGuides.map(field => (
-                             <div key={field.key} className="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl bg-white/70 shadow-sm">
+                             <div key={field.key} className="flex items-center gap-4 p-4 border border-gray-200 rounded-2xl bg-black shadow-sm">
                                  <div className="flex flex-col items-center gap-2">
                                      <input
                                          type="color"

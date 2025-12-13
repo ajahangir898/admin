@@ -83,7 +83,7 @@ const buildBehavioralReason = (tags?: string[]) => {
 const selectRelatedProducts = (current: Product, catalog: Product[]): RelatedProductMatch[] => {
   const baseBrand = getProductBrandToken(current.name);
   const baseCategory = current.category || '';
-  const baseTags = current.tags || [];
+  const baseTags = [...(current.tags || []), ...(current.searchTags || [])];
   const complementCategories = COMPLEMENTARY_CATEGORY_MAP[baseCategory] || [];
 
   const candidates = catalog.filter(
@@ -95,7 +95,8 @@ const selectRelatedProducts = (current: Product, catalog: Product[]): RelatedPro
     const sameBrand = baseBrand && candidateBrand && baseBrand === candidateBrand;
     const sameCategory = baseCategory && candidate.category === baseCategory;
     const isComplement = complementCategories.includes(candidate.category || '');
-    const tagOverlap = baseTags.filter((tag) => candidate.tags?.includes(tag)).length;
+    const candidateAllTags = [...(candidate.tags || []), ...(candidate.searchTags || [])];
+    const tagOverlap = baseTags.filter((tag) => candidateAllTags.includes(tag)).length;
     const stockCount = getProductStockCount(candidate);
     const inStock = stockCount > 0;
 
@@ -341,6 +342,7 @@ const StoreProductDetail = ({
         websiteConfig={websiteConfig}
         searchValue={searchValue}
         onSearchChange={onSearchChange}
+        onProductClick={onProductClick}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}

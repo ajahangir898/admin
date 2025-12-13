@@ -80,6 +80,7 @@ interface StoreHeaderProps {
     brands?: any[];
     tags?: any[];
     productCatalog?: Product[];
+    onProductClick?: (product: Product) => void;
 }
 
 export const MobileBottomNav: React.FC<{
@@ -403,6 +404,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     brands = [],
     tags = [],
     productCatalog,
+    onProductClick,
 }) => {
     const normalizedCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
     const normalizedWishlist = useMemo(() => (Array.isArray(wishlist) ? wishlist : []), [wishlist]);
@@ -505,6 +507,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState(false);
     const [activeCatalogSection, setActiveCatalogSection] = useState<string>('categories');
+    const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(false);
+    const searchContainerRef = useRef<HTMLDivElement>(null);
         // Wishlist and Cart Drawer/Modal State
         const [isWishlistDrawerOpen, setIsWishlistDrawerOpen] = useState(false);
         const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
@@ -520,6 +524,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
     useEffect(() => {
         setTypedSearchValue(searchQuery);
     }, [searchQuery]);
+    
     const activeSearchValue = isListening && liveTranscript ? liveTranscript : typedSearchValue;
     const emitSearchValue = useCallback((value: string) => {
         onSearchChange?.(value);
@@ -528,6 +533,85 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         setTypedSearchValue(value);
         emitSearchValue(value);
     }, [emitSearchValue]);
+    
+    const handleSuggestionClick = useCallback((product: Product) => {
+        setIsSearchSuggestionsOpen(false);
+        setTypedSearchValue('');
+        emitSearchValue('');
+        if (onProductClick) {
+            onProductClick(product);
+        }
+    }, [onProductClick, emitSearchValue]);
+    
+    const SearchSuggestionsDropdown = () => {
+        if (!isSearchSuggestionsOpen || searchSuggestions.length === 0) return null;
+        
+        return (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 max-h-96 overflow-y-auto z-50">
+                {searchSuggestions.map((product) => (
+                    <button
+                        key={product.id}
+                        onClick={() => handleSuggestionClick(product)}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition border-b border-gray-100 dark:border-slate-700 last:border-0 text-left"
+                    >
+                        <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-14 h-14 object-cover rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                {product.name}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {product.category}
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-sm font-bold text-green-600 dark:text-green-400">
+                                {formatCurrency(product.price)}
+                            </div>
+                            {product.originalPrice && product.originalPrice > product.price && (
+                                <div className="text-xs text-gray-400 line-through">
+                                    {formatCurrency(product.originalPrice)}
+                                </div>
+                            )}
+                        </div>
+                    </button>
+                ))}
+            </div>
+        );
+    };
+    
+    // Search suggestions
+    const searchSuggestions = useMemo(() => {
+        if (!activeSearchValue.trim() || !catalogSource.length) return [];
+        const query = activeSearchValue.trim().toLowerCase();
+        return catalogSource
+            .filter(product => {
+                const matchesName = product.name?.toLowerCase().includes(query);
+                const matchesCategory = product.category?.toLowerCase().includes(query);
+                const matchesBrand = product.brand?.toLowerCase().includes(query);
+                const matchesTags = product.tags?.some(tag => tag.toLowerCase().includes(query));
+                const matchesSearchTags = product.searchTags?.some(tag => tag.toLowerCase().includes(query));
+                return matchesName || matchesCategory || matchesBrand || matchesTags || matchesSearchTags;
+            })
+            .slice(0, 6);
+    }, [activeSearchValue, catalogSource]);
+    
+    useEffect(() => {
+        setIsSearchSuggestionsOpen(searchSuggestions.length > 0 && activeSearchValue.trim().length > 0);
+    }, [searchSuggestions.length, activeSearchValue]);
+    
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setIsSearchSuggestionsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
       // Catalog data from props
             // Use destructured props directly
@@ -777,7 +861,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <header className="store-header w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 font-sans transition-colors duration-300">
          {/* Mobile Header Style 4 */}
          <div className="md:hidden p-3 flex items-center gap-3 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
-            <div className="flex-1 relative">
+            <div ref={searchContainerRef} className="flex-1 relative">
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                   <Search size={18} />
                </div>
@@ -795,6 +879,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         <VoiceButton variant="light" />
                     </div>
                     {renderVoiceStreamOverlay('absolute -bottom-10 left-0 right-0')}
+                    <SearchSuggestionsDropdown />
             </div>
             
                 <button className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-full transition flex-shrink-0" onClick={handleVoiceSearch}>
@@ -833,7 +918,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                     )}
                 </div>
 
-                <div className="hidden md:flex flex-1 max-w-2xl relative">
+                <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
                     {renderSearchHintOverlay('left-4')}
                     <input
                     type="text"
@@ -859,6 +944,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         </button>
                     </div>
                     {renderVoiceStreamOverlay('absolute -bottom-11 left-6 right-6')}
+                    <SearchSuggestionsDropdown />
                 </div>
 
                 <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
@@ -1038,7 +1124,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
               </div>
 
               {/* Search Bar - Center */}
-              <div className="hidden md:block flex-1 max-w-2xl relative">
+              <div ref={searchContainerRef} className="hidden md:block flex-1 max-w-2xl relative">
                  {renderSearchHintOverlay('left-4')}
                                  <input 
                                      type="text" 
@@ -1056,6 +1142,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                           </button>
                       </div>
                       {renderVoiceStreamOverlay('absolute -bottom-11 left-6 right-6')}
+                      <SearchSuggestionsDropdown />
               </div>
 
               {/* Right Actions */}
@@ -1424,7 +1511,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         <Menu size={28} strokeWidth={2} />
                     </button>
 
-                    <div className="flex-1 relative">
+                    <div ref={searchContainerRef} className="flex-1 relative">
                         <div className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-green-500 text-white flex items-center justify-center shadow-sm">
                             <Search size={16} strokeWidth={2} />
                         </div>
@@ -1445,6 +1532,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                             </button>
                         </div>
                         {renderVoiceStreamOverlay('absolute -bottom-10 left-0 right-0')}
+                        <SearchSuggestionsDropdown />
                     </div>
 
                    
@@ -1479,7 +1567,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             </div>
 
             {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-2xl relative">
+            <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
                                 {renderSearchHintOverlay('left-4')}
                                 <input
                                 type="text"
@@ -1497,6 +1585,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                     </button>
                                 </div>
                                 {renderVoiceStreamOverlay('absolute -bottom-11 left-6 right-6')}
+                                <SearchSuggestionsDropdown />
             </div>
 
             {/* Actions */}

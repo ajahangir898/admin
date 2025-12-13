@@ -3,6 +3,7 @@ import express from 'express';
 import morgan from 'morgan';
 import path from 'path';
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import { env } from './config/env';
 import { disconnectMongo } from './db/mongo';
 import { errorHandler } from './middleware/errorHandler';
@@ -15,6 +16,8 @@ import { profitLossRouter } from './routes/profitLoss';
 import { incomesRouter } from './routes/incomes';
 import dueListRoutes from './routes/dueListRoutes';
 import uploadRouter from './routes/upload';
+import authRouter from './routes/auth';
+import { User } from './models/User';
 
 const app = express();
 
@@ -23,7 +26,7 @@ const corsOptions: cors.CorsOptions = {
     ? env.allowedOrigins
     : true, // Allow all origins in development
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
@@ -40,6 +43,7 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/health', healthRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/tenants', tenantsRouter);
 app.use('/api/tenant-data', tenantDataRouter);
 app.use('/api/expenses', expensesRouter);
@@ -57,6 +61,9 @@ const bootstrap = async () => {
       dbName: env.mongoDbName,
     });
     console.log('[backend] Mongoose connected to MongoDB');
+    
+    // Seed default super admin user
+    await seedDefaultAdmin();
   } catch (err) {
     console.error('[backend] Mongoose connection error:', err);
     process.exit(1);
@@ -78,6 +85,30 @@ const bootstrap = async () => {
 
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
+};
+
+// Seed default super admin user
+const seedDefaultAdmin = async () => {
+  try {
+    const adminEmail = 'admin@super.com';
+    const existingAdmin = await User.findOne({ email: adminEmail });
+    
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash('admin121', 12);
+      await User.create({
+        name: 'Super Admin',
+        email: adminEmail,
+        password: hashedPassword,
+        role: 'super_admin',
+        isActive: true,
+      });
+      console.log('[backend] Default super admin created: admin@super.com');
+    } else {
+      console.log('[backend] Super admin already exists');
+    }
+  } catch (error) {
+    console.error('[backend] Error seeding admin user:', error);
+  }
 };
 
 bootstrap().catch((error) => {

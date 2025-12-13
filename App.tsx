@@ -1,117 +1,34 @@
 
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
-import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, ChildCategory, Brand, Tag, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, CreateTenantPayload, ChatMessage } from './types';
+import { Loader2, Store, ShieldCheck } from 'lucide-react';
+import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { Toaster, toast } from 'react-hot-toast';
-import AppSkeleton from './components/SkeletonLoaders';
+import AppSkeleton, { LoginSkeleton, StoreSkeleton, AdminSkeleton } from './components/SkeletonLoaders';
 
-
+// Store pages - lazy loaded
 const StoreHome = lazy(() => import('./pages/StoreHome'));
 const StoreProductDetail = lazy(() => import('./pages/StoreProductDetail'));
 const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
 const StoreOrderSuccess = lazy(() => import('./pages/StoreOrderSuccess'));
 const StoreProfile = lazy(() => import('./pages/StoreProfile'));
-const AdminApp = lazy(() => import('./pages/AdminApp'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminOrders = lazy(() => import('./pages/AdminOrders'));
-const AdminProducts = lazy(() => import('./pages/AdminProducts'));
-const AdminCustomization = lazy(() => import('./pages/AdminCustomization'));
-const AdminSettings = lazy(() => import('./pages/AdminSettings'));
-const AdminControl = lazy(() => import('./pages/AdminControl'));
-const AdminCatalog = lazy(() => import('./pages/AdminCatalog'));
-const AdminDeliverySettings = lazy(() => import('./pages/AdminDeliverySettings'));
-const AdminCourierSettings = lazy(() => import('./pages/AdminCourierSettings'));
-const AdminInventory = lazy(() => import('./pages/AdminInventory'));
-const AdminReviews = lazy(() => import('./pages/AdminReviews'));
-const AdminDailyTarget = lazy(() => import('./pages/AdminDailyTarget'));
-const AdminGallery = lazy(() => import('./pages/AdminGallery'));
-const AdminExpenses = lazy(() => import('./pages/AdminExpenses'));
-const AdminFacebookPixel = lazy(() => import('./pages/AdminFacebookPixel'));
-const AdminLandingPage = lazy(() => import('./pages/AdminLandingPage'));
-const AdminTenantManagement = lazy(() => import('./pages/AdminTenantManagement'));
-const AdminDueList = lazy(() => import('./pages/AdminDueList'));
-const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 const StoreImageSearch = lazy(() => import('./pages/StoreImageSearch'));
-const loadAdminComponents = () => import('./components/AdminComponents');
+const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
+
+// Admin pages - lazy loaded
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminAppWithAuth = lazy(() => import('./pages/AdminAppWithAuth'));
+
+// Store components - lazy loaded
 const loadStoreComponents = () => import('./components/StoreComponents');
-const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminSidebar })));
-const AdminHeader = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminHeader })));
 const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: module.LoginModal })));
 const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
 const StoreChatModal = lazy(() => loadStoreComponents().then(module => ({ default: module.StoreChatModal })));
 
-// Wrapper layout for Admin pages
-interface AdminLayoutProps {
-  children: React.ReactNode;
-  onSwitchView: () => void;
-  activePage: string;
-  onNavigate: (page: string) => void;
-  logo: string | null;
-  user?: User | null;
-  onLogout?: () => void;
-  tenants?: Tenant[];
-  activeTenantId?: string;
-  onTenantChange?: (tenantId: string) => void;
-  isTenantSwitching?: boolean;
-  onOpenChatCenter?: () => void;
-  hasUnreadChat?: boolean;
-}
-
-const AdminLayout: React.FC<AdminLayoutProps> = ({ 
-  children, 
-  onSwitchView, 
-  activePage, 
-  onNavigate,
-  logo,
-  user,
-  onLogout,
-  tenants,
-  activeTenantId,
-  onTenantChange,
-  isTenantSwitching,
-  onOpenChatCenter,
-  hasUnreadChat
-}) => {
-  const highlightPage = activePage.startsWith('settings') ? 'settings' : activePage;
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  return (
-    <div className="admin-theme flex h-screen font-sans text-slate-100 bg-gradient-to-br from-black via-[#0b1a12] to-[#1b0b0f]">
-      <AdminSidebar 
-        activePage={highlightPage} 
-        onNavigate={onNavigate} 
-        logo={logo} 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)}
-        userRole={user?.role}
-      />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-[#050407]/80 via-[#07110b]/75 to-[#0e0609]/80 backdrop-blur">
-        <AdminHeader 
-          onSwitchView={onSwitchView} 
-          user={user} 
-          onLogout={onLogout} 
-          logo={logo}
-          tenants={tenants}
-          activeTenantId={activeTenantId}
-          onTenantChange={onTenantChange}
-          isTenantSwitching={isTenantSwitching}
-          onOpenChatCenter={onOpenChatCenter}
-          hasUnreadChat={hasUnreadChat}
-          onMenuClick={() => setIsSidebarOpen(true)} 
-        />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-0 md:p-0 bg-gradient-to-b from-[#08080f]/80 via-[#0c1a12]/70 to-[#1a0b0f]/60">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
-};
-
-type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search';
+type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search' | 'admin-login';
 
 const sanitizeSubdomainSlug = (value?: string | null) => {
   if (!value) return '';
@@ -225,12 +142,11 @@ const normalizeProductCollection = (items: Product[], tenantId?: string): Produc
   return normalized;
 };
 
-const SuspenseFallback = () => (
-  <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 gap-4">
-   
-    <p className="font-medium animate-pulse"></p>
-  </div>
-);
+const SuspenseFallback = ({ variant = 'store' }: { variant?: 'store' | 'admin' | 'login' }) => {
+  if (variant === 'login') return <LoginSkeleton />;
+  if (variant === 'admin') return <AdminSkeleton />;
+  return <StoreSkeleton />;
+};
 
 const isAdminRole = (role?: User['role'] | null) => role === 'admin' || role === 'tenant_admin' || role === 'super_admin';
 const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin';
@@ -927,6 +843,21 @@ fbq('track', 'PageView');`;
       return true;
     }
 
+    // New super admin login
+    if (formattedEmailLower === 'admin@super.com' && formattedPass === 'admin121') {
+      const admin: User = {
+        name: 'Super Admin',
+        email: 'admin@super.com',
+        role: 'super_admin',
+        tenantId: activeTenantId || DEFAULT_TENANT_ID
+      };
+      setUser(admin);
+      setActiveTenantId(admin.tenantId || activeTenantId || DEFAULT_TENANT_ID);
+      setAdminSection('dashboard');
+      setCurrentView('admin');
+      return true;
+    }
+
     const foundUser = users.find(
       (u) => u.email?.toLowerCase() === formattedEmailLower && u.password === formattedPass
     );
@@ -953,10 +884,41 @@ fbq('track', 'PageView');`;
   const handleLogin = async (email: string, pass: string) => {
     const normalizedEmail = email.trim();
     const normalizedPass = pass.trim();
-    if (tryLegacyLogin(normalizedEmail, normalizedPass)) {
-      return true;
+    
+    // Use API authentication
+    const response = await fetch('http://localhost:5001/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: normalizedEmail, password: normalizedPass }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Invalid email or password.');
     }
-    throw new Error('Invalid email or password.');
+    
+    const data = await response.json();
+    
+    // Block admin login from store - redirect to /admin/login
+    if (isAdminRole(data.user.role)) {
+      throw new Error('Admin users must login at /admin/login');
+    }
+    
+    // Store JWT token for RBAC API calls (customers only)
+    localStorage.setItem('admin_auth_token', data.token);
+    localStorage.setItem('admin_auth_user', JSON.stringify(data.user));
+    localStorage.setItem('admin_auth_permissions', JSON.stringify(data.permissions || []));
+    
+    const loggedInUser: User = {
+      name: data.user.name,
+      email: data.user.email,
+      role: data.user.role,
+      tenantId: data.user.tenantId || activeTenantId || DEFAULT_TENANT_ID
+    };
+    setUser(loggedInUser);
+    setActiveTenantId(loggedInUser.tenantId || activeTenantId || DEFAULT_TENANT_ID);
+    
+    return true;
   };
 
   const handleGoogleLogin = async () => {
@@ -964,6 +926,11 @@ fbq('track', 'PageView');`;
   };
 
   const handleLogout = async () => {
+    // Clear JWT tokens
+    localStorage.removeItem('admin_auth_token');
+    localStorage.removeItem('admin_auth_user');
+    localStorage.removeItem('admin_auth_permissions');
+    
     setUser(null);
     setCurrentView('store');
     setSelectedVariant(null);
@@ -1303,6 +1270,14 @@ fbq('track', 'PageView');`;
     const activeView = currentViewRef.current;
     const activeUser = userRef.current;
 
+    // Handle admin login route FIRST (before empty path check)
+    if (trimmedPath === 'admin/login') {
+      if (activeView !== 'admin-login') {
+        setCurrentView('admin-login');
+      }
+      return;
+    }
+
     if (!trimmedPath) {
       if (!activeView.startsWith('admin')) {
         setSelectedProduct(null);
@@ -1329,6 +1304,11 @@ fbq('track', 'PageView');`;
       return;
     }
 
+    // Don't redirect if we're on admin-login
+    if (activeView === 'admin-login') {
+      return;
+    }
+
     window.history.replaceState({}, '', '/');
     if (!activeView.startsWith('admin')) {
       setSelectedProduct(null);
@@ -1347,6 +1327,10 @@ fbq('track', 'PageView');`;
   }, [products, syncViewWithLocation]);
 
   useEffect(() => {
+    const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+    // Don't redirect if we're on admin login page
+    if (path === 'admin/login') return;
+    
     if (currentView === 'store' && window.location.pathname !== '/') {
       window.history.replaceState({}, '', '/');
     }
@@ -1371,8 +1355,10 @@ fbq('track', 'PageView');`;
     return <AppSkeleton variant={skeletonVariant} darkMode={themeConfig.darkMode} />;
   }
 
+  const suspenseVariant = currentView === 'admin-login' ? 'login' : currentView.startsWith('admin') ? 'admin' : 'store';
+
   return (
-    <Suspense fallback={<SuspenseFallback />}>
+    <Suspense fallback={<SuspenseFallback variant={suspenseVariant} />}>
       <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
       <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
         {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
@@ -1380,15 +1366,25 @@ fbq('track', 'PageView');`;
         {isAdminRole(user?.role) && (
           <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
             <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
-              {currentView.startsWith('admin') ? <Monitor size={24} /> : <LayoutDashboard size={24} />}
+              {currentView.startsWith('admin') ? <Store size={24} /> : <ShieldCheck size={24} />}
               <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
             </button>
           </div>
         )}
 
-    {currentView === 'admin' ? (
-  <AdminApp
-    user={user}
+    {currentView === 'admin-login' ? (
+      <Suspense fallback={<LoginSkeleton />}>
+        <AdminLogin onLoginSuccess={(user) => {
+          setUser(user);
+          setActiveTenantId(user.tenantId || activeTenantId || DEFAULT_TENANT_ID);
+          setCurrentView('admin');
+          setAdminSection('dashboard');
+          window.history.pushState({}, '', '/admin');
+        }} />
+      </Suspense>
+    ) : currentView === 'admin' ? (
+      <Suspense fallback={<AdminSkeleton />}>
+  <AdminAppWithAuth
     activeTenantId={activeTenantId}
     tenants={headerTenants}
     orders={orders}
@@ -1419,10 +1415,12 @@ fbq('track', 'PageView');`;
     onOpenAdminChat={handleOpenAdminChat}
     hasUnreadChat={hasUnreadChat}
   />
+      </Suspense>
 ) : (
           <>
             {currentView === 'store' && (
-              <>
+              <Suspense fallback={<StoreSkeleton />}>
+                <>
                 <StoreHome 
                   products={products} 
                   orders={orders} 
@@ -1456,10 +1454,12 @@ fbq('track', 'PageView');`;
                   user={user}
                   onLogoutClick={handleLogout}
                 />
-              </>
+                </>
+              </Suspense>
             )}
             {currentView === 'detail' && selectedProduct && (
-              <StoreProductDetail 
+              <Suspense fallback={<StoreSkeleton />}>
+                <StoreProductDetail 
                 product={selectedProduct} 
                 orders={orders} 
                 onBack={() => setCurrentView('store')} 
@@ -1483,10 +1483,12 @@ fbq('track', 'PageView');`;
                 onCheckoutFromCart={handleCheckoutFromCart}
                 onAddToCart={(product, quantity, variant) => handleAddProductToCart(product, quantity, variant, { silent: true })}
                 productCatalog={products}
-              />
+                />
+              </Suspense>
             )}
             {currentView === 'checkout' && selectedProduct && (
-              <StoreCheckout 
+              <Suspense fallback={<StoreSkeleton />}>
+                <StoreCheckout 
                 product={selectedProduct}
                 quantity={checkoutQuantity}
                 variant={selectedVariant || ensureVariantSelection(selectedProduct)}
@@ -1507,10 +1509,12 @@ fbq('track', 'PageView');`;
                 onToggleCart={handleCartToggle}
                 onCheckoutFromCart={handleCheckoutFromCart}
                 productCatalog={products}
-              />
+                />
+              </Suspense>
             )}
             {currentView === 'success' && (
-              <StoreOrderSuccess 
+              <Suspense fallback={<StoreSkeleton />}>
+                <StoreOrderSuccess 
                 onHome={() => setCurrentView('store')} 
                 onImageSearchClick={() => setCurrentView('image-search')}
                 user={user} 
@@ -1526,10 +1530,12 @@ fbq('track', 'PageView');`;
                 onToggleCart={handleCartToggle}
                 onCheckoutFromCart={handleCheckoutFromCart}
                 productCatalog={products}
-              />
+                />
+              </Suspense>
             )}
             {currentView === 'profile' && user && (
-              <>
+              <Suspense fallback={<StoreSkeleton />}>
+                <>
                 <StoreProfile 
                   user={user} 
                   onUpdateProfile={handleUpdateProfile} 
@@ -1559,18 +1565,22 @@ fbq('track', 'PageView');`;
                   onLogoutClick={handleLogout}
                   activeTab="account"
                 />
-              </>
+                </>
+              </Suspense>
             )}
             {currentView === 'landing_preview' && selectedLandingPage && (
-              <LandingPagePreview 
+              <Suspense fallback={<StoreSkeleton />}>
+                <LandingPagePreview 
                 page={selectedLandingPage}
                 product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}
                 onBack={handleCloseLandingPreview}
                 onSubmitLandingOrder={handleLandingOrderSubmit}
-              />
+                />
+              </Suspense>
             )}
             {currentView === 'image-search' && (
-              <StoreImageSearch 
+              <Suspense fallback={<StoreSkeleton />}>
+                <StoreImageSearch 
                 products={products}
                 websiteConfig={websiteConfig}
                 user={user}
@@ -1578,7 +1588,8 @@ fbq('track', 'PageView');`;
                 onAddToCart={(product, quantity = 1) => handleAddProductToCart(product, quantity)}
                 onCheckout={(product, quantity) => handleCheckoutStart(product, quantity)}
                 onNavigate={(page) => setCurrentView(page as ViewState)}
-              />
+                />
+              </Suspense>
             )}
             <StoreChatModal
               isOpen={isChatOpen}

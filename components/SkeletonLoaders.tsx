@@ -12,10 +12,91 @@ interface SkeletonVariantProps {
 }
 
 const metricPlaceholders = Array.from({ length: 4 });
-const productPlaceholders = Array.from({ length: 8 });
+const productPlaceholders = Array.from({ length: 6 }); // Reduced from 8 to 6
 const tableRows = Array.from({ length: 5 });
 
-const StoreSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode }) => (
+// Login Skeleton - Lightweight skeleton for login page
+export const LoginSkeleton: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0f] via-[#0f0f1a] to-[#0a1410]">
+    <div className="w-full max-w-md p-8">
+      <div className="bg-gradient-to-br from-[#0f0f1a]/90 to-[#0a1410]/90 backdrop-blur-xl rounded-3xl p-8 space-y-6">
+        <Skeleton height={64} width={64} circle className="mx-auto mb-4" />
+        <Skeleton height={32} width="60%" className="mx-auto mb-2" />
+        <Skeleton height={20} width="80%" className="mx-auto mb-8" />
+        <Skeleton height={48} className="mb-4" />
+        <Skeleton height={48} className="mb-6" />
+        <Skeleton height={48} />
+      </div>
+    </div>
+  </div>
+);
+
+// Store Skeleton - Optimized for store pages
+export const StoreSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode = false }) => {
+  const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
+  const highlightColor = darkMode ? '#475569' : '#f8fafc';
+  
+  return (
+    <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
+      <div className={`min-h-screen ${darkMode ? 'bg-slate-900' : 'bg-gray-50'} pb-20`}>
+        {/* Header */}
+        <div className={`shadow-sm border-b ${darkMode ? 'bg-slate-800/70' : 'bg-white/90'} p-4`}>
+          <Skeleton height={32} width={180} className="mb-3" />
+          <Skeleton height={40} width="100%" />
+        </div>
+        
+        {/* Content Grid */}
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            {productPlaceholders.map((_, i) => (
+              <div key={i} className={`rounded-lg p-3 ${darkMode ? 'bg-slate-800/70' : 'bg-white'}`}>
+                <Skeleton height={140} className="mb-3" />
+                <Skeleton height={18} className="mb-2" />
+                <Skeleton height={14} width="70%" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
+};
+
+// Admin Skeleton - Optimized for admin dashboard
+export const AdminSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode = false }) => {
+  const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
+  const highlightColor = darkMode ? '#475569' : '#f8fafc';
+  
+  return (
+    <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
+      <div className={`min-h-screen ${darkMode ? 'bg-slate-900' : 'bg-slate-50'} py-6`}>
+        <div className="max-w-6xl mx-auto px-4 space-y-6">
+          {/* Metrics */}
+          <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+            {metricPlaceholders.map((_, i) => (
+              <div key={i} className={`rounded-lg p-4 ${darkMode ? 'bg-slate-800/70' : 'bg-white'}`}>
+                <Skeleton height={16} width="50%" className="mb-3" />
+                <Skeleton height={28} />
+              </div>
+            ))}
+          </div>
+          
+          {/* Table */}
+          <div className={`rounded-lg p-5 ${darkMode ? 'bg-slate-800/70' : 'bg-white'}`}>
+            <Skeleton height={24} width="30%" className="mb-4" />
+            {tableRows.map((_, i) => (
+              <div key={i}>
+                <Skeleton height={16} className="mb-3" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
+};
+
+const StoreSkeletonOld: React.FC<SkeletonVariantProps> = ({ darkMode }) => (
   <div className={`min-h-screen ${darkMode ? 'bg-slate-900 text-slate-200' : 'bg-gray-50 text-slate-600'} pb-20`}>
     <div className={`shadow-sm border-b ${darkMode ? 'bg-slate-800/70 border-slate-700/60' : 'bg-white/90 border-white/40'}`}>
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-4">
@@ -55,7 +136,7 @@ const StoreSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode }) => (
   </div>
 );
 
-const AdminSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode }) => (
+const AdminSkeletonOld: React.FC<SkeletonVariantProps> = ({ darkMode }) => (
   <div className={`min-h-screen ${darkMode ? 'bg-slate-900 text-slate-200' : 'bg-slate-50 text-slate-700'} py-10`}>
     <div className="max-w-6xl mx-auto px-4 space-y-10">
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">

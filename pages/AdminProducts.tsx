@@ -111,6 +111,20 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const shareOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://mydomain.com';
 
+  // Deep Search State
+  const [isDeepSearchOpen, setIsDeepSearchOpen] = useState(false);
+  const [deepSearchTerm, setDeepSearchTerm] = useState('');
+  const [searchInFields, setSearchInFields] = useState({
+    name: true,
+    description: true,
+    category: true,
+    brand: true,
+    tags: true,
+    sku: false
+  });
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [stockRange, setStockRange] = useState({ min: '', max: '' });
+
   // Filter State
   const [filterCategory, setFilterCategory] = useState('');
   const [filterBrand, setFilterBrand] = useState('');
@@ -137,6 +151,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     galleryImages: [],
     discount: '',
     tags: [],
+    searchTags: [],
     colors: [],
     sizes: [],
     status: 'Active'
@@ -151,6 +166,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     isWholesale: false,
   });
   const [tagInput, setTagInput] = useState('');
+  const [searchTagInput, setSearchTagInput] = useState('');
   const [colorInput, setColorInput] = useState('');
   const [sizeInput, setSizeInput] = useState('');
   const [isSlugTouched, setIsSlugTouched] = useState(false);
@@ -193,13 +209,42 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
   // Derived State for filtering
   const filteredProducts = products.filter(p => {
+    // Basic search - now includes searchTags
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase()));
+                          (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (p.searchTags && p.searchTags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+    
+    // Deep search
+    let matchesDeepSearch = true;
+    if (isDeepSearchOpen && deepSearchTerm) {
+      const searchLower = deepSearchTerm.toLowerCase();
+      matchesDeepSearch = false;
+      
+      if (searchInFields.name && p.name?.toLowerCase().includes(searchLower)) matchesDeepSearch = true;
+      if (searchInFields.description && p.description?.toLowerCase().includes(searchLower)) matchesDeepSearch = true;
+      if (searchInFields.category && p.category?.toLowerCase().includes(searchLower)) matchesDeepSearch = true;
+      if (searchInFields.brand && p.brand?.toLowerCase().includes(searchLower)) matchesDeepSearch = true;
+      if (searchInFields.tags && p.tags?.some(tag => tag.toLowerCase().includes(searchLower))) matchesDeepSearch = true;
+      if (searchInFields.sku && p.sku?.toLowerCase().includes(searchLower)) matchesDeepSearch = true;
+      // Include searchTags in deep search
+      if (p.searchTags?.some(tag => tag.toLowerCase().includes(searchLower))) matchesDeepSearch = true;
+    }
+    
+    // Price range filter
+    let matchesPriceRange = true;
+    if (priceRange.min && p.price < Number(priceRange.min)) matchesPriceRange = false;
+    if (priceRange.max && p.price > Number(priceRange.max)) matchesPriceRange = false;
+    
+    // Stock range filter
+    let matchesStockRange = true;
+    if (stockRange.min && (p.stock || 0) < Number(stockRange.min)) matchesStockRange = false;
+    if (stockRange.max && (p.stock || 0) > Number(stockRange.max)) matchesStockRange = false;
+    
     const matchesCategory = filterCategory ? p.category === filterCategory : true;
     const matchesBrand = filterBrand ? p.brand === filterBrand : true;
     const matchesStatus = filterStatus ? (p.status || 'Active') === filterStatus : true;
 
-    return matchesSearch && matchesCategory && matchesBrand && matchesStatus;
+    return matchesSearch && matchesDeepSearch && matchesPriceRange && matchesStockRange && matchesCategory && matchesBrand && matchesStatus;
   });
 
   const resetFilters = () => {
@@ -207,6 +252,17 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     setFilterCategory('');
     setFilterBrand('');
     setFilterStatus('');
+    setDeepSearchTerm('');
+    setPriceRange({ min: '', max: '' });
+    setStockRange({ min: '', max: '' });
+    setSearchInFields({
+      name: true,
+      description: true,
+      category: true,
+      brand: true,
+      tags: true,
+      sku: false
+    });
   };
 
   const toggleSection = (section: string) => {
@@ -271,6 +327,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         slug: '',
         discount: '',
         tags: [],
+        searchTags: [],
         colors: [],
         sizes: [],
         status: 'Active'
@@ -363,6 +420,16 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     }
   };
 
+  const addSearchTag = () => {
+    if (searchTagInput.trim() && !formData.searchTags?.includes(searchTagInput.trim())) {
+      setFormData({
+        ...formData,
+        searchTags: [...(formData.searchTags || []), searchTagInput.trim()]
+      });
+      setSearchTagInput('');
+    }
+  };
+
   const addExistingTag = (tagName: string) => {
     if (!formData.tags?.includes(tagName)) {
       setFormData({
@@ -376,6 +443,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     setFormData({
       ...formData,
       tags: formData.tags?.filter(t => t !== tagToRemove)
+    });
+  };
+
+  const removeSearchTag = (tagToRemove: string) => {
+    setFormData({
+      ...formData,
+      searchTags: formData.searchTags?.filter(t => t !== tagToRemove)
     });
   };
 
@@ -618,6 +692,18 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                />
                <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
             </div>
+            <button
+              onClick={() => setIsDeepSearchOpen(!isDeepSearchOpen)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
+                isDeepSearchOpen 
+                  ? 'bg-red-600 text-white' 
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+              title="Advanced Deep Search"
+            >
+              <Filter size={16} />
+              Deep Search
+            </button>
           </div>
           <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between sm:justify-end">
             <div className="relative w-full sm:w-auto" ref={viewMenuRef}>
@@ -726,6 +812,120 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
            )}
         </div>
       </div>
+
+      {/* Deep Search Panel */}
+      {isDeepSearchOpen && (
+        <div className="bg-gradient-to-br from-gray-900 via-gray-950 to-black border border-red-500/30 rounded-xl p-6 shadow-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Filter className="text-red-400" size={20} />
+              Advanced Deep Search
+            </h3>
+            <button
+              onClick={() => setIsDeepSearchOpen(false)}
+              className="text-gray-400 hover:text-white transition"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Search Term */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Search Query</label>
+              <input
+                type="text"
+                value={deepSearchTerm}
+                onChange={(e) => setDeepSearchTerm(e.target.value)}
+                placeholder="Enter search term..."
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+
+            {/* Search In Fields */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Search In</label>
+              <div className="space-y-2">
+                {Object.entries(searchInFields).map(([field, checked]) => (
+                  <label key={field} className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => setSearchInFields({ ...searchInFields, [field]: e.target.checked })}
+                      className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-red-500 focus:ring-red-500"
+                    />
+                    <span className="capitalize">{field}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Price Range</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                  placeholder="Min"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <span className="text-gray-400">—</span>
+                <input
+                  type="number"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                  placeholder="Max"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+            </div>
+
+            {/* Stock Range */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Stock Range</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={stockRange.min}
+                  onChange={(e) => setStockRange({ ...stockRange, min: e.target.value })}
+                  placeholder="Min Stock"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <span className="text-gray-400">—</span>
+                <input
+                  type="number"
+                  value={stockRange.max}
+                  onChange={(e) => setStockRange({ ...stockRange, max: e.target.value })}
+                  placeholder="Max Stock"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+              <button
+                onClick={resetFilters}
+                className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={() => {
+                  // Search is applied automatically via filteredProducts
+                  toast.success(`Found ${filteredProducts.length} products`);
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+              >
+                <Search size={16} />
+                Apply Search
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bulk Actions Floating Bar */}
       {selectedIds.length > 0 && (
@@ -1357,6 +1557,41 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                                 </span>
                               ))}
                             </div>
+                          </div>
+
+                          {/* Deep Search Tags */}
+                          <div className="space-y-2 pt-4 border-t border-gray-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Search size={16} className="text-purple-600" />
+                              <label className="text-sm font-medium text-gray-700">Deep Search Tags</label>
+                              <span className="text-xs text-gray-500">(Hidden tags for better search results)</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                placeholder="Add search keyword (e.g., 'smartphone', 'wireless', 'gaming')..."
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm"
+                                value={searchTagInput}
+                                onChange={e => setSearchTagInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSearchTag())}
+                              />
+                              <button type="button" onClick={addSearchTag} className="bg-purple-100 px-4 rounded-lg hover:bg-purple-200 text-purple-600 font-bold">+</button>
+                            </div>
+                            
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {formData.searchTags?.map(tag => (
+                                <span key={tag} className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium flex items-center gap-1 border border-blue-200">
+                                  <Search size={10} />
+                                  {tag} 
+                                  <button type="button" onClick={() => removeSearchTag(tag)} className="hover:text-blue-900"><X size={12}/></button>
+                                </span>
+                              ))}
+                            </div>
+                            {formData.searchTags && formData.searchTags.length > 0 && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                💡 These tags help customers find products using alternative keywords without cluttering the product display
+                              </p>
+                            )}
                           </div>
                         </div>
                       )}

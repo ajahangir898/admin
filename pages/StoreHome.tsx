@@ -127,6 +127,10 @@ const StoreHome = ({
     if (product.tags && product.tags.length) {
       return product.tags.some((tag) => contains(tag));
     }
+    // Include searchTags for deep search
+    if (product.searchTags && product.searchTags.length) {
+      return product.searchTags.some((tag) => contains(tag));
+    }
     return false;
   };
   const filteredProducts = normalizedSearch ? displayProducts.filter(matchesSearch) : displayProducts;
@@ -296,6 +300,7 @@ const StoreHome = ({
         onProductsClick={handleProductsNav}
         categoriesList={CATEGORIES.map((cat) => cat.name)}
         onCategorySelect={(categoryName) => updateSearchTerm(categoryName)}
+        onProductClick={onProductClick}
       />
       
       {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}

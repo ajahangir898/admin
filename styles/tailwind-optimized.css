@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary-rgb: 14, 165, 233;
+  --color-secondary-rgb: 251, 146, 60;
+}
+
+::selection {
+  background: rgba(var(--color-primary-rgb), 0.25);
+  color: #fff;
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Admin theme - simplified */
+.admin-theme {
+  --admin-border: rgba(255,255,255,0.1);
+  --admin-text-strong: #f8fafc;
+  background-color: #030407;
+  color: var(--admin-text-strong);
+}
+
+.admin-theme input:not([type="checkbox"]):not([type="radio"]),
+.admin-theme select,
+.admin-theme textarea {
+  background-color: rgba(15,23,42,0.82);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--admin-text-strong);
+  border-radius: 0.75rem;
+}
+
+.admin-theme input:focus,
+.admin-theme select:focus,
+.admin-theme textarea:focus {
+  border-color: rgba(248,113,113,0.7);
+  outline: none;
+}

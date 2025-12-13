@@ -15,6 +15,7 @@ const StoreProductDetail = lazy(() => import('./pages/StoreProductDetail'));
 const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
 const StoreOrderSuccess = lazy(() => import('./pages/StoreOrderSuccess'));
 const StoreProfile = lazy(() => import('./pages/StoreProfile'));
+const AdminApp = lazy(() => import('./pages/AdminApp'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminOrders = lazy(() => import('./pages/AdminOrders'));
 const AdminProducts = lazy(() => import('./pages/AdminProducts'));
@@ -1385,34 +1386,38 @@ fbq('track', 'PageView');`;
           </div>
         )}
 
-        {currentView === 'admin' ? (
-          <AdminLayout onSwitchView={() => setCurrentView('store')} activePage={adminSection} onNavigate={setAdminSection} logo={logo} user={user} onLogout={handleLogout} tenants={headerTenants} activeTenantId={activeTenantId} onTenantChange={tenantSwitcher} onOpenChatCenter={canAccessAdminChat ? handleOpenAdminChat : undefined} hasUnreadChat={canAccessAdminChat ? hasUnreadChat : undefined}>
-            {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
-             adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={handleUpdateOrder} /> :
-             adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onBulkDelete={handleBulkDeleteProducts} onBulkUpdate={handleBulkUpdateProducts} /> :
-             adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
-             adminSection === 'due_list' || adminSection === 'business_report_due_book'
-               ? <AdminDueList user={user} onLogout={handleLogout} /> :
-             adminSection === 'inventory' ? <AdminInventory products={products} /> :
-             adminSection === 'expenses' ? <AdminExpenses /> :
-             adminSection === 'customers' ? <AdminReviews /> :
-             adminSection === 'reviews' ? <AdminReviews /> :
-             adminSection === 'daily_target' ? <AdminDailyTarget /> :
-             adminSection === 'gallery' ? <AdminGallery /> :
-             adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={handleUpdateCourierConfig} onNavigate={setAdminSection} user={user} onUpdateProfile={handleUpdateProfile} /> :
-             adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={handleUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
-             adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={handleUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
-             adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={setFacebookPixelConfig} onBack={() => setAdminSection('settings')} /> :
-             adminSection === 'admin' ? <AdminControl users={users} roles={roles} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} /> :
-             adminSection === 'tenants' ? (platformOperator
-               ? <AdminTenantManagement tenants={tenants} onCreateTenant={handleCreateTenant} isCreating={isTenantSeeding} onDeleteTenant={handleDeleteTenant} deletingTenantId={deletingTenantId} />
-               : <AdminDashboard orders={orders} products={products} />) :
-             adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
-             adminSection.startsWith('business_report_') ? <AdminExpenses /> :
-             <AdminCustomization logo={logo} onUpdateLogo={handleUpdateLogo} themeConfig={themeConfig} onUpdateTheme={handleUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={handleUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
-            }
-          </AdminLayout>
-        ) : (
+    {currentView === 'admin' ? (
+  <AdminApp
+    user={user}
+    activeTenantId={activeTenantId}
+    tenants={headerTenants}
+    orders={orders}
+    products={products}
+    logo={logo}
+    themeConfig={themeConfig}
+    deliveryConfig={deliveryConfig}
+    courierConfig={courierConfig}
+    facebookPixelConfig={facebookPixelConfig}
+    chatMessages={chatMessages}
+    onLogout={handleLogout}
+    onUpdateOrder={handleUpdateOrder}
+    onAddProduct={handleAddProduct}
+    onUpdateProduct={handleUpdateProduct}
+    onDeleteProduct={handleDeleteProduct}
+    onBulkDeleteProducts={handleBulkDeleteProducts}
+    onBulkUpdateProducts={handleBulkUpdateProducts}
+    onUpdateLogo={handleUpdateLogo}
+    onUpdateTheme={handleUpdateTheme}
+    onUpdateDeliveryConfig={handleUpdateDeliveryConfig}
+    onUpdateCourierConfig={handleUpdateCourierConfig}
+    onUpdateProfile={handleUpdateProfile}
+    onTenantChange={handleTenantChange}
+    isTenantSwitching={isTenantSwitching}
+    onSwitchToStore={() => setCurrentView('store')}
+    onOpenAdminChat={handleOpenAdminChat}
+    hasUnreadChat={hasUnreadChat}
+  />
+) : (
           <>
             {currentView === 'store' && (
               <>

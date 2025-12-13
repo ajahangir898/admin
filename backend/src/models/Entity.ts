@@ -46,7 +46,7 @@ const EntitySchema = new Schema<IEntity>(
 );
 
 // Create indexes for performance
-EntitySchema.index({ phone: 1 });
+
 EntitySchema.index({ type: 1, name: 1 });
 EntitySchema.index({ createdAt: -1 });
 

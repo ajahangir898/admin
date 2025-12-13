@@ -60,7 +60,7 @@ const TransactionSchema = new Schema<ITransaction>(
 );
 
 // Create indexes for performance
-TransactionSchema.index({ entityId: 1 });
+
 TransactionSchema.index({ status: 1, transactionDate: -1 });
 TransactionSchema.index({ transactionDate: -1 });
 

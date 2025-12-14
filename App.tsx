@@ -885,8 +885,8 @@ fbq('track', 'PageView');`;
     const normalizedEmail = email.trim();
     const normalizedPass = pass.trim();
     
-    // Use API authentication
-    const response = await fetch('http://localhost:5001/api/auth/login', {
+    // Use API authentication http://localhost:5001/api/auth/login
+    const response = await fetch('https://systemnextit.com/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: normalizedEmail, password: normalizedPass }),

@@ -91,7 +91,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE_URL = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL
   ? String(import.meta.env.VITE_API_BASE_URL)
-  : 'http://localhost:5001';
+  : 'https://systemnextit.com/api';
 
 const TOKEN_KEY = 'admin_auth_token';
 const USER_KEY = 'admin_auth_user';

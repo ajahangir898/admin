@@ -83,9 +83,11 @@ const generateToken = (user: IUser): string => {
     tenantId: user.tenantId
   };
 
-  return jwt.sign(payload, env.jwtSecret, { 
-    expiresIn: env.jwtExpiresIn as string
-  });
+  const signOptions = { 
+    expiresIn: '7d' as any
+  };
+
+  return jwt.sign(payload, env.jwtSecret, signOptions);
 };
 
 // ==================== AUTH ROUTES ====================

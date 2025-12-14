@@ -91,13 +91,13 @@ const AdminDueList: React.FC<AdminDueListProps> = ({ user, onLogout }) => {
             {/* You Will Get */}
             <div className="text-center">
               <p className="text-sm text-gray-600">You Will Get</p>
-              <p className="text-2xl font-bold text-red-600">₹{totalWillGet.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-red-600">৳{totalWillGet.toLocaleString()}</p>
             </div>
 
             {/* You Will Give */}
             <div className="text-center">
               <p className="text-sm text-gray-600">You Will Give</p>
-              <p className="text-2xl font-bold text-green-600">₹{totalWillGive.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-600">৳{totalWillGive.toLocaleString()}</p>
             </div>
 
             {/* Due History Button */}
@@ -179,8 +179,8 @@ const AdminDueList: React.FC<AdminDueListProps> = ({ user, onLogout }) => {
                       <div className="font-medium text-gray-900">{entity.name}</div>
                       <div className="text-sm text-gray-600">{entity.phone}</div>
                       <div className="flex gap-4 mt-2 text-sm">
-                        <span className="text-red-600">Get: ₹{entity.totalOwedToMe}</span>
-                        <span className="text-green-600">Give: ₹{entity.totalIOweThemNumber}</span>
+                        <span className="text-red-600">Get: ৳{entity.totalOwedToMe}</span>
+                        <span className="text-green-600">Give: ৳{entity.totalIOweThemNumber}</span>
                       </div>
                     </button>
                   ))}
@@ -234,7 +234,7 @@ const AdminDueList: React.FC<AdminDueListProps> = ({ user, onLogout }) => {
                         <p className="text-sm text-gray-600">{new Date(transaction.transactionDate).toLocaleDateString()}</p>
                       </div>
                       <div className={`text-lg font-bold ${transaction.direction === 'INCOME' ? 'text-red-600' : 'text-green-600'}`}>
-                        {transaction.direction === 'INCOME' ? '+' : '-'}₹{transaction.amount.toLocaleString()}
+                        {transaction.direction === 'INCOME' ? '+' : '-'}৳{transaction.amount.toLocaleString()}
                       </div>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ml-4 ${
                         transaction.status === 'Paid'

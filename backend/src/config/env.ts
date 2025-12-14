@@ -27,5 +27,5 @@ export const env = {
     ? parsed.data.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
     : [],
   jwtSecret: parsed.data.JWT_SECRET,
-  jwtExpiresIn: parsed.data.JWT_EXPIRES_IN as string | number
+  jwtExpiresIn: parsed.data.JWT_EXPIRES_IN
 };

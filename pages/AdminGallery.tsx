@@ -6,6 +6,7 @@ import { GalleryItem } from '../types';
 import { DataService } from '../services/DataService';
 import { convertFileToWebP } from '../services/imageUtils';
 import { SkeletonImageGrid } from '../components/SkeletonLoaders';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 const AdminGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,7 +125,7 @@ const AdminGallery: React.FC = () => {
                     }`}
                   >
                      <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                        <img src={normalizeImageUrl(item.imageUrl)} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                         
                         {/* Overlay on Hover */}
                         <div className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-200 ${selectedIds.includes(item.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>

@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
 import { LazyImage } from '../utils/performanceOptimization';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -555,7 +556,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition border-b border-gray-100 dark:border-slate-700 last:border-0 text-left"
                     >
                         <img 
-                            src={product.image} 
+                            src={normalizeImageUrl(product.image)} 
                             alt={product.name}
                             className="w-14 h-14 object-cover rounded"
                         />
@@ -1702,7 +1703,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                     if (!product) return null;
                                     return (
                                         <li key={id} className="flex items-center gap-3 border-b pb-3 last:border-b-0">
-                                            <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
+                                            <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
                                             <div className="flex-1 min-w-0">
                                                 <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
                                                 <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
@@ -1760,7 +1761,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
         {/* Product Image */}
         <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
           <LazyImage 
-            src={product.galleryImages?.[0] || product.image} 
+            src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} 
             alt={product.name} 
             className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" 
           />
@@ -1814,7 +1815,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
     return (
         <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
             <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
-                <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
+                <LazyImage src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
                 {product.discount && (
                     <span className="absolute top-2 left-2 bg-pink-600 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded">
                         {product.discount}
@@ -1883,7 +1884,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
         {/* Product Image */}
         <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}> 
           <LazyImage 
-            src={product.galleryImages?.[0] || product.image} 
+            src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} 
             alt={product.name} 
             className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" 
           />
@@ -1982,7 +1983,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 <div className="relative mt-4">
                     <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition" aria-hidden />
                     <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
-                        <LazyImage src={product.galleryImages?.[0] || product.image} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
+                        <LazyImage src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
                     </div>
                     {product.discount && (
                         <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
@@ -2091,7 +2092,7 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
                         key={item.id}
                         className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                     >
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                     </a>
                 ))}
 
@@ -3022,7 +3023,7 @@ export const ProductQuickViewModal: React.FC<{
                 <div className="p-6 lg:p-10 bg-gray-50 flex flex-col items-center justify-center">
                     <div className="relative w-full max-w-sm">
                         <div className="absolute inset-6 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl" aria-hidden />
-                        <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="relative w-full h-80 object-contain" />
+                        <img src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="relative w-full h-80 object-contain" />
                     </div>
                     <div className="mt-4 flex gap-2 text-xs text-gray-500">
                         <span className="px-3 py-1 rounded-full bg-white border border-gray-200">Ships 48h</span>

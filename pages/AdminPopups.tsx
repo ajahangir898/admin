@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { X, Plus, Search, Edit2, Trash2, Eye, Save, ImageIcon, Link, ChevronDown } from 'lucide-react';
 import { Popup } from '../types';
 import { DataService } from '../services/DataService';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface AdminPopupsProps {
   onBack: () => void;
@@ -244,7 +245,7 @@ const AdminPopups: React.FC<AdminPopupsProps> = ({ onBack }) => {
                     <tr key={popup.id} className="hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <img
-                          src={popup.image}
+                          src={normalizeImageUrl(popup.image)}
                           alt={popup.name}
                           className="h-12 w-16 object-cover rounded border border-gray-200 dark:border-slate-600"
                         />
@@ -382,7 +383,7 @@ const AdminPopups: React.FC<AdminPopupsProps> = ({ onBack }) => {
                 {formData.image && (
                   <div className="mt-3">
                     <img
-                      src={formData.image}
+                      src={normalizeImageUrl(formData.image)}
                       alt="Preview"
                       className="max-h-40 rounded border border-gray-200 dark:border-slate-600"
                     />

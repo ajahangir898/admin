@@ -1,9 +1,7 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
 
-const API_BASE_URL = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL
-  ? String(import.meta.env.VITE_API_BASE_URL)
-  : '';
+const API_BASE_URL = 'https://systemnextit.com';
 
 const buildApiUrl = (path: string) => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -28,6 +26,25 @@ type SaveQueueEntry = {
   timer: ReturnType<typeof setTimeout>;
   payload: SavePayload;
   resolvers: Array<{ resolve: () => void; reject: (error: unknown) => void }>;
+};
+
+// Data refresh event system for cross-component synchronization
+type DataRefreshListener = (key: string, tenantId?: string) => void;
+const dataRefreshListeners = new Set<DataRefreshListener>();
+
+export const onDataRefresh = (listener: DataRefreshListener): (() => void) => {
+  dataRefreshListeners.add(listener);
+  return () => dataRefreshListeners.delete(listener);
+};
+
+const notifyDataRefresh = (key: string, tenantId?: string) => {
+  dataRefreshListeners.forEach(listener => {
+    try {
+      listener(key, tenantId);
+    } catch (error) {
+      console.error('Data refresh listener error:', error);
+    }
+  });
 };
 
 const SAVE_DEBOUNCE_MS = Math.max(0, Number(import.meta.env?.VITE_REMOTE_SAVE_DEBOUNCE_MS ?? 1200));
@@ -335,6 +352,8 @@ class DataServiceImpl {
   private async commitSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
     try {
       await this.persistTenantDocument(key, data, tenantId);
+      // Notify listeners that data has been updated
+      notifyDataRefresh(key, tenantId);
     } catch (error) {
       console.error(`Failed to persist ${key}`, error);
     }

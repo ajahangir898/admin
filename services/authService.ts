@@ -1,8 +1,8 @@
 // Auth Service - Connects frontend with backend authentication API
 import type { User, Role, Permission } from '../pages/AdminControlNew';
 
-// API Base URL - should match backend server
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Production API URL
+const API_URL = 'https://systemnextit.com/api';
 
 // Storage keys
 const TOKEN_KEY = 'admin_auth_token';

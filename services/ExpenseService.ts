@@ -17,7 +17,7 @@ export interface ExpenseSummary {
   categories: number;
 }
 
-const BASE = (import.meta as any).env?.VITE_API_BASE_URL || '';
+const BASE = 'https://systemnextit.com';
 
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>) {
   const url = new URL(path, BASE);

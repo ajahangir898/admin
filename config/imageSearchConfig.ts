@@ -124,7 +124,7 @@ export const IMAGE_SEARCH_CONFIG = {
 
   // API settings
   api: {
-    baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    baseUrl: 'https://systemnextit.com',
     timeout: 30000,
     retryAttempts: 3,
     retryDelay: 1000,

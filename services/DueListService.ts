@@ -1,7 +1,7 @@
 import { DueEntity, DueTransaction, CreateDueTransactionPayload, CreateEntityPayload } from '../types';
 
-// Backend API URL - use environment variable or default to localhost
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Production API URL
+const API_BASE = 'https://systemnextit.com/api';
 
 class DueListService {
   // ============ ENTITY ENDPOINTS ============

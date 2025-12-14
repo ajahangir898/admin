@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
 	LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen,
 	FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
 	Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
-	Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target
+	Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink
 } from 'lucide-react';
 import { StatCardProps, User, Tenant } from '../types';
+
 
 interface AdminSidebarProps {
 	activePage?: string;
@@ -297,12 +299,26 @@ export const AdminHeader: React.FC<{
 	return (
 		<header className="bg-gradient-to-r from-[#09080f]/95 via-[#07130d]/95 to-[#080c0a]/95 border-b border-white/5 h-auto min-h-16 flex flex-wrap items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30 shadow-[0_10px_40px_rgba(0,0,0,0.45)] text-white">
 			<div className="flex items-center gap-4 flex-wrap">
-				<button
-					onClick={onMenuClick}
-					className="lg:hidden p-2 text-emerald-200 hover:bg-emerald-500/10 rounded-lg transition"
-				>
-					<Menu size={24} />
-				</button>
+				{selectedTenant?.subdomain ? (
+    <a 
+        href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hidden md:flex items-center gap-2 text-xs font-semibold text-white bg-gradient-to-r from-red-600 via-red-500 to-emerald-500 px-4 py-1.5 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-900/30 hover:shadow-emerald-500/50 transition"
+    >
+        <Globe size={14} />
+        Go to Website
+        <ExternalLink size={12} />
+    </a>
+) : (
+    <button 
+        onClick={onSwitchView} 
+        className="hidden md:flex items-center gap-2 text-xs font-semibold text-white bg-gradient-to-r from-red-600 via-red-500 to-emerald-500 px-4 py-1.5 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-900/30 hover:shadow-emerald-500/50 transition"
+    >
+        <Globe size={14} />
+        Go to Website
+    </button>
+)}
 				<h2 className="text-xl font-black tracking-wide hidden md:block text-emerald-200">Dashboard</h2>
 				<button onClick={onSwitchView} className="hidden md:flex items-center gap-2 text-xs font-semibold text-white bg-gradient-to-r from-red-600 via-red-500 to-emerald-500 px-4 py-1.5 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-900/30 hover:shadow-emerald-500/50 transition">
 					<Globe size={14} />

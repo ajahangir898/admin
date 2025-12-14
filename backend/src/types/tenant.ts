@@ -13,13 +13,24 @@ export interface Tenant extends BaseModel {
   contactEmail: string;
   contactName?: string;
   adminEmail: string;
-  adminPassword?: string;
+  // NOTE: adminPassword should NOT be stored in tenant document
+  // It's only used during creation to create the admin user
   adminAuthUid?: string;
   plan: 'starter' | 'growth' | 'enterprise' | string;
   status: 'trialing' | 'active' | 'suspended' | 'archived' | string;
   onboardingCompleted: boolean;
-  branding?: Record<string, unknown>;
-  settings?: Record<string, unknown>;
+  branding?: {
+    logo?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    fontFamily?: string;
+  };
+  settings?: {
+    currency?: string;
+    timezone?: string;
+    language?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface CreateTenantPayload {
@@ -28,6 +39,6 @@ export interface CreateTenantPayload {
   contactEmail: string;
   contactName?: string;
   adminEmail: string;
-  adminPassword: string;
+  adminPassword: string; // Used only for creating admin user, not stored
   plan?: Tenant['plan'];
 }

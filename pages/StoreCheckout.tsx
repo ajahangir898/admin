@@ -4,6 +4,7 @@ import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig }
 import { StoreHeader, StoreFooter } from '../components/StoreComponents';
 import { EmptyCartState } from '../components/EmptyStates';
 import { SkeletonForm } from '../components/SkeletonLoaders';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import {
   AlertCircle,
   ArrowLeft,
@@ -591,7 +592,7 @@ const StoreCheckout = ({
 
               <div className="flex gap-3 mb-6">
                 <div className="w-16 h-16 bg-gray-50 rounded border border-gray-200 p-1 flex-shrink-0">
-                  <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                  <img src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start">

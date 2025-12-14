@@ -17,6 +17,14 @@ tenantDataRouter.get('/:tenantId/:key', async (req, res, next) => {
   try {
     const { tenantId, key } = paramsSchema.parse(req.params);
     const data = await getTenantData(tenantId, key);
+    
+    // Prevent browser/CDN caching for dynamic tenant data
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     res.json({ data });
   } catch (error) {
     if (error instanceof z.ZodError) {

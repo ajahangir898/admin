@@ -13,6 +13,7 @@ import {
   getUserPermissions,
   JWTPayload 
 } from '../middleware/auth';
+import { getTenantById } from '../services/tenantsService';
 
 export const authRouter = Router();
 
@@ -90,6 +91,24 @@ const generateToken = (user: IUser): string => {
   return jwt.sign(payload, env.jwtSecret, signOptions);
 };
 
+// Helper to get tenant details
+const getTenantDetails = async (tenantId?: string) => {
+  if (!tenantId) return null;
+  try {
+    const tenant = await getTenantById(tenantId);
+    if (!tenant) return null;
+    return {
+      id: tenant._id,
+      name: tenant.name,
+      subdomain: tenant.subdomain,
+      plan: tenant.plan,
+      status: tenant.status
+    };
+  } catch {
+    return null;
+  }
+};
+
 // ==================== AUTH ROUTES ====================
 
 /**
@@ -142,6 +161,9 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
       roleDetails = await Role.findById(user.roleId).select('-__v');
     }
 
+    // Get tenant details if assigned
+    const tenantDetails = await getTenantDetails(user.tenantId);
+
     res.json({
       message: 'Login successful',
       token,
@@ -156,6 +178,7 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
         roleId: user.roleId,
         roleDetails,
         tenantId: user.tenantId,
+        tenantDetails,
         isActive: user.isActive,
         lastLogin: user.lastLogin
       },
@@ -207,6 +230,9 @@ authRouter.post('/register', async (req: Request, res: Response, next: NextFunct
     const token = generateToken(user);
     const permissions = await getUserPermissions(user._id.toString());
 
+    // Get tenant details if assigned
+    const tenantDetails = await getTenantDetails(user.tenantId);
+
     res.status(201).json({
       message: 'Registration successful',
       token,
@@ -215,7 +241,8 @@ authRouter.post('/register', async (req: Request, res: Response, next: NextFunct
         name: user.name,
         email: user.email,
         role: user.role,
-        tenantId: user.tenantId
+        tenantId: user.tenantId,
+        tenantDetails
       },
       permissions
     });
@@ -241,6 +268,9 @@ authRouter.get('/me', authenticateToken, async (req: Request, res: Response, nex
       roleDetails = await Role.findById(user.roleId).select('-__v');
     }
 
+    // Get tenant details if assigned
+    const tenantDetails = await getTenantDetails(user.tenantId);
+
     res.json({
       user: {
         id: user._id,
@@ -254,6 +284,7 @@ authRouter.get('/me', authenticateToken, async (req: Request, res: Response, nex
         roleId: user.roleId,
         roleDetails,
         tenantId: user.tenantId,
+        tenantDetails,
         isActive: user.isActive,
         lastLogin: user.lastLogin,
         createdAt: user.createdAt,

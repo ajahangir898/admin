@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Popup } from '../types';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface StorePopupProps {
   popup: Popup;
@@ -62,7 +63,7 @@ export const StorePopup: React.FC<StorePopupProps> = ({ popup, onClose, onNaviga
           onClick={popup.url ? handleImageClick : undefined}
         >
           <img
-            src={popup.image}
+            src={normalizeImageUrl(popup.image)}
             alt={popup.name}
             className="w-full h-auto max-h-[80vh] object-contain"
           />

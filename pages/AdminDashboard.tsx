@@ -1,6 +1,7 @@
 import React, { useCallback, useId, useMemo, useState, useEffect } from 'react';
 import { DashboardStatCard } from '../components/AdminComponents';
 import { AdminProductManager } from '../components/AdminProductManager';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import {
   ShoppingBag,
   Truck,
@@ -681,7 +682,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div key={product.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition cursor-pointer">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 bg-white/10 rounded-lg flex-shrink-0 border border-white/10 overflow-hidden">
-                          <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                          <img src={normalizeImageUrl(product.image)} className="w-full h-full object-cover" alt={product.name} />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-white line-clamp-1">{product.name}</p>

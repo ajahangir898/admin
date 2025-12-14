@@ -3,6 +3,7 @@ import { LandingPage, Product } from '../types';
 import { OnePageCheckout, LandingCheckoutPayload } from '../components/LandingPageComponents';
 import { ArrowLeft, Sparkles, Quote, HelpCircle, Star } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface LandingPagePreviewProps {
   page: LandingPage;
@@ -29,7 +30,7 @@ const LandingHero: React.FC<{ page: LandingPage; product?: Product; }> = ({ page
         </div>
       )}
       {hero?.mediaUrl && (
-        <img src={hero.mediaUrl} alt={hero.title} className="rounded-2xl border border-white/10 shadow-2xl" />
+        <img src={normalizeImageUrl(hero.mediaUrl)} alt={hero.title} className="rounded-2xl border border-white/10 shadow-2xl" />
       )}
     </div>
   );

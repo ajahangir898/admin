@@ -3,6 +3,7 @@ import { Search, Plus, Calendar, Printer, Image as ImageIcon, Edit2, Trash2, Che
 import { IncomeService, IncomeDTO } from '../services/IncomeService';
 import { CategoryService } from '../services/CategoryService';
 import { SkeletonTable } from '../components/SkeletonLoaders';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface IncomeItem {
   id: string;
@@ -282,7 +283,7 @@ const AdminIncome: React.FC = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {item.imageUrl ? (
-                            <img src={item.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                            <img src={normalizeImageUrl(item.imageUrl)} alt="" className="w-10 h-10 rounded-lg object-cover" />
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
                               <DollarSign className="w-5 h-5 text-green-400" />

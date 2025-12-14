@@ -3,8 +3,8 @@
  * Handles uploading images to the server instead of storing as base64
  */
 
-// Backend API URL - in production this would come from environment config
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+// Production API URL
+const API_BASE_URL = 'https://systemnextit.com';
 
 export interface UploadResponse {
   success: boolean;
@@ -62,8 +62,19 @@ export const uploadImageToServer = async (
 
     console.log(`[ImageUpload] Success! Image URL: ${data.imageUrl}`);
 
-    // Return full URL for the image
-    return `${API_BASE_URL}${data.imageUrl}`;
+    // If backend returns full URL (with http/https), use it directly
+    // Otherwise, construct the full URL
+    if (data.imageUrl.startsWith('http://') || data.imageUrl.startsWith('https://')) {
+      // Replace localhost with production domain if present
+      const cleanUrl = data.imageUrl.replace('https://systemnextit.com', API_BASE_URL);
+      console.log(`[ImageUpload] Cleaned URL: ${cleanUrl}`);
+      return cleanUrl;
+    }
+    
+    // If it's a relative path, prepend API_BASE_URL
+    const fullUrl = `${API_BASE_URL}${data.imageUrl.startsWith('/') ? '' : '/'}${data.imageUrl}`;
+    console.log(`[ImageUpload] Full URL: ${fullUrl}`);
+    return fullUrl;
   } catch (error) {
     console.error('[ImageUpload] Error:', error);
     throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);

@@ -7,6 +7,7 @@ import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
 import { SkeletonCard } from '../components/SkeletonLoaders';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 // Helper for stars
 const StarRating = ({ rating, count }: { rating: number, count?: number }) => (
@@ -217,7 +218,7 @@ const StoreProductDetail = ({
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, [product.id]);
-  const galleryImages = product.galleryImages && product.galleryImages.length ? product.galleryImages : [product.image];
+  const galleryImages = product.galleryImages && product.galleryImages.length ? product.galleryImages.map(normalizeImageUrl) : [normalizeImageUrl(product.image)];
   const [selectedImage, setSelectedImage] = useState(galleryImages[0]);
   const fallbackColor = product.variantDefaults?.color || 'Default';
   const fallbackSize = product.variantDefaults?.size || 'Standard';
@@ -233,7 +234,7 @@ const StoreProductDetail = ({
   const shareUrl = `${shareBase}/${product.slug || `product-${product.id}`}`;
 
   useEffect(() => {
-    const refreshGallery = product.galleryImages && product.galleryImages.length ? product.galleryImages : [product.image];
+    const refreshGallery = product.galleryImages && product.galleryImages.length ? product.galleryImages.map(normalizeImageUrl) : [normalizeImageUrl(product.image)];
     setSelectedImage(refreshGallery[0]);
     setSelectedColor(colorOptions[0]);
     setSelectedSize(sizeOptions[0]);
@@ -719,7 +720,7 @@ const StoreProductDetail = ({
                       className="flex gap-3 group cursor-pointer"
                     >
                        <div className="w-16 h-16 bg-gray-50 rounded border border-gray-100 overflow-hidden flex-shrink-0">
-                          <LazyImage src={related.image} alt={related.name} className="w-full h-full object-cover" />
+                          <LazyImage src={normalizeImageUrl(related.image)} alt={related.name} className="w-full h-full object-cover" />
                        </div>
                        <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">

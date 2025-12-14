@@ -5,6 +5,7 @@ import {
   TrendingUp, Package, Users, DollarSign, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface AdminProductManagerProps {
   products: Product[];
@@ -306,7 +307,7 @@ export const AdminProductManager: React.FC<AdminProductManagerProps> = ({
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {product.image && (
-                        <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                        <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-10 h-10 rounded object-cover" />
                       )}
                       <div>
                         <p className="font-semibold text-gray-900">{product.name}</p>

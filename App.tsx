@@ -4,6 +4,7 @@ import { Loader2, Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
+import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { Toaster, toast } from 'react-hot-toast';
@@ -514,6 +515,64 @@ const App = () => {
     loadData();
     return () => { isMounted = false; };
   }, [activeTenantId]);
+
+  // --- DATA REFRESH HANDLER (Sync Admin changes to Storefront) ---
+  const handleDataRefresh = useCallback(async (key: string, eventTenantId?: string) => {
+    // Only refresh if we're viewing the store and the update is for our tenant
+    if (currentViewRef.current.startsWith('admin')) return;
+    if (eventTenantId && eventTenantId !== activeTenantIdRef.current) return;
+
+    const tenantId = eventTenantId || activeTenantIdRef.current;
+    console.log(`[DataRefresh] Refreshing ${key} for tenant ${tenantId}`);
+
+    try {
+      switch (key) {
+        case 'products':
+          const productsData = await DataService.getProducts(tenantId);
+          setProducts(normalizeProductCollection(productsData, tenantId));
+          break;
+        case 'orders':
+          const ordersData = await DataService.getOrders(tenantId);
+          setOrders(ordersData);
+          break;
+        case 'logo':
+          const logoData = await DataService.get<string | null>('logo', null, tenantId);
+          setLogo(logoData);
+          break;
+        case 'theme':
+          const themeData = await DataService.getThemeConfig(tenantId);
+          setThemeConfig(themeData);
+          break;
+        case 'website':
+          const websiteData = await DataService.getWebsiteConfig(tenantId);
+          setWebsiteConfig(websiteData);
+          break;
+        case 'delivery':
+          const deliveryData = await DataService.getDeliveryConfig(tenantId);
+          setDeliveryConfig(deliveryData);
+          break;
+        case 'categories':
+          const categoriesData = await DataService.getCatalog('categories', [], tenantId);
+          setCategories(categoriesData);
+          break;
+        case 'landing_pages':
+          const landingData = await DataService.getLandingPages(tenantId);
+          setLandingPages(landingData);
+          break;
+        case 'popups':
+          // Popups are loaded in StoreHome directly, trigger re-render
+          break;
+        default:
+          // For other keys, do nothing special
+          break;
+      }
+    } catch (error) {
+      console.warn(`[DataRefresh] Failed to refresh ${key}:`, error);
+    }
+  }, []);
+
+  // Subscribe to data refresh events with 500ms debounce
+  useDataRefreshDebounced(handleDataRefresh, 500);
 
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
   

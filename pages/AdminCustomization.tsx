@@ -4,6 +4,7 @@ import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, G
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
 import { convertFileToWebP } from '../services/imageUtils';
 import { DataService } from '../services/DataService';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface AdminCustomizationProps {
   logo: string | null;
@@ -493,7 +494,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                                     <td className="px-4 py-3">
                                         <div className="w-16 h-10 bg-gray-100 rounded border border-gray-200 overflow-hidden relative">
                                             {item.image ? (
-                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>
+                                                <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover"/>
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={16}/></div>
                                             )}
@@ -993,7 +994,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                               className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition"
                           >
                               {carouselFormData.image ? (
-                                  <img src={carouselFormData.image} alt="Preview" className="h-32 mx-auto object-contain"/>
+                                  <img src={normalizeImageUrl(carouselFormData.image)} alt="Preview" className="h-32 mx-auto object-contain"/>
                               ) : (
                                   <div className="text-gray-400">
                                       <Upload size={32} className="mx-auto mb-2"/>
@@ -1058,7 +1059,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                               className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition"
                           >
                               {popupFormData.image ? (
-                                  <img src={popupFormData.image} alt="Preview" className="h-32 mx-auto object-contain"/>
+                                  <img src={normalizeImageUrl(popupFormData.image)} alt="Preview" className="h-32 mx-auto object-contain"/>
                               ) : (
                                   <div className="text-gray-400">
                                       <Upload size={32} className="mx-auto mb-2"/>

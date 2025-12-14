@@ -6,6 +6,7 @@ import { convertFileToWebP } from '../services/imageUtils';
 import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
 import { formatCurrency } from '../utils/format';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import { RichTextEditor } from '../components/RichTextEditor';
 import ProductPricingAndStock, { ProductPricingData } from '../components/ProductPricingAndStock';
 import toast from 'react-hot-toast';
@@ -994,7 +995,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                        className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer flex-shrink-0"
                      />
                      <div className="relative w-20 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
-                        <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-cover" />
+                        <img src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-cover" />
                         {product.discount && (
                           <span className="absolute bottom-1 right-1 bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
                             {product.discount}
@@ -1086,7 +1087,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
               </div>
 
               <div className={`relative ${imageHeightClass} bg-gray-100`}>
-                 <img src={product.galleryImages?.[0] || product.image} alt={product.name} className="w-full h-full object-cover" />
+                 <img src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-cover" />
                  {product.discount && (
                    <span className="absolute bottom-2 right-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
                      {product.discount}
@@ -1364,7 +1365,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                              <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                                 {formData.galleryImages.map((img, idx) => (
                                    <div key={idx} className="relative group aspect-square bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-                                      <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-contain p-2" />
+                                      <img src={normalizeImageUrl(img)} alt={`Gallery ${idx + 1}`} className="w-full h-full object-contain p-2" />
                                       {idx === 0 && (
                                          <span className="absolute top-1 left-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Primary</span>
                                       )}

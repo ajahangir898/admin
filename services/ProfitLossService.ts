@@ -27,7 +27,7 @@ export interface ProfitLossDetail {
   category?: string;
 }
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:5001';
+const API_BASE = 'https://systemnextit.com';
 
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>) {
   const url = new URL(path, API_BASE);

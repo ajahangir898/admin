@@ -37,7 +37,7 @@ export interface ImageSearchServiceConfig {
 }
 
 const DEFAULT_CONFIG: ImageSearchServiceConfig = {
-  apiBaseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+  apiBaseUrl: 'https://systemnextit.com',
   uploadEndpoint: '/api/image-search/upload',
   searchEndpoint: '/api/image-search/query',
   timeoutMs: 30000

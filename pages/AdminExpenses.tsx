@@ -3,6 +3,7 @@ import { Search, Plus, Calendar, Printer, Filter, Image as ImageIcon, Edit2, Tra
 import { ExpenseService, ExpenseDTO } from '../services/ExpenseService';
 import { CategoryService, CategoryDTO } from '../services/CategoryService';
 import { SkeletonTable } from '../components/SkeletonLoaders';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface ExpenseItem {
   id: string;
@@ -377,7 +378,7 @@ const AdminExpenses: React.FC = () => {
                   <tr key={i.id || `expense-${idx}`} className="border-b border-white/5">
                     <td className="p-2"><input type="checkbox" /></td>
                     <td className="p-2">
-                      {i.imageUrl ? <img src={i.imageUrl} alt="receipt" className="w-10 h-10 rounded object-cover"/> : <div className="w-10 h-10 bg-white/5 rounded flex items-center justify-center"><ImageIcon className="w-5 h-5 text-slate-400"/></div>}
+                      {i.imageUrl ? <img src={normalizeImageUrl(i.imageUrl)} alt="receipt" className="w-10 h-10 rounded object-cover"/> : <div className="w-10 h-10 bg-white/5 rounded flex items-center justify-center"><ImageIcon className="w-5 h-5 text-slate-400"/></div>}
                     </td>
                     <td className="p-2 text-white">{i.name}</td>
                     <td className="p-2 text-slate-300">{i.category}</td>

@@ -69,7 +69,7 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
         await fs.writeFile(filePath, Buffer.from(response.data));
 
         fileSize = response.data.length;
-        imageUrl = `${process.env.API_BASE_URL || 'http://localhost:8000'}/uploads/images/${imageId}.jpg`;
+        imageUrl = `https://systemnextit.com/uploads/images/${imageId}.jpg`;
       } catch (error) {
         console.error('URL download error:', error);
         return res.status(400).json({ error: 'Failed to download image from URL' });
@@ -79,7 +79,7 @@ router.post('/upload', upload.single('image'), async (req: Request, res: Respons
       const file = (req as any).file as Express.Multer.File;
       imageId = path.parse(file.filename).name;
       fileSize = file.size;
-      imageUrl = `${process.env.API_BASE_URL || 'http://localhost:8000'}/uploads/images/${file.filename}`;
+      imageUrl = `https://systemnextit.com/uploads/images/${file.filename}`;
     } else {
       return res.status(400).json({ error: 'No image provided' });
     }

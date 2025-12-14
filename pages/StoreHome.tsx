@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal, ProductQuickViewModal } from '../components/StoreComponents';
+import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
-import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
+import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup } from '../types';
+import { DataService } from '../services/DataService';
 import { ProductFilter, SortOption } from '../components/ProductFilter';
 import { EmptySearchState } from '../components/EmptyStates';
 import { SkeletonCard, SkeletonImageGrid } from '../components/SkeletonLoaders';
@@ -90,12 +92,51 @@ const StoreHome = ({
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
   const [isLoading, setIsLoading] = useState(true);
+  const [popups, setPopups] = useState<Popup[]>([]);
+  const [activePopup, setActivePopup] = useState<Popup | null>(null);
+  const [popupIndex, setPopupIndex] = useState(0);
 
   // Simulate initial data loading
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
+
+  // Load popups
+  useEffect(() => {
+    const loadPopups = async () => {
+      const allPopups = await DataService.get<Popup[]>('popups', []);
+      const publishedPopups = allPopups
+        .filter((p) => p.status === 'Publish')
+        .sort((a, b) => (a.priority || 0) - (b.priority || 0));
+      setPopups(publishedPopups);
+      
+      // Show first popup after a delay
+      if (publishedPopups.length > 0) {
+        setTimeout(() => {
+          setActivePopup(publishedPopups[0]);
+          setPopupIndex(0);
+        }, 1500);
+      }
+    };
+    loadPopups();
+  }, []);
+
+  const handleClosePopup = () => {
+    setActivePopup(null);
+    // Show next popup if available
+    const nextIndex = popupIndex + 1;
+    if (nextIndex < popups.length) {
+      setTimeout(() => {
+        setActivePopup(popups[nextIndex]);
+        setPopupIndex(nextIndex);
+      }, 30000); // Show next popup after 30 seconds
+    }
+  };
+
+  const handlePopupNavigate = (url: string) => {
+    updateSearchTerm(url.replace('/', ''));
+  };
   const searchTerm = typeof searchValue === 'string' ? searchValue : internalSearchTerm;
   const updateSearchTerm = (value: string) => {
     if (onSearchChange) {
@@ -418,7 +459,8 @@ const StoreHome = ({
               <div className="mb-1 flex items-center gap-3">
                 <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
                 {showFlashSaleCounter && (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-100 via-white to-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-pink-900 shadow-[0_4px_12px_rgba(244,114,182,0.25)]">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-100 via-white to-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-pink-900 )]">  
+                  {/* shadow-[0_4px_12px_rgba(244,114,182,0.25 pink shadow*/}
                     <div className="flex items-center gap-1 text-sky-700">
                       {flashSaleCountdown.map((segment) => (
                         <span
@@ -620,6 +662,15 @@ const StoreHome = ({
       </main>
 
       <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      
+      {/* Popup Display */}
+      {activePopup && (
+        <StorePopup
+          popup={activePopup}
+          onClose={handleClosePopup}
+          onNavigate={handlePopupNavigate}
+        />
+      )}
     </div>
   );
 };

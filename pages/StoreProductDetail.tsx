@@ -412,7 +412,7 @@ const StoreProductDetail = ({
               <div className="w-full md:w-1/2 flex flex-col gap-4">
                  <div className="flex flex-col md:flex-row gap-4 md:gap-3 h-full">
                     {/* Thumbnail Gallery - Left Side */}
-                    <div className="flex md:flex-col gap-2 md:gap-3 order-2 md:order-1 md:w-20">
+                    <div className="flex md:flex-col gap-2 md:gap-3 order-2 md:order-1 md:w-20 overflow-x-auto md:overflow-y-auto md:max-h-[500px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                       {additionalImages.length > 0 && additionalImages.map((img, idx) => (
                         <button
                           key={idx}
@@ -601,7 +601,7 @@ const StoreProductDetail = ({
                     <button 
                       onClick={handleAddToCart}
                       disabled={isOutOfStock}
-                      className={`flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition transform active:scale-95 ${isOutOfStock ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'btn-cart'}`}
+                      className={`flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition transform active:scale-95 ${isOutOfStock ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'btn-order'}`}
                     >
                        <ShoppingCart size={20} /> Add to cart
                     </button>

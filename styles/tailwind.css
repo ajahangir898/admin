@@ -126,7 +126,7 @@
     padding: 0.5rem;
     border-radius: 9999px;
     border: 1px solid rgba(var(--color-primary-rgb), 0.35);
-    background: rgba(var(--color-surface-rgb), 0.85);
+    background: rgba(var(--admin-text-muted), 0.85);
     color: rgba(var(--color-primary-rgb), 0.9);
     box-shadow: 0 10px 25px rgba(var(--color-primary-rgb), 0.1);
     transition: all 200ms ease;

@@ -1,8 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink } from '../types';
+import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
 import { convertFileToWebP } from '../services/imageUtils';
+import { DataService } from '../services/DataService';
 
 interface AdminCustomizationProps {
   logo: string | null;
@@ -67,6 +68,15 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     }
   }, [websiteConfig]);
 
+  // Load popups
+  useEffect(() => {
+    const loadPopups = async () => {
+      const data = await DataService.get<Popup[]>('popups', []);
+      setPopups(data);
+    };
+    loadPopups();
+  }, []);
+
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   
@@ -113,6 +123,17 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   });
   const carouselFileRef = useRef<HTMLInputElement>(null);
 
+  // Popup State
+  const [popups, setPopups] = useState<Popup[]>([]);
+  const [isPopupModalOpen, setIsPopupModalOpen] = useState(false);
+  const [editingPopup, setEditingPopup] = useState<Popup | null>(null);
+  const [popupFilter, setPopupFilter] = useState<'All' | 'Publish' | 'Draft'>('All');
+  const [popupSearch, setPopupSearch] = useState('');
+  const [popupFormData, setPopupFormData] = useState<Partial<Popup>>({ 
+    name: '', image: '', url: '', urlType: 'Internal', priority: 0, status: 'Draft' 
+  });
+  const popupFileRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (themeConfig) {
       setColors({
@@ -131,7 +152,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         setColorDrafts(colors);
     }, [colors]);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel') => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel' | 'popup') => {
         const input = e.target as HTMLInputElement;
         const file = input.files?.[0];
         if (!file) return;
@@ -154,6 +175,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 setConfig(prev => ({ ...prev, favicon: converted }));
             } else if (type === 'carousel') {
                 setCarouselFormData(prev => ({ ...prev, image: converted }));
+            } else if (type === 'popup') {
+                setPopupFormData(prev => ({ ...prev, image: converted }));
             }
         } catch (error) {
             console.error('Failed to process image upload', error);
@@ -320,6 +343,57 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         { field: 'footerUsefulLinks', title: 'Footer Useful Links', helper: 'Shown in the Useful Links column of Footer 3' }
     ];
 
+  // Popup Handlers
+  const openPopupModal = (popup?: Popup) => {
+    if (popup) {
+      setEditingPopup(popup);
+      setPopupFormData(popup);
+    } else {
+      setEditingPopup(null);
+      setPopupFormData({ name: '', image: '', url: '', urlType: 'Internal', priority: 0, status: 'Draft' });
+    }
+    setIsPopupModalOpen(true);
+  };
+
+  const savePopup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!popupFormData.name || !popupFormData.image) {
+      alert('Please fill in required fields');
+      return;
+    }
+    let updatedPopups: Popup[];
+    if (editingPopup) {
+      updatedPopups = popups.map(p => p.id === editingPopup.id ? { ...popupFormData, id: editingPopup.id, updatedAt: new Date().toISOString() } as Popup : p);
+    } else {
+      const newPopup: Popup = { ...popupFormData, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Popup;
+      updatedPopups = [...popups, newPopup];
+    }
+    await DataService.save('popups', updatedPopups);
+    setPopups(updatedPopups);
+    setIsPopupModalOpen(false);
+  };
+
+  const deletePopup = async (id: number) => {
+    if (confirm('Are you sure you want to delete this popup?')) {
+      const updatedPopups = popups.filter(p => p.id !== id);
+      await DataService.save('popups', updatedPopups);
+      setPopups(updatedPopups);
+    }
+  };
+
+  const togglePopupStatus = async (popup: Popup) => {
+    const newStatus = popup.status === 'Draft' ? 'Publish' : 'Draft';
+    const updatedPopups = popups.map(p => p.id === popup.id ? { ...p, status: newStatus, updatedAt: new Date().toISOString() } : p);
+    await DataService.save('popups', updatedPopups);
+    setPopups(updatedPopups);
+  };
+
+  const filteredPopups = popups.filter(popup => {
+    const matchesStatus = popupFilter === 'All' || popup.status === popupFilter;
+    const matchesSearch = popup.name.toLowerCase().includes(popupSearch.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
   const TabButton = ({ id, label, icon }: { id: string, label: string, icon?: React.ReactNode }) => (
       <button 
         onClick={() => setActiveTab(id)}
@@ -349,6 +423,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       {/* Navigation Tabs */}
       <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white rounded-t-xl">
          <TabButton id="carousel" label="Carousel" icon={<ImageIcon size={18}/>} />
+         <TabButton id="popup" label="Popup" icon={<Layers size={18}/>} />
          <TabButton id="website_info" label="Website Information" icon={<Globe size={18}/>} />
          <TabButton id="theme_view" label="Theme View" icon={<Layout size={18}/>} />
          <TabButton id="theme_colors" label="Theme Colors" icon={<Palette size={18}/>} />
@@ -466,6 +541,102 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         <button disabled className="px-2 py-1 bg-gray-50 text-gray-400 border-r"><ChevronLeft size={16}/></button>
                         <button disabled className="px-2 py-1 bg-gray-50 text-gray-400"><ChevronRight size={16}/></button>
                     </div>
+                </div>
+            </div>
+        )}
+
+        {/* POPUP TAB */}
+        {activeTab === 'popup' && (
+            <div className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                        {['All', 'Publish', 'Draft'].map(status => (
+                            <button 
+                                key={status}
+                                onClick={() => setPopupFilter(status as any)}
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+                                    popupFilter === status 
+                                    ? 'bg-white text-green-600 shadow-sm' 
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                {status === 'All' ? 'All Data' : status}
+                                {status === 'All' && <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">{popups.length}</span>}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-64">
+                            <input 
+                                type="text" 
+                                placeholder="Search" 
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                                value={popupSearch}
+                                onChange={(e) => setPopupSearch(e.target.value)}
+                            />
+                            <Search className="absolute left-3 top-2.5 text-gray-400" size={16}/>
+                        </div>
+                        <button 
+                            onClick={() => openPopupModal()} 
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-green-700 whitespace-nowrap"
+                        >
+                            <Plus size={16}/> Add Popup
+                        </button>
+                    </div>
+                </div>
+                
+                <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Image</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">URL</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Priority</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {filteredPopups.length === 0 ? (
+                                <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No popups found</td></tr>
+                            ) : (
+                                filteredPopups.map(popup => (
+                                    <tr key={popup.id} className="hover:bg-gray-50">
+                                        <td className="px-4 py-3">
+                                            <img src={popup.image} alt={popup.name} className="h-12 w-16 object-cover rounded border" />
+                                        </td>
+                                        <td className="px-4 py-3 text-sm font-medium text-gray-800">{popup.name}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-500 truncate max-w-xs">{popup.url || '-'}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-800">{popup.priority || 0}</td>
+                                        <td className="px-4 py-3">
+                                            <button
+                                                onClick={() => togglePopupStatus(popup)}
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                    popup.status === 'Publish'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-orange-100 text-orange-800'
+                                                }`}
+                                            >
+                                                {popup.status}
+                                            </button>
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button onClick={() => openPopupModal(popup)} className="p-1.5 hover:bg-blue-50 rounded text-blue-600">
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button onClick={() => deletePopup(popup.id)} className="p-1.5 hover:bg-red-50 rounded text-red-600">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         )}
@@ -864,6 +1035,71 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                       <div className="pt-4 flex justify-end gap-3">
                           <button type="button" onClick={() => setIsCarouselModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Cancel</button>
                           <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700">Save Carousel</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
+
+      {/* Add/Edit Popup Modal */}
+      {isPopupModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+                  <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+                      <h3 className="font-bold text-gray-800">{editingPopup ? 'Edit Popup' : 'Add New Popup'}</h3>
+                      <button onClick={() => setIsPopupModalOpen(false)}><X size={20} className="text-gray-500"/></button>
+                  </div>
+                  <form onSubmit={savePopup} className="p-6 space-y-4">
+                      <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image*</label>
+                          <input type="file" ref={popupFileRef} onChange={(e) => handleImageUpload(e, 'popup')} className="hidden" accept="image/*" />
+                          <div 
+                              onClick={() => popupFileRef.current?.click()}
+                              className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition"
+                          >
+                              {popupFormData.image ? (
+                                  <img src={popupFormData.image} alt="Preview" className="h-32 mx-auto object-contain"/>
+                              ) : (
+                                  <div className="text-gray-400">
+                                      <Upload size={32} className="mx-auto mb-2"/>
+                                      <p className="text-sm">Click to upload image</p>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Name*</label>
+                              <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.name} onChange={e => setPopupFormData({...popupFormData, name: e.target.value})} required/>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                              <input type="number" className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.priority} onChange={e => setPopupFormData({...popupFormData, priority: Number(e.target.value)})} />
+                          </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                              <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.url} onChange={e => setPopupFormData({...popupFormData, url: e.target.value})}/>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">URL Type</label>
+                              <select className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.urlType} onChange={e => setPopupFormData({...popupFormData, urlType: e.target.value as any})}>
+                                  <option value="Internal">Internal</option>
+                                  <option value="External">External</option>
+                              </select>
+                          </div>
+                      </div>
+                      <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                          <select className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.status} onChange={e => setPopupFormData({...popupFormData, status: e.target.value as any})}>
+                              <option value="Publish">Publish</option>
+                              <option value="Draft">Draft</option>
+                          </select>
+                      </div>
+                      <div className="pt-4 flex justify-end gap-3">
+                          <button type="button" onClick={() => setIsPopupModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Cancel</button>
+                          <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700">Save Popup</button>
                       </div>
                   </form>
               </div>

@@ -27,6 +27,7 @@ const AdminReviews = lazy(() => import('./AdminReviews'));
 const AdminDailyTarget = lazy(() => import('./AdminDailyTarget'));
 const AdminGallery = lazy(() => import('./AdminGallery'));
 const AdminExpenses = lazy(() => import('./AdminExpenses'));
+const AdminPopups = lazy(() => import('./AdminPopups'));
 const AdminProfitLoss = lazy(() => import('./AdminProfitLoss'));
 const AdminIncome = lazy(() => import('./AdminIncome'));
 const AdminNote = lazy(() => import('./AdminNote'));
@@ -401,6 +402,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'due_list' ? <AdminDueList user={user} onLogout={onLogout} /> :
          adminSection === 'inventory' ? <AdminInventory products={products} /> :
          adminSection === 'expenses' ? <AdminExpenses /> :
+         adminSection === 'popups' ? <AdminPopups onBack={() => setAdminSection('dashboard')} /> :
          adminSection === 'customers' ? <AdminReviews /> :
          adminSection === 'reviews' ? <AdminReviews /> :
          adminSection === 'daily_target' ? <AdminDailyTarget /> :

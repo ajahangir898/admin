@@ -1410,85 +1410,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                                 </span>
                             )}
                         </button>
-                                    {/* Wishlist Drawer/Modal */}
-                                    {isWishlistDrawerOpen && (
-                                        <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
-                                            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-auto p-6 relative">
-                                                <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsWishlistDrawerOpen(false)}>
-                                                    <X size={22} />
-                                                </button>
-                                                <h2 className="text-lg font-bold mb-4">My Wishlist</h2>
-                                                {wishlistItems.length === 0 ? (
-                                                    <div className="text-center text-gray-500 py-8">No items in wishlist.</div>
-                                                ) : (
-                                                    <ul className="space-y-4">
-                                                        {wishlistItems.map((id) => {
-                                                            const product = catalogSource.find(p => p.id === id);
-                                                            if (!product) return null;
-                                                            return (
-                                                                <li key={id} className="flex items-center gap-3 border-b pb-3">
-                                                                    <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
-                                                                        <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
-                                                                        <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
-                                                                    </div>
-                                                                    <button className="text-red-500 hover:text-red-700" onClick={() => handleWishlistItemToggle(id)}>
-                                                                        <Trash2 size={18} />
-                                                                    </button>
-                                                                </li>
-                                                            );
-                                                        })}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {/* Cart Drawer/Modal */}
-                                    {isCartDrawerOpen && (
-                                        <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
-                                            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-auto p-6 relative">
-                                                <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsCartDrawerOpen(false)}>
-                                                    <X size={22} />
-                                                </button>
-                                                <h2 className="text-lg font-bold mb-4">My Cart</h2>
-                                                {cartItems.length === 0 ? (
-                                                    <div className="text-center text-gray-500 py-8">No items in cart.</div>
-                                                ) : (
-                                                    <ul className="space-y-4">
-                                                        {cartItems.map((id) => {
-                                                            const product = catalogSource.find(p => p.id === id);
-                                                            if (!product) return null;
-                                                            return (
-                                                                <li key={id} className="flex items-center gap-3 border-b pb-3">
-                                                                    <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
-                                                                        <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
-                                                                        <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
-                                                                        <div className="mt-3 flex gap-2">
-                                                                            <button
-                                                                                className="flex-1 btn-order py-1.5 text-sm"
-                                                                                onClick={() => handleCheckoutFromCartClick(id)}
-                                                                            >
-                                                                                Checkout
-                                                                            </button>
-                                                                            <button
-                                                                                className="rounded-lg border border-red-200 text-red-500 text-xs font-semibold px-3 py-2 hover:bg-red-50 dark:border-red-500/40 dark:hover:bg-red-500/10"
-                                                                                onClick={() => handleCartItemToggle(id)}
-                                                                            >
-                                                                                Remove
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </li>
-                                                            );
-                                                        })}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
                         <div className="relative cursor-pointer text-gray-800 dark:text-white">
                             <Bell size={24} strokeWidth={2} />
                             {notificationBadgeCount > 0 && (
@@ -1590,7 +1511,10 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
 
             {/* Actions */}
             <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
-                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex"
+                    onClick={() => setIsWishlistDrawerOpen(true)}
+                >
                 <div className="relative">
                     <Heart size={24} />
                     {wishlistBadgeCount > 0 && (
@@ -1600,7 +1524,10 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
                 <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
                 </div>
                 
-                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex">
+                <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition hidden md:flex"
+                    onClick={() => setIsCartDrawerOpen(true)}
+                >
                 <div className="relative">
                     <ShoppingCart size={24} />
                     {cartBadgeCount > 0 && (
@@ -1722,6 +1649,86 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
         </div>
       </div>
             </header>
+
+            {/* Wishlist Drawer/Modal - Works for both mobile and desktop */}
+            {isWishlistDrawerOpen && (
+                <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center" onClick={() => setIsWishlistDrawerOpen(false)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
+                        <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100" onClick={() => setIsWishlistDrawerOpen(false)}>
+                            <X size={22} />
+                        </button>
+                        <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">My Wishlist</h2>
+                        {wishlistItems.length === 0 ? (
+                            <div className="text-center text-gray-500 py-8">No items in wishlist.</div>
+                        ) : (
+                            <ul className="space-y-4 max-h-96 overflow-y-auto">
+                                {wishlistItems.map((id) => {
+                                    const product = catalogSource.find(p => p.id === id);
+                                    if (!product) return null;
+                                    return (
+                                        <li key={id} className="flex items-center gap-3 border-b pb-3 last:border-b-0">
+                                            <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</div>
+                                                <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
+                                            </div>
+                                            <button className="text-red-500 hover:text-red-700" onClick={() => handleWishlistItemToggle(id)}>
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Cart Drawer/Modal - Works for both mobile and desktop */}
+            {isCartDrawerOpen && (
+                <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center" onClick={() => setIsCartDrawerOpen(false)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
+                        <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100" onClick={() => setIsCartDrawerOpen(false)}>
+                            <X size={22} />
+                        </button>
+                        <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">My Cart</h2>
+                        {cartItems.length === 0 ? (
+                            <div className="text-center text-gray-500 py-8">No items in cart.</div>
+                        ) : (
+                            <ul className="space-y-4 max-h-96 overflow-y-auto">
+                                {cartItems.map((id) => {
+                                    const product = catalogSource.find(p => p.id === id);
+                                    if (!product) return null;
+                                    return (
+                                        <li key={id} className="flex items-center gap-3 border-b pb-3 last:border-b-0">
+                                            <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-gray-900 dark:text-white">{product.name}</div>
+                                                <div className="text-sm font-bold text-green-600 dark:text-green-400 mt-1">৳ {formatCurrency(product.price)}</div>
+                                                <div className="mt-3 flex gap-2">
+                                                    <button
+                                                        className="flex-1 btn-order py-1.5 text-sm"
+                                                        onClick={() => handleCheckoutFromCartClick(id)}
+                                                    >
+                                                        Checkout
+                                                    </button>
+                                                    <button
+                                                        className="rounded-lg border border-red-200 text-red-500 text-xs font-semibold px-3 py-2 hover:bg-red-50 dark:border-red-500/40 dark:hover:bg-red-500/10"
+                                                        onClick={() => handleCartItemToggle(id)}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
         </>
   );
 };
@@ -1833,7 +1840,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                     {product.name}
                 </h3>
                 
-                <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p>
+                {/* <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p> */}
 
                 <div className="mt-auto">
                     <div className="flex items-center gap-2 mb-2">

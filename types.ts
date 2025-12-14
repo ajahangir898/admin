@@ -80,6 +80,18 @@ export interface Product {
   variantStock?: ProductVariantStock[];
 }
 
+export interface Popup {
+  id: number;
+  name: string;
+  image: string;
+  url?: string;
+  urlType?: 'Internal' | 'External';
+  priority?: number;
+  status: 'Draft' | 'Publish';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Order {
   id: string;
   tenantId?: string;

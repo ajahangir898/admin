@@ -13,14 +13,15 @@ import {
   getUserPermissions,
   JWTPayload 
 } from '../middleware/auth';
-import { getTenantById } from '../services/tenantsService';
+import { getTenantById, getTenantBySubdomain } from '../services/tenantsService';
 
 export const authRouter = Router();
 
 // Validation schemas
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6)
+  password: z.string().min(6),
+  subdomain: z.string().nullish() // For tenant-scoped login (accepts null, undefined, or string)
 });
 
 const registerSchema = z.object({
@@ -114,10 +115,15 @@ const getTenantDetails = async (tenantId?: string) => {
 /**
  * POST /api/auth/login
  * Login with email and password
+ * Supports tenant-scoped login via subdomain parameter
  */
 authRouter.post('/login', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
+    const { email, password, subdomain } = loginSchema.parse(req.body);
+    
+    // Also check header for subdomain (backup method)
+    const subdomainHeader = req.headers['x-tenant-subdomain'] as string | undefined;
+    const tenantSubdomain = subdomain || subdomainHeader;
 
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -126,6 +132,29 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
         error: 'Invalid email or password',
         code: 'INVALID_CREDENTIALS'
       });
+    }
+
+    // If logging in from a subdomain, verify user belongs to that tenant
+    if (tenantSubdomain) {
+      const tenant = await getTenantBySubdomain(tenantSubdomain);
+      if (!tenant) {
+        return res.status(401).json({
+          error: 'Invalid tenant',
+          code: 'TENANT_NOT_FOUND'
+        });
+      }
+      
+      // Super admins can login anywhere
+      if (user.role !== 'super_admin') {
+        // Check if user belongs to this tenant
+        if (!user.tenantId || user.tenantId !== tenant._id?.toString()) {
+          console.log(`[auth] Login denied: User ${user.email} (tenantId: ${user.tenantId}) tried to access tenant ${tenant._id} (${tenantSubdomain})`);
+          return res.status(401).json({
+            error: 'Invalid email or password',
+            code: 'INVALID_CREDENTIALS'
+          });
+        }
+      }
     }
 
     // Check if user is active

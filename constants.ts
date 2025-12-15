@@ -20,11 +20,11 @@ export const RESERVED_TENANT_SLUGS = [
 export const DEMO_TENANTS: Tenant[] = [
   {
     id: DEFAULT_TENANT_ID,
-    name: 'GadgetShob Demo',
-    subdomain: 'demo',
+    name: 'OP-BD.COM - Get The Best For Less !',
+    subdomain: 'admin',
     contactEmail: 'support@systemnextit.com',
-    adminEmail: 'demo@systemnextit.com',
-    adminPassword: 'demo1234',
+    adminEmail: 'admin@systemnextit.com',
+    adminPassword: 'admin1234',
     plan: 'starter',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -269,7 +269,7 @@ export const DEFAULT_LANDING_PAGES: LandingPage[] = firstProduct ? [
     seo: {
       metaTitle: `${firstProduct.name} | Buy Online`,
       metaDescription: firstProduct.description?.slice(0, 140) || 'Instant landing experience.',
-      canonicalUrl: `https://demo.systemnextit.com/${toSlug(firstProduct.name)}-page`,
+      canonicalUrl: `https://admin.systemnextit.com/${toSlug(firstProduct.name)}-page`,
       keywords: ['gadget', 'deal', firstProduct.name]
     },
     blocks: [

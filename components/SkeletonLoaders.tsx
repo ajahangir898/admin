@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
@@ -15,8 +15,8 @@ const metricPlaceholders = Array.from({ length: 4 });
 const productPlaceholders = Array.from({ length: 6 }); // Reduced from 8 to 6
 const tableRows = Array.from({ length: 5 });
 
-// Login Skeleton - Lightweight skeleton for login page
-export const LoginSkeleton: React.FC = () => (
+// Login Skeleton - Lightweight skeleton for login page - memoized for perf
+export const LoginSkeleton: React.FC = memo(() => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0f] via-[#0f0f1a] to-[#0a1410]">
     <div className="w-full max-w-md p-8">
       <div className="bg-gradient-to-br from-[#0f0f1a]/90 to-[#0a1410]/90 backdrop-blur-xl rounded-3xl p-8 space-y-6">
@@ -29,10 +29,11 @@ export const LoginSkeleton: React.FC = () => (
       </div>
     </div>
   </div>
-);
+));
+LoginSkeleton.displayName = 'LoginSkeleton';
 
-// Store Skeleton - Optimized for store pages
-export const StoreSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode = false }) => {
+// Store Skeleton - Optimized for store pages - memoized
+export const StoreSkeleton: React.FC<SkeletonVariantProps> = memo(({ darkMode = false }) => {
   const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
   const highlightColor = darkMode ? '#475569' : '#f8fafc';
   
@@ -60,10 +61,11 @@ export const StoreSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode = false
       </div>
     </SkeletonTheme>
   );
-};
+});
+StoreSkeleton.displayName = 'StoreSkeleton';
 
-// Admin Skeleton - Optimized for admin dashboard
-export const AdminSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode = false }) => {
+// Admin Skeleton - Optimized for admin dashboard - memoized
+export const AdminSkeleton: React.FC<SkeletonVariantProps> = memo(({ darkMode = false }) => {
   const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
   const highlightColor = darkMode ? '#475569' : '#f8fafc';
   
@@ -94,7 +96,8 @@ export const AdminSkeleton: React.FC<SkeletonVariantProps> = ({ darkMode = false
       </div>
     </SkeletonTheme>
   );
-};
+});
+AdminSkeleton.displayName = 'AdminSkeleton';
 
 const StoreSkeletonOld: React.FC<SkeletonVariantProps> = ({ darkMode }) => (
   <div className={`min-h-screen ${darkMode ? 'bg-slate-900 text-slate-200' : 'bg-gray-50 text-slate-600'} pb-20`}>
@@ -249,7 +252,7 @@ export const SkeletonForm: React.FC<{ fields?: number; darkMode?: boolean }> = (
 );
 
 // SkeletonImageGrid - Skeleton for image grid layouts
-export const SkeletonImageGrid: React.FC<{ count?: number; cols?: string; darkMode?: boolean }> = ({ count = 6, cols = 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4', darkMode }) => (
+export const SkeletonImageGrid: React.FC<{ count?: number; cols?: string; darkMode?: boolean }> = memo(({ count = 6, cols = 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4', darkMode }) => (
   <div className={`grid ${cols} gap-4`}>
     {Array.from({ length: count }).map((_, index) => (
       <div key={index} className={`rounded-lg overflow-hidden ${darkMode ? 'bg-slate-800/70' : 'bg-slate-100'}`}>
@@ -261,6 +264,147 @@ export const SkeletonImageGrid: React.FC<{ count?: number; cols?: string; darkMo
       </div>
     ))}
   </div>
-);
+));
+SkeletonImageGrid.displayName = 'SkeletonImageGrid';
+
+// Product Detail Skeleton - for product detail pages
+export const ProductDetailSkeleton: React.FC<SkeletonVariantProps> = memo(({ darkMode = false }) => {
+  const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
+  const highlightColor = darkMode ? '#475569' : '#f8fafc';
+  
+  return (
+    <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
+      <div className={`min-h-screen ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        {/* Header */}
+        <div className={`p-4 ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
+          <Skeleton height={32} width={180} />
+        </div>
+        {/* Product Layout */}
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Image */}
+            <Skeleton height={400} className="rounded-xl" />
+            {/* Details */}
+            <div className="space-y-4">
+              <Skeleton height={28} width="80%" />
+              <Skeleton height={32} width="30%" />
+              <Skeleton height={16} count={3} />
+              <Skeleton height={48} width="50%" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
+});
+ProductDetailSkeleton.displayName = 'ProductDetailSkeleton';
+
+// Checkout Skeleton - for checkout pages
+export const CheckoutSkeleton: React.FC<SkeletonVariantProps> = memo(({ darkMode = false }) => {
+  const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
+  const highlightColor = darkMode ? '#475569' : '#f8fafc';
+  
+  return (
+    <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
+      <div className={`min-h-screen ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+          {/* Order Summary */}
+          <div className={`rounded-xl p-6 ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
+            <Skeleton height={24} width="40%" className="mb-4" />
+            <div className="flex gap-4">
+              <Skeleton height={80} width={80} className="rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton height={18} width="60%" />
+                <Skeleton height={14} width="30%" />
+                <Skeleton height={20} width="25%" />
+              </div>
+            </div>
+          </div>
+          {/* Form Fields */}
+          <div className={`rounded-xl p-6 ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
+            <Skeleton height={24} width="35%" className="mb-4" />
+            <div className="space-y-4">
+              <Skeleton height={44} />
+              <Skeleton height={44} />
+              <Skeleton height={44} />
+              <Skeleton height={80} />
+            </div>
+          </div>
+          {/* Submit Button */}
+          <Skeleton height={52} className="rounded-xl" />
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
+});
+CheckoutSkeleton.displayName = 'CheckoutSkeleton';
+
+// Dashboard Stats Skeleton - for admin dashboard metrics
+export const DashboardStatsSkeleton: React.FC<SkeletonVariantProps> = memo(({ darkMode = false }) => {
+  const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
+  const highlightColor = darkMode ? '#475569' : '#f8fafc';
+  
+  return (
+    <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
+      <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+        {metricPlaceholders.map((_, i) => (
+          <div key={i} className={`rounded-xl p-5 ${darkMode ? 'bg-slate-800' : 'bg-white'} shadow-sm`}>
+            <div className="flex justify-between items-start mb-3">
+              <Skeleton height={14} width="50%" />
+              <Skeleton height={32} width={32} circle />
+            </div>
+            <Skeleton height={28} width="60%" />
+            <Skeleton height={12} width="40%" className="mt-2" />
+          </div>
+        ))}
+      </div>
+    </SkeletonTheme>
+  );
+});
+DashboardStatsSkeleton.displayName = 'DashboardStatsSkeleton';
+
+// Profile Skeleton - for user profile pages
+export const ProfileSkeleton: React.FC<SkeletonVariantProps> = memo(({ darkMode = false }) => {
+  const baseColor = darkMode ? '#1f2937' : '#e2e8f0';
+  const highlightColor = darkMode ? '#475569' : '#f8fafc';
+  
+  return (
+    <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
+      <div className={`min-h-screen ${darkMode ? 'bg-slate-900' : 'bg-gray-50'} py-8`}>
+        <div className="max-w-2xl mx-auto px-4 space-y-6">
+          {/* Profile Header */}
+          <div className={`rounded-xl p-6 ${darkMode ? 'bg-slate-800' : 'bg-white'} text-center`}>
+            <Skeleton height={96} width={96} circle className="mx-auto mb-4" />
+            <Skeleton height={24} width="40%" className="mx-auto mb-2" />
+            <Skeleton height={16} width="30%" className="mx-auto" />
+          </div>
+          {/* Profile Form */}
+          <div className={`rounded-xl p-6 ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
+            <Skeleton height={20} width="25%" className="mb-4" />
+            <div className="space-y-4">
+              <Skeleton height={44} />
+              <Skeleton height={44} />
+              <Skeleton height={44} />
+            </div>
+            <Skeleton height={44} width="30%" className="mt-6" />
+          </div>
+          {/* Order History */}
+          <div className={`rounded-xl p-6 ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
+            <Skeleton height={20} width="30%" className="mb-4" />
+            {tableRows.slice(0, 3).map((_, i) => (
+              <div key={i} className="py-3 border-b last:border-0">
+                <div className="flex justify-between">
+                  <Skeleton height={16} width="40%" />
+                  <Skeleton height={16} width="20%" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </SkeletonTheme>
+  );
+});
+ProfileSkeleton.displayName = 'ProfileSkeleton';
 
 export default AppSkeleton;

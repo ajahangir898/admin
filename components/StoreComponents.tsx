@@ -2215,13 +2215,13 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
     if (websiteConfig?.footerStyle === 'style2') {
         return (
             <>
-            <footer className="store-footer surface-panel bg-white border-t border-gray-100 pt-8 pb-4 relative mt-auto max-w-7xl mx-auto px-4">
-                <div className="max-w-7xl mx-auto px-4">
+            <footer className="store-footer surface-panel bg-white border-t border-gray-100 pt-8 pb-2 relative mt-auto max-w-7xl mx-auto px-4">
+                <div className="max-w-7xl mx-auto px-2">
                     {/* Centered Contact Bar */}
-                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-12 border-b border-gray-100 pb-8">
+                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-2 border-b border-gray-100 pb-2">
                         <div className="flex items-center gap-2">
                             <Mail size={18} className="text-blue-500" />
-                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.emails?.[0] || 'info@cocokids.com.bd'}</span>
+                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.emails?.[0] || 'info@systemnextit.com.bd'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Phone size={18} className="text-blue-500" />
@@ -2237,12 +2237,14 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         {/* Logo & Social */}
                         <div className="flex flex-col items-center md:items-start">
                             <div className="mb-4 flex flex-col items-center md:items-start">
-                                {logo ? (
+                                {websiteConfig?.favicon ? (
+                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                ) : logo ? (
                                     <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
                                 ) : (
                                     <>
-                                        <span className="text-2xl font-black text-blue-500 tracking-tight">COCO</span>
-                                        <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1 block">KIDS</span>
+                                        <span className="text-2xl font-black text-blue-500 tracking-tight">SYSTEMNEXT</span>
+                                        <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1 block">IT</span>
                                     </>
                                 )}
                             </div>
@@ -2287,7 +2289,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     </div>
 
                     <div className="border-t border-gray-100 mt-12 pt-6 text-center text-xs text-gray-500">
-                        &copy; All Copyrights Reserved by Cocokids
+                        &copy; All Copyrights Reserved by  {websiteConfig?.websiteName || 'Your Store'}. {new Date().getFullYear()}
                     </div>
                 </div>
             </footer>
@@ -2335,7 +2337,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.2fr,0.8fr,0.8fr]">
                         <div className="space-y-6">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                {logo ? (
+                                {websiteConfig?.favicon ? (
+                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                ) : logo ? (
                                     <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
                                 ) : (
                                     <div className="text-3xl font-black tracking-tight text-gray-900">
@@ -2562,7 +2566,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
         <footer className={`store-footer surface-panel bg-white border-t border-gray-100 pt-1 pb-1 text-gray-600 max-w-7xl mx-auto px-4`}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
-                    {logo ? (
+                    {websiteConfig?.favicon ? (
+                        <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-10 object-contain mb-4" />
+                    ) : logo ? (
                         <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-10 object-contain mb-4" />
                     ) : (
                         <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>

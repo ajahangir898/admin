@@ -1,0 +1,386 @@
+================================================================================
+                    SERVER MANAGEMENT COMMANDS REFERENCE
+                         systemnextit.com Setup
+================================================================================
+
+================================================================================
+1. PM2 - PROCESS MANAGER
+================================================================================
+
+# Check status of all processes
+pm2 status
+
+# View logs (last 50 lines)
+pm2 logs backend --lines 50
+
+# Restart backend
+pm2 restart backend
+
+# Stop backend
+pm2 stop backend
+
+# Start backend
+pm2 start npm --name "backend" -- run start
+
+# Delete process
+pm2 delete backend
+
+# Save current process list (persist after reboot)
+pm2 save
+
+# Setup PM2 to start on boot
+pm2 startup
+
+
+================================================================================
+2. NGINX - WEB SERVER
+================================================================================
+
+# Test nginx configuration
+sudo nginx -t
+
+# Reload nginx (after config changes)
+sudo systemctl reload nginx
+
+# Restart nginx
+sudo systemctl restart nginx
+
+# Check nginx status
+sudo systemctl status nginx
+
+# View nginx error logs
+sudo tail -f /var/log/nginx/error.log
+
+# View nginx access logs
+sudo tail -f /var/log/nginx/access.log
+
+# List enabled sites
+ls -la /etc/nginx/sites-enabled/
+
+# List available sites
+ls -la /etc/nginx/sites-available/
+
+# Enable a site (create symlink)
+sudo ln -sf /etc/nginx/sites-available/SITENAME /etc/nginx/sites-enabled/
+
+# Disable a site (remove symlink)
+sudo rm /etc/nginx/sites-enabled/SITENAME
+
+# Edit site config
+sudo nano /etc/nginx/sites-available/SITENAME
+
+
+================================================================================
+3. SSL CERTIFICATES - CERTBOT
+================================================================================
+
+# Get SSL for specific domains
+sudo certbot --nginx -d domain.com -d www.domain.com
+
+# Get wildcard SSL (requires DNS challenge)
+sudo certbot certonly --manual --preferred-challenges=dns -d "*.systemnextit.com" -d "systemnextit.com"
+
+# Renew all certificates
+sudo certbot renew
+
+# Check certificate expiry
+sudo certbot certificates
+
+# Test renewal (dry run)
+sudo certbot renew --dry-run
+
+
+================================================================================
+4. MONGODB - DATABASE
+================================================================================
+
+# Connect to MongoDB shell
+mongosh
+
+# Select database
+use seven_days
+
+# List all collections
+show collections
+
+# Find all tenants
+db.tenants.find()
+
+# Find tenants with specific fields
+db.tenants.find({}, { name: 1, subdomain: 1, _id: 1 })
+
+# Find single tenant by subdomain
+db.tenants.findOne({ subdomain: "bolod" })
+
+# Update tenant subdomain
+db.tenants.updateOne(
+  { name: "Tenant Name" },
+  { $set: { subdomain: "newsubdomain" } }
+)
+
+# Find all users
+db.users.find({}, { email: 1, role: 1, tenantId: 1 })
+
+# Find roles
+db.roles.find()
+
+# Delete a tenant
+db.tenants.deleteOne({ _id: ObjectId("tenant_id_here") })
+
+# Exit mongosh
+exit
+
+
+================================================================================
+5. BACKEND DEPLOYMENT
+================================================================================
+
+# Navigate to backend
+cd /var/www/admin/backend
+
+# Pull latest code
+git pull
+
+# Install dependencies
+npm install
+
+# Build TypeScript
+npm run build
+
+# Check if build files exist
+ls -la dist/
+
+# Restart after deployment
+pm2 restart backend
+
+
+================================================================================
+6. FRONTEND DEPLOYMENT
+================================================================================
+
+# On LOCAL machine - build frontend
+cd d:\systemnextit\admin
+npm run build
+
+# Copy dist folder to server (from local)
+scp -r dist/* user@159.198.47.126:/var/www/admin/frontend/
+
+# On SERVER - check frontend files
+ls -la /var/www/admin/frontend/
+
+# Set permissions
+sudo chown -R www-data:www-data /var/www/admin/frontend
+sudo chmod -R 755 /var/www/admin/frontend
+
+
+================================================================================
+7. DEBUGGING & TESTING
+================================================================================
+
+# Test if backend is running on port
+sudo lsof -i :5001
+sudo netstat -tlnp | grep 5001
+
+# Test API endpoint
+curl http://localhost:5001/health
+curl https://systemnextit.com/api/tenants
+
+# Test CORS headers
+curl -I -X OPTIONS \
+  -H "Origin: https://bolod.systemnextit.com" \
+  -H "Access-Control-Request-Method: GET" \
+  https://systemnextit.com/api/tenants
+
+# Test subdomain response
+curl -I https://bolod.systemnextit.com
+
+# Check DNS resolution
+nslookup bolod.systemnextit.com
+dig bolod.systemnextit.com
+
+# Check open ports
+sudo ufw status
+
+
+================================================================================
+8. FILE MANAGEMENT
+================================================================================
+
+# View file contents
+cat /path/to/file
+
+# View first/last lines
+head -50 /path/to/file
+tail -50 /path/to/file
+
+# Search for text in file
+grep "searchterm" /path/to/file
+grep -r "searchterm" /path/to/directory/
+
+# Edit file with nano
+nano /path/to/file
+# Save: Ctrl+X, Y, Enter
+
+# Create directory
+mkdir -p /path/to/directory
+
+# Set ownership
+sudo chown -R www-data:www-data /path/
+
+# Set permissions
+sudo chmod -R 755 /path/
+
+
+================================================================================
+9. GIT COMMANDS
+================================================================================
+
+# Check status
+git status
+
+# Pull latest
+git pull
+
+# View recent commits
+git log --oneline -5
+
+# Discard local changes
+git checkout -- .
+
+# Hard reset to remote
+git fetch origin
+git reset --hard origin/main
+
+
+================================================================================
+10. SYSTEM MANAGEMENT
+================================================================================
+
+# Check disk space
+df -h
+
+# Check memory usage
+free -m
+
+# Check running processes
+htop
+# or
+top
+
+# Kill process by port
+sudo kill $(sudo lsof -t -i:5001)
+
+# Restart server
+sudo reboot
+
+# Check system logs
+journalctl -xe
+
+
+================================================================================
+11. ENVIRONMENT VARIABLES
+================================================================================
+
+# Backend .env location
+/var/www/admin/backend/.env
+
+# Required variables:
+PORT=5001
+MONGODB_URI=mongodb+srv://...
+MONGODB_DB_NAME=seven_days
+ALLOWED_ORIGINS=https://systemnextit.com
+JWT_SECRET=your_secret_key
+JWT_EXPIRES_IN=7d
+
+
+================================================================================
+12. NGINX CONFIG TEMPLATES
+================================================================================
+
+# Main domain config: /etc/nginx/sites-available/systemnextit.com
+# Wildcard config: /etc/nginx/sites-available/wildcard.systemnextit.com
+
+# Basic wildcard config for subdomains:
+----------------------------------------
+server {
+    listen 80;
+    server_name *.systemnextit.com;
+
+    root /var/www/admin/frontend;
+    index index.html;
+
+    client_max_body_size 10M;
+
+    location /uploads/ {
+        alias /var/www/admin/backend/uploads/;
+        expires 30d;
+        try_files $uri =404;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_request_buffering off;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+----------------------------------------
+
+
+================================================================================
+13. CREATE NEW TENANT (API)
+================================================================================
+
+# Step 1: Login as super_admin (PowerShell)
+$response = Invoke-RestMethod -Uri "https://systemnextit.com/api/auth/login" -Method POST -ContentType "application/json" -Body '{"email":"admin@super.com","password":"YOUR_PASSWORD"}'
+$token = $response.token
+
+# Step 2: Create tenant
+$headers = @{ Authorization = "Bearer $token" }
+$body = @{
+    name = "Store Name"
+    subdomain = "storename"
+    contactEmail = "contact@email.com"
+    adminEmail = "admin@email.com"
+    adminPassword = "password123"
+    plan = "starter"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "https://systemnextit.com/api/tenants" -Method POST -ContentType "application/json" -Headers $headers -Body $body
+
+
+================================================================================
+14. QUICK TROUBLESHOOTING
+================================================================================
+
+Problem: 502 Bad Gateway
+Solution: Backend not running
+  pm2 status
+  pm2 restart backend
+
+Problem: CORS Error
+Solution: Check backend CORS config and restart
+  pm2 restart backend
+
+Problem: "No storefront configured"
+Solution: Check tenant subdomain in MongoDB matches URL
+
+Problem: Files not loading (MIME type error)
+Solution: Frontend not deployed or nginx misconfigured
+  ls -la /var/www/admin/frontend/
+
+Problem: SSL certificate error
+Solution: Run certbot
+  sudo certbot --nginx -d domain.com
+
+
+================================================================================
+                              END OF REFERENCE
+================================================================================

@@ -1,5 +1,5 @@
 // admin/pages/AdminApp.tsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { Suspense, lazy } from 'react';
 import { 
   Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, 
@@ -11,33 +11,42 @@ import * as authService from '../services/authService';
 import { toast } from 'react-hot-toast';
 import { Monitor, LayoutDashboard } from 'lucide-react';
 
-const AdminDashboard = lazy(() => import('./AdminDashboard'));
-const AdminOrders = lazy(() => import('./AdminOrders'));
-const AdminProducts = lazy(() => import('./AdminProducts'));
-const AdminCustomization = lazy(() => import('./AdminCustomization'));
-const AdminSettings = lazy(() => import('./AdminSettings'));
-const AdminControl = lazy(() => import('./AdminControl'));
-const AdminControlNew = lazy(() => import('./AdminControlNew'));
-const AdminCatalog = lazy(() => import('./AdminCatalog'));
-const AdminBusinessReport = lazy(() => import('./AdminBusinessReport'));
-const AdminDeliverySettings = lazy(() => import('./AdminDeliverySettings'));
-const AdminCourierSettings = lazy(() => import('./AdminCourierSettings'));
-const AdminInventory = lazy(() => import('./AdminInventory'));
-const AdminReviews = lazy(() => import('./AdminReviews'));
-const AdminDailyTarget = lazy(() => import('./AdminDailyTarget'));
-const AdminGallery = lazy(() => import('./AdminGallery'));
-const AdminExpenses = lazy(() => import('./AdminExpenses'));
-const AdminPopups = lazy(() => import('./AdminPopups'));
-const AdminProfitLoss = lazy(() => import('./AdminProfitLoss'));
-const AdminIncome = lazy(() => import('./AdminIncome'));
-const AdminNote = lazy(() => import('./AdminNote'));
-const AdminFacebookPixel = lazy(() => import('./AdminFacebookPixel'));
-const AdminLandingPage = lazy(() => import('./AdminLandingPage'));
-const AdminTenantManagement = lazy(() => import('./AdminTenantManagement'));
-const AdminDueList = lazy(() => import('./AdminDueList'));
-const loadAdminComponents = () => import('../components/AdminComponents');
+// Lazy loaded admin pages with webpackChunkName for better caching
+const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin-dashboard" */ './AdminDashboard'));
+const AdminOrders = lazy(() => import(/* webpackChunkName: "admin-orders" */ './AdminOrders'));
+const AdminProducts = lazy(() => import(/* webpackChunkName: "admin-products" */ './AdminProducts'));
+const AdminCustomization = lazy(() => import(/* webpackChunkName: "admin-customization" */ './AdminCustomization'));
+const AdminSettings = lazy(() => import(/* webpackChunkName: "admin-settings" */ './AdminSettings'));
+const AdminControl = lazy(() => import(/* webpackChunkName: "admin-control" */ './AdminControl'));
+const AdminControlNew = lazy(() => import(/* webpackChunkName: "admin-control-new" */ './AdminControlNew'));
+const AdminCatalog = lazy(() => import(/* webpackChunkName: "admin-catalog" */ './AdminCatalog'));
+const AdminBusinessReport = lazy(() => import(/* webpackChunkName: "admin-reports" */ './AdminBusinessReport'));
+const AdminDeliverySettings = lazy(() => import(/* webpackChunkName: "admin-delivery" */ './AdminDeliverySettings'));
+const AdminCourierSettings = lazy(() => import(/* webpackChunkName: "admin-courier" */ './AdminCourierSettings'));
+const AdminInventory = lazy(() => import(/* webpackChunkName: "admin-inventory" */ './AdminInventory'));
+const AdminReviews = lazy(() => import(/* webpackChunkName: "admin-reviews" */ './AdminReviews'));
+const AdminDailyTarget = lazy(() => import(/* webpackChunkName: "admin-target" */ './AdminDailyTarget'));
+const AdminGallery = lazy(() => import(/* webpackChunkName: "admin-gallery" */ './AdminGallery'));
+const AdminExpenses = lazy(() => import(/* webpackChunkName: "admin-expenses" */ './AdminExpenses'));
+const AdminPopups = lazy(() => import(/* webpackChunkName: "admin-popups" */ './AdminPopups'));
+const AdminProfitLoss = lazy(() => import(/* webpackChunkName: "admin-profitloss" */ './AdminProfitLoss'));
+const AdminIncome = lazy(() => import(/* webpackChunkName: "admin-income" */ './AdminIncome'));
+const AdminNote = lazy(() => import(/* webpackChunkName: "admin-note" */ './AdminNote'));
+const AdminFacebookPixel = lazy(() => import(/* webpackChunkName: "admin-pixel" */ './AdminFacebookPixel'));
+const AdminLandingPage = lazy(() => import(/* webpackChunkName: "admin-landing" */ './AdminLandingPage'));
+const AdminTenantManagement = lazy(() => import(/* webpackChunkName: "admin-tenant" */ './AdminTenantManagement'));
+const AdminDueList = lazy(() => import(/* webpackChunkName: "admin-duelist" */ './AdminDueList'));
+const loadAdminComponents = () => import(/* webpackChunkName: "admin-components" */ '../components/AdminComponents');
 const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminSidebar })));
 const AdminHeader = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminHeader })));
+
+// Preload critical admin chunks on idle
+if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+  (window as any).requestIdleCallback(() => {
+    import('./AdminDashboard');
+    import('../components/AdminComponents');
+  }, { timeout: 3000 });
+}
 
 interface AdminAppProps {
   user: User | null;
@@ -70,6 +79,12 @@ interface AdminAppProps {
   onSwitchToStore: () => void;
   onOpenAdminChat: () => void;
   hasUnreadChat: boolean;
+  // Tenant management props
+  onCreateTenant: (payload: CreateTenantPayload, options?: { activate?: boolean }) => Promise<Tenant>;
+  onDeleteTenant: (tenantId: string) => Promise<void>;
+  onRefreshTenants: () => Promise<Tenant[]>;
+  isTenantCreating: boolean;
+  deletingTenantId: string | null;
 }
 
 interface AdminLayoutProps {
@@ -169,6 +184,11 @@ const AdminApp: React.FC<AdminAppProps> = ({
   onSwitchToStore,
   onOpenAdminChat,
   hasUnreadChat,
+  onCreateTenant,
+  onDeleteTenant,
+  onRefreshTenants,
+  isTenantCreating,
+  deletingTenantId,
 }) => {
   const [adminSection, setAdminSection] = useState('dashboard');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -413,7 +433,14 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={(cfg) => onUpdateCourierConfig(cfg)} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'admin' ? <AdminControlNew users={users} roles={roles as any} onAddUser={handleAddUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onAddRole={handleAddRole as any} onUpdateRole={handleUpdateRole as any} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} currentUser={user} tenantId={activeTenantId} /> :
          adminSection === 'tenants' ? (platformOperator
-           ? <AdminTenantManagement tenants={tenants} onCreateTenant={async () => {}} isCreating={false} onDeleteTenant={async () => {}} deletingTenantId={null} />
+           ? <AdminTenantManagement 
+               tenants={tenants} 
+               onCreateTenant={onCreateTenant} 
+               isCreating={isTenantCreating} 
+               onDeleteTenant={onDeleteTenant} 
+               deletingTenantId={deletingTenantId}
+               onRefreshTenants={onRefreshTenants}
+             />
            : <AdminDashboard orders={orders} products={products} />) :
          adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} onNavigate={setAdminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
          adminSection.startsWith('business_report_') ? <AdminBusinessReport initialTab={adminSection} orders={orders} products={products} user={user} onLogout={onLogout} /> :

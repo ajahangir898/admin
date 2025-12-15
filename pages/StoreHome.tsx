@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, TrackOrderModal, AIStudioModal, ProductQuickViewModal } from '../components/StoreComponents';
+import React, { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback } from 'react';
+import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, ProductQuickViewModal } from '../components/StoreComponents';
 import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
@@ -9,6 +9,10 @@ import { DataService } from '../services/DataService';
 import { ProductFilter, SortOption } from '../components/ProductFilter';
 import { EmptySearchState } from '../components/EmptyStates';
 import { SkeletonCard, SkeletonImageGrid } from '../components/SkeletonLoaders';
+
+// Lazy load heavy modals
+const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -344,8 +348,16 @@ const StoreHome = ({
         onProductClick={onProductClick}
       />
       
-      {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
-      {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
+      {isTrackOrderOpen && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
+      {isAIStudioOpen && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
+          <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
+        </Suspense>
+      )}
       {quickViewProduct && (
         <ProductQuickViewModal
           product={quickViewProduct}

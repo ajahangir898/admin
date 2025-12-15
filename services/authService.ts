@@ -1,8 +1,48 @@
 // Auth Service - Connects frontend with backend authentication API
 import type { User, Role, Permission } from '../pages/AdminControlNew';
 
-// Production API URL
-const API_URL = 'https://systemnextit.com/api';
+// Dynamic API URL - works for main domain and all subdomains
+const getApiUrl = (): string => {
+  if (typeof window === 'undefined') {
+    return 'https://systemnextit.com/api';
+  }
+  
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  // For localhost development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5001/api';
+  }
+  
+  // For production - all requests go to main domain API
+  // The API handles tenant context via subdomain header
+  const parts = hostname.split('.');
+  const mainDomain = parts.length > 2 ? parts.slice(-2).join('.') : hostname;
+  
+  return `${protocol}//${mainDomain}/api`;
+};
+
+// Get current subdomain (if any)
+const getCurrentSubdomain = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
+  
+  // If we have a subdomain (e.g., amit.systemnextit.com)
+  if (parts.length > 2) {
+    const subdomain = parts[0];
+    // Exclude www and admin as they're not tenant subdomains
+    if (subdomain !== 'www' && subdomain !== 'admin') {
+      return subdomain;
+    }
+  }
+  
+  return null;
+};
+
+const API_URL = getApiUrl();
 
 // Storage keys
 const TOKEN_KEY = 'admin_auth_token';
@@ -10,7 +50,7 @@ const USER_KEY = 'admin_auth_user';
 const PERMISSIONS_KEY = 'admin_auth_permissions';
 
 // Helper to get auth header
-const getAuthHeader = (): HeadersInit => {
+export const getAuthHeader = (): HeadersInit => {
   const token = localStorage.getItem(TOKEN_KEY);
   return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 };
@@ -45,12 +85,19 @@ const handleResponse = async (response: Response) => {
 
 /**
  * Login user and get JWT token
+ * If on a subdomain, includes subdomain in request for tenant verification
  */
 export const login = async (email: string, password: string): Promise<{ user: User; token: string; permissions: Permission[] }> => {
+  const subdomain = getCurrentSubdomain();
+  
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    headers: { 
+      'Content-Type': 'application/json',
+      // Pass subdomain for tenant-scoped login
+      ...(subdomain && { 'X-Tenant-Subdomain': subdomain })
+    },
+    body: JSON.stringify({ email, password, ...(subdomain && { subdomain }) }),
   });
   
   const data = await handleResponse(response);

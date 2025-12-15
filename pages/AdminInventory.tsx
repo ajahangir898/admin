@@ -27,7 +27,7 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
       return stock > 0 && stock <= lowStockThreshold;
     }).length;
     const outStockCount = products.filter((product) => (product.stock ?? 0) <= 0).length;
-    const totalValue = products.reduce((sum, product) => sum + (product.stock ?? 0) * (product.price ?? 0), 0);
+    const totalValue = products.reduce((sum, product) => sum + (product.stock ?? 0) * (product.costPrice ?? 0), 0);
     const penalty = lowStockCount * 3 + outStockCount * 6;
     const healthScore = Math.max(0, Math.min(100, Math.round(100 - penalty / Math.max(1, totalSkus))));
 
@@ -93,7 +93,7 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
         <>
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>Total SKUs</span>
+            <span>Products</span>
             <Boxes size={18} className="text-indigo-500" />
           </div>
           <p className="mt-3 text-3xl font-black text-gray-800">{stats.totalSkus}</p>

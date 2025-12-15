@@ -1,7 +1,8 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
+import { getAuthHeader } from './authService';
 
-const API_BASE_URL = 'https://systemnextit.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 const buildApiUrl = (path: string) => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -142,11 +143,13 @@ class DataServiceImpl {
     }
     const { headers, body, ...rest } = init || {};
     const normalizedHeaders = this.normalizeHeaders(headers);
+    const authHeaders = this.normalizeHeaders(getAuthHeader());
+    
     const response = await fetch(buildApiUrl(path), {
       credentials: 'include',
       ...rest,
       headers: {
-        'Content-Type': 'application/json',
+        ...authHeaders,
         ...normalizedHeaders
       },
       body

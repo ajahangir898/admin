@@ -878,7 +878,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                                         <span className="font-bold text-gray-700">None</span>
                                     </div>
                                     <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1">
-                                        <Eye size={14} /> View demo
+                                        <Eye size={14} /> View Site
                                     </button>
                                 </div>
                             )}

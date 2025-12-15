@@ -320,10 +320,10 @@ export const AdminHeader: React.FC<{
     </button>
 )}
 				<h2 className="text-xl font-black tracking-wide hidden md:block text-emerald-200">Dashboard</h2>
-				<button onClick={onSwitchView} className="hidden md:flex items-center gap-2 text-xs font-semibold text-white bg-gradient-to-r from-red-600 via-red-500 to-emerald-500 px-4 py-1.5 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-900/30 hover:shadow-emerald-500/50 transition">
+				{/* <button onClick={onSwitchView} className="hidden md:flex items-center gap-2 text-xs font-semibold text-white bg-gradient-to-r from-red-600 via-red-500 to-emerald-500 px-4 py-1.5 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-900/30 hover:shadow-emerald-500/50 transition">
 					<Globe size={14} />
 					Go to Website
-				</button>
+				</button> */}
 				{canSwitchTenant && (
 					<div className="relative hidden sm:block" ref={tenantMenuRef}>
 						<button

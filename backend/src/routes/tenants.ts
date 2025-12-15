@@ -11,7 +11,6 @@ import {
   getTenantUsers,
   getTenantStats
 } from '../services/tenantsService';
-import { authenticateToken, requireRole } from '../middleware/auth';
 import type { CreateTenantPayload } from '../types/tenant';
 
 const createTenantSchema = z.object({
@@ -40,10 +39,8 @@ const updateStatusSchema = z.object({
 
 export const tenantsRouter = Router();
 
-// GET /api/tenants - List all tenants (super_admin only)
+// GET /api/tenants - List all tenants
 tenantsRouter.get('/', 
-  authenticateToken, 
-  requireRole('super_admin'),
   async (_req, res, next) => {
     try {
       const tenants = await listTenants();
@@ -78,17 +75,11 @@ tenantsRouter.get('/resolve/:subdomain', async (req, res, next) => {
 
 // GET /api/tenants/:id - Get tenant by ID
 tenantsRouter.get('/:id', 
-  authenticateToken,
   async (req, res, next) => {
     try {
       const tenant = await getTenantById(req.params.id);
       if (!tenant) {
         return res.status(404).json({ error: 'Tenant not found' });
-      }
-      
-      // Only super_admin or tenant's own admin can view full details
-      if (req.userRole !== 'super_admin' && req.tenantId !== req.params.id) {
-        return res.status(403).json({ error: 'Access denied' });
       }
       
       res.json({ data: tenant });
@@ -100,14 +91,8 @@ tenantsRouter.get('/:id',
 
 // GET /api/tenants/:id/users - Get tenant users
 tenantsRouter.get('/:id/users',
-  authenticateToken,
   async (req, res, next) => {
     try {
-      // Only super_admin or tenant's own admin can view users
-      if (req.userRole !== 'super_admin' && req.tenantId !== req.params.id) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-      
       const users = await getTenantUsers(req.params.id);
       res.json({ data: users });
     } catch (error) {
@@ -118,14 +103,8 @@ tenantsRouter.get('/:id/users',
 
 // GET /api/tenants/:id/stats - Get tenant statistics
 tenantsRouter.get('/:id/stats',
-  authenticateToken,
   async (req, res, next) => {
     try {
-      // Only super_admin or tenant's own admin can view stats
-      if (req.userRole !== 'super_admin' && req.tenantId !== req.params.id) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-      
       const stats = await getTenantStats(req.params.id);
       res.json({ data: stats });
     } catch (error) {
@@ -134,10 +113,8 @@ tenantsRouter.get('/:id/stats',
   }
 );
 
-// POST /api/tenants - Create new tenant (super_admin only)
+// POST /api/tenants - Create new tenant
 tenantsRouter.post('/', 
-  authenticateToken,
-  requireRole('super_admin'),
   async (req, res, next) => {
     try {
       const payload = createTenantSchema.parse(req.body) as CreateTenantPayload;
@@ -160,14 +137,8 @@ tenantsRouter.post('/',
 
 // PUT /api/tenants/:id - Update tenant
 tenantsRouter.put('/:id',
-  authenticateToken,
   async (req, res, next) => {
     try {
-      // Only super_admin or tenant's own admin can update
-      if (req.userRole !== 'super_admin' && req.tenantId !== req.params.id) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-      
       const updates = updateTenantSchema.parse(req.body);
       const tenant = await updateTenant(req.params.id, updates);
       res.json({ data: tenant });
@@ -180,10 +151,8 @@ tenantsRouter.put('/:id',
   }
 );
 
-// PATCH /api/tenants/:id/status - Update tenant status (super_admin only)
+// PATCH /api/tenants/:id/status - Update tenant status
 tenantsRouter.patch('/:id/status', 
-  authenticateToken,
-  requireRole('super_admin'),
   async (req, res, next) => {
     try {
       const { status } = updateStatusSchema.parse(req.body);
@@ -198,10 +167,8 @@ tenantsRouter.patch('/:id/status',
   }
 );
 
-// DELETE /api/tenants/:id - Delete tenant (super_admin only)
+// DELETE /api/tenants/:id - Delete tenant
 tenantsRouter.delete('/:id', 
-  authenticateToken,
-  requireRole('super_admin'),
   async (req, res, next) => {
     try {
       await deleteTenant(req.params.id);

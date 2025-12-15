@@ -58,6 +58,9 @@ export interface Product {
   tenantId?: string;
   price: number;
   originalPrice?: number;
+  costPrice?: number; // Cost price for profit calculation
+  sku?: string; // Stock Keeping Unit
+  isWholesale?: boolean; // Wholesale product flag
   image: string;
   galleryImages?: string[];
   slug?: string;

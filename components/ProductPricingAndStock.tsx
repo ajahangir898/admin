@@ -94,9 +94,24 @@ const ProductPricingAndStock: React.FC<ProductPricingAndStockProps> = ({
 
       {/* Price Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+       
+         <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-500 capitalize">Regular Price</label>
+          <input
+            type="number"
+            value={formData.salesPrice || ''}
+            onChange={(e) => handleInputChange(e, 'salesPrice')}
+            placeholder="675"
+            className="px-4 py-3 border border-gray-300 rounded-md text-base text-gray-800 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-300"
+            min="0"
+            step="0.01"
+          />
+        </div>
+       
+       
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-500 capitalize">
-            Regular Price<span className="text-red-500 ml-1">*</span>
+            Sale Price<span className="text-red-500 ml-1">*</span>
           </label>
           <input
             type="number"
@@ -110,19 +125,6 @@ const ProductPricingAndStock: React.FC<ProductPricingAndStockProps> = ({
           {errors.regularPrice && (
             <p className="text-xs text-red-500 m-0 mt-1">{errors.regularPrice}</p>
           )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-500 capitalize">Sales Price</label>
-          <input
-            type="number"
-            value={formData.salesPrice || ''}
-            onChange={(e) => handleInputChange(e, 'salesPrice')}
-            placeholder="675"
-            className="px-4 py-3 border border-gray-300 rounded-md text-base text-gray-800 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-300"
-            min="0"
-            step="0.01"
-          />
         </div>
       </div>
 

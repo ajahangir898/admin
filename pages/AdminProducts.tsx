@@ -307,10 +307,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       setPricingData({
         regularPrice: product.price || 0,
         salesPrice: product.originalPrice || 0,
-        costPrice: 0, // Not stored in product, can be added if needed
-        stockValue: 0, // Not stored in product, can be added if needed
-        sku: product.slug || '',
-        isWholesale: false, // Not stored in product, can be added if needed
+        costPrice: product.costPrice || 0,
+        stockValue: product.stock || 0,
+        sku: product.sku || '',
+        isWholesale: product.isWholesale || false,
       });
     } else {
       setEditingProduct(null);
@@ -391,6 +391,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       // Update with pricing data
       price: pricingData.regularPrice,
       originalPrice: pricingData.salesPrice,
+      costPrice: pricingData.costPrice,
+      stock: pricingData.stockValue,
+      sku: pricingData.sku,
+      isWholesale: pricingData.isWholesale,
       // Ensure defaults
       rating: editingProduct ? editingProduct.rating : 5.0, // Default rating for new products
       reviews: editingProduct ? editingProduct.reviews : 0,

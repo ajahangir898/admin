@@ -1,16 +1,19 @@
 
-import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
-import { Loader2, Store, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, lazy, Suspense, useCallback, useRef, useMemo, memo } from 'react';
+import { Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { DataService } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
-import { Toaster, toast } from 'react-hot-toast';
-import AppSkeleton, { LoginSkeleton, StoreSkeleton, AdminSkeleton } from './components/SkeletonLoaders';
+import { toast } from 'react-hot-toast';
+import AppSkeleton, { LoginSkeleton, StoreSkeleton, AdminSkeleton, ProductDetailSkeleton, CheckoutSkeleton, ProfileSkeleton } from './components/SkeletonLoaders';
 
-// Store pages - lazy loaded
+// Lazy load Toaster for faster initial render
+const Toaster = lazy(() => import('react-hot-toast').then(m => ({ default: m.Toaster })));
+
+// Store pages - lazy loaded with preload
 const StoreHome = lazy(() => import('./pages/StoreHome'));
 const StoreProductDetail = lazy(() => import('./pages/StoreProductDetail'));
 const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
@@ -23,11 +26,19 @@ const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminAppWithAuth = lazy(() => import('./pages/AdminAppWithAuth'));
 
-// Store components - lazy loaded
-const loadStoreComponents = () => import('./components/StoreComponents');
+// Store components - lazy loaded with chunk naming
+const loadStoreComponents = () => import(/* webpackChunkName: "store-components" */ './components/StoreComponents');
 const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: module.LoginModal })));
 const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
 const StoreChatModal = lazy(() => loadStoreComponents().then(module => ({ default: module.StoreChatModal })));
+
+// Preload critical chunks on idle
+if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+  (window as any).requestIdleCallback(() => {
+    import('./pages/StoreHome');
+    import('./components/StoreComponents');
+  }, { timeout: 2000 });
+}
 
 type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search' | 'admin-login';
 
@@ -143,11 +154,17 @@ const normalizeProductCollection = (items: Product[], tenantId?: string): Produc
   return normalized;
 };
 
-const SuspenseFallback = ({ variant = 'store' }: { variant?: 'store' | 'admin' | 'login' }) => {
-  if (variant === 'login') return <LoginSkeleton />;
-  if (variant === 'admin') return <AdminSkeleton />;
-  return <StoreSkeleton />;
-};
+const SuspenseFallback = memo(({ variant = 'store' }: { variant?: 'store' | 'admin' | 'login' | 'detail' | 'checkout' | 'profile' }) => {
+  switch (variant) {
+    case 'login': return <LoginSkeleton />;
+    case 'admin': return <AdminSkeleton />;
+    case 'detail': return <ProductDetailSkeleton />;
+    case 'checkout': return <CheckoutSkeleton />;
+    case 'profile': return <ProfileSkeleton />;
+    default: return <StoreSkeleton />;
+  }
+});
+SuspenseFallback.displayName = 'SuspenseFallback';
 
 const isAdminRole = (role?: User['role'] | null) => role === 'admin' || role === 'tenant_admin' || role === 'super_admin';
 const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin';
@@ -1418,7 +1435,9 @@ fbq('track', 'PageView');`;
 
   return (
     <Suspense fallback={<SuspenseFallback variant={suspenseVariant} />}>
-      <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
+      <Suspense fallback={null}>
+        <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
+      </Suspense>
       <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
         {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
 
@@ -1473,6 +1492,11 @@ fbq('track', 'PageView');`;
     onSwitchToStore={() => setCurrentView('store')}
     onOpenAdminChat={handleOpenAdminChat}
     hasUnreadChat={hasUnreadChat}
+    onCreateTenant={handleCreateTenant}
+    onDeleteTenant={handleDeleteTenant}
+    onRefreshTenants={refreshTenants}
+    isTenantCreating={isTenantSeeding}
+    deletingTenantId={deletingTenantId}
   />
       </Suspense>
 ) : (
@@ -1517,7 +1541,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'detail' && selectedProduct && (
-              <Suspense fallback={<StoreSkeleton />}>
+              <Suspense fallback={<ProductDetailSkeleton />}>
                 <StoreProductDetail 
                 product={selectedProduct} 
                 orders={orders} 
@@ -1546,7 +1570,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'checkout' && selectedProduct && (
-              <Suspense fallback={<StoreSkeleton />}>
+              <Suspense fallback={<CheckoutSkeleton />}>
                 <StoreCheckout 
                 product={selectedProduct}
                 quantity={checkoutQuantity}
@@ -1593,7 +1617,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'profile' && user && (
-              <Suspense fallback={<StoreSkeleton />}>
+              <Suspense fallback={<ProfileSkeleton />}>
                 <>
                 <StoreProfile 
                   user={user} 

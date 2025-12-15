@@ -1,13 +1,24 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense, memo, useCallback } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
-import { StoreHeader, StoreFooter, TrackOrderModal, AIStudioModal, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
+import { StoreHeader, StoreFooter, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
 import { SkeletonCard } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
+
+// Lazy load heavy modals
+const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
+
+// Modal loading fallback
+const ModalLoadingFallback = () => (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full" />
+  </div>
+);
 
 // Helper for stars
 const StarRating = ({ rating, count }: { rating: number, count?: number }) => (
@@ -346,8 +357,16 @@ const StoreProductDetail = ({
         onProductClick={onProductClick}
       />
       
-      {isTrackOrderOpen && <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />}
-      {isAIStudioOpen && <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />}
+      {isTrackOrderOpen && (
+        <Suspense fallback={<ModalLoadingFallback />}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
+      {isAIStudioOpen && (
+        <Suspense fallback={<ModalLoadingFallback />}>
+          <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
+        </Suspense>
+      )}
       {showCartSuccess && (
         <AddToCartSuccessModal 
           product={product} 

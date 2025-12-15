@@ -6,6 +6,7 @@ import type { LandingCheckoutPayload } from './components/LandingPageComponents'
 import { DataService } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
+import { notificationService } from './backend/src/services/NotificationService';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { toast } from 'react-hot-toast';
 import AppSkeleton, { LoginSkeleton, StoreSkeleton, AdminSkeleton, ProductDetailSkeleton, CheckoutSkeleton, ProfileSkeleton } from './components/SkeletonLoaders';
@@ -1263,9 +1264,11 @@ fbq('track', 'PageView');`;
     }
     handleCheckoutStart(targetProduct, 1, ensureVariantSelection(targetProduct));
   };
-  const handlePlaceOrder = (formData: any) => {
+  // ...existing code...
+  const handlePlaceOrder = async (formData: any) => {
+    const orderId = `#${Math.floor(1000 + Math.random() * 9000)}`;
     const newOrder: Order = {
-      id: `#${Math.floor(1000 + Math.random() * 9000)}`,
+      id: orderId,
       tenantId: activeTenantId,
       customer: formData.fullName,
       location: formData.address,
@@ -1283,20 +1286,44 @@ fbq('track', 'PageView');`;
       deliveryCharge: formData.deliveryCharge
     };
     setOrders([newOrder, ...orders]);
-    setCurrentView('success');
-    window.scrollTo(0,0);
-  };
 
+    // Create notification for new order
+    try {
+      await notificationService.createNotification(activeTenantId, {
+        type: 'order',
+        title: 'New Order Received',
+        message: `Order ${orderId} from ${formData.fullName} - ৳${formData.amount}`,
+        data: {
+          orderId,
+          customerName: formData.fullName,
+          customerPhone: formData.phone,
+          amount: formData.amount,
+          productName: selectedProduct?.name,
+          quantity: formData.quantity || checkoutQuantity,
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to create order notification:', error);
+    }
+
+    setCurrentView('success');
+    window.scrollTo(0, 0);
+  };
+// ...existing code...
+
+// ...existing code...
   const handleLandingOrderSubmit = async (payload: LandingCheckoutPayload & { pageId: string; productId: number }) => {
     const product = products.find(p => p.id === payload.productId);
     if (!product) return;
+    const orderId = `LP-${Math.floor(10000 + Math.random() * 90000)}`;
+    const orderAmount = product.price * payload.quantity;
     const newOrder: Order = {
-      id: `LP-${Math.floor(10000 + Math.random() * 90000)}`,
+      id: orderId,
       tenantId: activeTenantId,
       customer: payload.fullName,
       location: payload.address,
       phone: payload.phone,
-      amount: product.price * payload.quantity,
+      amount: orderAmount,
       date: new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
       status: 'Pending',
       email: payload.email,
@@ -1306,7 +1333,28 @@ fbq('track', 'PageView');`;
       quantity: payload.quantity
     };
     setOrders(prev => [newOrder, ...prev]);
+
+    // Create notification for landing page order
+    try {
+      await notificationService.createNotification(activeTenantId, {
+        type: 'order',
+        title: 'New Landing Page Order',
+        message: `Order ${orderId} from ${payload.fullName} - ৳${orderAmount}`,
+        data: {
+          orderId,
+          customerName: payload.fullName,
+          customerPhone: payload.phone,
+          amount: orderAmount,
+          productName: product.name,
+          quantity: payload.quantity,
+          landingPageId: payload.pageId,
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to create landing page order notification:', error);
+    }
   };
+// ...existing code...
 
   const handleCloseLandingPreview = () => {
     setSelectedLandingPage(null);

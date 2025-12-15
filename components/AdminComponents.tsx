@@ -1,12 +1,14 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
 	LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen,
 	FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
 	Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
-	Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink
+	Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock
 } from 'lucide-react';
 import { StatCardProps, User, Tenant } from '../types';
+import { useNotifications } from '../hooks/useNotifications';
+import type { Notification as AppNotification } from '../backend/src/services/NotificationService';
 
 
 interface AdminSidebarProps {
@@ -225,7 +227,76 @@ export const AdminHeader: React.FC<{
 }> = ({ onSwitchView, user, onLogout, logo, onMenuClick, tenants, activeTenantId, onTenantChange, isTenantSwitching, onOpenChatCenter, hasUnreadChat }) => {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isTenantMenuOpen, setIsTenantMenuOpen] = useState(false);
+	const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 	const tenantMenuRef = useRef<HTMLDivElement | null>(null);
+	const notificationRef = useRef<HTMLDivElement | null>(null);
+	const prevUnreadCountRef = useRef<number>(-1); // Start with -1 to skip initial load
+	const hasUserInteracted = useRef<boolean>(false);
+
+	// Track user interaction to enable audio
+	useEffect(() => {
+		const enableAudio = () => {
+			hasUserInteracted.current = true;
+		};
+		window.addEventListener('click', enableAudio, { once: true });
+		window.addEventListener('keydown', enableAudio, { once: true });
+		return () => {
+			window.removeEventListener('click', enableAudio);
+			window.removeEventListener('keydown', enableAudio);
+		};
+	}, []);
+
+	// Notification hook - use activeTenantId from props with polling fallback
+	const notificationResult = useNotifications({ 
+		autoFetch: !!activeTenantId, 
+		autoConnect: !!activeTenantId,
+		limit: 20,
+		tenantId: activeTenantId,
+		pollingInterval: 15000, // Poll every 15 seconds as fallback for WebSocket
+	});
+	
+	const notifications = activeTenantId ? notificationResult.notifications : [];
+	const unreadCount = activeTenantId ? notificationResult.unreadCount : 0;
+	const notificationsLoading = activeTenantId ? notificationResult.isLoading : false;
+	const markAsRead = notificationResult.markAsRead;
+	const markAllAsRead = notificationResult.markAllAsRead;
+	const refreshNotifications = notificationResult.refresh;
+
+	// Play sound when unread count increases (skip initial load)
+	useEffect(() => {
+		// Skip initial load (-1) and when count stays same or decreases
+		if (prevUnreadCountRef.current >= 0 && unreadCount > prevUnreadCountRef.current) {
+			console.log(`[Notification] New notifications! ${prevUnreadCountRef.current} -> ${unreadCount}`);
+			// Play notification sound
+			if (hasUserInteracted.current) {
+				try {
+					const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+					const audioContext = new AudioContextClass();
+					if (audioContext.state === 'suspended') {
+						void audioContext.resume();
+					}
+					const oscillator = audioContext.createOscillator();
+					const gainNode = audioContext.createGain();
+					oscillator.connect(gainNode);
+					gainNode.connect(audioContext.destination);
+					oscillator.type = 'sine';
+					oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+					oscillator.frequency.setValueAtTime(1174.66, audioContext.currentTime + 0.15);
+					gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+					gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+					oscillator.start(audioContext.currentTime);
+					oscillator.stop(audioContext.currentTime + 0.4);
+					console.log('[Notification] Sound played!');
+				} catch (err) {
+					console.warn('[Notification] Could not play sound:', err);
+				}
+			} else {
+				console.log('[Notification] Skipping sound - no user interaction yet');
+			}
+		}
+		prevUnreadCountRef.current = unreadCount;
+	}, [unreadCount]);
+
 	const mobileSelectId = 'tenant-mobile-select';
 	const tenantOptions = tenants ?? [];
 	const selectedTenant = tenantOptions.find((tenant) => tenant.id === activeTenantId);
@@ -241,6 +312,65 @@ export const AdminHeader: React.FC<{
 		document.addEventListener('mousedown', handleClickOutside);
 		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, [isTenantMenuOpen]);
+
+	// Close notification dropdown on outside click
+	useEffect(() => {
+		if (!isNotificationOpen) return;
+		const handleClickOutside = (event: MouseEvent) => {
+			if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+				setIsNotificationOpen(false);
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [isNotificationOpen]);
+
+	// Get notification icon based on type
+	const getNotificationIcon = (type: AppNotification['type']) => {
+		switch (type) {
+			case 'order':
+				return <ShoppingBag size={16} className="text-emerald-400" />;
+			case 'review':
+				return <Star size={16} className="text-amber-400" />;
+			case 'customer':
+				return <Users size={16} className="text-blue-400" />;
+			case 'inventory':
+				return <Package size={16} className="text-orange-400" />;
+			case 'system':
+				return <AlertCircle size={16} className="text-red-400" />;
+			default:
+				return <Bell size={16} className="text-slate-400" />;
+		}
+	};
+
+	// Format time ago
+	const formatTimeAgo = (dateString: string) => {
+		const date = new Date(dateString);
+		const now = new Date();
+		const diffMs = now.getTime() - date.getTime();
+		const diffMins = Math.floor(diffMs / 60000);
+		const diffHours = Math.floor(diffMs / 3600000);
+		const diffDays = Math.floor(diffMs / 86400000);
+
+		if (diffMins < 1) return 'Just now';
+		if (diffMins < 60) return `${diffMins}m ago`;
+		if (diffHours < 24) return `${diffHours}h ago`;
+		if (diffDays < 7) return `${diffDays}d ago`;
+		return date.toLocaleDateString();
+	};
+
+	// Handle notification click
+	const handleNotificationClick = async (notification: AppNotification) => {
+		if (!notification.isRead) {
+			await markAsRead([notification._id]);
+		}
+		// You can add navigation logic here based on notification.type and notification.data
+	};
+
+	// Handle mark all as read
+	const handleMarkAllAsRead = async () => {
+		await markAllAsRead();
+	};
 
 	const formatLabel = (value?: string) => value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
 
@@ -420,10 +550,110 @@ export const AdminHeader: React.FC<{
 							)}
 						</button>
 					)}
-					<button className="relative p-2 text-emerald-200 hover:bg-emerald-500/10 rounded-full transition">
-						<Bell size={20} />
-						<span className="absolute top-1.5 right-2 w-2 h-2 bg-emerald-400 rounded-full border border-white"></span>
-					</button>
+					{/* Notification Bell with Dropdown */}
+					<div className="relative" ref={notificationRef}>
+						<button 
+							onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+							className={`relative p-2 rounded-full transition ${isNotificationOpen ? 'bg-emerald-500/20 text-emerald-300' : 'text-emerald-200 hover:bg-emerald-500/10'}`}
+							aria-label="Notifications"
+						>
+							<Bell size={20} />
+							{unreadCount > 0 && (
+								<span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold bg-red-500 text-white rounded-full border-2 border-[#09080f] px-1">
+									{unreadCount > 99 ? '99+' : unreadCount}
+								</span>
+							)}
+						</button>
+
+						{/* Notification Dropdown */}
+						{isNotificationOpen && (
+							<div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-gradient-to-br from-[#140f1f] via-[#07130c] to-[#1b0f12] rounded-2xl border border-emerald-500/20 shadow-2xl shadow-emerald-900/40 z-50 overflow-hidden">
+								{/* Header */}
+								<div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/20">
+									<div className="flex items-center gap-2">
+										<Bell size={18} className="text-emerald-400" />
+										<span className="font-semibold text-white">Notifications</span>
+										{unreadCount > 0 && (
+											<span className="text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full">
+												{unreadCount} new
+											</span>
+										)}
+									</div>
+									{unreadCount > 0 && (
+										<button
+											onClick={handleMarkAllAsRead}
+											className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition"
+										>
+											<CheckCheck size={14} />
+											Mark all read
+										</button>
+									)}
+								</div>
+
+								{/* Notification List */}
+								<div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
+									{notificationsLoading ? (
+										<div className="flex items-center justify-center py-8">
+											<Loader2 size={24} className="animate-spin text-emerald-400" />
+										</div>
+									) : notifications.length === 0 ? (
+										<div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+											<div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
+												<Bell size={28} className="text-emerald-500/50" />
+											</div>
+											<p className="text-slate-400 text-sm">No notifications yet</p>
+											<p className="text-slate-500 text-xs mt-1">We'll notify you when something arrives</p>
+										</div>
+									) : (
+										<div className="divide-y divide-white/5">
+											{notifications.map((notification) => (
+												<div
+													key={notification._id}
+													onClick={() => handleNotificationClick(notification)}
+													className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition hover:bg-white/5 ${
+														!notification.isRead ? 'bg-emerald-500/5 border-l-2 border-emerald-400' : ''
+													}`}
+												>
+													<div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center mt-0.5">
+														{getNotificationIcon(notification.type)}
+													</div>
+													<div className="flex-1 min-w-0">
+														<div className="flex items-start justify-between gap-2">
+															<p className={`text-sm font-medium truncate ${!notification.isRead ? 'text-white' : 'text-slate-300'}`}>
+																{notification.title}
+															</p>
+															{!notification.isRead && (
+																<span className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-400 mt-1.5"></span>
+															)}
+														</div>
+														<p className="text-xs text-slate-400 mt-0.5 line-clamp-2">
+															{notification.message}
+														</p>
+														<div className="flex items-center gap-1 mt-1.5 text-[10px] text-slate-500">
+															<Clock size={10} />
+															{formatTimeAgo(notification.createdAt)}
+														</div>
+													</div>
+												</div>
+											))}
+										</div>
+									)}
+								</div>
+
+								{/* Footer */}
+								{notifications.length > 0 && (
+									<div className="px-4 py-3 border-t border-white/10 bg-black/20">
+										<button 
+											onClick={refreshNotifications}
+											className="w-full text-center text-xs text-emerald-400 hover:text-emerald-300 font-medium transition"
+										>
+											Refresh notifications
+										</button>
+									</div>
+								)}
+							</div>
+						)}
+					</div>
 
 					<div className="relative">
 						<div
@@ -505,4 +735,3 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 		</div>
 	);
 };
-

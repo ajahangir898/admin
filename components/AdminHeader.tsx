@@ -2,6 +2,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AdminHeader } from './AdminComponents';
 import type { Tenant } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+    LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen,
+    FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
+    Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
+    Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink
+} from 'lucide-react';
+import { StatCardProps, User } from '../types';
+import { useNotifications } from '../hooks/useNotifications';
+import type { Notification } from '../backend/src/services/NotificationService';
+// ...existing code...
 
 // Mock the useNotifications hook
 vi.mock('../hooks/useNotifications', () => ({
@@ -217,8 +228,7 @@ describe('AdminHeader notifications', () => {
         onTenantChange={() => {}}
       />
     );
-
-    await user.click(screen.getByRole('button', { name: /notification/i }));
+await user.click(screen.getByRole('button', { name: /notification/i }));
 
     expect(screen.getByText('No notifications yet')).toBeInTheDocument();
   });

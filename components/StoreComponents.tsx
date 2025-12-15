@@ -355,10 +355,10 @@ export const MobileBottomNav: React.FC<{
                                         {user.email && <p className="text-xs text-gray-500 truncate">{user.email}</p>}
                                     </div>
                                 </div>
-                                <button onClick={handleAccountPrimaryAction} className="mt-3 w-full flex items-center justify-between rounded-2xl bg-gray-50 hover:bg-pink-50 text-gray-800 hover:text-pink-600 text-sm font-medium py-2.5 px-3 transition">
-                                    <span>View profile</span>
-                                    <ChevronRight size={16} />
-                                </button>
+    <button onClick={handleAccountPrimaryAction} className="mt-3 w-full flex items-center justify-between rounded-2xl bg-gray-50 hover:bg-pink-50 text-gray-800 hover:text-pink-600 text-sm font-medium py-2.5 px-3 transition">
+        <span>My Account</span>
+        <ChevronRight size={16} />
+    </button>
                                 <button onClick={handleAccountLogout} disabled={!onLogoutClick} className={`mt-2 w-full flex items-center justify-between rounded-2xl text-sm font-semibold py-2.5 px-3 transition ${onLogoutClick ? 'text-rose-600 hover:bg-rose-50' : 'text-gray-400 cursor-not-allowed'}`}>
                                     <span>Logout</span>
                                     <LogOut size={16} />

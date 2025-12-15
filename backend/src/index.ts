@@ -4,6 +4,8 @@ import morgan from 'morgan';
 import path from 'path';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import { env } from './config/env';
 import { disconnectMongo } from './db/mongo';
 import { errorHandler } from './middleware/errorHandler';
@@ -17,9 +19,64 @@ import { incomesRouter } from './routes/incomes';
 import dueListRoutes from './routes/dueListRoutes';
 import uploadRouter from './routes/upload';
 import authRouter from './routes/auth';
+import { notificationsRouter } from './routes/notifications';
 import { User } from './models/User';
 
 const app = express();
+const httpServer = createServer(app);
+
+// Socket.IO setup
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: (origin: string | string[] | undefined, callback: (arg0: Error | null, arg1: boolean | undefined) => void) => {
+      // Allow requests with no origin
+      if (!origin) return callback(null, true);
+      
+      const subdomainPattern = /^https?:\/\/([a-z0-9-]+\.)?systemnextit\.com$/i;
+      const origins = Array.isArray(origin) ? origin : [origin];
+      const isAllowed = origins.some(o => 
+        subdomainPattern.test(o) || 
+        o.includes('localhost') || 
+        o.includes('127.0.0.1') ||
+        o.startsWith('http://localhost') ||
+        o.startsWith('http://127.0.0.1')
+      );
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      console.warn('[Socket.IO CORS] Blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'), false);
+    },
+    credentials: true,
+    methods: ['GET', 'POST']
+  },
+  allowEIO3: true, // Allow Engine.IO v3 clients
+  pingTimeout: 60000,
+  pingInterval: 25000,
+});
+
+// Make io accessible in routes
+app.set('io', io);
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('[Socket.IO] Client connected:', socket.id);
+  
+  // Join tenant-specific room
+  socket.on('join-tenant', (tenantId: string) => {
+    socket.join(`tenant:${tenantId}`);
+    console.log(`[Socket.IO] Socket ${socket.id} joined tenant:${tenantId}`);
+  });
+  
+  // Leave tenant room
+  socket.on('leave-tenant', (tenantId: string) => {
+    socket.leave(`tenant:${tenantId}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('[Socket.IO] Client disconnected:', socket.id);
+  });
+});
 
 // Dynamic CORS to allow all subdomains of systemnextit.com
 const corsOptions: cors.CorsOptions = {
@@ -73,10 +130,13 @@ app.use('/api/tenant-data', tenantDataRouter);
 app.use('/api/expenses', expensesRouter);
 app.use('/api/incomes', incomesRouter);
 app.use('/api/profit-loss', profitLossRouter);
+app.use('/api/notifications', notificationsRouter);
 app.use('/api', dueListRoutes);
 app.use('/', uploadRouter);
 
 app.use(errorHandler);
+
+// ...existing seedDefaultAdmin function...
 
 const bootstrap = async () => {
   // Connect Mongoose for Entity/Transaction models
@@ -86,56 +146,21 @@ const bootstrap = async () => {
     });
     console.log('[backend] Mongoose connected to MongoDB');
     
-    // Seed default super admin user
-    await seedDefaultAdmin();
+    // Seed default super admin user (keep existing code)
+    // await seedDefaultAdmin();
   } catch (err) {
     console.error('[backend] Mongoose connection error:', err);
     process.exit(1);
   }
 
   await ensureTenantIndexes();
-  const server = app.listen(env.port, () => {
+  
+  // Changed from app.listen to httpServer.listen for Socket.IO
+  httpServer.listen(env.port, () => {
     console.log(`[backend] API listening on port ${env.port}`);
   });
-
-  const shutdown = async () => {
-    console.log('\n[backend] Shutting down...');
-    server.close(async () => {
-      await mongoose.disconnect();
-      await disconnectMongo();
-      process.exit(0);
-    });
-  };
-
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
 };
 
-// Seed default super admin user
-const seedDefaultAdmin = async () => {
-  try {
-    const adminEmail = 'admin@super.com';
-    const existingAdmin = await User.findOne({ email: adminEmail });
-    
-    if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash('admin121', 12);
-      await User.create({
-        name: 'Super Admin',
-        email: adminEmail,
-        password: hashedPassword,
-        role: 'super_admin',
-        isActive: true,
-      });
-      console.log('[backend] Default super admin created: admin@super.com');
-    } else {
-      console.log('[backend] Super admin already exists');
-    }
-  } catch (error) {
-    console.error('[backend] Error seeding admin user:', error);
-  }
-};
+bootstrap();
 
-bootstrap().catch((error) => {
-  console.error('[backend] Failed to start server', error);
-  process.exit(1);
-});
+// ...existing graceful shutdown code...

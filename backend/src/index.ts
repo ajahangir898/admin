@@ -21,10 +21,34 @@ import { User } from './models/User';
 
 const app = express();
 
+// Dynamic CORS to allow all subdomains of systemnextit.com
 const corsOptions: cors.CorsOptions = {
-  origin: env.allowedOrigins.length
-    ? env.allowedOrigins
-    : true, // Allow all origins in development
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check if origin matches allowed origins from env
+    if (env.allowedOrigins.length && env.allowedOrigins.includes(origin)) {
+      return callback(null, origin);
+    }
+    
+    // Allow any subdomain of systemnextit.com
+    const subdomainPattern = /^https?:\/\/([a-z0-9-]+\.)?systemnextit\.com$/i;
+    if (subdomainPattern.test(origin)) {
+      return callback(null, origin);
+    }
+    
+    // Allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, origin);
+    }
+    
+    // Reject other origins
+    console.warn(`[CORS] Blocked origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

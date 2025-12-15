@@ -371,9 +371,9 @@ const StoreHome = ({
       )}
       
       {/* Hero Section */}
-      <HeroSection carouselItems={websiteConfig?.carouselItems} />
+      <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
 
-      <main className="max-w-7xl mx-auto px-4 space-y-4 pb-12">
+      <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">
         {hasSearchQuery ? (
           <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -422,9 +422,9 @@ const StoreHome = ({
             <div ref={categoriesSectionRef}>
             {websiteConfig?.categorySectionStyle === 'style2' ? (
               <div className="mt-1 -mb-1">
-                <div className="flex items-end justify-between border-b border-gray-100 pb-2 md:pb-1">
+                <div className="flex items-end justify-between border-b border-gray-100 pb-0 md:pb-1">
                   <div className="relative pb-1">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Categories</h2>
+                    <h2 className="text-[15px] md:text-[20px] font-bold text-gray-800 dark:text-white">Categories</h2>
                   </div>
                   <a
                     href="#"
@@ -490,7 +490,7 @@ const StoreHome = ({
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
                 {isLoading ? (
                   // Show skeletons while loading
                   [...Array(5)].map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)
@@ -526,7 +526,7 @@ const StoreHome = ({
                 <div className="h-8 w-1.5 rounded-full bg-green-500"></div>
                 <SectionHeader title="Best Sale Products" className="text-xl text-red-600" />
               </div>
-              <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
                 {displayProducts
                   .slice()
                   .reverse()
@@ -645,7 +645,7 @@ const StoreHome = ({
                 <div className="h-8 w-1.5 rounded-full bg-purple-500"></div>
                 <SectionHeader title="Popular products" className="text-xl text-red-600" />
               </div>
-              <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
                 {displayProducts.map((product) => (
                   <ProductCard
                     key={`pop-${product.id}`}

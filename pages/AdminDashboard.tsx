@@ -523,33 +523,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-3xl bg-gradient-to-br from-[#241612] via-[#130b08] to-[#050304] border border-white/10 shadow-[0_25px_55px_rgba(0,0,0,0.45)] p-6 text-white space-y-8">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
-                  <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-3 py-1">
-                    <span className="text-white">Credit</span>
-                    <span className="px-3 py-0.5 rounded-full border border-white/10 text-slate-400">Debit</span>
-                  </div>
-                  <button onClick={handleAddCard} className="text-orange-300 inline-flex items-center gap-1">
+              {/* <div className="rounded-3xl bg-gradient-to-br from-[#241612] via-[#130b08] to-[#050304] border border-white/10 shadow-[0_25px_55px_rgba(0,0,0,0.45)] p-6 text-white space-y-8"> */}
+                {/* <div className="flex items-center justify-between text-xs font-semibold text-slate-400"> */}
+                  {/* <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-3 py-1"> */}
+                    {/* <span className="text-white">Credit</span> */}
+                    {/* <span className="px-3 py-0.5 rounded-full border border-white/10 text-slate-400">Debit</span> */}
+                  {/* </div> */}
+                  {/* <button onClick={handleAddCard} className="text-orange-300 inline-flex items-center gap-1">
                     <Plus size={12} /> Add Card
-                  </button>
-                </div>
-                <div className="space-y-6">
-                  <div className="flex flex-col gap-2">
+                  </button> */}
+                {/* </div> */}
+                {/* <div className="space-y-6"> */}
+                  {/* <div className="flex flex-col gap-2">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Card Number</p>
                     <p className="text-xl font-black tracking-[0.2em] mt-2">**** **** 6541</p>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-slate-300">
-                    <div>
+                  // </div> */}
+                  {/* // <div className="flex items-center justify-between text-sm text-slate-300"> */}
+                    {/* <div>
                       <p className="text-xs uppercase tracking-[0.3em]">Card Holder</p>
                       <p className="text-base font-semibold mt-1">Anjuman Sharear</p>
-                    </div>
-                    <div className="text-right">
+                    </div> */}
+                    {/* <div className="text-right">
                       <p className="text-xs uppercase tracking-[0.3em]">Expires</p>
                       <p className="text-base font-semibold mt-1">12/27</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                    </div> */}
+                  {/* </div> */}
+                {/* </div> */}
+              {/* </div> */}
 
               <div className="rounded-3xl bg-gradient-to-br from-[#080a12] via-[#05070a] to-[#030304] border border-white/10 shadow-[0_25px_55px_rgba(0,0,0,0.45)] p-6 space-y-5">
                 <div className="flex items-center justify-between">

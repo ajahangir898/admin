@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, CSSProperties } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check, Video, Info, Smile } from 'lucide-react';
+import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check, Video, Info, Smile, QrCode, Clock } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
@@ -16,6 +16,17 @@ const SEARCH_HINT_ANIMATION = `
 .search-hint-animate {
     animation: searchHintSlideUp 0.45s ease;
     display: inline-block;
+}
+`;
+
+const ADMIN_NOTICE_TICKER_STYLES = `
+@keyframes adminNoticeTicker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+.admin-notice-ticker {
+    animation: adminNoticeTicker 30s linear infinite;
+    white-space: nowrap;
 }
 `;
 
@@ -896,11 +907,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
          {/* Desktop Header (Reused Standard Logic) */}
          <div className="hidden md:block">
             {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
-                <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium overflow-hidden whitespace-nowrap">
+                <div className="">
                 <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
                 </div>
             )}
-            <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
+            <div className="max-w-7xl mx-auto px-4 py-1 md:py-1">
                 <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
                     {logo ? (
@@ -1217,6 +1228,22 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
   return (
         <>
             <style>{SEARCH_HINT_ANIMATION}</style>
+            <style>{ADMIN_NOTICE_TICKER_STYLES}</style>
+            
+            {/* Admin Notice Ticker Bar */}
+            {websiteConfig?.adminNoticeText && (
+              <div className="w-full bg-white border-b border-gray-100 py-1.5 overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 flex items-center gap-3">
+                  {/* <span className="text-sm font-semibold flex-shrink-0" style={{ color: 'rgb(var(--color-font-rgb))' }}>Notice:</span> */}
+                  <div className="flex-1 overflow-hidden relative">
+                    <div className="admin-notice-ticker text-sm" style={{ color: 'rgb(var(--color-font-rgb))' }}>
+                      {websiteConfig.adminNoticeText}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <header className="store-header w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       
       {/* Mobile Drawer & Overlay */}
@@ -1369,7 +1396,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
             </aside>
 
       {/* MOBILE HEADER SPECIFIC LAYOUT */}
-            <div className="md:hidden bg-white dark:bg-slate-900 pb-3 pt-2 px-3 border-b border-gray-100 shadow-sm">
+            <div className="md:hidden bg-white dark:bg-slate-900 pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
                 {/* Logo Row - Centered */}
                 <div className="flex justify-between items-center mb-3 h-8 gap-3">
                     <div className="flex items-center" onClick={onHomeClick}>
@@ -1464,11 +1491,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({
       {/* DESKTOP HEADER (Hidden on Mobile) */}
       <div className="hidden md:block">
         {websiteConfig?.showNewsSlider && websiteConfig.headerSliderText && (
-            <div className="bg-green-600 text-white text-xs py-1.5 px-4 text-center font-medium overflow-hidden whitespace-nowrap">
-            <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span>
+            <div className="">
+            {/* <span className="inline-block animate-marquee">{websiteConfig.headerSliderText}</span> */}
             </div>
         )}
-        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
+        <div className="max-w-7xl mx-auto px-4 py-1 md:py-0">
             <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
@@ -1814,47 +1841,45 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
   if (variant === 'style2') {
     return (
         <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
-            <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
+            <div className="relative aspect-square p-2 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
                 <LazyImage src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
                 {product.discount && (
-                    <span className="absolute top-2 left-2 bg-pink-600 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded">
+                    <span className="absolute top-1.5 left-1.5 bg-pink-600 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
                         {product.discount}
                     </span>
                 )}
-                <button className="absolute top-2 right-2 btn-wishlist text-current" onClick={(e) => e.stopPropagation()}>
-                    <Heart size={18} />
+                <button className="absolute top-1.5 right-1.5 btn-wishlist text-current" onClick={(e) => e.stopPropagation()}>
+                    <Heart size={16} />
                 </button>
             </div>
             
-            <div className="p-3 flex-1 flex flex-col">
+            <div className="px-2 py-1.5 flex-1 flex flex-col">
                 {/* Rating */}
-                <div className="flex items-center gap-1 text-yellow-400 text-xs mb-1">
-                    <Star size={12} fill="currentColor" />
-                    <span className="text-gray-400">({product.reviews || 0})</span>
-                    <span className="text-gray-400 text-[10px] ml-1">| 0 Sold</span>
+                <div className="flex items-center gap-0.5 text-yellow-400 text-xs">
+                    <Star size={10} fill="currentColor" />
+                    <span className="text-gray-400 text-[10px]">({product.reviews || 0})</span>
+                    <span className="text-gray-400 text-[10px] ml-0.5">| 0 Sold</span>
                 </div>
 
                 <h3 
-                  className="font-bold text-gray-800 text-sm mb-1 line-clamp-2 cursor-pointer hover:text-pink-600 transition"
+                  className="font-bold text-gray-800 text-xs leading-tight line-clamp-1 cursor-pointer hover:text-pink-600 transition"
                   onClick={() => onClick(product)}
                 >
                     {product.name}
                 </h3>
-                
-                {/* <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description?.substring(0, 50)}...</p> */}
 
                 <div className="mt-auto">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-pink-600 font-bold text-medium"><b>৳</b>{product.price}</span>
+                    <div className="flex items-center gap-1 mb-1">
+                        <span className="text-pink-600 font-bold text-sm"><b>৳</b>{product.price}</span>
                         {product.originalPrice && (
-                            <span className="text-gray-400 text-xs line-through">{product.originalPrice}</span>
+                            <span className="text-gray-400 text-[10px] line-through">{product.originalPrice}</span>
                         )}
-                        <span className="ml-auto text-[10px] text-blue-500 font-medium">Get 50 Coins</span>
+                        <span className="ml-auto text-[9px] text-blue-500 font-medium">Get 50 Coins</span>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                     <button 
-                        className="flex-1 btn-order py-1.5 text-sm"
+                        className="flex-1 btn-order py-1 text-xs"
                         onClick={handleBuyNow}
                     >
                             Buy Now
@@ -1865,10 +1890,10 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                                 e.stopPropagation();
                                 onAddToCart?.(product);
                             }}
-                            className="cart_btn"
+                            className="cart_btn px-2"
                             aria-label="Add to cart"
                         >
-                            <ShoppingCart size={18} className="text-rose-500" />
+                            <ShoppingCart size={16} className="text-rose-500" />
                         </button>
                     </div>
                 </div>
@@ -2069,7 +2094,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
 };
 
 
-export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ carouselItems }) => {
+export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConfig?: WebsiteConfig }> = ({ carouselItems }) => {
   const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -2083,48 +2108,51 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[] }> = ({ caro
 
   if (items.length === 0) return null;
 
-    return (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
-            <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-sm group">
-                {items.map((item, index) => (
-                    <a
-                        href={item.url || '#'}
-                        key={item.id}
-                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                    >
-                        <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
-                    </a>
-                ))}
+  return (
+    <div className="max-w-7xl mx-auto px-4 mt-4">
+      {/* Full Width Carousel */}
+      <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+        {items.map((item, index) => (
+          <a
+            href={item.url || '#'}
+            key={item.id}
+            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+          >
+            <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
+          </a>
+        ))}
 
-                {items.length > 1 && (
-                    <>
-                        <button
-                            onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                        <button
-                            onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md z-20 transition opacity-0 group-hover:opacity-100 md:opacity-100"
-                        >
-                            <ChevronRight size={20} />
-                        </button>
+        {items.length > 1 && (
+          <>
+            {/* Navigation Arrows */}
+            <button
+              onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev - 1 + items.length) % items.length); }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev + 1) % items.length); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
+            >
+              <ChevronRight size={20} />
+            </button>
 
-                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-                            {items.map((_, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => setCurrentIndex(idx)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white'}`}
-                                />
-                            ))}
-                        </div>
-                    </>
-                )}
+            {/* Dots Navigation */}
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
+              {items.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => { e.preventDefault(); setCurrentIndex(idx); }}
+                  className={`h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50 w-2 hover:bg-white/80'}`}
+                />
+              ))}
             </div>
-        </div>
-    );
+          </>
+        )}
+      </div>
+    </div>
+  );
 };
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
     <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
@@ -2215,62 +2243,62 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
     if (websiteConfig?.footerStyle === 'style2') {
         return (
             <>
-            <footer className="store-footer surface-panel bg-white border-t border-gray-100 pt-8 pb-2 relative mt-auto max-w-7xl mx-auto px-4">
-                <div className="max-w-7xl mx-auto px-2">
+            <footer className="store-footer surface-panel bg-white border-t border-gray-100 pt-4 md:pt-6 pb-2 relative mt-auto">
+                <div className="px-1 md:px-8 lg:px-16 md:max-w-7xl md:mx-auto">
                     {/* Centered Contact Bar */}
-                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-2 border-b border-gray-100 pb-2">
-                        <div className="flex items-center gap-2">
-                            <Mail size={18} className="text-blue-500" />
-                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.emails?.[0] || 'info@systemnextit.com.bd'}</span>
+                    <div className="flex flex-col md:flex-row justify-center items-center gap-3 md:gap-10 mb-2 md:mb-4 border-b border-gray-100 pb-2 md:pb-4">
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                            <Mail size={16} className="text-blue-500 md:w-5 md:h-5" />
+                            <span className="text-gray-600 text-sm md:text-base font-medium">{websiteConfig.emails?.[0] || 'info@systemnextit.com.bd'}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Phone size={18} className="text-blue-500" />
-                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.phones?.[0] || '09638-866300'}</span>
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                            <Phone size={16} className="text-blue-500 md:w-5 md:h-5" />
+                            <span className="text-gray-600 text-sm md:text-base font-medium">{websiteConfig.phones?.[0] || '09638-866300'}</span>
                         </div>
-                        <div className="flex items-center gap-2 max-w-xs text-center md:text-left">
-                            <MapPin size={18} className="text-blue-500 shrink-0" />
-                            <span className="text-gray-600 text-sm font-medium">{websiteConfig.addresses?.[0] || 'Dhaka-1230'}</span>
+                        <div className="flex items-center gap-1.5 md:gap-2 max-w-xs text-center md:text-left">
+                            <MapPin size={16} className="text-blue-500 shrink-0 md:w-5 md:h-5" />
+                            <span className="text-gray-600 text-sm md:text-base font-medium">{websiteConfig.addresses?.[0] || 'Dhaka-1230'}</span>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-8 text-center md:text-left">
                         {/* Logo & Social */}
                         <div className="flex flex-col items-center md:items-start">
-                            <div className="mb-4 flex flex-col items-center md:items-start">
+                            <div className="mb-2 md:mb-3 flex flex-col items-center md:items-start">
                                 {websiteConfig?.favicon ? (
-                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : logo ? (
-                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : (
                                     <>
-                                        <span className="text-2xl font-black text-blue-500 tracking-tight">SYSTEMNEXT</span>
-                                        <span className="text-xl font-bold text-pink-500 tracking-widest -mt-1 block">IT</span>
+                                        <span className="text-xl md:text-2xl font-black text-blue-500 tracking-tight">SYSTEMNEXT</span>
+                                        <span className="text-lg md:text-xl font-bold text-pink-500 tracking-widest -mt-1 block">IT</span>
                                     </>
                                 )}
                             </div>
-                            <p className="text-sm text-gray-500 mb-4">{websiteConfig?.shortDescription || 'Every Smile Matters'}</p>
+                            <p className="text-sm md:text-base text-gray-500 mb-2 md:mb-3">{websiteConfig?.shortDescription || 'Every Smile Matters'}</p>
                             <div className="flex gap-3">
-                                <a href="#" className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
-                                    <Facebook size={16} />
+                                <a href="#" className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
+                                    <Facebook size={20} className="md:w-5 md:h-5" />
                                 </a>
-                                <a href="#" className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition">
-                                    <MessageCircle size={16} /> {/* WhatsApp placeholder */}
+                                <a href="#" className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition">
+                                    <MessageCircle size={20} className="md:w-5 md:h-5" />
                                 </a>
                             </div>
                         </div>
 
                         {/* Columns */}
                         <div>
-                            <h4 className="font-bold text-gray-800 mb-4">Contact Us</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
+                            <h4 className="font-bold text-gray-800 text-base md:text-lg mb-2 md:mb-3">Contact Us</h4>
+                            <ul className="space-y-1 md:space-y-2 text-sm md:text-base text-gray-600">
                                 <li>{websiteConfig.emails?.[0]}</li>
                                 <li>{websiteConfig.phones?.[0]}</li>
                                 <li>{websiteConfig.addresses?.[0]}</li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-800 mb-4">Quick Links</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
+                            <h4 className="font-bold text-gray-800 text-base md:text-lg mb-2 md:mb-3">Quick Links</h4>
+                            <ul className="space-y-1 md:space-y-2 text-sm md:text-base text-gray-600">
                                 <li><a href="#" className="hover:text-blue-600">Return & Refund Policy</a></li>
                                 <li><a href="#" className="hover:text-blue-600">Privacy Policy</a></li>
                                 <li><a href="#" className="hover:text-blue-600">Terms and Conditions</a></li>
@@ -2278,8 +2306,8 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-800 mb-4">Useful Links</h4>
-                            <ul className="space-y-2 text-sm text-gray-600">
+                            <h4 className="font-bold text-gray-800 text-base md:text-lg mb-2 md:mb-3">Useful Links</h4>
+                            <ul className="space-y-1 md:space-y-2 text-sm md:text-base text-gray-600">
                                 <li><a href="#" className="hover:text-blue-600">Why Shop Online with Us</a></li>
                                 <li><a href="#" className="hover:text-blue-600">Online Payment Methods</a></li>
                                 <li><a href="#" className="hover:text-blue-600">After Sales Support</a></li>
@@ -2288,7 +2316,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         </div>
                     </div>
 
-                    <div className="border-t border-gray-100 mt-12 pt-6 text-center text-xs text-gray-500">
+                    <div className="border-t border-gray-100 mt-4 md:mt-6 pt-3 md:pt-4 text-center text-sm md:text-base text-gray-500">
                         &copy; All Copyrights Reserved by  {websiteConfig?.websiteName || 'Your Store'}. {new Date().getFullYear()}
                     </div>
                 </div>
@@ -2338,9 +2366,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         <div className="space-y-6">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                                 {websiteConfig?.favicon ? (
-                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
                                 ) : logo ? (
-                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-12 object-contain" />
+                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
                                 ) : (
                                     <div className="text-3xl font-black tracking-tight text-gray-900">
                                         {websiteConfig?.websiteName || 'Your Store'}
@@ -2457,7 +2485,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         {/* Logo & Tagline */}
                         <div className="text-center">
                             {websiteConfig?.favicon && (
-                                <img src={websiteConfig.favicon} alt="Favicon" className="w-12 h-12 mx-auto mb-2 object-contain" />
+                                <img src={websiteConfig.favicon} alt="Favicon" className="w-24 h-24 mx-auto mb-2 object-contain" />
                             )}
                             <p className="text-white text-lg font-light tracking-wide">{websiteConfig?.shortDescription || 'Get the best for less'}</p>
                         </div>
@@ -2567,9 +2595,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
                     {websiteConfig?.favicon ? (
-                        <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-10 object-contain mb-4" />
+                        <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
                     ) : logo ? (
-                        <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-10 object-contain mb-4" />
+                        <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
                     ) : (
                         <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
                     )}

@@ -97,7 +97,7 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
             <Boxes size={18} className="text-indigo-500" />
           </div>
           <p className="mt-3 text-3xl font-black text-gray-800">{stats.totalSkus}</p>
-          <p className="text-xs text-gray-400 mt-1">Catalog coverage</p>
+          <p className="text-xs text-gray-400 mt-1">Stock Report</p>
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between text-sm text-gray-500">
@@ -105,11 +105,11 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
             <Package size={18} className="text-emerald-500" />
           </div>
           <p className="mt-3 text-3xl font-black text-gray-800">{stats.totalUnits.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-1">Across all warehouses</p>
+          <p className="text-xs text-gray-400 mt-1">Across entire shop</p>
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>At-risk items</span>
+            <span>Low Stock Warning</span>
             <AlertTriangle size={18} className="text-amber-500" />
           </div>
           <p className="mt-3 text-3xl font-black text-gray-800">{stats.lowStockCount + stats.outStockCount}</p>
@@ -121,7 +121,7 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
             <TrendingUp size={18} className="text-orange-500" />
           </div>
           <p className="mt-3 text-3xl font-black text-gray-800">৳ {stats.totalValue.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-1">Retail valuation</p>
+          <p className="text-xs text-gray-400 mt-1">Reserve Price</p>
         </div>
         </>
         )}

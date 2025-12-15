@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useMemo, lazy, Suspense, memo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense, memo, useCallback, useRef } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
 import { StoreHeader, StoreFooter, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
-import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X } from 'lucide-react';
+import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
@@ -220,9 +220,12 @@ const StoreProductDetail = ({
   const [showCartSuccess, setShowCartSuccess] = useState(false);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
   const [isLoading, setIsLoading] = useState(true);
+  const thumbnailScrollRef = useRef<HTMLDivElement>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Simulate initial data loading
   useEffect(() => {
@@ -247,11 +250,40 @@ const StoreProductDetail = ({
   useEffect(() => {
     const refreshGallery = product.galleryImages && product.galleryImages.length ? product.galleryImages.map(normalizeImageUrl) : [normalizeImageUrl(product.image)];
     setSelectedImage(refreshGallery[0]);
+    setSelectedImageIndex(0);
     setSelectedColor(colorOptions[0]);
     setSelectedSize(sizeOptions[0]);
     setQuantity(1);
     setVariantError(null);
   }, [product.id]);
+
+  // Thumbnail navigation helpers
+  const scrollThumbnails = (direction: 'left' | 'right') => {
+    if (thumbnailScrollRef.current) {
+      const scrollAmount = 100;
+      thumbnailScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleThumbnailSelect = (img: string, index: number) => {
+    setSelectedImage(img);
+    setSelectedImageIndex(index);
+  };
+
+  const handlePrevImage = () => {
+    const newIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : galleryImages.length - 1;
+    setSelectedImageIndex(newIndex);
+    setSelectedImage(galleryImages[newIndex]);
+  };
+
+  const handleNextImage = () => {
+    const newIndex = selectedImageIndex < galleryImages.length - 1 ? selectedImageIndex + 1 : 0;
+    setSelectedImageIndex(newIndex);
+    setSelectedImage(galleryImages[newIndex]);
+  };
 
   useEffect(() => {
     if (variantError) {
@@ -428,72 +460,157 @@ const StoreProductDetail = ({
             {/* Product Hero Block */}
             <div className="store-card rounded-xl p-6 flex flex-col md:flex-row gap-8">
               
-              {/* Image Section */}
+              {/* Image Section - Enhanced Gallery */}
               <div className="w-full md:w-1/2 flex flex-col gap-4">
-                 <div className="flex flex-col md:flex-row gap-4 md:gap-3 h-full">
-                    {/* Thumbnail Gallery - Left Side */}
-                    <div className="flex md:flex-col gap-2 md:gap-3 order-2 md:order-1 md:w-20 overflow-x-auto md:overflow-y-auto md:max-h-[500px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                      {additionalImages.length > 0 && additionalImages.map((img, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setSelectedImage(img)}
-                          className={`flex-shrink-0 w-16 h-16 md:w-full md:h-20 rounded-lg border-2 p-1 transition-all overflow-hidden hover:border-orange-400 ${
-                            selectedImage === img
-                              ? 'border-orange-500 bg-orange-50 shadow-md'
-                              : 'border-gray-200 shadow-sm hover:shadow'
-                          }`}
-                          aria-label={`View image ${idx + 1}`}
-                          aria-pressed={selectedImage === img}
-                          title={`View image ${idx + 1}`}
-                        >
-                          <LazyImage src={img} alt={`View ${idx + 1}`} className="w-full h-full object-contain mix-blend-multiply" />
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Main Product Image - Right Side */}
-                    <div className="flex-1 order-1 md:order-2">
+                {/* Main Product Image with Zoom */}
+                <div className="relative">
+                  <div
+                    className="aspect-square bg-white rounded-2xl overflow-hidden relative group border border-gray-200 shadow-sm cursor-crosshair"
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                      const y = ((e.clientY - rect.top) / rect.height) * 100;
+                      setZoomPosition({ x, y });
+                    }}
+                    onClick={() => setIsZoomOpen(true)}
+                  >
+                    {/* Main Image */}
+                    <LazyImage
+                      src={selectedImage}
+                      alt={product.name}
+                      className="w-full h-full object-contain p-6"
+                    />
+                    
+                    {/* Hover Zoom Lens Effect */}
+                    {isHovering && (
                       <div
-                        className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden relative group border border-gray-100 shadow-sm hover:shadow-lg transition-shadow cursor-zoom-in"
-                        onMouseMove={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const x = ((e.clientX - rect.left) / rect.width) * 100;
-                          const y = ((e.clientY - rect.top) / rect.height) * 100;
-                          setZoomPosition({ x, y });
+                        className="absolute w-32 h-32 border-2 border-orange-400 rounded-lg pointer-events-none bg-white/20 backdrop-blur-[1px] shadow-lg hidden md:block"
+                        style={{
+                          left: `calc(${zoomPosition.x}% - 64px)`,
+                          top: `calc(${zoomPosition.y}% - 64px)`,
+                          backgroundImage: `url(${selectedImage})`,
+                          backgroundSize: '400%',
+                          backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
                         }}
-                        onClick={() => setIsZoomOpen(true)}
-                      >
-                        <LazyImage
-                          src={selectedImage}
-                          alt={product.name}
-                          className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-                        />
-                        {/* Zoom Icon */}
-                        <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm text-gray-700 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                          <ZoomIn size={20} />
-                        </div>
-                        {product.discount && (
-                          <span className="absolute top-4 left-4 bg-gradient-to-r from-green-400 to-emerald-500 text-red-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                            {product.discount}
-                          </span>
-                        )}
+                      />
+                    )}
+
+                    {/* Discount Badge */}
+                    {product.discount && (
+                      <span className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-md shadow-md">
+                        {product.discount}
+                      </span>
+                    )}
+
+                    {/* Wishlist Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleWishlist();
+                      }}
+                      className={`absolute top-4 right-4 p-2.5 rounded-full transition-all ${
+                        isWishlisted
+                          ? 'bg-rose-100 text-rose-500 shadow-md'
+                          : 'bg-white text-gray-400 shadow hover:text-rose-500 hover:bg-rose-50'
+                      }`}
+                      aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                    >
+                      <Heart size={22} fill={isWishlisted ? "currentColor" : "none"} strokeWidth={1.5} />
+                    </button>
+
+                    {/* Navigation Arrows */}
+                    {galleryImages.length > 1 && (
+                      <>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleWishlist();
-                          }}
-                          className={`absolute top-4 right-4 p-2 rounded-full transition-all ${
-                            isWishlisted
-                              ? 'bg-rose-100 text-rose-600 shadow-md'
-                              : 'bg-white text-gray-600 shadow hover:bg-rose-50'
-                          }`}
-                          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                          onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center text-gray-600 hover:text-gray-900 transition opacity-0 group-hover:opacity-100"
+                          aria-label="Previous image"
                         >
-                          <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
+                          <ChevronLeft size={24} />
                         </button>
-                      </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center text-gray-600 hover:text-gray-900 transition opacity-0 group-hover:opacity-100"
+                          aria-label="Next image"
+                        >
+                          <ChevronRight size={24} />
+                        </button>
+                      </>
+                    )}
+
+                    {/* Zoom Hint */}
+                    <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-gray-600 px-3 py-1.5 rounded-full text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity shadow flex items-center gap-1.5">
+                      <ZoomIn size={14} />
+                      Click to zoom
                     </div>
-                 </div>
+                  </div>
+
+                  {/* Zoomed Preview Panel (Desktop Only) */}
+                  {isHovering && (
+                    <div className="hidden md:block absolute left-[calc(100%+16px)] top-0 w-[400px] h-[400px] bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden z-50">
+                      <div
+                        className="w-full h-full"
+                        style={{
+                          backgroundImage: `url(${selectedImage})`,
+                          backgroundSize: '200%',
+                          backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                          backgroundRepeat: 'no-repeat',
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Thumbnail Gallery - Bottom with Arrows */}
+                <div className="relative">
+                  {/* Left Arrow */}
+                  {galleryImages.length > 5 && (
+                    <button
+                      onClick={() => scrollThumbnails('left')}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition"
+                      aria-label="Scroll thumbnails left"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                  )}
+
+                  {/* Thumbnails Container */}
+                  <div
+                    ref={thumbnailScrollRef}
+                    className="flex gap-2 overflow-x-auto scrollbar-hide px-1 py-1"
+                    style={{ scrollBehavior: 'smooth' }}
+                  >
+                    {additionalImages.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onMouseEnter={() => handleThumbnailSelect(img, idx)}
+                        onClick={() => handleThumbnailSelect(img, idx)}
+                        className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 p-1 transition-all overflow-hidden ${
+                          selectedImageIndex === idx
+                            ? 'border-orange-500 shadow-md'
+                            : 'border-gray-200 hover:border-orange-300'
+                        }`}
+                        aria-label={`View image ${idx + 1}`}
+                        aria-pressed={selectedImageIndex === idx}
+                      >
+                        <LazyImage src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Right Arrow */}
+                  {galleryImages.length > 5 && (
+                    <button
+                      onClick={() => scrollThumbnails('right')}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition"
+                      aria-label="Scroll thumbnails right"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Info Section */}

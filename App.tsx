@@ -1440,7 +1440,7 @@ fbq('track', 'PageView');`;
       </Suspense>
       <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
         {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
-
+{/* 
         {isAdminRole(user?.role) && (
           <div className="fixed bottom-24 right-6 z-[100] md:bottom-6">
             <button onClick={toggleView} className="bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:bg-slate-700 transition-all flex items-center gap-2 border-4 border-white dark:border-slate-700">
@@ -1448,7 +1448,7 @@ fbq('track', 'PageView');`;
               <span className="font-bold hidden md:inline">{currentView.startsWith('admin') ? "View Storefront" : "View Admin Dashboard"}</span>
             </button>
           </div>
-        )}
+        )} */}
 
     {currentView === 'admin-login' ? (
       <Suspense fallback={<LoginSkeleton />}>

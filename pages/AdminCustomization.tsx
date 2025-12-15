@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
-import { convertFileToWebP } from '../services/imageUtils';
+import { convertFileToWebP, convertCarouselImage, CAROUSEL_WIDTH, CAROUSEL_HEIGHT } from '../services/imageUtils';
 import { DataService } from '../services/DataService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
@@ -53,7 +53,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     brandingText: '',
     carouselItems: [],
     searchHints: '',
-    orderLanguage: 'English'
+    orderLanguage: 'English',
+    adminNoticeText: ''
   });
 
   // Initialize config from props
@@ -166,10 +167,18 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
         try {
             // Convert to WebP before persisting to keep payloads light.
-            const converted = await convertFileToWebP(file, {
-                quality: type === 'favicon' ? 0.9 : 0.82,
-                maxDimension: type === 'favicon' ? 512 : 2000
-            });
+            let converted: string;
+            
+            if (type === 'carousel') {
+                // Carousel: exact 1280x330 WebP
+                converted = await convertCarouselImage(file, { quality: 0.85 });
+            } else {
+                converted = await convertFileToWebP(file, {
+                    quality: type === 'favicon' ? 0.9 : 0.82,
+                    maxDimension: type === 'favicon' ? 512 : 2000
+                });
+            }
+            
             if (type === 'logo') {
                 onUpdateLogo(converted);
             } else if (type === 'favicon') {
@@ -690,6 +699,13 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                             <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
                                 value={config.whatsappNumber} onChange={(e) => setConfig({...config, whatsappNumber: e.target.value})} />
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Admin Notice Text (Scrolling Ticker)</label>
+                            <input type="text" className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
+                                placeholder="e.g., Easy return policy and complete cash on delivery, ease of shopping!"
+                                value={config.adminNoticeText || ''} onChange={(e) => setConfig({...config, adminNoticeText: e.target.value})} />
+                            <p className="text-xs text-gray-500 mt-1">This text will scroll from right to left at the top of the store header. Leave empty to hide.</p>
+                        </div>
                      </div>
                  </div>
 
@@ -988,17 +1004,19 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                   <form onSubmit={saveCarouselItem} className="p-6 space-y-4">
                       <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image*</label>
+                          <p className="text-xs text-gray-500 mb-2">Recommended: {CAROUSEL_WIDTH} × {CAROUSEL_HEIGHT}px. Images will be auto-converted to WebP and resized.</p>
                           <input type="file" ref={carouselFileRef} onChange={(e) => handleImageUpload(e, 'carousel')} className="hidden" accept="image/*" />
                           <div 
                               onClick={() => carouselFileRef.current?.click()}
-                              className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition"
+                              className="border-2 border-dashed rounded-lg p-2 text-center cursor-pointer hover:bg-gray-50 transition h-28"
                           >
                               {carouselFormData.image ? (
-                                  <img src={normalizeImageUrl(carouselFormData.image)} alt="Preview" className="h-32 mx-auto object-contain"/>
+                                  <img src={normalizeImageUrl(carouselFormData.image)} alt="Preview" className="w-full h-full object-cover rounded"/>
                               ) : (
-                                  <div className="text-gray-400">
-                                      <Upload size={32} className="mx-auto mb-2"/>
+                                  <div className="text-gray-400 flex flex-col items-center justify-center h-full">
+                                      <Upload size={32} className="mb-2"/>
                                       <p className="text-sm">Click to upload image</p>
+                                      <p className="text-xs mt-1">{CAROUSEL_WIDTH} × {CAROUSEL_HEIGHT}px</p>
                                   </div>
                               )}
                           </div>

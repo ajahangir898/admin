@@ -249,6 +249,8 @@ export interface WebsiteConfig {
   // App Download Links
   androidAppUrl?: string;
   iosAppUrl?: string;
+  // Admin Notice Ticker
+  adminNoticeText?: string;
 }
 
 export interface DeliveryConfig {

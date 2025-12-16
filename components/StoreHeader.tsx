@@ -2,7 +2,7 @@
 // This file contains the main store header component with multiple style variants
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { ShoppingCart, Search, User, Facebook, X, Sparkles, Loader2, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, Bell, Gift, ChevronLeft, ChevronRight, Menu, Smartphone, Mic, Camera, Minus, Plus, Trash2, Grid, Info, Truck, ImageIcon } from 'lucide-react';
+import { ShoppingCart, Search, User, X, Loader2, Heart, LogOut, ChevronDown, UserCircle, Bell, Gift, Menu, Mic, Camera, Minus, Plus, Trash2, Grid, Info, Truck } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
@@ -46,9 +46,7 @@ type CatalogGroup = {
 
 export interface StoreHeaderProps { 
     onTrackOrder?: () => void;
-    onOpenAIStudio?: () => void;
     onHomeClick?: () => void;
-    onImageSearchClick?: () => void;
     wishlistCount?: number;
     wishlist?: number[];
     onToggleWishlist?: (productId: number) => void;
@@ -103,12 +101,12 @@ const VoiceButton: React.FC<{
 
 const CameraButton: React.FC<{ variant?: 'light' | 'dark' }> = ({ variant = 'dark' }) => {
     const baseClasses = variant === 'light'
-        ? 'bg-white/90 text-gray-700 hover:bg-white dark:bg-slate-700/70 dark:text-white'
-        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-800 dark:text-white';
+        ? 'bg-white/90 text-gray-700 hover:bg-white'
+        : 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     return (
         <button
             type="button"
-            className={`${baseClasses} border border-gray-200 dark:border-slate-700 rounded-full p-2 flex items-center justify-center transition shadow-sm`}
+            className={`${baseClasses} border border-gray-200 rounded-full p-2 flex items-center justify-center transition shadow-sm`}
             title="Visual search"
             aria-label="Visual search"
         >
@@ -120,7 +118,6 @@ const CameraButton: React.FC<{ variant?: 'light' | 'dark' }> = ({ variant = 'dar
 export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     const {
         onTrackOrder,
-        onOpenAIStudio,
         onHomeClick,
         wishlistCount,
         wishlist,
@@ -188,10 +185,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     const wishlistBadgeCount = typeof wishlistCount === 'number' ? wishlistCount : wishlistItems.length;
     const notificationBadgeCount = typeof notificationsCount === 'number' && notificationsCount > 0 ? notificationsCount : 0;
     const activeSearchValue = isListening && liveTranscript ? liveTranscript : typedSearchValue;
-
-    const isSecureVoiceContext = typeof window !== 'undefined'
-        ? (window.isSecureContext || ['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(window.location.hostname))
-        : false;
 
     // Search hints
     const parsedHints = useMemo(() => {
@@ -410,16 +403,16 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     const SearchSuggestionsDropdown = () => {
         if (!isSearchSuggestionsOpen || searchSuggestions.length === 0) return null;
         return (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 max-h-96 overflow-y-auto z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto z-50">
                 {searchSuggestions.map((product) => (
-                    <button key={product.id} onClick={() => handleSuggestionClick(product)} className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition border-b border-gray-100 dark:border-slate-700 last:border-0 text-left">
+                    <button key={product.id} onClick={() => handleSuggestionClick(product)} className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0 text-left">
                         <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-14 h-14 object-cover rounded" />
                         <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{product.name}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{product.category}</div>
+                            <div className="text-sm font-medium text-gray-900 truncate">{product.name}</div>
+                            <div className="text-xs text-gray-500">{product.category}</div>
                         </div>
                         <div className="text-right">
-                            <div className="text-sm font-bold text-green-600 dark:text-green-400">{formatCurrency(product.price)}</div>
+                            <div className="text-sm font-bold text-green-600">{formatCurrency(product.price)}</div>
                         </div>
                     </button>
                 ))}
@@ -445,29 +438,29 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
               </div>
             )}
             
-            <header className="store-header w-full bg-white dark:bg-slate-900 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+            <header className="store-header w-full bg-white shadow-sm sticky top-0 z-50 transition-colors duration-300">
                 {/* Mobile Drawer Overlay */}
                 <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileMenuOpen(false)} />
                 
                 {/* Mobile Drawer */}
-                <aside className={`fixed inset-y-0 left-0 z-[99] w-[82%] max-w-sm bg-white dark:bg-slate-900 shadow-2xl md:hidden transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100 dark:border-slate-800">
+                <aside className={`fixed inset-y-0 left-0 z-[99] w-[82%] max-w-sm bg-white shadow-2xl md:hidden transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100">
                         <div className="flex items-center gap-2">
-                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <span className="text-lg font-black tracking-tight text-gray-900 dark:text-white">GADGET<span className="text-pink-500">SHOB</span></span>}
+                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <span className="text-lg font-black tracking-tight text-gray-900">GADGET<span className="text-pink-500">SHOB</span></span>}
                         </div>
-                        <button type="button" className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
+                        <button type="button" className="p-2 rounded-full text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
                     </div>
                     
                     {/* Catalog dropdown */}
-                    <div className="rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden mt-2 mx-4">
-                        <button type="button" className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-slate-800/60" onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}>
+                    <div className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-2 mx-4">
+                        <button type="button" className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-gray-900 bg-gray-50" onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}>
                             <div className="flex items-center gap-3"><Grid size={18} /><span>Catalog</span></div>
                             <ChevronDown className={`transition-transform ${isCatalogDropdownOpen ? 'rotate-180' : ''}`} size={18} />
                         </button>
-                        <div className={`border-t border-gray-200 dark:border-slate-700 transition-[max-height] duration-300 ${isCatalogDropdownOpen ? 'max-h-[520px]' : 'max-h-0'} overflow-hidden`}>
+                        <div className={`border-t border-gray-200 transition-[max-height] duration-300 ${isCatalogDropdownOpen ? 'max-h-[520px]' : 'max-h-0'} overflow-hidden`}>
                             {catalogGroups.map((group) => (
                                 <div key={group.key}>
-                                    <button type="button" className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${activeCatalogSection === group.key ? 'text-orange-600 bg-orange-50/70' : 'text-gray-800 dark:text-gray-100'}`} onClick={() => toggleCatalogSection(group.key)}>
+                                    <button type="button" className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${activeCatalogSection === group.key ? 'text-orange-600 bg-orange-50/70' : 'text-gray-800'}`} onClick={() => toggleCatalogSection(group.key)}>
                                         <span>{group.label}</span>
                                         {activeCatalogSection === group.key ? <Minus size={16} /> : <Plus size={16} />}
                                     </button>
@@ -486,7 +479,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                             {mobileDrawerLinks.map((item) => {
                                 const Icon = item.icon;
                                 return (
-                                    <button key={item.key} type="button" className="w-full flex items-center gap-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-left text-sm font-semibold text-gray-800 dark:text-gray-200 shadow-sm" onClick={() => handleDrawerNavClick(item.action)}>
+                                    <button key={item.key} type="button" className="w-full flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-left text-sm font-semibold text-gray-800 shadow-sm" onClick={() => handleDrawerNavClick(item.action)}>
                                         <Icon /><span>{item.label}</span>
                                     </button>
                                 );
@@ -496,28 +489,28 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                 </aside>
 
                 {/* MOBILE HEADER */}
-                <div className="md:hidden bg-white dark:bg-slate-900 pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
+                <div className="md:hidden bg-white pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-3 h-8 gap-3">
                         <div className="flex items-center" onClick={onHomeClick}>
-                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900 dark:text-white">GADGET</span><span className="text-pink-500">SHOB</span></h1>}
+                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900">GADGET</span><span className="text-pink-500">SHOB</span></h1>}
                         </div>
                         <div className="flex items-center gap-3">
-                            <button className="relative text-gray-800 dark:text-white" onClick={() => setIsWishlistDrawerOpen(true)}>
+                            <button className="relative text-gray-800" onClick={() => setIsWishlistDrawerOpen(true)}>
                                 <Heart size={24} />
                                 {wishlistBadgeCount > 0 && <span className="absolute -top-1.5 -right-1 bg-pink-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">{wishlistBadgeCount}</span>}
                             </button>
-                            <button className="relative text-gray-800 dark:text-white" onClick={() => setIsCartDrawerOpen(true)}>
+                            <button className="relative text-gray-800" onClick={() => setIsCartDrawerOpen(true)}>
                                 <ShoppingCart size={26} />
                                 {cartBadgeCount > 0 && <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">{cartBadgeCount}</span>}
                             </button>
-                            <div className="relative text-gray-800 dark:text-white">
+                            <div className="relative text-gray-800">
                                 <Bell size={24} />
                                 {notificationBadgeCount > 0 && <span className="absolute -top-1.5 -right-1 bg-blue-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">{notificationBadgeCount}</span>}
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button type="button" className="text-gray-800 dark:text-white" onClick={() => setIsMobileMenuOpen(true)}><Menu size={28} /></button>
+                        <button type="button" className="text-gray-800" onClick={() => setIsMobileMenuOpen(true)}><Menu size={28} /></button>
                         <div ref={searchContainerRef} className="flex-1 relative">
                             <div className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-green-500 text-white flex items-center justify-center"><Search size={16} /></div>
                             {renderSearchHintOverlay('left-10', 'text-xs')}
@@ -538,11 +531,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     <div className="max-w-7xl mx-auto px-4 py-1">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-                                {logo ? <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" /> : <h1 className="text-2xl font-bold tracking-tighter"><span className="text-gray-800 dark:text-white">GADGET</span><span className="text-pink-500">SHOB</span></h1>}
+                                {logo ? <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" /> : <h1 className="text-2xl font-bold tracking-tighter"><span className="text-gray-800">GADGET</span><span className="text-pink-500">SHOB</span></h1>}
                             </div>
                             <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
                                 {renderSearchHintOverlay('left-4')}
-                                <input type="text" placeholder="Search product..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 dark:bg-slate-800 dark:text-white placeholder-transparent" />
+                                <input type="text" placeholder="Search product..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 placeholder-transparent" />
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                     <CameraButton variant="light" />
                                     <VoiceButton supportsVoiceSearch={supportsVoiceSearch} isListening={isListening} onVoiceSearch={handleVoiceSearch} />
@@ -551,7 +544,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                                 {renderVoiceStreamOverlay()}
                                 <SearchSuggestionsDropdown />
                             </div>
-                            <div className="flex items-center gap-6 text-gray-600 dark:text-gray-300">
+                            <div className="flex items-center gap-6 text-gray-600">
                                 <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition hidden md:flex" onClick={() => setIsWishlistDrawerOpen(true)}>
                                     <div className="relative"><Heart size={24} />{wishlistBadgeCount > 0 && <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistBadgeCount}</span>}</div>
                                     <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
@@ -562,11 +555,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                                 </div>
                                 <div className="relative hidden md:block" ref={menuRef}>
                                     <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition" onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}>
-                                        <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-full"><User size={20} /></div>
+                                        <div className="bg-gray-100 p-1 rounded-full"><User size={20} /></div>
                                         {user ? <span className="text-sm font-bold">{user.name.split(' ')[0]} <ChevronDown size={12} className="inline" /></span> : <span className="text-sm font-medium">Login</span>}
                                     </div>
                                     {user && isMenuOpen && (
-                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border py-1 z-50">
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border py-1 z-50">
                                             <div className="px-4 py-3 border-b"><p className="text-sm font-bold truncate">{user.name}</p><p className="text-xs text-gray-500 truncate">{user.email}</p></div>
                                             <button onClick={() => { setIsMenuOpen(false); onProfileClick?.(); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"><UserCircle size={16} /> My Profile</button>
                                             <button onClick={() => { setIsMenuOpen(false); onTrackOrder?.(); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"><Truck size={16} /> My Orders</button>
@@ -577,9 +570,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                             </div>
                         </div>
                     </div>
-                    <div className="border-t border-gray-100 dark:border-slate-800">
+                    <div className="border-t border-gray-100">
                         <div className="max-w-7xl mx-auto px-4">
-                            <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 items-center">
+                            <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 items-center">
                                 <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
                                 {websiteConfig?.showMobileHeaderCategory && (
                                     <div ref={categoryMenuRef} className="relative" onMouseEnter={() => setIsCategoryMenuOpen(true)} onMouseLeave={() => setIsCategoryMenuOpen(false)}>
@@ -604,7 +597,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
             {/* Wishlist Modal */}
             {isWishlistDrawerOpen && (
                 <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center" onClick={() => setIsWishlistDrawerOpen(false)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
                         <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsWishlistDrawerOpen(false)}><X size={22} /></button>
                         <h2 className="text-lg font-bold mb-4">My Wishlist</h2>
                         {wishlistItems.length === 0 ? <div className="text-center text-gray-500 py-8">No items in wishlist.</div> : (
@@ -632,7 +625,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
             {/* Cart Modal */}
             {isCartDrawerOpen && (
                 <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center" onClick={() => setIsCartDrawerOpen(false)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
                         <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsCartDrawerOpen(false)}><X size={22} /></button>
                         <h2 className="text-lg font-bold mb-4">My Cart</h2>
                         {cartItems.length === 0 ? <div className="text-center text-gray-500 py-8">No items in cart.</div> : (

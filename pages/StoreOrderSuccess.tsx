@@ -2,14 +2,11 @@
 import React, { lazy, Suspense } from 'react';
 
 // Lazy load heavy layout components
-const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import { User, WebsiteConfig, Product } from '../types';
-
-// Minimal skeleton placeholders for lazy components
-const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
-const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
+import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
 
 interface SuccessProps {
   onHome: () => void;
@@ -32,7 +29,7 @@ interface SuccessProps {
 const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onImageSearchClick, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50 font-sans text-slate-900 flex flex-col">
-      <Suspense fallback={<HeaderSkeleton />}>
+      <Suspense fallback={<StoreHeaderSkeleton />}>
         <StoreHeader 
           onHomeClick={onHome}
           onImageSearchClick={onImageSearchClick}
@@ -85,7 +82,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         </div>
       </main>
 
-      <Suspense fallback={<FooterSkeleton />}>
+      <Suspense fallback={<StoreFooterSkeleton />}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
     </div>

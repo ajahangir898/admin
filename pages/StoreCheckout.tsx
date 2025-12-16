@@ -3,12 +3,10 @@ import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from
 import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
 
 // Lazy load heavy layout components
-const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
 
-// Minimal skeleton fallbacks
-const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
-const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
+import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
 
 import { EmptyCartState } from '../components/EmptyStates';
 import { SkeletonForm } from '../components/SkeletonLoaders';
@@ -250,7 +248,7 @@ const StoreCheckout = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <Suspense fallback={<HeaderSkeleton />}>
+      <Suspense fallback={<StoreHeaderSkeleton />}>
         <StoreHeader 
           onHomeClick={onBack}
           onImageSearchClick={onImageSearchClick}
@@ -785,7 +783,7 @@ const StoreCheckout = ({
         </div>
       )}
 
-      <Suspense fallback={<FooterSkeleton />}>
+      <Suspense fallback={<StoreFooterSkeleton />}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
     </div>

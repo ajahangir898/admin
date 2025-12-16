@@ -8,18 +8,14 @@ import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup } f
 import { DataService } from '../services/DataService';
 import { ProductFilter, SortOption } from '../components/ProductFilter';
 import { EmptySearchState } from '../components/EmptyStates';
-import { SkeletonCard, SkeletonImageGrid } from '../components/SkeletonLoaders';
+import { SkeletonCard, SkeletonImageGrid, StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
 
 // Lazy load heavy components (StoreHeader, StoreFooter, modals)
-const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
 const ProductQuickViewModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.ProductQuickViewModal })));
 const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
 const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
-
-// Minimal skeleton fallbacks
-const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
-const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -329,7 +325,7 @@ const StoreHome = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <Suspense fallback={<HeaderSkeleton />}>
+      <Suspense fallback={<StoreHeaderSkeleton />}>
         <StoreHeader 
           onTrackOrder={() => setIsTrackOrderOpen(true)} 
           onOpenAIStudio={() => setIsAIStudioOpen(true)}
@@ -685,7 +681,7 @@ const StoreHome = ({
         )}
       </main>
 
-      <Suspense fallback={<FooterSkeleton />}>
+      <Suspense fallback={<StoreFooterSkeleton />}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
       

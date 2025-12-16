@@ -3,14 +3,12 @@ import React, { useState, useEffect, useMemo, lazy, Suspense, memo, useCallback,
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
 
 // Lazy load heavy layout components and modals
-const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
 const AddToCartSuccessModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AddToCartSuccessModal })));
 const MobileBottomNav = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.MobileBottomNav })));
 
-// Minimal skeleton fallbacks
-const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
-const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
+import { StoreHeaderSkeleton, StoreFooterSkeleton, MobileBottomNavSkeleton } from '../components/SkeletonLoaders';
 
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
@@ -378,7 +376,7 @@ const StoreProductDetail = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0">
-      <Suspense fallback={<HeaderSkeleton />}>
+      <Suspense fallback={<StoreHeaderSkeleton />}>
         <StoreHeader 
           onTrackOrder={() => setIsTrackOrderOpen(true)} 
           onOpenAIStudio={() => setIsAIStudioOpen(true)}
@@ -951,7 +949,7 @@ const StoreProductDetail = ({
       </div>
 
       <div className="hidden md:block">
-        <Suspense fallback={<FooterSkeleton />}>
+        <Suspense fallback={<StoreFooterSkeleton />}>
           <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
         </Suspense>
       </div>

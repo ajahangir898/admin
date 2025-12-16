@@ -437,21 +437,80 @@ const App = () => {
     }
   }, [user, activeTenantId]);
 
-  // --- INITIAL DATA LOADING (OPTIMIZED: Split into critical + deferred) ---
+  // --- INITIAL DATA LOADING (OPTIMIZED: Parallel tenant + data loading) ---
   useEffect(() => {
     let isMounted = true;
-    const loadTenants = async () => {
+    const loadInitialData = async () => {
+      if (!activeTenantId) return;
+      setIsLoading(true);
+      let loadError: Error | null = null;
+      
       try {
-        const tenantList = await DataService.listTenants();
+        // Load tenants AND critical data in parallel (not sequential)
+        const [tenantList, productsData, themeData, websiteData] = await Promise.all([
+          DataService.listTenants(),
+          DataService.getProducts(activeTenantId),
+          DataService.getThemeConfig(activeTenantId),
+          DataService.getWebsiteConfig(activeTenantId)
+        ]);
+
         if (!isMounted) return;
+        
+        // Apply tenants
         applyTenantList(tenantList);
+        
+        // Apply critical store data immediately
+        const normalizedProducts = normalizeProductCollection(productsData, activeTenantId);
+        setProducts(normalizedProducts);
+        setThemeConfig(themeData);
+        setWebsiteConfig(websiteData);
+
+        // DEFERRED: Load secondary data after first paint
+        requestIdleCallback(() => {
+          if (!isMounted) return;
+          Promise.all([
+            DataService.getOrders(activeTenantId),
+            DataService.get<string | null>('logo', null, activeTenantId),
+            DataService.getDeliveryConfig(activeTenantId),
+            DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
+            DataService.getLandingPages(activeTenantId)
+          ]).then(([ordersData, logoData, deliveryData, chatMessagesData, landingPagesData]) => {
+            if (!isMounted) return;
+            setOrders(ordersData);
+            setLogo(logoData);
+            setDeliveryConfig(deliveryData);
+            const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
+            skipNextChatSaveRef.current = true;
+            setChatMessages(hydratedMessages);
+            chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
+            setHasUnreadChat(false);
+            setIsAdminChatOpen(false);
+            setLandingPages(landingPagesData);
+          }).catch(error => console.warn('Failed to load deferred data', error));
+        }, { timeout: 500 });
       } catch (error) {
-        console.warn('Unable to load tenants', error);
+        loadError = error as Error;
+        console.error('Failed to load data', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+          if (tenantSwitchTargetRef.current === activeTenantId) {
+            setIsTenantSwitching(false);
+            if (loadError) {
+              toast.error('Unable to switch tenants. Please try again.');
+            } else {
+              const switchedTenant = tenantsRef.current.find((tenant) => tenant.id === activeTenantId);
+              toast.success(`Now viewing ${switchedTenant?.name || 'selected tenant'}`);
+            }
+            tenantSwitchTargetRef.current = null;
+          }
+        }
       }
     };
-    loadTenants();
+
+    loadInitialData();
     return () => { isMounted = false; };
-  }, [applyTenantList, hostTenantSlug]);
+  }, [activeTenantId, applyTenantList]);
 
   // Load admin-only data when entering admin view (deferred)
   const loadAdminData = useCallback(async () => {
@@ -494,73 +553,6 @@ const App = () => {
   // Reset admin data flag on tenant change
   useEffect(() => {
     adminDataLoadedRef.current = false;
-  }, [activeTenantId]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      if (!activeTenantId) return;
-      setIsLoading(true);
-      let loadError: Error | null = null;
-      try {
-        // CRITICAL DATA: Only load what's needed for initial store render (6 calls instead of 17)
-        const [productsData, ordersData, logoData, themeData, websiteData, deliveryData] = await Promise.all([
-          DataService.getProducts(activeTenantId),
-          DataService.getOrders(activeTenantId),
-          DataService.get<string | null>('logo', null, activeTenantId),
-          DataService.getThemeConfig(activeTenantId),
-          DataService.getWebsiteConfig(activeTenantId),
-          DataService.getDeliveryConfig(activeTenantId)
-        ]);
-
-        if (!isMounted) return;
-        const normalizedProducts = normalizeProductCollection(productsData, activeTenantId);
-        setProducts(normalizedProducts);
-        setOrders(ordersData);
-        setLogo(logoData);
-        setThemeConfig(themeData);
-        setWebsiteConfig(websiteData);
-        setDeliveryConfig(deliveryData);
-
-        // DEFERRED DATA: Load non-critical data after initial render
-        requestIdleCallback(() => {
-          if (!isMounted) return;
-          Promise.all([
-            DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
-            DataService.getLandingPages(activeTenantId)
-          ]).then(([chatMessagesData, landingPagesData]) => {
-            if (!isMounted) return;
-            const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
-            skipNextChatSaveRef.current = true;
-            setChatMessages(hydratedMessages);
-            chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
-            setHasUnreadChat(false);
-            setIsAdminChatOpen(false);
-            setLandingPages(landingPagesData);
-          }).catch(error => console.warn('Failed to load deferred data', error));
-        }, { timeout: 1000 });
-      } catch (error) {
-        loadError = error as Error;
-        console.error('Failed to load data', error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-          if (tenantSwitchTargetRef.current === activeTenantId) {
-            setIsTenantSwitching(false);
-            if (loadError) {
-              toast.error('Unable to switch tenants. Please try again.');
-            } else {
-              const switchedTenant = tenantsRef.current.find((tenant) => tenant.id === activeTenantId);
-              toast.success(`Now viewing ${switchedTenant?.name || 'selected tenant'}`);
-            }
-            tenantSwitchTargetRef.current = null;
-          }
-        }
-      }
-    };
-
-    loadData();
-    return () => { isMounted = false; };
   }, [activeTenantId]);
 
   // --- DATA REFRESH HANDLER (Sync Admin changes to Storefront) ---

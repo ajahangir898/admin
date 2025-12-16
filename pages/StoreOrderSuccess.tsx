@@ -62,9 +62,9 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
            <div className="flex flex-col gap-3">
               <button 
                 onClick={onHome}
-                className="flex-1 btn-order py-1 text-xs"
+                className="flex-1 btn-order py-5 text-md"
               >
-                 <ShoppingBag size={20} /> Continue Shopping
+            Continue Shopping
               </button>
               <button 
                 onClick={() => window.print()}

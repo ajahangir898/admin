@@ -433,7 +433,9 @@ const StoreHome = ({
               <div className="mt-1 -mb-1">
                 <div className="flex items-end justify-between border-b border-gray-100 pb-0 md:pb-1">
                   <div className="relative pb-1">
-                    <h2 className="text-[15px] md:text-[20px] font-bold text-gray-800 dark:text-white">Categories</h2>
+                    <h2 className="text-[15px] md:text-[20px] font-bold text-gray-800 dark:text-white">
+                      {/* Categories */}
+                    </h2>
                   </div>
                   <a
                     href="#"
@@ -441,10 +443,11 @@ const StoreHome = ({
                     role="button"
                     aria-label="View all categories"
                   >
-                    View All
+                    {/* View All */}
                     <div className="h-0 w-0 border-b-[4px] border-l-[6px] border-t-[4px] border-b-transparent border-l-blue-500 border-t-transparent transition-transform group-hover:translate-x-1" />
                   </a>
                 </div>
+                {/* rolling category pills */}
                 <div
                   ref={categoryScrollRef}
                   className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"

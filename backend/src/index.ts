@@ -136,7 +136,33 @@ app.use('/', uploadRouter);
 
 app.use(errorHandler);
 
-// ...existing seedDefaultAdmin function...
+// Seed default super admin user
+const seedDefaultAdmin = async () => {
+  try {
+    const adminEmail = 'admin@admin.com';
+    const existingAdmin = await User.findOne({ email: adminEmail });
+    
+    if (!existingAdmin) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('admin123', salt);
+      
+      const superAdmin = new User({
+        name: 'Super Admin',
+        email: adminEmail,
+        password: hashedPassword,
+        role: 'super_admin',
+        isActive: true
+      });
+      
+      await superAdmin.save();
+      console.log('[backend] Default super admin created: admin@admin.com / admin123');
+    } else {
+      console.log('[backend] Super admin already exists');
+    }
+  } catch (error) {
+    console.error('[backend] Error seeding admin:', error);
+  }
+};
 
 const bootstrap = async () => {
   // Connect Mongoose for Entity/Transaction models
@@ -146,8 +172,8 @@ const bootstrap = async () => {
     });
     console.log('[backend] Mongoose connected to MongoDB');
     
-    // Seed default super admin user (keep existing code)
-    // await seedDefaultAdmin();
+    // Seed default super admin user
+    await seedDefaultAdmin();
   } catch (err) {
     console.error('[backend] Mongoose connection error:', err);
     process.exit(1);

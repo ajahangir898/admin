@@ -6,6 +6,9 @@ import * as authService from '../services/authService';
 import { User, Tenant, Order, Product, ThemeConfig, WebsiteConfig, DeliveryConfig, CourierConfig, FacebookPixelConfig, ChatMessage } from '../types';
 import { Loader2 } from 'lucide-react';
 
+// Permission map type
+type PermissionMap = Record<string, string[]>;
+
 interface AdminAppWithAuthProps {
   activeTenantId: string;
   tenants: Tenant[];
@@ -41,6 +44,7 @@ interface AdminAppWithAuthProps {
 const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [userPermissions, setUserPermissions] = useState<PermissionMap>({});
   const [isValidating, setIsValidating] = useState(true);
 
   // Validate session on mount
@@ -54,8 +58,20 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
         }
 
         // Validate token with backend
-        const { user: currentUser } = await authService.getCurrentUser();
+        const { user: currentUser, permissions } = await authService.getCurrentUser();
         setUser(currentUser as User);
+        
+        // Convert permissions array to map if needed
+        if (Array.isArray(permissions)) {
+          const permMap: PermissionMap = {};
+          permissions.forEach((p: any) => {
+            permMap[p.resource] = p.actions;
+          });
+          setUserPermissions(permMap);
+        } else if (permissions && typeof permissions === 'object') {
+          setUserPermissions(permissions as PermissionMap);
+        }
+        
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Session validation failed:', error);
@@ -72,7 +88,21 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
   // Handle successful login
   const handleLoginSuccess = useCallback(async () => {
     const storedUser = authService.getStoredUser();
+    const storedPerms = authService.getStoredPermissions();
+    
     setUser(storedUser as User);
+    
+    // Convert permissions
+    if (Array.isArray(storedPerms)) {
+      const permMap: PermissionMap = {};
+      storedPerms.forEach((p: any) => {
+        permMap[p.resource] = p.actions;
+      });
+      setUserPermissions(permMap);
+    } else if (storedPerms && typeof storedPerms === 'object') {
+      setUserPermissions(storedPerms as PermissionMap);
+    }
+    
     setIsAuthenticated(true);
   }, []);
 
@@ -106,6 +136,7 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
     <AdminApp
       {...props}
       user={user}
+      userPermissions={userPermissions}
       onLogout={handleLogout}
     />
   );

@@ -6,10 +6,12 @@ import {
 	Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
 	Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock
 } from 'lucide-react';
-import { StatCardProps, User, Tenant } from '../types';
+import { StatCardProps, User, Tenant, ResourceType } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import type { Notification as AppNotification } from '../backend/src/services/NotificationService';
 
+// Permission checking types
+type PermissionMap = Record<string, string[]>;
 
 interface AdminSidebarProps {
 	activePage?: string;
@@ -18,29 +20,55 @@ interface AdminSidebarProps {
 	isOpen?: boolean;
 	onClose?: () => void;
 	userRole?: User['role'];
+	permissions?: PermissionMap;
 }
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNavigate, logo, isOpen, onClose, userRole }) => {
+// Helper to check if user can access a resource
+const canAccess = (resource: string, userRole?: User['role'], permissions?: PermissionMap): boolean => {
+	// Super admin can access everything
+	if (userRole === 'super_admin') return true;
+	
+	// Admin can access everything except tenants
+	if (userRole === 'admin' && resource !== 'tenants') return true;
+	
+	// Check custom role permissions
+	if (permissions && permissions[resource]) {
+		return permissions[resource].includes('read');
+	}
+	
+	// Default: staff without custom role can only see dashboard
+	if (userRole === 'staff') {
+		return resource === 'dashboard';
+	}
+	
+	// Tenant admin can see everything except tenants
+	if (userRole === 'tenant_admin' && resource !== 'tenants') return true;
+	
+	return false;
+};
+
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNavigate, logo, isOpen, onClose, userRole, permissions }) => {
 	const [isCustomizationOpen, setIsCustomizationOpen] = useState(false);
 	const [isCatalogOpen, setIsCatalogOpen] = useState(false);
 	const [isBusinessReportOpen, setIsBusinessReportOpen] = useState(false);
 
+	// Menu items with their resource mapping
 	const menuItems = [
-		{ id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-		{ id: 'orders', icon: <ShoppingBag size={18} />, label: 'Orders' },
-		{ id: 'products', icon: <Box size={18} />, label: 'Products' },
-		{ id: 'landing_pages', icon: <FileText size={18} />, label: 'Landing page' },
-		{ id: 'popups', icon: <Layers size={18} />, label: 'Popups' },
-		{ id: 'tenants', icon: <Users size={18} />, label: 'Tenant Manager' },
-		{ id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management' },
-		// { id: 'expenses', icon: <DollarSign size={18} />, label: 'Site Expenses' },
-		{ id: 'customers', icon: <Users size={18} />, label: 'Customers' },
-		{ id: 'reviews', icon: <MessageCircle size={18} />, label: 'Reviews' },
-		{ id: 'daily_target', icon: <Target size={18} />, label: 'Daily Target' },
-		{ id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery' },
+		{ id: 'dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard', resource: 'dashboard' },
+		{ id: 'orders', icon: <ShoppingBag size={18} />, label: 'Orders', resource: 'orders' },
+		{ id: 'products', icon: <Box size={18} />, label: 'Products', resource: 'products' },
+		{ id: 'landing_pages', icon: <FileText size={18} />, label: 'Landing page', resource: 'landing_pages' },
+		{ id: 'popups', icon: <Layers size={18} />, label: 'Popups', resource: 'landing_pages' },
+		{ id: 'tenants', icon: <Users size={18} />, label: 'Tenant Manager', resource: 'tenants' },
+		{ id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management', resource: 'inventory' },
+		{ id: 'customers', icon: <Users size={18} />, label: 'Customers', resource: 'customers' },
+		{ id: 'reviews', icon: <MessageCircle size={18} />, label: 'Reviews', resource: 'reviews' },
+		{ id: 'daily_target', icon: <Target size={18} />, label: 'Daily Target', resource: 'daily_target' },
+		{ id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery', resource: 'gallery' },
 	];
 
-	const filteredMenuItems = menuItems.filter(item => item.id !== 'tenants' || userRole === 'super_admin');
+	// Filter menu items based on permissions
+	const filteredMenuItems = menuItems.filter(item => canAccess(item.resource, userRole, permissions));
 
 	const catalogItems = [
 		{ id: 'catalog_categories', label: 'Categories' },
@@ -66,6 +94,26 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'business_report_profit_loss', label: 'Profit / Loss' },
 		{ id: 'business_report_note', label: 'Note' },
 	];
+
+	// Check if user can see business report section
+	const canSeeBusinessReport = canAccess('business_report', userRole, permissions) || 
+		canAccess('expenses', userRole, permissions) || 
+		canAccess('income', userRole, permissions) ||
+		canAccess('due_book', userRole, permissions) ||
+		canAccess('profit_loss', userRole, permissions) ||
+		canAccess('notes', userRole, permissions);
+
+	// Check if user can see catalog
+	const canSeeCatalog = canAccess('catalog', userRole, permissions);
+
+	// Check if user can see customization
+	const canSeeCustomization = canAccess('customization', userRole, permissions);
+
+	// Check if user can see settings
+	const canSeeSettings = canAccess('settings', userRole, permissions);
+
+	// Check if user can see admin control
+	const canSeeAdminControl = canAccess('admin_control', userRole, permissions);
 
 	const SidebarContent = () => (
 		<>
@@ -101,86 +149,102 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				))}
 
 				{/* Business Report - Single Menu Item */}
-				<div
-					onClick={() => { onNavigate && onNavigate('business_report_expense'); onClose && onClose(); }}
-					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-						activePage?.startsWith('business_report_')
-							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40 shadow-lg shadow-emerald-900/30'
-							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
-					}`}
-				>
-					<FileText size={18} />
-					<span>Business Report</span>
-				</div>
+				{canSeeBusinessReport && (
+					<div
+						onClick={() => { onNavigate && onNavigate('business_report_expense'); onClose && onClose(); }}
+						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
+							activePage?.startsWith('business_report_')
+								? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40 shadow-lg shadow-emerald-900/30'
+								: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
+						}`}
+					>
+						<FileText size={18} />
+						<span>Business Report</span>
+					</div>
+				)}
 
 				{/* Catalog - Single Menu Item */}
-				<div
-					onClick={() => { onNavigate && onNavigate('catalog_categories'); onClose && onClose(); }}
-					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-						activePage?.startsWith('catalog_')
-							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40 shadow-lg shadow-emerald-900/30'
-							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
-					}`}
-				>
-					<Layers size={18} />
-					<span>Catalog</span>
-				</div>
-
-				<div>
+				{canSeeCatalog && (
 					<div
-						onClick={() => setIsCustomizationOpen(!isCustomizationOpen)}
-						className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm text-slate-400 hover:bg-emerald-500/5 hover:text-white border border-white/5"
+						onClick={() => { onNavigate && onNavigate('catalog_categories'); onClose && onClose(); }}
+						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
+							activePage?.startsWith('catalog_')
+								? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40 shadow-lg shadow-emerald-900/30'
+								: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
+						}`}
 					>
-						<div className="flex items-center gap-3">
-							<Sliders size={18} />
-							<span>Customization</span>
-						</div>
-						{isCustomizationOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+						<Layers size={18} />
+						<span>Catalog</span>
 					</div>
+				)}
 
-					{isCustomizationOpen && (
-						<div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
-							{customizationItems.map(item => (
-								<div
-									key={item.id}
-									onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
-									className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${
-										activePage === item.id ? 'text-emerald-200 font-semibold bg-emerald-500/5 border border-emerald-500/30' : 'text-slate-500 hover:text-white hover:bg-emerald-500/5'
-									}`}
-								>
-									<div className="flex items-center gap-2">
-										<div className={`w-1.5 h-1.5 rounded-full ${activePage === item.id ? 'bg-emerald-400' : 'bg-white/30'}`}></div>
-										{item.label}
-									</div>
-								</div>
-							))}
+				{/* Customization Dropdown */}
+				{canSeeCustomization && (
+					<div>
+						<div
+							onClick={() => setIsCustomizationOpen(!isCustomizationOpen)}
+							className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm text-slate-400 hover:bg-emerald-500/5 hover:text-white border border-white/5"
+						>
+							<div className="flex items-center gap-3">
+								<Sliders size={18} />
+								<span>Customization</span>
+							</div>
+							{isCustomizationOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
 						</div>
-					)}
-				</div>
 
-				<div className="text-[10px] font-semibold text-emerald-400 uppercase tracking-[0.4em] mb-3 px-3 mt-6">System</div>
-				<div
-					onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
-					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-						activePage === 'settings'
-							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40'
-							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
-					}`}
-				>
-					<Settings size={18} />
-					<span>Settings</span>
-				</div>
-				<div
-					onClick={() => { onNavigate && onNavigate('admin'); onClose && onClose(); }}
-					className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-						activePage === 'admin'
-							? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40'
-							: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
-					}`}
-				>
-					<Shield size={18} />
-					<span>Admin Control</span>
-				</div>
+						{isCustomizationOpen && (
+							<div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
+								{customizationItems.map(item => (
+									<div
+										key={item.id}
+										onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
+										className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${
+											activePage === item.id ? 'text-emerald-200 font-semibold bg-emerald-500/5 border border-emerald-500/30' : 'text-slate-500 hover:text-white hover:bg-emerald-500/5'
+										}`}
+									>
+										<div className="flex items-center gap-2">
+											<div className={`w-1.5 h-1.5 rounded-full ${activePage === item.id ? 'bg-emerald-400' : 'bg-white/30'}`}></div>
+											{item.label}
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				)}
+
+				{/* System Section - Only show if user has access to settings or admin control */}
+				{(canSeeSettings || canSeeAdminControl) && (
+					<>
+						<div className="text-[10px] font-semibold text-emerald-400 uppercase tracking-[0.4em] mb-3 px-3 mt-6">System</div>
+						{canSeeSettings && (
+							<div
+								onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
+								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
+									activePage === 'settings'
+										? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40'
+										: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
+								}`}
+							>
+								<Settings size={18} />
+								<span>Settings</span>
+							</div>
+						)}
+						{canSeeAdminControl && (
+							<div
+								onClick={() => { onNavigate && onNavigate('admin'); onClose && onClose(); }}
+								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
+									activePage === 'admin'
+										? 'bg-gradient-to-r from-red-600/20 via-red-500/10 to-emerald-500/20 text-white font-semibold border border-emerald-500/40'
+										: 'text-slate-400 hover:bg-emerald-500/5 hover:text-white'
+								}`}
+							>
+								<Shield size={18} />
+								<span>Admin Control</span>
+							</div>
+						)}
+					</>
+				)}
 
 				<div className="mt-8 pt-4 border-t border-white/10">
 					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-emerald-200 hover:text-white hover:bg-gradient-to-r hover:from-red-600/20 hover:to-emerald-500/20 transition text-sm">

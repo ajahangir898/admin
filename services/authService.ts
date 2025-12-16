@@ -1,5 +1,5 @@
 // Auth Service - Connects frontend with backend authentication API
-import type { User, Role, Permission } from '../pages/AdminControlNew';
+import type { User, Role, Permission } from '../types';
 
 // Dynamic API URL - works for main domain and all subdomains
 const getApiUrl = (): string => {

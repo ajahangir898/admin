@@ -118,26 +118,46 @@ export interface Order {
 }
 
 export interface User {
+  _id?: string;
+  id?: string;
   name: string;
   tenantId?: string;
   email: string;
   password?: string;
   phone?: string;
   address?: string;
-  role?: 'customer' | 'admin' | 'tenant_admin' | 'super_admin';
+  role?: 'customer' | 'admin' | 'tenant_admin' | 'super_admin' | 'staff';
   roleId?: string; // ID of the custom role defined in AdminControl
+  roleDetails?: Role;
   username?: string; // Added for admin profile
   image?: string; // Added for admin profile
+  isActive?: boolean;
+  lastLogin?: string;
   createdAt?: string; // Added for admin profile
   updatedAt?: string; // Added for admin profile
 }
 
+export type ResourceType = 
+  | 'dashboard' | 'orders' | 'products' | 'customers' | 'inventory'
+  | 'catalog' | 'landing_pages' | 'gallery' | 'reviews' | 'daily_target'
+  | 'business_report' | 'expenses' | 'income' | 'due_book' | 'profit_loss'
+  | 'notes' | 'customization' | 'settings' | 'admin_control' | 'tenants';
+
+export type ActionType = 'read' | 'write' | 'edit' | 'delete';
+
+export interface Permission {
+  resource: ResourceType;
+  actions: ActionType[];
+}
+
 export interface Role {
-  id: string;
+  _id?: string;
+  id?: string;
   tenantId?: string;
   name: string;
   description: string;
-  permissions: string[];
+  permissions: Permission[];
+  isSystem?: boolean;
 }
 
 export interface StatCardProps {

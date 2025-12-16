@@ -17,7 +17,6 @@ const AdminOrders = lazy(() => import(/* webpackChunkName: "admin-orders" */ './
 const AdminProducts = lazy(() => import(/* webpackChunkName: "admin-products" */ './AdminProducts'));
 const AdminCustomization = lazy(() => import(/* webpackChunkName: "admin-customization" */ './AdminCustomization'));
 const AdminSettings = lazy(() => import(/* webpackChunkName: "admin-settings" */ './AdminSettings'));
-const AdminControl = lazy(() => import(/* webpackChunkName: "admin-control" */ './AdminControl'));
 const AdminControlNew = lazy(() => import(/* webpackChunkName: "admin-control-new" */ './AdminControlNew'));
 const AdminCatalog = lazy(() => import(/* webpackChunkName: "admin-catalog" */ './AdminCatalog'));
 const AdminBusinessReport = lazy(() => import(/* webpackChunkName: "admin-reports" */ './AdminBusinessReport'));
@@ -48,8 +47,12 @@ if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
   }, { timeout: 3000 });
 }
 
+// Permission map type
+type PermissionMap = Record<string, string[]>;
+
 interface AdminAppProps {
   user: User | null;
+  userPermissions?: PermissionMap;
   activeTenantId: string;
   tenants: Tenant[];
   orders: Order[];
@@ -101,6 +104,7 @@ interface AdminLayoutProps {
   isTenantSwitching?: boolean;
   onOpenChatCenter?: () => void;
   hasUnreadChat?: boolean;
+  userPermissions?: PermissionMap;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ 
@@ -116,7 +120,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   onTenantChange,
   isTenantSwitching,
   onOpenChatCenter,
-  hasUnreadChat
+  hasUnreadChat,
+  userPermissions = {}
 }) => {
   const highlightPage = activePage.startsWith('settings') ? 'settings' : activePage;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -130,6 +135,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)}
         userRole={user?.role}
+        permissions={userPermissions}
       />
       <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-[#050407]/80 via-[#07110b]/75 to-[#0e0609]/80 backdrop-blur">
         <AdminHeader 
@@ -153,8 +159,79 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   );
 };
 
+// Helper to check if user can access a page
+const canAccessPage = (page: string, user?: User | null, permissions?: PermissionMap): boolean => {
+  if (!user) return false;
+  
+  const role = user.role;
+  
+  // Super admin can access everything
+  if (role === 'super_admin') return true;
+  
+  // Admin can access everything except tenants
+  if (role === 'admin' && page !== 'tenants') return true;
+  
+  // Tenant admin can access everything except tenants
+  if (role === 'tenant_admin' && page !== 'tenants') return true;
+  
+  // Staff - check permissions
+  if (role === 'staff') {
+    // Dashboard is always accessible
+    if (page === 'dashboard') return true;
+    
+    // Check permissions map
+    if (permissions) {
+      const pageResourceMap: Record<string, string> = {
+        'orders': 'orders',
+        'products': 'products',
+        'landing_pages': 'landing_pages',
+        'popups': 'landing_pages',
+        'inventory': 'inventory',
+        'customers': 'customers',
+        'reviews': 'reviews',
+        'daily_target': 'daily_target',
+        'gallery': 'gallery',
+        'catalog_categories': 'catalog',
+        'catalog_subcategories': 'catalog',
+        'catalog_childcategories': 'catalog',
+        'catalog_brands': 'catalog',
+        'catalog_tags': 'catalog',
+        'business_report_expense': 'business_report',
+        'business_report_income': 'business_report',
+        'business_report_due_book': 'business_report',
+        'business_report_profit_loss': 'business_report',
+        'business_report_note': 'business_report',
+        'due_list': 'due_book',
+        'expenses': 'expenses',
+        'settings': 'settings',
+        'settings_delivery': 'settings',
+        'settings_courier': 'settings',
+        'settings_facebook_pixel': 'settings',
+        'admin': 'admin_control',
+        'carousel': 'customization',
+        'banner': 'customization',
+        'popup': 'customization',
+        'website_info': 'customization',
+        'theme_view': 'customization',
+        'theme_colors': 'customization',
+        'tenants': 'tenants',
+      };
+      
+      const resource = pageResourceMap[page];
+      if (resource && permissions[resource]) {
+        return permissions[resource].includes('read');
+      }
+    }
+    
+    return false;
+  }
+  
+  return false;
+};
+
 const AdminApp: React.FC<AdminAppProps> = ({
   user,
+  userPermissions = {},
   activeTenantId,
   tenants,
   orders,
@@ -190,7 +267,19 @@ const AdminApp: React.FC<AdminAppProps> = ({
   isTenantCreating,
   deletingTenantId,
 }) => {
-  const [adminSection, setAdminSection] = useState('dashboard');
+  const [adminSection, setAdminSectionInternal] = useState('dashboard');
+  
+  // Wrapper that checks permission before navigating
+  const setAdminSection = (page: string) => {
+    if (canAccessPage(page, user, userPermissions)) {
+      setAdminSectionInternal(page);
+    } else {
+      // Redirect to dashboard if no access
+      toast.error('You do not have permission to access this page');
+      setAdminSectionInternal('dashboard');
+    }
+  };
+  
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [childCategories, setChildCategories] = useState<ChildCategory[]>([]);
@@ -268,11 +357,11 @@ const AdminApp: React.FC<AdminAppProps> = ({
   const headerTenants = platformOperator ? tenants : (selectedTenantRecord ? [selectedTenantRecord] : []);
   const tenantSwitcher = platformOperator ? onTenantChange : undefined;
 
-  const handleAddRole = async (newRole: Role) => {
+  const handleAddRole = async (newRole: Omit<Role, '_id' | 'id'>) => {
     try {
       await authService.createRole({
         name: newRole.name,
-        description: newRole.description,
+        description: newRole.description || '',
         permissions: (newRole.permissions || []) as any,
         tenantId: newRole.tenantId || activeTenantId
       });
@@ -413,6 +502,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
       isTenantSwitching={isTenantSwitching}
       onOpenChatCenter={onOpenAdminChat}
       hasUnreadChat={hasUnreadChat}
+      userPermissions={userPermissions}
     >
       <Suspense fallback={<div className="flex items-center justify-center h-96 text-gray-400">Loading...</div>}>
         {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
@@ -431,7 +521,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={onUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={onUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={(cfg) => onUpdateCourierConfig(cfg)} onBack={() => setAdminSection('settings')} /> :
-         adminSection === 'admin' ? <AdminControlNew users={users} roles={roles as any} onAddUser={handleAddUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onAddRole={handleAddRole as any} onUpdateRole={handleUpdateRole as any} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} currentUser={user} tenantId={activeTenantId} /> :
+         adminSection === 'admin' ? <AdminControlNew users={users} roles={roles} onAddUser={handleAddUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} currentUser={user} tenantId={activeTenantId} /> :
          adminSection === 'tenants' ? (platformOperator
            ? <AdminTenantManagement 
                tenants={tenants} 

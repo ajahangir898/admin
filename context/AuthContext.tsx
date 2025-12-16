@@ -39,6 +39,10 @@ export interface AuthUser {
     _id: string;
     name: string;
     description: string;
+    permissions?: Array<{
+      resource: ResourceType;
+      actions: ActionType[];
+    }>;
   };
   tenantId?: string;
   isActive: boolean;

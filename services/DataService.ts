@@ -239,8 +239,15 @@ class DataServiceImpl {
 
   async getRoles(tenantId?: string): Promise<Role[]> {
     const defaultRoles: Role[] = [
-      { id: 'manager', name: 'Store Manager', description: 'Can manage products and orders', permissions: ['view_dashboard', 'manage_orders', 'view_orders', 'manage_products', 'view_products'] },
-      { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: ['view_dashboard', 'view_orders'] }
+      { id: 'manager', name: 'Store Manager', description: 'Can manage products and orders', permissions: [
+        { resource: 'dashboard', actions: ['read'] },
+        { resource: 'orders', actions: ['read', 'write', 'edit'] },
+        { resource: 'products', actions: ['read', 'write', 'edit'] }
+      ] },
+      { id: 'support', name: 'Support Agent', description: 'Can view orders and dashboard', permissions: [
+        { resource: 'dashboard', actions: ['read'] },
+        { resource: 'orders', actions: ['read'] }
+      ] }
     ];
     const remote = await this.getCollection<Role>('roles', [], tenantId);
     return remote.length ? remote : defaultRoles;

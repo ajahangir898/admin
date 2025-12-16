@@ -1,7 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { User, Order, WebsiteConfig, Product } from '../types';
-import { StoreHeader, StoreFooter } from '../components/StoreComponents';
+
+// Lazy load heavy layout components
+const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
+
+// Minimal skeleton fallbacks
+const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
+const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
+
 import { SkeletonMetricCard, SkeletonTable } from '../components/SkeletonLoaders';
 import { User as UserIcon, Mail, Phone, MapPin, Package, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
 
@@ -77,22 +85,24 @@ const StoreProfile = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <StoreHeader 
-        onHomeClick={onHome}
-        onImageSearchClick={onImageSearchClick}
-        user={user}
-        onLoginClick={onLoginClick}
-        onLogoutClick={onLogoutClick}
-        onProfileClick={() => {}} // Already on profile
-        logo={logo}
-        websiteConfig={websiteConfig}
-            searchValue={searchValue}
-            onSearchChange={onSearchChange}
-            cart={cart}
-            onToggleCart={onToggleCart}
-            onCheckoutFromCart={onCheckoutFromCart}
-            productCatalog={productCatalog}
-      />
+      <Suspense fallback={<HeaderSkeleton />}>
+        <StoreHeader 
+          onHomeClick={onHome}
+          onImageSearchClick={onImageSearchClick}
+          user={user}
+          onLoginClick={onLoginClick}
+          onLogoutClick={onLogoutClick}
+          onProfileClick={() => {}} // Already on profile
+          logo={logo}
+          websiteConfig={websiteConfig}
+              searchValue={searchValue}
+              onSearchChange={onSearchChange}
+              cart={cart}
+              onToggleCart={onToggleCart}
+              onCheckoutFromCart={onCheckoutFromCart}
+              productCatalog={productCatalog}
+        />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
@@ -305,7 +315,9 @@ const StoreProfile = ({
         </div>
       </main>
 
-         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      <Suspense fallback={<FooterSkeleton />}>
+        <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      </Suspense>
     </div>
   );
 };

@@ -16,7 +16,6 @@ import AppSkeleton, {
   ProductDetailSkeleton, 
   CheckoutSkeleton, 
   ProfileSkeleton,
-  ImageSearchSkeleton,
   LandingPageSkeleton,
   OrderSuccessSkeleton,
   MobileNavSkeleton
@@ -31,7 +30,6 @@ const StoreProductDetail = lazy(() => import('./pages/StoreProductDetail'));
 const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
 const StoreOrderSuccess = lazy(() => import('./pages/StoreOrderSuccess'));
 const StoreProfile = lazy(() => import('./pages/StoreProfile'));
-const StoreImageSearch = lazy(() => import('./pages/StoreImageSearch'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 
 // Admin pages - lazy loaded (only load when needed)
@@ -48,12 +46,15 @@ const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: m
 const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
 const StoreChatModal = lazy(() => loadStoreComponents().then(module => ({ default: module.StoreChatModal })));
 
-// Preload store chunks on idle - only store components for faster initial load
-if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-  (window as any).requestIdleCallback(() => {
-    import('./pages/StoreHome');
-    import('./components/StoreComponents');
-  }, { timeout: 2000 });
+// Preload critical chunks IMMEDIATELY (not on idle) for faster store load
+if (typeof window !== 'undefined') {
+  // Start preloading immediately - don't wait for idle
+  const preloadPromise = Promise.all([
+    import('./pages/StoreHome'),
+    import('./components/StoreComponents')
+  ]);
+  // Store promise for potential future use
+  (window as any).__storePreload = preloadPromise;
 }
 
 type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search' | 'admin-login';
@@ -444,6 +445,7 @@ const App = () => {
       if (!activeTenantId) return;
       setIsLoading(true);
       let loadError: Error | null = null;
+      const startTime = performance.now();
       
       try {
         // Load tenants AND critical data in parallel (not sequential)
@@ -453,6 +455,8 @@ const App = () => {
           DataService.getThemeConfig(activeTenantId),
           DataService.getWebsiteConfig(activeTenantId)
         ]);
+        
+        console.log(`[Perf] Critical data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
 
         if (!isMounted) return;
         
@@ -1758,19 +1762,6 @@ fbq('track', 'PageView');`;
                 product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}
                 onBack={handleCloseLandingPreview}
                 onSubmitLandingOrder={handleLandingOrderSubmit}
-                />
-              </Suspense>
-            )}
-            {currentView === 'image-search' && (
-              <Suspense fallback={<ImageSearchSkeleton />}>
-                <StoreImageSearch 
-                products={products}
-                websiteConfig={websiteConfig}
-                user={user}
-                onProductClick={handleProductClick}
-                onAddToCart={(product, quantity = 1) => handleAddProductToCart(product, quantity)}
-                onCheckout={(product, quantity) => handleCheckoutStart(product, quantity)}
-                onNavigate={(page) => setCurrentView(page as ViewState)}
                 />
               </Suspense>
             )}

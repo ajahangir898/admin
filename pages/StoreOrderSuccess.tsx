@@ -1,8 +1,15 @@
 
-import React from 'react';
-import { StoreHeader, StoreFooter } from '../components/StoreComponents';
+import React, { lazy, Suspense } from 'react';
+
+// Lazy load heavy layout components
+const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import { User, WebsiteConfig, Product } from '../types';
+
+// Minimal skeleton placeholders for lazy components
+const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
+const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
 
 interface SuccessProps {
   onHome: () => void;
@@ -25,22 +32,24 @@ interface SuccessProps {
 const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onImageSearchClick, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog }: SuccessProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50 font-sans text-slate-900 flex flex-col">
-      <StoreHeader 
-        onHomeClick={onHome}
-        onImageSearchClick={onImageSearchClick}
-        user={user}
-        onLoginClick={onLoginClick}
-        onLogoutClick={onLogoutClick}
-        onProfileClick={onProfileClick}
-        logo={logo}
-        websiteConfig={websiteConfig}
-        searchValue={searchValue}
-        onSearchChange={onSearchChange}
-        cart={cart}
-        onToggleCart={onToggleCart}
-        onCheckoutFromCart={onCheckoutFromCart}
-        productCatalog={productCatalog}
-      />
+      <Suspense fallback={<HeaderSkeleton />}>
+        <StoreHeader 
+          onHomeClick={onHome}
+          onImageSearchClick={onImageSearchClick}
+          user={user}
+          onLoginClick={onLoginClick}
+          onLogoutClick={onLogoutClick}
+          onProfileClick={onProfileClick}
+          logo={logo}
+          websiteConfig={websiteConfig}
+          searchValue={searchValue}
+          onSearchChange={onSearchChange}
+          cart={cart}
+          onToggleCart={onToggleCart}
+          onCheckoutFromCart={onCheckoutFromCart}
+          productCatalog={productCatalog}
+        />
+      </Suspense>
       
       <main className="flex-1 max-w-7xl mx-auto px-4 flex items-center justify-center py-12">
         <div className="store-card rounded-2xl p-8 md:p-12 max-w-lg w-full text-center animate-in fade-in zoom-in-95 duration-500">
@@ -76,7 +85,9 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         </div>
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      <Suspense fallback={<FooterSkeleton />}>
+        <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      </Suspense>
     </div>
   );
 };

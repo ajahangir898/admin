@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback } from 'react';
-import { StoreHeader, StoreFooter, HeroSection, CategoryCircle, CategoryPill, SectionHeader, ProductCard, ProductQuickViewModal } from '../components/StoreComponents';
+import { ProductCard, HeroSection, CategoryCircle, CategoryPill, SectionHeader } from '../components/StoreProductComponents';
 import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
@@ -10,9 +10,16 @@ import { ProductFilter, SortOption } from '../components/ProductFilter';
 import { EmptySearchState } from '../components/EmptyStates';
 import { SkeletonCard, SkeletonImageGrid } from '../components/SkeletonLoaders';
 
-// Lazy load heavy modals
+// Lazy load heavy components (StoreHeader, StoreFooter, modals)
+const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
+const ProductQuickViewModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.ProductQuickViewModal })));
 const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
 const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
+
+// Minimal skeleton fallbacks
+const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
+const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
 
 // Helper map for dynamic icons
 const iconMap: Record<string, React.ReactNode> = {
@@ -322,31 +329,33 @@ const StoreHome = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <StoreHeader 
-        onTrackOrder={() => setIsTrackOrderOpen(true)} 
-        onOpenAIStudio={() => setIsAIStudioOpen(true)}
-        onImageSearchClick={onImageSearchClick}
-        productCatalog={displayProducts}
-        wishlistCount={wishlistCount}
-        wishlist={wishlist}
-        onToggleWishlist={onToggleWishlist}
-        cart={cart}
-        onToggleCart={onToggleCart}
-        onCheckoutFromCart={onCheckoutFromCart}
-        user={user}
-        onLoginClick={onLoginClick}
-        onLogoutClick={onLogoutClick}
-        onProfileClick={onProfileClick}
-        logo={logo}
-        websiteConfig={websiteConfig}
-        searchValue={searchTerm}
-        onSearchChange={updateSearchTerm}
-        onCategoriesClick={handleCategoriesNav}
-        onProductsClick={handleProductsNav}
-        categoriesList={CATEGORIES.map((cat) => cat.name)}
-        onCategorySelect={(categoryName) => updateSearchTerm(categoryName)}
-        onProductClick={onProductClick}
-      />
+      <Suspense fallback={<HeaderSkeleton />}>
+        <StoreHeader 
+          onTrackOrder={() => setIsTrackOrderOpen(true)} 
+          onOpenAIStudio={() => setIsAIStudioOpen(true)}
+          onImageSearchClick={onImageSearchClick}
+          productCatalog={displayProducts}
+          wishlistCount={wishlistCount}
+          wishlist={wishlist}
+          onToggleWishlist={onToggleWishlist}
+          cart={cart}
+          onToggleCart={onToggleCart}
+          onCheckoutFromCart={onCheckoutFromCart}
+          user={user}
+          onLoginClick={onLoginClick}
+          onLogoutClick={onLogoutClick}
+          onProfileClick={onProfileClick}
+          logo={logo}
+          websiteConfig={websiteConfig}
+          searchValue={searchTerm}
+          onSearchChange={updateSearchTerm}
+          onCategoriesClick={handleCategoriesNav}
+          onProductsClick={handleProductsNav}
+          categoriesList={CATEGORIES.map((cat) => cat.name)}
+          onCategorySelect={(categoryName) => updateSearchTerm(categoryName)}
+          onProductClick={onProductClick}
+        />
+      </Suspense>
       
       {isTrackOrderOpen && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
@@ -673,7 +682,9 @@ const StoreHome = ({
         )}
       </main>
 
-      <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      <Suspense fallback={<FooterSkeleton />}>
+        <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      </Suspense>
       
       {/* Popup Display */}
       {activePopup && (

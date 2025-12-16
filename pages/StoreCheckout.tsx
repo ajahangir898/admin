@@ -1,7 +1,15 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
-import { StoreHeader, StoreFooter } from '../components/StoreComponents';
+
+// Lazy load heavy layout components
+const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
+
+// Minimal skeleton fallbacks
+const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
+const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
+
 import { EmptyCartState } from '../components/EmptyStates';
 import { SkeletonForm } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
@@ -242,22 +250,24 @@ const StoreCheckout = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <StoreHeader 
-        onHomeClick={onBack}
-        onImageSearchClick={onImageSearchClick}
-        user={user}
-        onLoginClick={onLoginClick}
-        onLogoutClick={onLogoutClick}
-        onProfileClick={onProfileClick}
-        logo={logo}
-        websiteConfig={websiteConfig}
-        searchValue={searchValue}
-        onSearchChange={onSearchChange}
-        cart={cart}
-        onToggleCart={onToggleCart}
-        onCheckoutFromCart={onCheckoutFromCart}
-        productCatalog={productCatalog}
-      />
+      <Suspense fallback={<HeaderSkeleton />}>
+        <StoreHeader 
+          onHomeClick={onBack}
+          onImageSearchClick={onImageSearchClick}
+          user={user}
+          onLoginClick={onLoginClick}
+          onLogoutClick={onLogoutClick}
+          onProfileClick={onProfileClick}
+          logo={logo}
+          websiteConfig={websiteConfig}
+          searchValue={searchValue}
+          onSearchChange={onSearchChange}
+          cart={cart}
+          onToggleCart={onToggleCart}
+          onCheckoutFromCart={onCheckoutFromCart}
+          productCatalog={productCatalog}
+        />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         <section className="bg-white rounded-2xl shadow-sm p-4 md:p-6 top-16 z-10">
@@ -775,7 +785,9 @@ const StoreCheckout = ({
         </div>
       )}
 
-      <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      <Suspense fallback={<FooterSkeleton />}>
+        <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+      </Suspense>
     </div>
   );
 };

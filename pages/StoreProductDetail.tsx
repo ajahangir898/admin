@@ -1,7 +1,17 @@
 
 import React, { useState, useEffect, useMemo, lazy, Suspense, memo, useCallback, useRef } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
-import { StoreHeader, StoreFooter, AddToCartSuccessModal, MobileBottomNav } from '../components/StoreComponents';
+
+// Lazy load heavy layout components and modals
+const StoreHeader = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreHeader })));
+const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
+const AddToCartSuccessModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AddToCartSuccessModal })));
+const MobileBottomNav = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.MobileBottomNav })));
+
+// Minimal skeleton fallbacks
+const HeaderSkeleton = () => <div className="h-16 bg-white shadow-sm animate-pulse" />;
+const FooterSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse" />;
+
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
@@ -368,26 +378,28 @@ const StoreProductDetail = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0">
-      <StoreHeader 
-        onTrackOrder={() => setIsTrackOrderOpen(true)} 
-        onOpenAIStudio={() => setIsAIStudioOpen(true)}
-        onHomeClick={onBack}
-        onImageSearchClick={onImageSearchClick}
-        wishlistCount={wishlistCount}
-        cart={cart}
-        onToggleCart={onToggleCart}
-        onCheckoutFromCart={onCheckoutFromCart}
-        productCatalog={catalogProducts}
-        user={user}
-        onLoginClick={onLoginClick}
-        onLogoutClick={onLogoutClick}
-        onProfileClick={onProfileClick}
-        logo={logo}
-        websiteConfig={websiteConfig}
-        searchValue={searchValue}
-        onSearchChange={onSearchChange}
-        onProductClick={onProductClick}
-      />
+      <Suspense fallback={<HeaderSkeleton />}>
+        <StoreHeader 
+          onTrackOrder={() => setIsTrackOrderOpen(true)} 
+          onOpenAIStudio={() => setIsAIStudioOpen(true)}
+          onHomeClick={onBack}
+          onImageSearchClick={onImageSearchClick}
+          wishlistCount={wishlistCount}
+          cart={cart}
+          onToggleCart={onToggleCart}
+          onCheckoutFromCart={onCheckoutFromCart}
+          productCatalog={catalogProducts}
+          user={user}
+          onLoginClick={onLoginClick}
+          onLogoutClick={onLogoutClick}
+          onProfileClick={onProfileClick}
+          logo={logo}
+          websiteConfig={websiteConfig}
+          searchValue={searchValue}
+          onSearchChange={onSearchChange}
+          onProductClick={onProductClick}
+        />
+      </Suspense>
       
       {isTrackOrderOpen && (
         <Suspense fallback={<ModalLoadingFallback />}>
@@ -939,7 +951,9 @@ const StoreProductDetail = ({
       </div>
 
       <div className="hidden md:block">
-        <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+        <Suspense fallback={<FooterSkeleton />}>
+          <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
+        </Suspense>
       </div>
     </div>
   );

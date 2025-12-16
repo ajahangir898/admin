@@ -246,10 +246,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					</>
 				)}
 
-				<div className="mt-8 pt-4 border-t border-white/10">
+				<div className="mt-8 pt-4 border-t border-white/10"> 
 					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-emerald-200 hover:text-white hover:bg-gradient-to-r hover:from-red-600/20 hover:to-emerald-500/20 transition text-sm">
 						<LogOut size={18} />
-						<span>Logout</span>
+
+						<span>More Options (Coming Soon)</span>
 					</div>
 				</div>
 			</div>
@@ -504,14 +505,7 @@ export const AdminHeader: React.FC<{
 
 				{/* Logo/Brand - Visible on mobile only */}
 				<div className="flex items-center gap-2 md:hidden flex-shrink-0">
-					{logo ? (
-						<img src={logo} alt="Brand" className="h-7 object-contain" />
-					) : (
-						<div className="flex items-center gap-1.5">
-							<div className="w-6 h-6 rounded-full border-2 border-emerald-500 flex-shrink-0"></div>
-							<span className="text-xs font-bold text-white tracking-wider uppercase whitespace-nowrap">Overseas</span>
-						</div>
-					)}
+					{/* logo */}
 				</div>
 
 				{/* Desktop Elements */}
@@ -535,6 +529,7 @@ export const AdminHeader: React.FC<{
         Go to Website
     </button>
 )}
+
 				<h2 className="text-xl font-black tracking-wide hidden md:block text-emerald-200 flex-shrink-0">Dashboard</h2>
 				{canSwitchTenant && (
 					<div className="relative hidden sm:block flex-shrink-0" ref={tenantMenuRef}>
@@ -751,7 +746,15 @@ export const AdminHeader: React.FC<{
 							<div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
 								<div className="p-4 border-b border-gray-50">
 									<button className="flex items-center gap-3 text-sm text-gray-700 hover:text-green-600 w-full p-2 rounded hover:bg-gray-50 transition mb-1">
-										<UserIcon size={18} /> View Profile
+								
+	    <a 
+        href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 text-sm text-gray-700 hover:text-orange-600 w-full p-2 rounded hover:bg-gray-50 transition"
+    >
+      <ExternalLink size={14} />  Go to Website
+    </a>
 									</button>
 									<button
 										onClick={onLogout}

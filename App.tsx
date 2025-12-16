@@ -9,7 +9,18 @@ import { slugify } from './services/slugify';
 import { notificationService } from './backend/src/services/NotificationService';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { toast } from 'react-hot-toast';
-import AppSkeleton, { LoginSkeleton, StoreSkeleton, AdminSkeleton, ProductDetailSkeleton, CheckoutSkeleton, ProfileSkeleton } from './components/SkeletonLoaders';
+import AppSkeleton, { 
+  LoginSkeleton, 
+  StoreSkeleton, 
+  AdminSkeleton, 
+  ProductDetailSkeleton, 
+  CheckoutSkeleton, 
+  ProfileSkeleton,
+  ImageSearchSkeleton,
+  LandingPageSkeleton,
+  OrderSuccessSkeleton,
+  MobileNavSkeleton
+} from './components/SkeletonLoaders';
 
 // Lazy load Toaster for faster initial render
 const Toaster = lazy(() => import('react-hot-toast').then(m => ({ default: m.Toaster })));
@@ -23,9 +34,13 @@ const StoreProfile = lazy(() => import('./pages/StoreProfile'));
 const StoreImageSearch = lazy(() => import('./pages/StoreImageSearch'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 
-// Admin pages - lazy loaded
+// Admin pages - lazy loaded (only load when needed)
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
-const AdminAppWithAuth = lazy(() => import('./pages/AdminAppWithAuth'));
+const AdminAppWithAuth = lazy(() => {
+  // Preload admin chunks when admin is accessed
+  import('./pages/AdminApp').then(m => m.preloadAdminChunks?.());
+  return import('./pages/AdminAppWithAuth');
+});
 
 // Store components - lazy loaded with chunk naming
 const loadStoreComponents = () => import(/* webpackChunkName: "store-components" */ './components/StoreComponents');
@@ -33,7 +48,7 @@ const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: m
 const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
 const StoreChatModal = lazy(() => loadStoreComponents().then(module => ({ default: module.StoreChatModal })));
 
-// Preload critical chunks on idle
+// Preload store chunks on idle - only store components for faster initial load
 if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
   (window as any).requestIdleCallback(() => {
     import('./pages/StoreHome');
@@ -1644,7 +1659,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'success' && (
-              <Suspense fallback={<StoreSkeleton />}>
+              <Suspense fallback={<OrderSuccessSkeleton />}>
                 <StoreOrderSuccess 
                 onHome={() => setCurrentView('store')} 
                 onImageSearchClick={() => setCurrentView('image-search')}
@@ -1700,7 +1715,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'landing_preview' && selectedLandingPage && (
-              <Suspense fallback={<StoreSkeleton />}>
+              <Suspense fallback={<LandingPageSkeleton />}>
                 <LandingPagePreview 
                 page={selectedLandingPage}
                 product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}
@@ -1710,7 +1725,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'image-search' && (
-              <Suspense fallback={<StoreSkeleton />}>
+              <Suspense fallback={<ImageSearchSkeleton />}>
                 <StoreImageSearch 
                 products={products}
                 websiteConfig={websiteConfig}

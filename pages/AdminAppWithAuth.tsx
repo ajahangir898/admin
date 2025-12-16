@@ -1,10 +1,10 @@
 // AdminAppWithAuth.tsx - Wrapper component that integrates authentication with AdminApp
 import React, { useState, useEffect, useCallback } from 'react';
-import AdminApp from './AdminApp';
+import AdminApp, { preloadAdminChunks } from './AdminApp';
 import AdminLogin from './AdminLogin';
 import * as authService from '../services/authService';
 import { User, Tenant, Order, Product, ThemeConfig, WebsiteConfig, DeliveryConfig, CourierConfig, FacebookPixelConfig, ChatMessage } from '../types';
-import { Loader2 } from 'lucide-react';
+import { AdminSkeleton } from '../components/SkeletonLoaders';
 
 // Permission map type
 type PermissionMap = Record<string, string[]>;
@@ -49,6 +49,9 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
 
   // Validate session on mount
   useEffect(() => {
+    // Start preloading admin chunks
+    preloadAdminChunks();
+    
     const validateSession = async () => {
       try {
         if (!authService.isAuthenticated()) {
@@ -116,14 +119,7 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
 
   // Show loading state while validating
   if (isValidating) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0f] via-[#0f0f1a] to-[#0a1410]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Validating session...</p>
-        </div>
-      </div>
-    );
+    return <AdminSkeleton />;
   }
 
   // Show login if not authenticated

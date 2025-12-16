@@ -52,6 +52,34 @@ const SAVE_DEBOUNCE_MS = Math.max(0, Number(import.meta.env?.VITE_REMOTE_SAVE_DE
 const DISABLE_REMOTE_SAVE = String(import.meta.env?.VITE_DISABLE_REMOTE_SAVE ?? '').toLowerCase() === 'true';
 const SHOULD_LOG_SAVE_SKIP = Boolean(import.meta.env?.DEV);
 
+// Simple memory cache for frequently accessed data
+type CacheEntry<T> = { data: T; timestamp: number; tenantId?: string };
+const dataCache = new Map<string, CacheEntry<unknown>>();
+const CACHE_TTL_MS = 30000; // 30 seconds cache
+
+const getCacheKey = (key: string, tenantId?: string) => `${tenantId || 'public'}::${key}`;
+
+const getCachedData = <T>(key: string, tenantId?: string): T | null => {
+  const cacheKey = getCacheKey(key, tenantId);
+  const entry = dataCache.get(cacheKey) as CacheEntry<T> | undefined;
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    dataCache.delete(cacheKey);
+    return null;
+  }
+  return entry.data;
+};
+
+const setCachedData = <T>(key: string, data: T, tenantId?: string): void => {
+  const cacheKey = getCacheKey(key, tenantId);
+  dataCache.set(cacheKey, { data, timestamp: Date.now(), tenantId });
+};
+
+const invalidateCache = (key: string, tenantId?: string): void => {
+  const cacheKey = getCacheKey(key, tenantId);
+  dataCache.delete(cacheKey);
+};
+
 class DataServiceImpl {
   private saveQueue = new Map<string, SaveQueueEntry>();
   private hasLoggedSaveBlock = false;
@@ -208,8 +236,13 @@ class DataServiceImpl {
   }
 
   private async getCollection<T>(key: string, defaultValue: T[], tenantId?: string): Promise<T[]> {
+    // Check cache first
+    const cached = getCachedData<T[]>(key, tenantId);
+    if (cached) return this.filterByTenant(cached as Array<T & { tenantId?: string }>, tenantId);
+    
     const remote = await this.fetchTenantDocument<T[]>(key, tenantId);
     if (Array.isArray(remote) && remote.length) {
+      setCachedData(key, remote, tenantId);
       return this.filterByTenant(remote as Array<T & { tenantId?: string }>, tenantId);
     }
     return defaultValue;
@@ -254,13 +287,19 @@ class DataServiceImpl {
   }
 
   async get<T>(key: string, defaultValue: T, tenantId?: string): Promise<T> {
+    // Check cache for simple gets
+    const cached = getCachedData<T>(key, tenantId);
+    if (cached !== null) return cached;
+    
     const remote = await this.fetchTenantDocument<T>(key, tenantId);
     if (remote === null || remote === undefined) {
       return defaultValue;
     }
     if (Array.isArray(defaultValue) && Array.isArray(remote)) {
+      setCachedData(key, remote, tenantId);
       return this.filterByTenant(remote as Array<{ tenantId?: string }> as any, tenantId) as unknown as T;
     }
+    setCachedData(key, remote, tenantId);
     return remote;
   }
 
@@ -362,6 +401,8 @@ class DataServiceImpl {
   private async commitSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
     try {
       await this.persistTenantDocument(key, data, tenantId);
+      // Invalidate cache when data is saved
+      invalidateCache(key, tenantId);
       // Notify listeners that data has been updated
       notifyDataRefresh(key, tenantId);
     } catch (error) {

@@ -437,7 +437,7 @@ const App = () => {
     }
   }, [user, activeTenantId]);
 
-  // --- INITIAL DATA LOADING ---
+  // --- INITIAL DATA LOADING (OPTIMIZED: Split into critical + deferred) ---
   useEffect(() => {
     let isMounted = true;
     const loadTenants = async () => {
@@ -452,6 +452,50 @@ const App = () => {
     loadTenants();
     return () => { isMounted = false; };
   }, [applyTenantList, hostTenantSlug]);
+
+  // Load admin-only data when entering admin view (deferred)
+  const loadAdminData = useCallback(async () => {
+    if (!activeTenantId) return;
+    try {
+      const [usersData, rolesData, courierData, facebookPixelData, categoriesData, subCategoriesData, childCategoriesData, brandsData, tagsData] = await Promise.all([
+        DataService.getUsers(activeTenantId),
+        DataService.getRoles(activeTenantId),
+        DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }, activeTenantId),
+        DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }, activeTenantId),
+        DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }], activeTenantId),
+        DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }], activeTenantId),
+        DataService.getCatalog('childcategories', [], activeTenantId),
+        DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }], activeTenantId),
+        DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId)
+      ]);
+      setUsers(usersData);
+      setRoles(rolesData);
+      setCourierConfig({ apiKey: courierData?.apiKey || '', secretKey: courierData?.secretKey || '', instruction: courierData?.instruction || '' });
+      setFacebookPixelConfig(facebookPixelData);
+      setCategories(categoriesData);
+      setSubCategories(subCategoriesData);
+      setChildCategories(childCategoriesData);
+      setBrands(brandsData);
+      setTags(tagsData);
+    } catch (error) {
+      console.warn('Failed to load admin data', error);
+    }
+  }, [activeTenantId]);
+
+  // Load admin data only when admin view is accessed
+  const adminDataLoadedRef = useRef(false);
+  useEffect(() => {
+    if (currentView === 'admin' && !adminDataLoadedRef.current) {
+      adminDataLoadedRef.current = true;
+      loadAdminData();
+    }
+  }, [currentView, loadAdminData]);
+
+  // Reset admin data flag on tenant change
+  useEffect(() => {
+    adminDataLoadedRef.current = false;
+  }, [activeTenantId]);
+
   useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
@@ -459,72 +503,42 @@ const App = () => {
       setIsLoading(true);
       let loadError: Error | null = null;
       try {
-        const [
-          productsData,
-          ordersData,
-          chatMessagesData,
-          landingPagesData,
-          usersData,
-          rolesData,
-          logoData,
-          themeData,
-          websiteData,
-          deliveryData,
-          courierData,
-          facebookPixelData,
-          categoriesData,
-          subCategoriesData,
-          childCategoriesData,
-          brandsData,
-          tagsData
-        ] = await Promise.all([
+        // CRITICAL DATA: Only load what's needed for initial store render (6 calls instead of 17)
+        const [productsData, ordersData, logoData, themeData, websiteData, deliveryData] = await Promise.all([
           DataService.getProducts(activeTenantId),
           DataService.getOrders(activeTenantId),
-          DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
-          DataService.getLandingPages(activeTenantId),
-          DataService.getUsers(activeTenantId),
-          DataService.getRoles(activeTenantId),
           DataService.get<string | null>('logo', null, activeTenantId),
           DataService.getThemeConfig(activeTenantId),
           DataService.getWebsiteConfig(activeTenantId),
-          DataService.getDeliveryConfig(activeTenantId),
-          DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }, activeTenantId),
-          DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }, activeTenantId),
-          DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }], activeTenantId),
-          DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }], activeTenantId),
-          DataService.getCatalog('childcategories', [], activeTenantId),
-          DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }], activeTenantId),
-          DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId)
+          DataService.getDeliveryConfig(activeTenantId)
         ]);
 
         if (!isMounted) return;
         const normalizedProducts = normalizeProductCollection(productsData, activeTenantId);
         setProducts(normalizedProducts);
         setOrders(ordersData);
-        const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
-        skipNextChatSaveRef.current = true;
-        setChatMessages(hydratedMessages);
-        chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
-        setHasUnreadChat(false);
-        setIsAdminChatOpen(false);
-        setLandingPages(landingPagesData);
-        setUsers(usersData);
-        setRoles(rolesData);
         setLogo(logoData);
         setThemeConfig(themeData);
         setWebsiteConfig(websiteData);
         setDeliveryConfig(deliveryData);
-        setCourierConfig({
-          apiKey: courierData?.apiKey || '',
-          secretKey: courierData?.secretKey || '',
-          instruction: courierData?.instruction || ''
-        });
-        setFacebookPixelConfig(facebookPixelData);
-        setCategories(categoriesData);
-        setSubCategories(subCategoriesData);
-        setChildCategories(childCategoriesData);
-        setBrands(brandsData);
-        setTags(tagsData);
+
+        // DEFERRED DATA: Load non-critical data after initial render
+        requestIdleCallback(() => {
+          if (!isMounted) return;
+          Promise.all([
+            DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
+            DataService.getLandingPages(activeTenantId)
+          ]).then(([chatMessagesData, landingPagesData]) => {
+            if (!isMounted) return;
+            const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
+            skipNextChatSaveRef.current = true;
+            setChatMessages(hydratedMessages);
+            chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
+            setHasUnreadChat(false);
+            setIsAdminChatOpen(false);
+            setLandingPages(landingPagesData);
+          }).catch(error => console.warn('Failed to load deferred data', error));
+        }, { timeout: 1000 });
       } catch (error) {
         loadError = error as Error;
         console.error('Failed to load data', error);
@@ -636,7 +650,24 @@ const App = () => {
       isCancelled = true;
     };
   }, [chatMessages, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('products', products, activeTenantId); }, [products, isLoading, activeTenantId]);
+  
+  // OPTIMIZED: Track if initial data is loaded to prevent unnecessary saves
+  const initialDataLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!isLoading && activeTenantId) {
+      initialDataLoadedRef.current = true;
+    }
+  }, [isLoading, activeTenantId]);
+
+  // OPTIMIZED: Only save when data actually changes (not on initial load)
+  const prevProductsRef = useRef<Product[]>([]);
+  useEffect(() => { 
+    if(!initialDataLoadedRef.current || !activeTenantId) return;
+    if(JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
+    prevProductsRef.current = products;
+    DataService.save('products', products, activeTenantId); 
+  }, [products, activeTenantId]);
+  
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('logo', logo, activeTenantId); }, [logo, isLoading, activeTenantId]);
@@ -651,15 +682,27 @@ const App = () => {
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
 
+  // OPTIMIZED: Chat polling - only start when chat is opened or user is admin
+  const chatPollingActiveRef = useRef(false);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!activeTenantId || isLoading) return;
+    
+    // Only start polling when:
+    // 1. Chat is open (customer or admin)
+    // 2. Or user is admin (need notifications)
+    const shouldPoll = isChatOpen || isAdminChatOpen || isAdminRole(user?.role);
+    if (!shouldPoll) {
+      chatPollingActiveRef.current = false;
+      return;
+    }
 
+    chatPollingActiveRef.current = true;
     let isMounted = true;
     let isFetching = false;
 
     const syncChatFromRemote = async () => {
-      if (!isMounted || isFetching || chatSyncLockRef.current) return;
+      if (!isMounted || isFetching || chatSyncLockRef.current || !chatPollingActiveRef.current) return;
       isFetching = true;
       try {
         const latest = await DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId);
@@ -702,14 +745,16 @@ const App = () => {
       }
     };
 
-    const intervalId = window.setInterval(syncChatFromRemote, 3500);
+    // Increased interval from 3500ms to 5000ms for better performance
+    const intervalId = window.setInterval(syncChatFromRemote, 5000);
     syncChatFromRemote();
 
     return () => {
       isMounted = false;
+      chatPollingActiveRef.current = false;
       window.clearInterval(intervalId);
     };
-  }, [activeTenantId, isLoading]);
+  }, [activeTenantId, isLoading, isChatOpen, isAdminChatOpen, user?.role]);
 
   useEffect(() => { 
     if(!isLoading && themeConfig && activeTenantId) {

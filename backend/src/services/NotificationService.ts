@@ -19,6 +19,27 @@ export interface NotificationResponse {
 
 type NotificationCallback = (notification: Notification) => void;
 
+// Get the API base URL - works in both browser (Vite) and Node.js environments
+const getApiBaseUrl = (): string => {
+  // Browser environment with Vite
+  if (typeof window !== 'undefined' && typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
+    return String(import.meta.env.VITE_API_BASE_URL);
+  }
+  // Node.js environment
+  if (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) {
+    return process.env.VITE_API_BASE_URL;
+  }
+  if (typeof process !== 'undefined' && process.env?.API_BASE_URL) {
+    return process.env.API_BASE_URL;
+  }
+  // Production fallback - use the production domain
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return `${window.location.protocol}//${window.location.hostname}`;
+  }
+  // Local development fallback
+  return 'http://localhost:5001';
+};
+
 class NotificationService {
   private socket: Socket | null = null;
   private listeners: Set<NotificationCallback> = new Set();
@@ -26,8 +47,7 @@ class NotificationService {
   private apiBaseUrl: string;
 
   constructor() {
-    // Use process.env for environment variable, with fallback
-    this.apiBaseUrl = process.env.VITE_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:5001';
+    this.apiBaseUrl = getApiBaseUrl();
   }
 
   // Connect to Socket.IO server and join tenant room

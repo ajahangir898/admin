@@ -675,34 +675,3 @@ export const ProfileSkeleton: React.FC = memo(() => (
   </SkeletonWrapper>
 ));
 ProfileSkeleton.displayName = 'ProfileSkeleton';
-
-// Default export - Glowing circle loader
-const AppSkeleton: React.FC<{ variant?: 'store' | 'admin'; darkMode?: boolean }> = ({ darkMode }) => (
-  <div className="min-h-screen flex items-center justify-center bg-black">
-    <div className="relative w-[200px] h-[200px]">
-      {/* Outer glow effect */}
-      <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-xl animate-pulse" />
-      
-      {/* Main glowing ring */}
-      <div className="absolute inset-0 rounded-full border-[6px] border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.6),0_0_80px_rgba(34,211,238,0.4),inset_0_0_40px_rgba(34,211,238,0.2)]" />
-      
-      {/* Inner darker circle */}
-      <div className="absolute inset-[20px] rounded-full bg-black/80" />
-      
-      {/* Three dots */}
-      <div className="absolute inset-0 flex items-center justify-center gap-3">
-        <div className="w-3 h-3 rounded-full bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-[dotPulse_1.4s_ease-in-out_infinite]" />
-        <div className="w-3 h-3 rounded-full bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-[dotPulse_1.4s_ease-in-out_0.2s_infinite]" />
-        <div className="w-3 h-3 rounded-full bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-[dotPulse_1.4s_ease-in-out_0.4s_infinite]" />
-      </div>
-    </div>
-    <style>{`
-      @keyframes dotPulse {
-        0%, 100% { opacity: 0.4; transform: scale(0.8); }
-        50% { opacity: 1; transform: scale(1.2); }
-      }
-    `}</style>
-  </div>
-);
-
-export default AppSkeleton;

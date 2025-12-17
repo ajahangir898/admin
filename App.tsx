@@ -3,22 +3,14 @@ import React, { useState, useEffect, lazy, Suspense, useCallback, useRef, useMem
 import { Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
+import { StoreSkeleton, AdminSkeleton, LoginSkeleton, ProductDetailSkeleton, CheckoutSkeleton, ProfileSkeleton } from './components/SkeletonLoaders';
 import { DataService } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { toast } from 'react-hot-toast';
-import AppSkeleton, { 
-  LoginSkeleton, 
-  StoreSkeleton, 
-  AdminSkeleton, 
-  ProductDetailSkeleton, 
-  CheckoutSkeleton, 
-  ProfileSkeleton,
-  LandingPageSkeleton,
-  OrderSuccessSkeleton,
-  MobileNavSkeleton
-} from './components/SkeletonLoaders';
+
+
 
 // Lazy load notification service (only needed for orders)
 const getNotificationService = () => import('./backend/src/services/NotificationService').then(m => m.notificationService);
@@ -173,17 +165,19 @@ const normalizeProductCollection = (items: Product[], tenantId?: string): Produc
   return normalized;
 };
 
-const SuspenseFallback = memo(({ variant = 'store' }: { variant?: 'store' | 'admin' | 'login' | 'detail' | 'checkout' | 'profile' }) => {
-  switch (variant) {
-    case 'login': return <LoginSkeleton />;
-    case 'admin': return <AdminSkeleton />;
-    case 'detail': return <ProductDetailSkeleton />;
-    case 'checkout': return <CheckoutSkeleton />;
-    case 'profile': return <ProfileSkeleton />;
-    default: return <StoreSkeleton />;
-  }
+const SuspenseFallback = memo(({ variant = 'store' }: { variant?: 'store' | 'admin' | 'login' }) => {
+  if (variant === 'login') return <LoginSkeleton />;
+  if (variant === 'admin') return <AdminSkeleton />;
+  return <StoreSkeleton />;
 });
 SuspenseFallback.displayName = 'SuspenseFallback';
+
+// Simple skeletons for pages without dedicated skeleton components
+const OrderSuccessSkeleton = memo(() => <StoreSkeleton />);
+OrderSuccessSkeleton.displayName = 'OrderSuccessSkeleton';
+
+const LandingPageSkeleton = memo(() => <StoreSkeleton />);
+LandingPageSkeleton.displayName = 'LandingPageSkeleton';
 
 const isAdminRole = (role?: User['role'] | null) => role === 'admin' || role === 'tenant_admin' || role === 'super_admin';
 const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin';
@@ -1534,7 +1528,7 @@ fbq('track', 'PageView');`;
     const skeletonVariant: 'store' | 'admin' = currentView.startsWith('admin') || isAdminRole(user?.role)
       ? 'admin'
       : 'store';
-    return <AppSkeleton variant={skeletonVariant} darkMode={themeConfig.darkMode} />;
+    return <SuspenseFallback variant={skeletonVariant} />;
   }
 
   const suspenseVariant = currentView === 'admin-login' ? 'login' : currentView.startsWith('admin') ? 'admin' : 'store';

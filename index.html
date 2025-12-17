@@ -1,74 +1,57 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GadgetShob E-Commerce</title>
-    <!-- PWA Meta Tags -->
     <meta name="description" content="Your one-stop shop for electronics and gadgets">
     <meta name="theme-color" content="#ec4899">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="GadgetShob">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-    <!-- Preconnect to critical origins for faster loading -->
-    <link rel="preconnect" href="https://systemnextit.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- DNS prefetch for image CDNs -->
     <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <!-- Load fonts asynchronously to prevent render blocking -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-    <!-- Critical inline styles -->
     <style>
-      *{box-sizing:border-box}body{margin:0}#root{min-height:100vh}#initial-loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:9999}.lc{position:relative;width:200px;height:200px}.lg{position:absolute;inset:0;border-radius:50%;background:rgba(34,211,238,0.2);filter:blur(20px);animation:p 2s infinite}.lr{position:absolute;inset:0;border-radius:50%;border:6px solid #22d3ee;box-shadow:0 0 40px rgba(34,211,238,0.6),0 0 80px rgba(34,211,238,0.4),inset 0 0 40px rgba(34,211,238,0.2)}.li{position:absolute;inset:20px;border-radius:50%;background:rgba(0,0,0,0.8)}.ld{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px}.dt{width:12px;height:12px;border-radius:50%;background:rgba(34,211,238,0.6);box-shadow:0 0 10px rgba(34,211,238,0.8);animation:dp 1.4s ease-in-out infinite}.dt:nth-child(2){animation-delay:0.2s}.dt:nth-child(3){animation-delay:0.4s}@keyframes p{50%{opacity:.7}}@keyframes dp{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+      *{box-sizing:border-box}
+      body{margin:0;background:#ffffff}
+      #root{min-height:100vh;background:#ffffff}
+      /* Skeleton loader styles */
+      .init-loader{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;z-index:9999}
+      .init-logo{width:48px;height:48px;margin-bottom:24px;opacity:0.7}
+      .init-bar{width:200px;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden}
+      .init-progress{width:30%;height:100%;background:#9ca3af;border-radius:2px;animation:loading 1.5s ease-in-out infinite}
+      @keyframes loading{0%{width:0;margin-left:0}50%{width:70%;margin-left:15%}100%{width:0;margin-left:100%}}
     </style>
   </head>
   <body>
-    <div id="initial-loader">
-      <div class="lc">
-        <div class="lg"></div>
-        <div class="lr"></div>
-        <div class="li"></div>
-        <div class="ld">
-          <div class="dt"></div>
-          <div class="dt"></div>
-          <div class="dt"></div>
-        </div>
-      </div>
+    <div class="init-loader" id="init-loader">
+      <svg class="init-logo" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
+        <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+        <circle cx="12" cy="9" r="3"/>
+      </svg>
+      <div class="init-bar"><div class="init-progress"></div></div>
     </div>
     <div id="root"></div>
     <script>
       // Remove loader when React mounts
-      window.addEventListener('DOMContentLoaded', function() {
-        var checkRoot = setInterval(function() {
-          if (document.getElementById('root').children.length > 0) {
-            var loader = document.getElementById('initial-loader');
-            if (loader) loader.remove();
-            clearInterval(checkRoot);
-          }
-        }, 100);
-        // Fallback: remove after 5s max
-        setTimeout(function() {
-          var loader = document.getElementById('initial-loader');
-          if (loader) loader.remove();
-          clearInterval(checkRoot);
-        }, 5000);
-      });
+      var check = setInterval(function() {
+        if (document.getElementById('root').children.length > 0) {
+          var l = document.getElementById('init-loader');
+          if (l) l.style.display = 'none';
+          clearInterval(check);
+        }
+      }, 50);
+      setTimeout(function() {
+        var l = document.getElementById('init-loader');
+        if (l) l.style.display = 'none';
+        clearInterval(check);
+      }, 5000);
     </script>
     <script type="module" src="/entry-client.tsx"></script>
-    <!-- Register Service Worker -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('[App] SW registered:', reg.scope))
-            .catch(err => console.warn('[App] SW registration failed:', err));
-        });
-      }
-    </script>
   </body>
 </html>

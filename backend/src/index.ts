@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import path from 'path';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import compression from 'compression';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { env } from './config/env';
@@ -112,6 +113,7 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(compression());
 app.use(express.json({ limit: '500kb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(morgan('dev'));

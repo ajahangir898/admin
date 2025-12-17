@@ -12,10 +12,7 @@ const STATIC_ASSETS = [
 ];
 
 // API endpoints to cache with network-first strategy
-const API_PATTERNS = [
-  '/api/tenants',
-  '/api/tenant-data'
-];
+const API_PATTERNS = [];
 
 // Cache duration for API responses (5 minutes)
 const API_CACHE_DURATION = 5 * 60 * 1000;

@@ -2,7 +2,7 @@
 // This file contains the main store header component with multiple style variants
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { ShoppingCart, Search, User, X, Loader2, Heart, LogOut, ChevronDown, Bell, Gift, Menu, Mic, Camera, Minus, Plus, Trash2, Info, Truck } from 'lucide-react';
+import { ShoppingCart, Search, User, X, Loader2, Heart, LogOut, ChevronDown, Bell, Gift, Menu, Mic, Camera, Minus, Plus, Trash2, Info, Truck, Grid } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';

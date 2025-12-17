@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-	LayoutDashboard, ShoppingBag, Box, Settings, Sliders, FolderOpen,
-	FileText, Star, Users, Ticket, Image as ImageIcon, FilePlus, DollarSign,
-	Shield, LifeBuoy, BookOpen, LogOut, Bell, Menu, X, Globe, User as UserIcon, LogOut as LogOutIcon, ChevronDown, ChevronRight,
-	Layers, Tag, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock
+	LayoutDashboard, ShoppingBag, Box, Settings, Sliders,
+	FileText, Star, Users, Image as ImageIcon, DollarSign,
+	Shield, LogOut, Bell, Menu, X, Globe, LogOut as LogOutIcon, ChevronDown, ChevronRight,
+	Layers, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock
 } from 'lucide-react';
-import { StatCardProps, User, Tenant, ResourceType } from '../types';
+import { StatCardProps, User, Tenant } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import type { Notification as AppNotification } from '../backend/src/services/NotificationService';
 

@@ -1,5 +1,5 @@
 // admin/pages/AdminApp.tsx
-import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Suspense, lazy } from 'react';
 import { 
   Product, Order, User, ThemeConfig, WebsiteConfig, Role, Category, SubCategory, 
@@ -9,7 +9,7 @@ import {
 import { DataService } from '../services/DataService';
 import * as authService from '../services/authService';
 import { toast } from 'react-hot-toast';
-import { Monitor, LayoutDashboard, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { 
   AdminPageSkeleton, 
   AdminDashboardSkeleton, 

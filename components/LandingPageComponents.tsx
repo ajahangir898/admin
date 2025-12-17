@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Product, LandingPage, LandingPageBlock, LandingPageTemplate, LandingPageStyle, LandingPageSEO } from '../types';
 import { LANDING_PAGE_TEMPLATES } from '../constants';
-import { Sparkles, ExternalLink, Eye, Copy, CheckCircle, Edit3, Trash2, Layout, Plus, PenSquare, Layers, Palette, Globe, Settings2, Zap, Star, Quote, HelpCircle, Image as ImageIcon, Phone, Mail, User, MapPin, ShoppingBag, Loader2, Shield } from 'lucide-react';
+import { Sparkles, Eye, Copy, CheckCircle, Edit3, Trash2, Layout, Plus, PenSquare, Layers, Palette, Globe, Zap, Quote, HelpCircle, Image as ImageIcon, Phone, ShoppingBag, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
 
 const randomId = () => (crypto?.randomUUID ? crypto.randomUUID() : `lp-${Date.now().toString(36)}-${Math.random().toString(16).slice(2)}`);

@@ -8,7 +8,6 @@ const StoreFooter = lazy(() => import('../components/StoreComponents').then(m =>
 
 import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
 
-import { EmptyCartState } from '../components/EmptyStates';
 import { SkeletonForm } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import {

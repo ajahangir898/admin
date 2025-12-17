@@ -1,6 +1,6 @@
 ﻿import React, { useState, useRef, useEffect, useMemo, useCallback, CSSProperties } from 'react';
-import { ShoppingCart, Search, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Upload, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, UserCircle, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, Users, ChevronLeft, ChevronRight, MessageCircle, Home, Grid, MessageSquare, List, Menu, Smartphone, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check, Video, Info, Smile, QrCode, Clock } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig, CarouselItem, Order, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
+import { ShoppingCart, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, ChevronLeft, ChevronRight, MessageCircle, Home, MessageSquare, List, Menu, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check, Video, Info, Smile, Clock } from 'lucide-react';
+import { Product, User as UserType, WebsiteConfig, CarouselItem, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';

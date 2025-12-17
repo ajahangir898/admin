@@ -59,25 +59,68 @@ const CACHE_TTL_MS = 30000; // 30 seconds cache
 
 const getCacheKey = (key: string, tenantId?: string) => `${tenantId || 'public'}::${key}`;
 
-const getCachedData = <T>(key: string, tenantId?: string): T | null => {
-  const cacheKey = getCacheKey(key, tenantId);
-  const entry = dataCache.get(cacheKey) as CacheEntry<T> | undefined;
-  if (!entry) return null;
-  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
-    dataCache.delete(cacheKey);
+// LocalStorage cache for instant loads
+const LOCAL_CACHE_PREFIX = 'ds_cache_';
+const LOCAL_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes for localStorage
+
+const getLocalCache = <T>(key: string, tenantId?: string): T | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const cacheKey = LOCAL_CACHE_PREFIX + getCacheKey(key, tenantId);
+    const stored = localStorage.getItem(cacheKey);
+    if (!stored) return null;
+    const { data, timestamp } = JSON.parse(stored);
+    if (Date.now() - timestamp > LOCAL_CACHE_TTL_MS) {
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+    return data as T;
+  } catch {
     return null;
   }
-  return entry.data;
+};
+
+const setLocalCache = <T>(key: string, data: T, tenantId?: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const cacheKey = LOCAL_CACHE_PREFIX + getCacheKey(key, tenantId);
+    localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch {
+    // localStorage full or unavailable
+  }
+};
+
+const getCachedData = <T>(key: string, tenantId?: string): T | null => {
+  const cacheKey = getCacheKey(key, tenantId);
+  // Check memory cache first
+  const entry = dataCache.get(cacheKey) as CacheEntry<T> | undefined;
+  if (entry && Date.now() - entry.timestamp <= CACHE_TTL_MS) {
+    return entry.data;
+  }
+  if (entry) dataCache.delete(cacheKey);
+  // Fallback to localStorage for instant loads
+  const localData = getLocalCache<T>(key, tenantId);
+  if (localData !== null) {
+    // Restore to memory cache
+    dataCache.set(cacheKey, { data: localData, timestamp: Date.now(), tenantId });
+    return localData;
+  }
+  return null;
 };
 
 const setCachedData = <T>(key: string, data: T, tenantId?: string): void => {
   const cacheKey = getCacheKey(key, tenantId);
   dataCache.set(cacheKey, { data, timestamp: Date.now(), tenantId });
+  // Also persist to localStorage for instant next load
+  setLocalCache(key, data, tenantId);
 };
 
 const invalidateCache = (key: string, tenantId?: string): void => {
   const cacheKey = getCacheKey(key, tenantId);
   dataCache.delete(cacheKey);
+  if (typeof window !== 'undefined') {
+    try { localStorage.removeItem(LOCAL_CACHE_PREFIX + cacheKey); } catch {}
+  }
 };
 
 class DataServiceImpl {
@@ -235,6 +278,108 @@ class DataServiceImpl {
     }
   }
 
+  // Bootstrap: Fetch all critical data in ONE API call
+  async bootstrap(tenantId?: string): Promise<{
+    products: Product[];
+    themeConfig: ThemeConfig;
+    websiteConfig: WebsiteConfig;
+  }> {
+    const scope = this.resolveTenantScope(tenantId);
+    
+    try {
+      const response = await this.requestTenantApi<{
+        data: {
+          products: Product[] | null;
+          theme_config: ThemeConfig | null;
+          website_config: WebsiteConfig | null;
+        };
+      }>(`/api/tenant-data/${scope}/bootstrap`);
+      
+      const { products, theme_config, website_config } = response.data;
+      
+      // Cache the results
+      if (products) setCachedData('products', products, tenantId);
+      if (theme_config) setCachedData('theme_config', theme_config, tenantId);
+      if (website_config) setCachedData('website_config', website_config, tenantId);
+      
+      // Return with defaults
+      const defaultTheme = await this.getDefaultThemeConfig();
+      const defaultWebsite = this.getDefaultWebsiteConfig();
+      
+      return {
+        products: products?.length ? products.map((p, i) => ({ ...p, id: p.id ?? i + 1 })) : this.filterByTenant(PRODUCTS, tenantId),
+        themeConfig: theme_config ? { ...defaultTheme, ...theme_config } : defaultTheme,
+        websiteConfig: website_config ? { ...defaultWebsite, ...website_config } : defaultWebsite
+      };
+    } catch (error) {
+      console.warn('Bootstrap failed, falling back to individual requests', error);
+      // Fallback to individual requests
+      const [products, themeConfig, websiteConfig] = await Promise.all([
+        this.getProducts(tenantId),
+        this.getThemeConfig(tenantId),
+        this.getWebsiteConfig(tenantId)
+      ]);
+      return { products, themeConfig, websiteConfig };
+    }
+  }
+
+  private async getDefaultThemeConfig(): Promise<ThemeConfig> {
+    return {
+      primaryColor: '#f97316',
+      secondaryColor: '#1e293b',
+      tertiaryColor: '#c026d3',
+      fontColor: '#0f172a',
+      hoverColor: '#f97316',
+      surfaceColor: '#e2e8f0',
+      darkMode: false
+    };
+  }
+
+  private getDefaultWebsiteConfig(): WebsiteConfig {
+    return {
+      websiteName: 'SystemNext IT',
+      shortDescription: 'Get the best for less',
+      whatsappNumber: '+8801615332701',
+      favicon: null,
+      addresses: ['D-14/3, Bank Colony, Savar, Dhaka'],
+      emails: ['opbd.shop@gmail.com', 'lunik.hasan@gmail.com'],
+      phones: ['+8801615332701', '+8801611053430'],
+      socialLinks: [
+        { id: '1', platform: 'Facebook', url: 'https://facebook.com' },
+        { id: '2', platform: 'Instagram', url: 'https://instagram.com' }
+      ],
+      footerQuickLinks: [
+        { id: 'quick-1', label: 'About Us', url: '#' },
+        { id: 'quick-2', label: 'Contact', url: '#' },
+        { id: 'quick-3', label: 'Terms & Conditions', url: '#' }
+      ],
+      footerUsefulLinks: [
+        { id: 'useful-1', label: 'Returns & Refunds', url: '#' },
+        { id: 'useful-2', label: 'Privacy Policy', url: '#' },
+        { id: 'useful-3', label: 'FAQ', url: '#' }
+      ],
+      showMobileHeaderCategory: true,
+      showNewsSlider: true,
+      headerSliderText: 'Easy return policy and complete cash on delivery, ease of shopping!',
+      hideCopyright: false,
+      hideCopyrightText: false,
+      showPoweredBy: false,
+      brandingText: 'SystemNext IT',
+      carouselItems: [],
+      searchHints: 'gadget item, gift, educational toy, mobile accessories',
+      orderLanguage: 'English',
+      productCardStyle: 'style2',
+      categorySectionStyle: 'style2',
+      productSectionStyle: 'style2',
+      footerStyle: 'style2',
+      chatEnabled: true,
+      chatGreeting: 'Hi there! How can we help today?',
+      chatOfflineMessage: 'We are currently offline. Drop your message and we will reach out soon.',
+      chatSupportHours: { from: '10:00', to: '22:00' },
+      chatWhatsAppFallback: true
+    };
+  }
+
   private async getCollection<T>(key: string, defaultValue: T[], tenantId?: string): Promise<T[]> {
     // Check cache first
     const cached = getCachedData<T[]>(key, tenantId);
@@ -354,7 +499,10 @@ class DataServiceImpl {
       ],
       searchHints: 'gadget item, gift, educational toy, mobile accessories',
       orderLanguage: 'English',
-      productCardStyle: 'style1',
+      productCardStyle: 'style2',
+      categorySectionStyle: 'style2',
+      productSectionStyle: 'style2',
+      footerStyle: 'style2',
       chatEnabled: true,
       chatGreeting: 'Hi there! How can we help today?',
       chatOfflineMessage: 'We are currently offline. Drop your message and we will reach out soon.',

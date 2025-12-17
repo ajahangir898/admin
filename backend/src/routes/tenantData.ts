@@ -13,6 +13,38 @@ const updateSchema = z.object({
 
 export const tenantDataRouter = Router();
 
+// Bootstrap endpoint - returns all critical data in ONE request
+tenantDataRouter.get('/:tenantId/bootstrap', async (req, res, next) => {
+  try {
+    const tenantId = req.params.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'tenantId is required' });
+    }
+    
+    // Fetch all critical data in parallel
+    const [products, theme_config, website_config] = await Promise.all([
+      getTenantData(tenantId, 'products'),
+      getTenantData(tenantId, 'theme_config'),
+      getTenantData(tenantId, 'website_config')
+    ]);
+    
+    // Allow short caching for bootstrap data (30 seconds)
+    res.set({
+      'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+    });
+    
+    res.json({
+      data: {
+        products: products || [],
+        theme_config: theme_config || null,
+        website_config: website_config || null
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 tenantDataRouter.get('/:tenantId/:key', async (req, res, next) => {
   try {
     const { tenantId, key } = paramsSchema.parse(req.params);

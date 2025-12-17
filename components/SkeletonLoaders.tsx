@@ -8,7 +8,7 @@ const tableRows = Array.from({ length: 5 });
 
 // Shared skeleton theme wrapper
 const SkeletonWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <SkeletonTheme baseColor="#e5e7eb" highlightColor="#f3f4f6">
+  <SkeletonTheme baseColor="#acf9ffff" highlightColor="#dadadaff">
     {children}
   </SkeletonTheme>
 );
@@ -676,11 +676,32 @@ export const ProfileSkeleton: React.FC = memo(() => (
 ));
 ProfileSkeleton.displayName = 'ProfileSkeleton';
 
-// Default export
-const AppSkeleton: React.FC<{ variant?: 'store' | 'admin' }> = ({ variant = 'store' }) => (
-  <SkeletonWrapper>
-    {variant === 'admin' ? <AdminSkeleton /> : <StoreSkeleton />}
-  </SkeletonWrapper>
+// Default export - Minimal loader matching index.html
+const AppSkeleton: React.FC<{ variant?: 'store' | 'admin'; darkMode?: boolean }> = ({ darkMode }) => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a]">
+    <div className="w-[60px] h-[60px] mb-8 animate-pulse">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="12" r="4" fill="white"/>
+        <circle cx="24" cy="24" r="4" fill="white"/>
+        <circle cx="24" cy="36" r="4" fill="white"/>
+        <circle cx="16" cy="18" r="3" fill="white" opacity="0.6"/>
+        <circle cx="32" cy="18" r="3" fill="white" opacity="0.6"/>
+        <circle cx="16" cy="30" r="3" fill="white" opacity="0.6"/>
+        <circle cx="32" cy="30" r="3" fill="white" opacity="0.6"/>
+      </svg>
+    </div>
+    <div className="w-[120px] h-[3px] bg-white/10 rounded-full overflow-hidden">
+      <div className="h-full bg-gradient-to-r from-white to-white/80 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" 
+           style={{ width: '0%' }} />
+    </div>
+    <style>{`
+      @keyframes loading {
+        0% { width: 0%; margin-left: 0; }
+        50% { width: 80%; margin-left: 0; }
+        100% { width: 80%; margin-left: 100%; }
+      }
+    `}</style>
+  </div>
 );
 
 export default AppSkeleton;

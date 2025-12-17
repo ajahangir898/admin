@@ -5,9 +5,13 @@
   "version": "2.4.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "start": "npm run dev",
-    "build": "vite build",
+    "dev": "node server.js",
+    "dev:client": "vite",
+    "build": "npm run build:client && npm run build:server && npm run copy:html",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr entry-server.tsx --outDir dist/server",
+    "copy:html": "cp dist/client/index.html dist/client/index.html.bak 2>/dev/null || true",
+    "start": "NODE_ENV=production node server.js",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "tsc --noEmit"
@@ -15,6 +19,8 @@
   "dependencies": {
     "@google/genai": "latest",
     "@google/generative-ai": "^0.24.1",
+    "compression": "^1.8.1",
+    "express": "^4.22.1",
     "lucide-react": "0.263.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -29,6 +35,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.5.2",
+    "@types/compression": "^1.7.5",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",

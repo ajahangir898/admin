@@ -59,12 +59,38 @@ const manualChunkResolver = (id: string): string | undefined => {
   return undefined;
 };
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, isSsrBuild }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      publicDir: 'public',
       server: {
         port: 3000,
         host: '0.0.0.0',
+        warmup: {
+          clientFiles: ['./App.tsx', './entry-client.tsx', './components/SkeletonLoaders.tsx', './pages/StoreHome.tsx']
+        }
+      },
+      optimizeDeps: {
+        include: [
+          'react', 
+          'react-dom', 
+          'react-dom/client',
+          'lucide-react',
+          'react-hot-toast',
+          'react-loading-skeleton',
+          'socket.io-client'
+        ],
+        holdUntilCrawlEnd: false,
+        esbuildOptions: {
+          target: 'es2020'
+        }
+      },
+      ssr: {
+        noExternal: ['react-hot-toast', 'react-loading-skeleton', 'lucide-react']
+      },
+      esbuild: {
+        target: 'es2020',
+        logOverride: { 'this-is-undefined-in-esm': 'silent' }
       },
       plugins: [react(), splitVendorChunkPlugin()],
       define: {
@@ -83,12 +109,13 @@ export default defineConfig(({ mode }) => {
         css: true
       },
       build: {
+        target: 'es2020',
         chunkSizeWarningLimit: 200,
+        outDir: isSsrBuild ? 'dist/server' : 'dist/client',
         rollupOptions: {
+          input: isSsrBuild ? './entry-server.tsx' : './index.html',
           output: {
-            manualChunks(id) {
-              return manualChunkResolver(id);
-            }
+            manualChunks: isSsrBuild ? undefined : (id) => manualChunkResolver(id)
           }
         }
       }

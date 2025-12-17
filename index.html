@@ -5,31 +5,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GadgetShob E-Commerce</title>
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Your one-stop shop for electronics and gadgets">
+    <meta name="theme-color" content="#ec4899">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="GadgetShob">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
     <!-- Preconnect to critical origins for faster loading -->
     <link rel="preconnect" href="https://systemnextit.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://esm.sh">
     <!-- DNS prefetch for image CDNs -->
     <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "react-dom": "https://esm.sh/react-dom@18.2.0",
-    "lucide-react": "https://esm.sh/lucide-react@0.263.1?external=react",
-    "recharts": "https://esm.sh/recharts@2.12.0?external=react,react-dom",
-    "@google/genai": "https://esm.sh/@google/genai",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/"
-  }
-}
-</script>
+    <!-- Load fonts asynchronously to prevent render blocking -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+    <!-- Critical inline styles -->
+    <style>
+      *{box-sizing:border-box}body{margin:0;background:#0a0a0a}#root{min-height:100vh}.il{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh}.il svg{width:60px;height:60px;margin-bottom:32px;animation:p 2s infinite}.pb{width:120px;height:3px;background:#fff1;border-radius:3px;overflow:hidden}.pb div{height:100%;background:#fff;animation:l 1.5s infinite}@keyframes p{50%{opacity:.7;transform:scale(.98)}}@keyframes l{0%{width:0}50%{width:80%}to{width:80%;margin-left:100%}}
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <div id="root">
+      <div class="il">
+        <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="12" r="4" fill="#fff"/><circle cx="24" cy="24" r="4" fill="#fff"/><circle cx="24" cy="36" r="4" fill="#fff"/><circle cx="16" cy="18" r="3" fill="#fff" opacity=".6"/><circle cx="32" cy="18" r="3" fill="#fff" opacity=".6"/><circle cx="16" cy="30" r="3" fill="#fff" opacity=".6"/><circle cx="32" cy="30" r="3" fill="#fff" opacity=".6"/></svg>
+        <div class="pb"><div></div></div>
+      </div>
+    </div>
+    <script type="module" src="/entry-client.tsx"></script>
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('[App] SW registered:', reg.scope))
+            .catch(err => console.warn('[App] SW registration failed:', err));
+        });
+      }
+    </script>
   </body>
 </html>

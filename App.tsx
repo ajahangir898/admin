@@ -6,7 +6,6 @@ import type { LandingCheckoutPayload } from './components/LandingPageComponents'
 import { DataService } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
-import { notificationService } from './backend/src/services/NotificationService';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { toast } from 'react-hot-toast';
 import AppSkeleton, { 
@@ -20,6 +19,9 @@ import AppSkeleton, {
   OrderSuccessSkeleton,
   MobileNavSkeleton
 } from './components/SkeletonLoaders';
+
+// Lazy load notification service (only needed for orders)
+const getNotificationService = () => import('./backend/src/services/NotificationService').then(m => m.notificationService);
 
 // Lazy load Toaster for faster initial render
 const Toaster = lazy(() => import('react-hot-toast').then(m => ({ default: m.Toaster })));
@@ -448,15 +450,13 @@ const App = () => {
       const startTime = performance.now();
       
       try {
-        // Load tenants AND critical data in parallel (not sequential)
-        const [tenantList, productsData, themeData, websiteData] = await Promise.all([
+        // Load tenants AND bootstrap data in parallel (2 requests instead of 4)
+        const [tenantList, bootstrapData] = await Promise.all([
           DataService.listTenants(),
-          DataService.getProducts(activeTenantId),
-          DataService.getThemeConfig(activeTenantId),
-          DataService.getWebsiteConfig(activeTenantId)
+          DataService.bootstrap(activeTenantId)
         ]);
         
-        console.log(`[Perf] Critical data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
+        console.log(`[Perf] Bootstrap data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
 
         if (!isMounted) return;
         
@@ -464,13 +464,13 @@ const App = () => {
         applyTenantList(tenantList);
         
         // Apply critical store data immediately
-        const normalizedProducts = normalizeProductCollection(productsData, activeTenantId);
+        const normalizedProducts = normalizeProductCollection(bootstrapData.products, activeTenantId);
         setProducts(normalizedProducts);
-        setThemeConfig(themeData);
-        setWebsiteConfig(websiteData);
+        setThemeConfig(bootstrapData.themeConfig);
+        setWebsiteConfig(bootstrapData.websiteConfig);
 
-        // DEFERRED: Load secondary data after first paint
-        requestIdleCallback(() => {
+        // DEFERRED: Load secondary data after first paint (use setTimeout for better priority)
+        setTimeout(() => {
           if (!isMounted) return;
           Promise.all([
             DataService.getOrders(activeTenantId),
@@ -491,7 +491,7 @@ const App = () => {
             setIsAdminChatOpen(false);
             setLandingPages(landingPagesData);
           }).catch(error => console.warn('Failed to load deferred data', error));
-        }, { timeout: 500 });
+        }, 100);
       } catch (error) {
         loadError = error as Error;
         console.error('Failed to load data', error);
@@ -1343,8 +1343,9 @@ fbq('track', 'PageView');`;
     };
     setOrders([newOrder, ...orders]);
 
-    // Create notification for new order
+    // Create notification for new order (lazy loaded)
     try {
+      const notificationService = await getNotificationService();
       await notificationService.createNotification(activeTenantId, {
         type: 'order',
         title: 'New Order Received',
@@ -1390,8 +1391,9 @@ fbq('track', 'PageView');`;
     };
     setOrders(prev => [newOrder, ...prev]);
 
-    // Create notification for landing page order
+    // Create notification for landing page order (lazy loaded)
     try {
+      const notificationService = await getNotificationService();
       await notificationService.createNotification(activeTenantId, {
         type: 'order',
         title: 'New Landing Page Order',

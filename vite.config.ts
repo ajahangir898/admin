@@ -9,8 +9,7 @@ const vendorChunkMatchers = [
   { name: 'react-jsx-runtime', matcher: /node_modules\/react\/jsx-runtime/ },
   { name: 'react-core', matcher: /node_modules\/react\// },
   { name: 'scheduler', matcher: /node_modules\/scheduler\// },
-  { name: 'icons-chunk', matcher: /node_modules\/lucide-react\// },
-  { name: 'loading-indicators', matcher: /node_modules\/react-loading-indicators\// }
+  { name: 'icons-chunk', matcher: /node_modules\/lucide-react\// }
 ];
 
 const resolveRechartsChunk = (normalized: string) => {

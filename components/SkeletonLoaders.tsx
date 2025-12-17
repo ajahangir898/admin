@@ -676,29 +676,30 @@ export const ProfileSkeleton: React.FC = memo(() => (
 ));
 ProfileSkeleton.displayName = 'ProfileSkeleton';
 
-// Default export - Minimal loader matching index.html
+// Default export - Glowing circle loader
 const AppSkeleton: React.FC<{ variant?: 'store' | 'admin'; darkMode?: boolean }> = ({ darkMode }) => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a]">
-    <div className="w-[60px] h-[60px] mb-8 animate-pulse">
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="12" r="4" fill="white"/>
-        <circle cx="24" cy="24" r="4" fill="white"/>
-        <circle cx="24" cy="36" r="4" fill="white"/>
-        <circle cx="16" cy="18" r="3" fill="white" opacity="0.6"/>
-        <circle cx="32" cy="18" r="3" fill="white" opacity="0.6"/>
-        <circle cx="16" cy="30" r="3" fill="white" opacity="0.6"/>
-        <circle cx="32" cy="30" r="3" fill="white" opacity="0.6"/>
-      </svg>
-    </div>
-    <div className="w-[120px] h-[3px] bg-white/10 rounded-full overflow-hidden">
-      <div className="h-full bg-gradient-to-r from-white to-white/80 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" 
-           style={{ width: '0%' }} />
+  <div className="min-h-screen flex items-center justify-center bg-black">
+    <div className="relative w-[200px] h-[200px]">
+      {/* Outer glow effect */}
+      <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-xl animate-pulse" />
+      
+      {/* Main glowing ring */}
+      <div className="absolute inset-0 rounded-full border-[6px] border-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.6),0_0_80px_rgba(34,211,238,0.4),inset_0_0_40px_rgba(34,211,238,0.2)]" />
+      
+      {/* Inner darker circle */}
+      <div className="absolute inset-[20px] rounded-full bg-black/80" />
+      
+      {/* Three dots */}
+      <div className="absolute inset-0 flex items-center justify-center gap-3">
+        <div className="w-3 h-3 rounded-full bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-[dotPulse_1.4s_ease-in-out_infinite]" />
+        <div className="w-3 h-3 rounded-full bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-[dotPulse_1.4s_ease-in-out_0.2s_infinite]" />
+        <div className="w-3 h-3 rounded-full bg-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.8)] animate-[dotPulse_1.4s_ease-in-out_0.4s_infinite]" />
+      </div>
     </div>
     <style>{`
-      @keyframes loading {
-        0% { width: 0%; margin-left: 0; }
-        50% { width: 80%; margin-left: 0; }
-        100% { width: 80%; margin-left: 100%; }
+      @keyframes dotPulse {
+        0%, 100% { opacity: 0.4; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.2); }
       }
     `}</style>
   </div>

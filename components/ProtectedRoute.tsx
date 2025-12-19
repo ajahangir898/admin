@@ -210,4 +210,84 @@ export const RequireRole: React.FC<RequireRoleProps> = ({
   return <>{children}</>;
 };
 
+/**
+ * Helper function to check if user has read-only access to a resource.
+ * Extracted to avoid code duplication between ReadOnlyWrapper and useReadOnly.
+ */
+const checkReadOnlyAccess = (
+  resource: ResourceType,
+  auth: { canRead: (r: ResourceType) => boolean; canWrite: (r: ResourceType) => boolean; canEdit: (r: ResourceType) => boolean; canDelete: (r: ResourceType) => boolean; isAuthenticated: boolean }
+): boolean => {
+  if (!auth.isAuthenticated) return true;
+  return auth.canRead(resource) && !auth.canWrite(resource) && !auth.canEdit(resource) && !auth.canDelete(resource);
+};
+
+/**
+ * ReadOnlyWrapper Component
+ * 
+ * Wraps content and disables all interactive elements when user only has read permission.
+ * Shows a visual indicator that the content is read-only.
+ * 
+ * @example
+ * <ReadOnlyWrapper resource="products">
+ *   <ProductForm />
+ * </ReadOnlyWrapper>
+ */
+interface ReadOnlyWrapperProps {
+  children: ReactNode;
+  resource: ResourceType;
+  showBadge?: boolean;
+  disableInteraction?: boolean;
+}
+
+export const ReadOnlyWrapper: React.FC<ReadOnlyWrapperProps> = ({
+  children,
+  resource,
+  showBadge = true,
+  disableInteraction = true
+}) => {
+  const { canRead, canWrite, canEdit, canDelete, isAuthenticated } = useAuth();
+  
+  // Check if user only has read permission using shared helper
+  const hasReadOnly = checkReadOnlyAccess(resource, { canRead, canWrite, canEdit, canDelete, isAuthenticated });
+  
+  if (!hasReadOnly) {
+    return <>{children}</>;
+  }
+  
+  return (
+    <div className="relative">
+      {showBadge && (
+        <div className="absolute top-0 right-0 z-10 px-3 py-1 text-xs font-semibold text-amber-300 bg-amber-500/20 rounded-bl-lg border-l border-b border-amber-500/30">
+          Read Only
+        </div>
+      )}
+      <div 
+        className={disableInteraction ? 'pointer-events-none select-none opacity-90' : ''}
+        style={disableInteraction ? { 
+          cursor: 'not-allowed',
+        } : undefined}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * useReadOnly Hook
+ * 
+ * Returns whether the current user has read-only access to a resource.
+ * Useful for conditionally disabling form elements or hiding edit buttons.
+ * 
+ * @example
+ * const isReadOnly = useReadOnly('products');
+ * <input disabled={isReadOnly} />
+ */
+export const useReadOnly = (resource: ResourceType): boolean => {
+  const { canRead, canWrite, canEdit, canDelete, isAuthenticated } = useAuth();
+  
+  return checkReadOnlyAccess(resource, { canRead, canWrite, canEdit, canDelete, isAuthenticated });
+};
+
 export default ProtectedRoute;

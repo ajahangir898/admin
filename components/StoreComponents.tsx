@@ -812,15 +812,15 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     {/* Centered Contact Bar */}
                     <div className="flex flex-col md:flex-row justify-center items-center gap-3 md:gap-10 mb-2 md:mb-4 border-b border-gray-100 pb-2 md:pb-4">
                         <div className="flex items-center gap-1.5 md:gap-2">
-                            <Mail size={16} className="text-blue-500 md:w-5 md:h-5" />
+                            <Mail size={16} className="text-theme-primary md:w-5 md:h-5" />
                             <span className="text-gray-600 text-sm md:text-base font-medium">{websiteConfig.emails?.[0] || 'info@systemnextit.com.bd'}</span>
                         </div>
                         <div className="flex items-center gap-1.5 md:gap-2">
-                            <Phone size={16} className="text-blue-500 md:w-5 md:h-5" />
+                            <Phone size={16} className="text-theme-primary md:w-5 md:h-5" />
                             <span className="text-gray-600 text-sm md:text-base font-medium">{websiteConfig.phones?.[0] || '09638-866300'}</span>
                         </div>
                         <div className="flex items-center gap-1.5 md:gap-2 max-w-xs text-center md:text-left">
-                            <MapPin size={16} className="text-blue-500 shrink-0 md:w-5 md:h-5" />
+                            <MapPin size={16} className="text-theme-primary shrink-0 md:w-5 md:h-5" />
                             <span className="text-gray-600 text-sm md:text-base font-medium">{websiteConfig.addresses?.[0] || 'Dhaka-1230'}</span>
                         </div>
                     </div>
@@ -835,14 +835,14 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                                     <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : (
                                     <>
-                                        <span className="text-xl md:text-2xl font-black text-theme-primary tracking-tight">SYSTEMNEXT</span>
-                                        <span className="text-lg md:text-xl font-bold text-theme-secondary tracking-widest -mt-1 block">IT</span>
+                                        <span className="text-xl md:text-2xl font-black text-theme-primary tracking-tight">OPBD.SHOP</span>
+                                        <span className="text-lg md:text-xl font-bold text-theme-secondary tracking-widest -mt-1 block"></span>
                                     </>
                                 )}
                             </div>
                             <p className="text-sm md:text-base text-gray-500 mb-2 md:mb-3">{websiteConfig?.shortDescription || 'Every Smile Matters'}</p>
                             <div className="flex gap-3">
-                                <a href="#" className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition">
+                                <a href="#" className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-theme-primary/10 text-theme-primary flex items-center justify-center hover:bg-theme-primary hover:text-white transition">
                                     <Facebook size={20} className="md:w-5 md:h-5" />
                                 </a>
                                 <a href="#" className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition">
@@ -853,7 +853,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
 
                         {/* Columns */}
                         <div>
-                            <h4 className="font-bold text-gray-800 text-base md:text-lg mb-2 md:mb-3">Contact Us</h4>
+                            <h4 className="font-bold text-theme-primary text-base md:text-lg mb-2 md:mb-3">Contact Us</h4>
                             <ul className="space-y-1 md:space-y-2 text-sm md:text-base text-gray-600">
                                 <li>{websiteConfig.emails?.[0]}</li>
                                 <li>{websiteConfig.phones?.[0]}</li>
@@ -861,21 +861,21 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-800 text-base md:text-lg mb-2 md:mb-3">Quick Links</h4>
+                            <h4 className="font-bold text-theme-primary text-base md:text-lg mb-2 md:mb-3">Quick Links</h4>
                             <ul className="space-y-1 md:space-y-2 text-sm md:text-base text-gray-600">
-                                <li><a href="#" className="hover:text-blue-600">Return & Refund Policy</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Privacy Policy</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Terms and Conditions</a></li>
-                                <li><a href="#" className="hover:text-blue-600">About us</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">Return & Refund Policy</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">Privacy Policy</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">Terms and Conditions</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">About us</a></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-800 text-base md:text-lg mb-2 md:mb-3">Useful Links</h4>
+                            <h4 className="font-bold text-theme-primary text-base md:text-lg mb-2 md:mb-3">Useful Links</h4>
                             <ul className="space-y-1 md:space-y-2 text-sm md:text-base text-gray-600">
-                                <li><a href="#" className="hover:text-blue-600">Why Shop Online with Us</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Online Payment Methods</a></li>
-                                <li><a href="#" className="hover:text-blue-600">After Sales Support</a></li>
-                                <li><a href="#" className="hover:text-blue-600">Faq</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">Why Shop Online with Us</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">Online Payment Methods</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">After Sales Support</a></li>
+                                <li><a href="#" className="hover:text-theme-primary">Faq</a></li>
                             </ul>
                         </div>
                     </div>
@@ -974,7 +974,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                             )}
                         </div>
                         <div>
-                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h4>
+                            <h4 className="text-lg font-semibold text-theme-primary mb-4">Quick Links</h4>
                             <ul className="space-y-2">
                                 {quickLinks.map(link => (
                                     <li key={link.id}>
@@ -987,7 +987,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                             </ul>
                         </div>
                         <div>
-                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Useful Links</h4>
+                            <h4 className="text-lg font-semibold text-theme-primary mb-4">Useful Links</h4>
                             <ul className="space-y-2">
                                 {usefulLinks.map(link => (
                                     <li key={link.id}>
@@ -1168,32 +1168,32 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     <p className="text-sm leading-relaxed mb-4">{websiteConfig?.shortDescription}</p>
                     <div className="flex gap-3">
                     {websiteConfig?.socialLinks?.map(link => (
-                        <a key={link.id} href={link.url} target="_blank" rel="noreferrer" aria-label={link.platform} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-purple-600 hover:text-white transition">
+                        <a key={link.id} href={link.url} target="_blank" rel="noreferrer" aria-label={link.platform} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-theme-primary hover:text-white transition">
                             {resolveSocialIcon(link.platform)}
                         </a>
                     ))}
                     </div>
                 </div>
                 <div>
-                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Quick Links</h4>
+                    <h4 className="font-bold text-theme-primary mb-4 dark:text-white">Quick Links</h4>
                     <ul className="space-y-2 text-sm">
-                        <li><a href="#" className="hover:text-purple-600">About Us</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Why Shop with us</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Terms & Conditions</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Privacy Policy</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">About Us</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">Why Shop with us</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">Terms & Conditions</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">Privacy Policy</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Customer Area</h4>
+                    <h4 className="font-bold text-theme-primary mb-4 dark:text-white">Customer Area</h4>
                     <ul className="space-y-2 text-sm">
-                        <li><a href="#" className="hover:text-purple-600">My Account</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Orders</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Tracking</a></li>
-                        <li><a href="#" className="hover:text-purple-600">Returns</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">My Account</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">Orders</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">Tracking</a></li>
+                        <li><a href="#" className="hover:text-theme-primary">Returns</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 className="font-bold text-gray-900 mb-4 dark:text-white">Contact Us</h4>
+                    <h4 className="font-bold text-theme-primary mb-4 dark:text-white">Contact Us</h4>
                     <ul className="space-y-3 text-sm">
                         {websiteConfig?.addresses?.map((addr, i) => (
                             <li key={i} className="flex items-start gap-2">

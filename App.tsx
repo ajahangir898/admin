@@ -474,8 +474,13 @@ const App = () => {
             DataService.get<string | null>('logo', null, activeTenantId),
             DataService.getDeliveryConfig(activeTenantId),
             DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
-            DataService.getLandingPages(activeTenantId)
-          ]).then(([ordersData, logoData, deliveryData, chatMessagesData, landingPagesData]) => {
+            DataService.getLandingPages(activeTenantId),
+            DataService.getCatalog('categories', [], activeTenantId),
+            DataService.getCatalog('subcategories', [], activeTenantId),
+            DataService.getCatalog('childcategories', [], activeTenantId),
+            DataService.getCatalog('brands', [], activeTenantId),
+            DataService.getCatalog('tags', [], activeTenantId)
+          ]).then(([ordersData, logoData, deliveryData, chatMessagesData, landingPagesData, categoriesData, subCategoriesData, childCategoriesData, brandsData, tagsData]) => {
             if (!isMounted) return;
             setOrders(ordersData);
             setLogo(logoData);
@@ -487,6 +492,11 @@ const App = () => {
             setHasUnreadChat(false);
             setIsAdminChatOpen(false);
             setLandingPages(landingPagesData);
+            setCategories(categoriesData);
+            setSubCategories(subCategoriesData);
+            setChildCategories(childCategoriesData);
+            setBrands(brandsData);
+            setTags(tagsData);
           }).catch(error => console.warn('Failed to load deferred data', error));
         }, 100);
       } catch (error) {
@@ -1634,6 +1644,11 @@ fbq('track', 'PageView');`;
                   onToggleCart={handleCartToggle}
                   onCheckoutFromCart={handleCheckoutFromCart}
                   onAddToCart={(product, quantity, variant) => handleAddProductToCart(product, quantity, variant)}
+                  categories={categories}
+                  subCategories={subCategories}
+                  childCategories={childCategories}
+                  brands={brands}
+                  tags={tags}
                 />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}

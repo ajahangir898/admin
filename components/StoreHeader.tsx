@@ -531,7 +531,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     <div className="max-w-7xl mx-auto px-4 py-1">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-                                {logo ? <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" /> : <h1 className="text-2xl font-bold tracking-tighter"><span className="text-gray-800">GADGET</span><span className="text-theme-primary">SHOB</span></h1>}
+                                {logo ? <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" /> : <h1 className="text-2xl font-bold tracking-tighter"><span className="text-gray-800">OPBD</span><span className="text-theme-primary">.SHOB</span></h1>}
                             </div>
                             <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
                                 {renderSearchHintOverlay('left-4')}

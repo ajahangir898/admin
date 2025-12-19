@@ -68,6 +68,11 @@ interface StoreHomeProps {
   onSearchChange?: (value: string) => void;
   onImageSearchClick?: () => void;
   onOpenChat?: () => void;
+  categories?: any[];
+  subCategories?: any[];
+  childCategories?: any[];
+  brands?: any[];
+  tags?: any[];
 }
 
 const StoreHome = ({ 
@@ -88,6 +93,11 @@ const StoreHome = ({
   onProfileClick,
   logo,
   websiteConfig,
+  categories,
+  subCategories,
+  childCategories,
+  brands,
+  tags,
   searchValue,
   onSearchChange,
   onImageSearchClick,
@@ -350,6 +360,11 @@ const StoreHome = ({
           categoriesList={CATEGORIES.map((cat) => cat.name)}
           onCategorySelect={(categoryName) => updateSearchTerm(categoryName)}
           onProductClick={onProductClick}
+          categories={categories}
+          subCategories={subCategories}
+          childCategories={childCategories}
+          brands={brands}
+          tags={tags}
         />
       </Suspense>
       

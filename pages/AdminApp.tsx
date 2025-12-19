@@ -522,7 +522,10 @@ const AdminApp: React.FC<AdminAppProps> = ({
   };
 
   const handlePreviewLandingPage = (page: any) => {
-    // Preview logic handled in main App
+    // Open landing page in new tab using the URL slug
+    const baseUrl = window.location.origin;
+    const previewUrl = `${baseUrl}/${page.urlSlug}`;
+    window.open(previewUrl, '_blank');
   };
 
   return (

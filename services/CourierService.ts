@@ -1,14 +1,19 @@
 import { CourierConfig, Order } from '../types';
 
-const STEADFAST_ENDPOINT = 'https://portal.steadfast.com.bd/api/v1/create_order';
-const STEADFAST_FRAUD_ENDPOINT = 'https://portal.steadfast.com.bd/api/v1/fraud-check';
+// Use backend proxy to avoid CORS issues
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined' && (window as any).__VITE_API_BASE_URL__) {
+    return (window as any).__VITE_API_BASE_URL__;
+  }
+  return import.meta?.env?.VITE_API_BASE_URL || 'http://localhost:5001';
+};
 
 const sanitizePhone = (value?: string) => {
   if (!value) return '';
   const digits = value.replace(/\D/g, '');
   if (!digits) return '';
   if (digits.startsWith('88') && digits.length > 11) return digits.slice(2);
-  if (!digits.startsWith('0')) return `0${digits}`;
+  if (!digits.startsWith('0') && digits.length === 10) return `0${digits}`;
   return digits;
 };
 
@@ -57,35 +62,39 @@ export class CourierService {
       throw new Error('Customer phone number is missing for this order.');
     }
 
-    const payload = buildSteadfastPayload(order, config);
+    const orderData = buildSteadfastPayload(order, config);
 
     try {
-      const response = await fetch(STEADFAST_ENDPOINT, {
+      // Use backend proxy to avoid CORS
+      const response = await fetch(`${getApiBaseUrl()}/api/courier/steadfast/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Api-Key': config.apiKey.trim(),
-          'Secret-Key': config.secretKey.trim()
         },
-        body: JSON.stringify(payload)
+        credentials: 'include',
+        body: JSON.stringify({
+          apiKey: config.apiKey.trim(),
+          secretKey: config.secretKey.trim(),
+          orderData
+        })
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        const message = data?.message || data?.error || 'Steadfast API request failed.';
+        const message = data?.error || data?.message || 'Steadfast API request failed.';
         throw new Error(message);
       }
 
-      const trackingId = data?.tracking_id || data?.tracking_code || data?.consignment_id || data?.invoice;
+      const trackingId = data?.tracking_code || data?.consignment?.tracking_code || data?.consignment_id || data?.invoice;
       if (!trackingId) {
         throw new Error('Steadfast response did not include a tracking ID.');
       }
 
       return {
         trackingId,
-        reference: data?.consignment_id || data?.invoice,
-        payload,
+        reference: data?.consignment_id || data?.consignment?.consignment_id || data?.invoice,
+        payload: orderData,
         response: data
       };
     } catch (error) {
@@ -104,37 +113,44 @@ export class CourierService {
       throw new Error('Customer phone number is required to run a fraud check.');
     }
 
-    const payload = {
-      invoice: normalizeInvoice(order.id),
-      recipient_phone: sanitizePhone(order.phone),
-      cod_amount: Math.round(order.amount),
-      recipient_city: order.division || 'Dhaka',
-      recipient_name: order.customer,
-    };
-
     try {
-      const response = await fetch(STEADFAST_FRAUD_ENDPOINT, {
+      // Use backend proxy to avoid CORS
+      const response = await fetch(`${getApiBaseUrl()}/api/courier/steadfast/fraud-check`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Api-Key': config.apiKey.trim(),
-          'Secret-Key': config.secretKey.trim(),
         },
-        body: JSON.stringify(payload),
+        credentials: 'include',
+        body: JSON.stringify({
+          apiKey: config.apiKey.trim(),
+          secretKey: config.secretKey.trim(),
+          phone: order.phone
+        })
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        const message = data?.message || data?.error || 'Steadfast fraud check failed.';
+        const message = data?.error || data?.message || 'Fraud check failed.';
         throw new Error(message);
       }
 
+      // Parse response from backend proxy
+      const deliveryCount = data?.delivery_count || 0;
+      const cancelCount = data?.cancel_count || 0;
+      const totalOrders = deliveryCount + cancelCount;
+      
+      // Calculate risk score
+      let riskScore = 0;
+      if (totalOrders > 0) {
+        riskScore = Math.round((cancelCount / totalOrders) * 100);
+      }
+
       return {
-        status: data?.status || data?.result || 'unknown',
-        riskScore: typeof data?.risk_score === 'number' ? data.risk_score : undefined,
-        remarks: data?.remarks || data?.message,
-        raw: data,
+        status: data?.status || 'Unknown',
+        riskScore,
+        remarks: `Delivered: ${deliveryCount}, Cancelled: ${cancelCount}${data?.message ? ` - ${data.message}` : ''}`,
+        raw: data?.raw || data,
       };
     } catch (error) {
       if (import.meta?.env?.DEV) {
@@ -144,3 +160,4 @@ export class CourierService {
     }
   }
 }
+

@@ -662,15 +662,15 @@ const App = () => {
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('logo', logo, activeTenantId); }, [logo, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('delivery_config', deliveryConfig, activeTenantId); }, [deliveryConfig, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, activeTenantId]);
   
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && initialDataLoadedRef.current) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
 
   // OPTIMIZED: Chat polling - only start when chat is opened or user is admin
   const chatPollingActiveRef = useRef(false);
@@ -748,7 +748,7 @@ const App = () => {
 
   useEffect(() => { 
     if(!isLoading && themeConfig && activeTenantId) {
-      DataService.save('theme', themeConfig, activeTenantId);
+      DataService.save('theme_config', themeConfig, activeTenantId);
       const root = document.documentElement;
       root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
       root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
@@ -956,10 +956,10 @@ fbq('track', 'PageView');`;
       return true;
     }
 
-    if (formattedEmailLower === 'admin@systemnextit.com' && formattedPass === 'admin121') {
+    if (formattedEmailLower === 'admin@admin.com' && formattedPass === 'admin121') {
       const admin: User = {
         name: 'Super Admin',
-        email: 'admin@systemnextit.com',
+        email: 'admin@admin.com',
         role: 'super_admin',
         tenantId: activeTenantId || DEFAULT_TENANT_ID
       };

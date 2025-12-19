@@ -33,7 +33,7 @@ const COLORS = [
   'rgba(var(--color-secondary-rgb), 0.6)'
 ];
 
-const ALLOWED_REVENUE_STATUSES: Array<Order['status']> = ['Pending', 'Confirmed', 'Shipped', 'Delivered'];
+const ALLOWED_REVENUE_STATUSES: Array<Order['status']> = ['Pending', 'Confirmed', 'On Hold', 'Processing', 'Shipped', 'Sent to Courier', 'Delivered'];
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-BD', {

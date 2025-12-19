@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Search, Filter, Edit3, Printer, ShieldAlert, ShieldCheck, X, Package2, MapPin, Mail, Truck, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Search, Filter, Edit3, Printer, ShieldAlert, ShieldCheck, X, Package2, MapPin, Mail, Truck, AlertTriangle, CheckCircle2, Send, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Order, CourierConfig } from '../types';
 import { CourierService, FraudCheckResult } from '../services/CourierService';
@@ -16,12 +16,18 @@ type StatusFilter = 'all' | Order['status'];
 const STATUS_COLORS: Record<Order['status'], string> = {
   Pending: 'text-amber-300 bg-amber-500/15 border border-amber-500/40',
   Confirmed: 'text-sky-200 bg-sky-500/10 border border-sky-500/30',
+  'On Hold': 'text-orange-300 bg-orange-500/15 border border-orange-500/40',
+  Processing: 'text-cyan-300 bg-cyan-500/15 border border-cyan-500/40',
   Shipped: 'text-indigo-200 bg-indigo-500/10 border border-indigo-500/30',
+  'Sent to Courier': 'text-purple-300 bg-purple-500/15 border border-purple-500/40',
   Delivered: 'text-emerald-200 bg-emerald-500/10 border border-emerald-500/30',
-  Cancelled: 'text-rose-200 bg-rose-500/10 border border-rose-500/30'
+  Cancelled: 'text-rose-200 bg-rose-500/10 border border-rose-500/30',
+  Return: 'text-yellow-300 bg-yellow-500/15 border border-yellow-500/40',
+  Refund: 'text-pink-300 bg-pink-500/15 border border-pink-500/40',
+  'Returned Receive': 'text-slate-300 bg-slate-500/15 border border-slate-500/40'
 };
 
-const STATUSES: Order['status'][] = ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+const STATUSES: Order['status'][] = ['Pending', 'Confirmed', 'On Hold', 'Processing', 'Shipped', 'Sent to Courier', 'Delivered', 'Cancelled', 'Return', 'Refund', 'Returned Receive'];
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'BDT', maximumFractionDigits: 0 }).format(value);
 
@@ -45,6 +51,7 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
   const [draftOrder, setDraftOrder] = useState<Order | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isFraudChecking, setIsFraudChecking] = useState(false);
+  const [isSendingToSteadfast, setIsSendingToSteadfast] = useState(false);
   const [fraudResult, setFraudResult] = useState<FraudCheckResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -108,6 +115,10 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
   };
 
   const handleFraudCheck = async (order: Order) => {
+    if (!courierConfig.apiKey || !courierConfig.secretKey) {
+      toast.error('Please configure Steadfast API credentials in Courier Settings first.');
+      return;
+    }
     setIsFraudChecking(true);
     try {
       const result = await CourierService.checkFraudRisk(order, courierConfig);
@@ -118,6 +129,46 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
       toast.error(message);
     } finally {
       setIsFraudChecking(false);
+    }
+  };
+
+  const handleSendToSteadfast = async (order: Order) => {
+    if (!courierConfig.apiKey || !courierConfig.secretKey) {
+      toast.error('Please configure Steadfast API credentials in Courier Settings first.');
+      return;
+    }
+    if (!order.phone) {
+      toast.error('Customer phone number is required to send to Steadfast.');
+      return;
+    }
+    if (order.courierProvider === 'Steadfast' && order.trackingId) {
+      toast.error('This order has already been sent to Steadfast.');
+      return;
+    }
+
+    setIsSendingToSteadfast(true);
+    try {
+      const result = await CourierService.sendToSteadfast(order, courierConfig);
+      
+      // Update the order with tracking info
+      const updates: Partial<Order> = {
+        trackingId: result.trackingId,
+        courierProvider: 'Steadfast',
+        courierMeta: result.response,
+        status: 'Sent to Courier'
+      };
+      
+      onUpdateOrder(order.id, updates);
+      
+      // Update draft order to reflect changes
+      setDraftOrder(prev => prev ? { ...prev, ...updates } : prev);
+      
+      toast.success(`Order sent to Steadfast! Tracking ID: ${result.trackingId}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to send order to Steadfast';
+      toast.error(message);
+    } finally {
+      setIsSendingToSteadfast(false);
     }
   };
 
@@ -243,8 +294,21 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
     return { label: fraudResult.status, color: 'text-rose-300', icon: <ShieldAlert size={18} /> };
   })() : null;
 
+  const isSteadfastConfigured = !!(courierConfig.apiKey && courierConfig.secretKey);
+
   return (
     <div className="space-y-6">
+      {/* Steadfast Configuration Warning */}
+      {!isSteadfastConfigured && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
+          <AlertTriangle size={20} className="text-amber-400 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-300">Steadfast API Not Configured</p>
+            <p className="text-xs text-amber-200/70">Go to Courier Settings to add your API Key and Secret Key to enable order sending and fraud checks.</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-rose-300">Operations</p>
@@ -333,6 +397,7 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
                 <th className="px-6 py-3">Customer</th>
                 <th className="px-6 py-3">Destination</th>
                 <th className="px-6 py-3">Amount</th>
+                <th className="px-6 py-3">Courier</th>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
@@ -354,6 +419,18 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
                       <p className="text-xs text-white/50">{order.division || 'N/A'}</p>
                     </td>
                     <td className="px-6 py-4 font-semibold text-emerald-300">{formatCurrency(order.amount)}</td>
+                    <td className="px-6 py-4">
+                      {order.courierProvider === 'Steadfast' && order.trackingId ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300">
+                            <CheckCircle2 size={12} /> Steadfast
+                          </span>
+                          <span className="text-[10px] text-white/40 font-mono">{order.trackingId}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-white/40">Not assigned</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[order.status]}`}>
                         {order.status}
@@ -381,7 +458,7 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-20 text-center text-white/50">
+                  <td colSpan={7} className="px-6 py-20 text-center text-white/50">
                     No orders found for the current filters.
                   </td>
                 </tr>
@@ -573,6 +650,29 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <p className="text-sm font-semibold text-white">Quick Actions</p>
                   <div className="mt-3 space-y-2">
+                    {/* Send to Steadfast Button */}
+                    {draftOrder.courierProvider === 'Steadfast' && draftOrder.trackingId ? (
+                      <div className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-sm font-semibold text-emerald-300">
+                        <CheckCircle2 size={16} /> Sent to Steadfast
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleSendToSteadfast(draftOrder)}
+                        disabled={isSendingToSteadfast || !courierConfig.apiKey || !courierConfig.secretKey}
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-500 py-3 text-sm font-semibold text-white transition hover:from-indigo-500 hover:to-purple-400 disabled:opacity-60 disabled:cursor-not-allowed"
+                        title={!courierConfig.apiKey || !courierConfig.secretKey ? 'Configure Steadfast API in Courier Settings' : 'Send order to Steadfast'}
+                      >
+                        {isSendingToSteadfast ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" /> Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} /> Send to Steadfast
+                          </>
+                        )}
+                      </button>
+                    )}
                     <button
                       onClick={() => handlePrintInvoice(draftOrder)}
                       className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/20 py-3 text-sm font-semibold text-white transition hover:border-rose-400"

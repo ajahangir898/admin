@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft, Truck } from 'lucide-react';
+import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft, Truck, AlertCircle, Loader2 } from 'lucide-react';
 import { CourierConfig } from '../types';
 
 interface AdminCourierSettingsProps {
@@ -8,6 +8,14 @@ interface AdminCourierSettingsProps {
   onSave: (config: CourierConfig) => void;
   onBack: () => void;
 }
+
+// Get API base URL
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined' && (window as any).__VITE_API_BASE_URL__) {
+    return (window as any).__VITE_API_BASE_URL__;
+  }
+  return import.meta?.env?.VITE_API_BASE_URL || 'http://localhost:5001';
+};
 
 const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onSave, onBack }) => {
   const [activeTab, setActiveTab] = useState<'Steadfast' | 'Pathao'>('Steadfast');
@@ -17,6 +25,8 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
     instruction: ''
   });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ valid: boolean; message: string; balance?: number } | null>(null);
 
   // Load initial config
   useEffect(() => {
@@ -42,6 +52,50 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
         setTimeout(() => setShowSuccess(false), 3000);
     } else {
         alert("Pathao Courier integration coming soon!");
+    }
+  };
+
+  const handleTestConnection = async () => {
+    if (!formData.apiKey || !formData.secretKey) {
+      setTestResult({ valid: false, message: 'Please enter both API Key and Secret Key' });
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/courier/steadfast/test-credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          apiKey: formData.apiKey.trim(),
+          secretKey: formData.secretKey.trim()
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.valid) {
+        setTestResult({
+          valid: true,
+          message: `Connection successful! Balance: ৳${data.balance || 0}`,
+          balance: data.balance
+        });
+      } else {
+        setTestResult({
+          valid: false,
+          message: data.error || 'Invalid credentials or account not activated'
+        });
+      }
+    } catch (error) {
+      setTestResult({
+        valid: false,
+        message: 'Failed to connect to Steadfast. Please check your credentials and try again.'
+      });
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -160,7 +214,16 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
                </div>
             </div>
 
-            <div className="pt-6 mt-6">
+            <div className="pt-6 mt-6 flex flex-wrap gap-4">
+               <button 
+                 type="button"
+                 onClick={handleTestConnection}
+                 disabled={isTesting || !formData.apiKey || !formData.secretKey}
+                 className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+               >
+                 {isTesting ? <Loader2 size={18} className="animate-spin" /> : <Truck size={18} />}
+                 {isTesting ? 'Testing...' : 'Test Connection'}
+               </button>
                <button 
                  type="submit"
                  className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
@@ -168,6 +231,13 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
                  <Save size={18} /> Save Changes
                </button>
             </div>
+
+            {testResult && (
+              <div className={`mt-4 px-4 py-3 rounded-lg flex items-center gap-2 ${testResult.valid ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                {testResult.valid ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                {testResult.message}
+              </div>
+            )}
          </form>
       </div>
     </div>

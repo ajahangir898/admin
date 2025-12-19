@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Shield, Users, Edit, Trash2, Plus, Check, X, Search, 
-  Eye, EyeOff, UserPlus, Mail, Phone, Lock, Save, Loader2, Key
+  Eye, EyeOff, UserPlus, Mail, Phone, Lock, Save, Loader2, Key,
+  MessageCircle, Star, UserCheck, Filter, Flag, CheckCircle, Send, Edit3
 } from 'lucide-react';
 
 // ==================== TYPES ====================
@@ -99,7 +100,7 @@ const AdminControl: React.FC<AdminControlProps> = ({
   onAddRole, onUpdateRole, onDeleteRole, onUpdateUserRole,
   currentUser, tenantId, userPermissions = {}
 }) => {
-  const [tab, setTab] = useState<'users' | 'roles'>('users');
+  const [tab, setTab] = useState<'users' | 'roles' | 'reviews' | 'customers'>('users');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -172,11 +173,115 @@ const AdminControl: React.FC<AdminControlProps> = ({
   const [editRole, setEditRole] = useState<Role | null>(null);
   const [roleForm, setRoleForm] = useState({ name: '', description: '', permissions: [] as Permission[] });
 
+  // Reviews state
+  type ReviewStatus = 'published' | 'pending' | 'flagged';
+  type ReviewItem = {
+    id: string;
+    customer: string;
+    avatar: string;
+    rating: number;
+    headline: string;
+    message: string;
+    product: string;
+    date: string;
+    status: ReviewStatus;
+    reply?: string;
+  };
+  
+  const SAMPLE_REVIEWS: ReviewItem[] = [
+    {
+      id: 'R-98211',
+      customer: 'Anika Rahman',
+      avatar: 'https://i.pravatar.cc/120?img=32',
+      rating: 5,
+      headline: 'Lightning fast delivery',
+      message: 'Ordered at night and had the phone within 36 hours. Packaging was premium and seal was intact.',
+      product: 'iPhone 14 Pro Max 1TB',
+      date: 'Dec 01, 2025',
+      status: 'published',
+      reply: 'Thanks Anika! Glad the express courier met expectations.',
+    },
+    {
+      id: 'R-98202',
+      customer: 'Fahim Reza',
+      avatar: 'https://i.pravatar.cc/120?img=15',
+      rating: 3,
+      headline: 'Good product, slow courier',
+      message: 'Gadget works perfectly but delivery partner rescheduled twice. Please fix courier coordination.',
+      product: 'Logitech G Pro X Headset',
+      date: 'Nov 29, 2025',
+      status: 'pending',
+    },
+    {
+      id: 'R-98144',
+      customer: 'Sadia Tanjin',
+      avatar: 'https://i.pravatar.cc/120?img=8',
+      rating: 2,
+      headline: 'Box slightly damaged',
+      message: 'Device ok but retail box arrived dented. Need better bubble-wrap next time.',
+      product: 'Xiaomi Smart Air Purifier 4',
+      date: 'Nov 25, 2025',
+      status: 'flagged',
+    },
+  ];
+  
+  const [reviews, setReviews] = useState<ReviewItem[]>(SAMPLE_REVIEWS);
+  const [reviewFilter, setReviewFilter] = useState<'all' | ReviewStatus>('all');
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(SAMPLE_REVIEWS[0]?.id || null);
+  const [replyDraft, setReplyDraft] = useState('');
+
   // Filtered users (exclude customers)
   const filteredUsers = useMemo(() => 
     users.filter(u => u.role !== 'customer' && 
       (u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()))
     ), [users, search]);
+
+  // Filtered customers (only customers)
+  const filteredCustomers = useMemo(() => 
+    users.filter(u => u.role === 'customer' && 
+      (u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()))
+    ), [users, search]);
+
+  // Filtered reviews
+  const filteredReviews = useMemo(() => {
+    return reviews.filter((review) => {
+      const matchesFilter = reviewFilter === 'all' || review.status === reviewFilter;
+      if (!matchesFilter) return false;
+      if (!search.trim()) return true;
+      const query = search.toLowerCase();
+      return (
+        review.customer.toLowerCase().includes(query) ||
+        review.product.toLowerCase().includes(query) ||
+        review.message.toLowerCase().includes(query)
+      );
+    });
+  }, [reviews, search, reviewFilter]);
+
+  const selectedReview = reviews.find((review) => review.id === selectedReviewId) || filteredReviews[0] || null;
+
+  // Review stats
+  const reviewStats = useMemo(() => {
+    const published = reviews.filter((r) => r.status === 'published').length;
+    const pending = reviews.filter((r) => r.status === 'pending').length;
+    const flagged = reviews.filter((r) => r.status === 'flagged').length;
+    const avgRating = reviews.length
+      ? (reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length).toFixed(1)
+      : '0.0';
+    return { published, pending, flagged, avgRating };
+  }, [reviews]);
+
+  // Review handlers
+  const handleStatusChange = (id: string, status: ReviewStatus) => {
+    setReviews((prev) => prev.map((review) => (review.id === id ? { ...review, status } : review)));
+  };
+
+  const handleSaveReply = () => {
+    if (!selectedReview) return;
+    const trimmed = replyDraft.trim();
+    if (!trimmed) return;
+    setReviews((prev) => prev.map((review) => (review.id === selectedReview.id ? { ...review, reply: trimmed, status: 'published' } : review)));
+    setReplyDraft('');
+  };
 
   // Group resources by category
   const groupedResources = useMemo(() => 
@@ -341,12 +446,18 @@ const AdminControl: React.FC<AdminControlProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-white/5 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-white/5 p-1 rounded-xl w-fit flex-wrap">
         <button onClick={() => setTab('users')} className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${tab === 'users' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'}`}>
           <Users size={16} /> Users
         </button>
         <button onClick={() => setTab('roles')} className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${tab === 'roles' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'}`}>
           <Key size={16} /> Roles
+        </button>
+        <button onClick={() => setTab('reviews')} className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${tab === 'reviews' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'}`}>
+          <MessageCircle size={16} /> Reviews
+        </button>
+        <button onClick={() => setTab('customers')} className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${tab === 'customers' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white'}`}>
+          <UserCheck size={16} /> Customers
         </button>
       </div>
 
@@ -484,6 +595,237 @@ const AdminControl: React.FC<AdminControlProps> = ({
           {roles.length === 0 && (
             <div className="col-span-full text-center py-12 text-slate-500">No roles yet</div>
           )}
+        </div>
+      )}
+
+      {/* Reviews Tab */}
+      {tab === 'reviews' && (
+        <div className="space-y-6">
+          {/* Review Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white/5 rounded-xl border border-white/10 p-4">
+              <p className="text-xs uppercase text-slate-500">Published</p>
+              <p className="text-2xl font-bold text-emerald-400">{reviewStats.published}</p>
+            </div>
+            <div className="bg-white/5 rounded-xl border border-white/10 p-4">
+              <p className="text-xs uppercase text-slate-500">Pending</p>
+              <p className="text-2xl font-bold text-amber-400">{reviewStats.pending}</p>
+            </div>
+            <div className="bg-white/5 rounded-xl border border-white/10 p-4">
+              <p className="text-xs uppercase text-slate-500">Flagged</p>
+              <p className="text-2xl font-bold text-red-400">{reviewStats.flagged}</p>
+            </div>
+            <div className="bg-white/5 rounded-xl border border-white/10 p-4">
+              <p className="text-xs uppercase text-slate-500">Avg Rating</p>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-bold text-white">{reviewStats.avgRating}</p>
+                <Star size={18} className="text-yellow-400 fill-yellow-400" />
+              </div>
+            </div>
+          </div>
+
+          {/* Filter buttons */}
+          <div className="flex flex-wrap gap-2">
+            {(['all', 'published', 'pending', 'flagged'] as const).map((item) => (
+              <button
+                key={item}
+                onClick={() => setReviewFilter(item)}
+                className={`px-4 py-2 rounded-lg text-xs font-medium transition ${
+                  reviewFilter === item 
+                    ? 'bg-emerald-500 text-white' 
+                    : 'bg-white/5 text-slate-400 hover:text-white border border-white/10'
+                }`}
+              >
+                {item === 'all' ? 'All' : item.charAt(0).toUpperCase() + item.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Reviews List */}
+            <div className="xl:col-span-2 bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-white/5 text-slate-400 text-xs uppercase">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Customer</th>
+                      <th className="px-4 py-3 text-left">Product</th>
+                      <th className="px-4 py-3 text-left">Rating</th>
+                      <th className="px-4 py-3 text-left">Status</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {filteredReviews.map((review) => (
+                      <tr 
+                        key={review.id} 
+                        className={`hover:bg-white/5 cursor-pointer ${selectedReview?.id === review.id ? 'bg-emerald-500/10' : ''}`}
+                        onClick={() => { setSelectedReviewId(review.id); setReplyDraft(review.reply || ''); }}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-white">{review.customer}</div>
+                          <div className="text-slate-500 text-xs">{review.date}</div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-400">{review.product}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star key={s} size={12} className={s <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'} />
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            review.status === 'published' ? 'text-emerald-300 bg-emerald-500/20' :
+                            review.status === 'pending' ? 'text-amber-300 bg-amber-500/20' :
+                            'text-red-300 bg-red-500/20'
+                          }`}>
+                            {review.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(review.id, 'published'); }}
+                              className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-emerald-400"
+                              title="Publish"
+                            >
+                              <CheckCircle size={14} />
+                            </button>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(review.id, 'flagged'); }}
+                              className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-red-400"
+                              title="Flag"
+                            >
+                              <Flag size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredReviews.length === 0 && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">No reviews found</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Selected Review Detail */}
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
+              {selectedReview ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <img src={selectedReview.avatar} alt={selectedReview.customer} className="w-12 h-12 rounded-xl object-cover" />
+                    <div>
+                      <p className="font-semibold text-white">{selectedReview.customer}</p>
+                      <p className="text-xs text-slate-500">{selectedReview.product}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white">{selectedReview.headline}</h4>
+                    <p className="text-sm text-slate-400 mt-1">{selectedReview.message}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-slate-500 mb-1">Rating</p>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} size={16} className={s <= selectedReview.rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase text-slate-500">Reply</p>
+                    <textarea
+                      className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-white p-3 h-24 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      placeholder="Write a reply..."
+                      value={replyDraft}
+                      onChange={(e) => setReplyDraft(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSaveReply}
+                        className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+                      >
+                        <Send size={14} /> Send Reply
+                      </button>
+                      <button
+                        onClick={() => selectedReview && handleStatusChange(selectedReview.id, 'pending')}
+                        className="px-4 py-2 text-xs font-medium rounded-lg border border-white/20 text-slate-400 hover:text-white"
+                      >
+                        Mark Pending
+                      </button>
+                    </div>
+                    {selectedReview.reply && !replyDraft && (
+                      <div className="p-3 text-xs rounded-lg bg-white/5 border border-white/10 text-slate-400 flex items-start gap-2">
+                        <Edit3 size={12} className="mt-0.5 text-emerald-400" />
+                        <span>{selectedReview.reply}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-slate-500 py-10">Select a review to manage</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customers Tab */}
+      {tab === 'customers' && (
+        <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+          {/* Search */}
+          <div className="p-4 border-b border-white/10">
+            <div className="relative max-w-sm">
+              <Search size={16} className="absolute left-3 top-3 text-slate-500" />
+              <input 
+                type="text" 
+                placeholder="Search customers..." 
+                value={search} 
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              />
+            </div>
+          </div>
+          
+          {/* Customer Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-slate-400 text-xs uppercase">
+                <tr>
+                  <th className="px-4 py-3 text-left">Customer</th>
+                  <th className="px-4 py-3 text-left">Email</th>
+                  <th className="px-4 py-3 text-left">Phone</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filteredCustomers.map(customer => (
+                  <tr key={customer._id || customer.id || customer.email} className="hover:bg-white/5">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">
+                          {customer.name?.charAt(0).toUpperCase() || '?'}
+                        </div>
+                        <div className="font-medium text-white">{customer.name || 'Unknown'}</div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-400">{customer.email}</td>
+                    <td className="px-4 py-3 text-slate-400">{customer.phone || '-'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded text-xs ${customer.isActive !== false ? 'text-emerald-300 bg-emerald-500/20' : 'text-red-300 bg-red-500/20'}`}>
+                        {customer.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {filteredCustomers.length === 0 && (
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">No customers found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

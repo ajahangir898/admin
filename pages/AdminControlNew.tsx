@@ -74,6 +74,9 @@ const RESOURCES: { id: ResourceType; label: string; group: string }[] = [
 
 const ACTIONS: ActionType[] = ['read', 'write', 'edit', 'delete'];
 
+// Permission map type
+type PermissionMap = Record<string, string[]>;
+
 // ==================== PROPS ====================
 interface AdminControlProps {
   users: User[];
@@ -87,17 +90,67 @@ interface AdminControlProps {
   onUpdateUserRole: (userEmail: string, roleId: string) => Promise<void>;
   currentUser?: User | null;
   tenantId?: string;
+  userPermissions?: PermissionMap;
 }
 
 // ==================== COMPONENT ====================
 const AdminControl: React.FC<AdminControlProps> = ({
   users, roles = [], onAddUser, onUpdateUser, onDeleteUser,
   onAddRole, onUpdateRole, onDeleteRole, onUpdateUserRole,
-  currentUser, tenantId
+  currentUser, tenantId, userPermissions = {}
 }) => {
   const [tab, setTab] = useState<'users' | 'roles'>('users');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Permission check helpers
+  const hasAdminControlPermission = (action: ActionType): boolean => {
+    // Super admin has all permissions
+    if (currentUser?.role === 'super_admin') return true;
+    // Admin has all permissions except tenants
+    if (currentUser?.role === 'admin') return true;
+    // Tenant admin has all permissions except tenants
+    if (currentUser?.role === 'tenant_admin') return true;
+    // Staff - check permissions map
+    if (userPermissions['admin_control']) {
+      return userPermissions['admin_control'].includes(action);
+    }
+    return false;
+  };
+  
+  // Check if current user can modify user roles
+  const canModifyUsers = hasAdminControlPermission('write') || hasAdminControlPermission('edit');
+  const canDeleteUsers = hasAdminControlPermission('delete');
+  const canModifyRoles = hasAdminControlPermission('write') || hasAdminControlPermission('edit');
+  const canDeleteRoles = hasAdminControlPermission('delete');
+  
+  // Check if current user can change a target user's role (hierarchical check)
+  const canChangeUserRole = (targetUser: User): boolean => {
+    if (!canModifyUsers) return false;
+    
+    // Super admin can change anyone's role
+    if (currentUser?.role === 'super_admin') return true;
+    
+    // Users cannot change their own base role
+    if (targetUser.email === currentUser?.email) return false;
+    
+    // Admin can only change staff roles
+    if (currentUser?.role === 'admin') {
+      return targetUser.role === 'staff';
+    }
+    
+    // Tenant admin can only change staff roles within their tenant
+    if (currentUser?.role === 'tenant_admin') {
+      return targetUser.role === 'staff';
+    }
+    
+    // Staff with permissions can only change other staff roles
+    if (currentUser?.role === 'staff') {
+      return targetUser.role === 'staff' && targetUser.email !== currentUser?.email;
+    }
+    
+    return false;
+  };
   
   // User Modal
   const [userModal, setUserModal] = useState(false);
@@ -267,12 +320,15 @@ const AdminControl: React.FC<AdminControlProps> = ({
           <p className="text-slate-400 text-sm">Manage users, roles & permissions</p>
         </div>
         
-        <button 
-          onClick={() => tab === 'users' ? openUserModal() : openRoleModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition"
-        >
-          <Plus size={18} /> {tab === 'users' ? 'Add User' : 'Create Role'}
-        </button>
+        {/* Show Add User/Create Role button only if user has write permission */}
+        {((tab === 'users' && canModifyUsers) || (tab === 'roles' && canModifyRoles)) && (
+          <button 
+            onClick={() => tab === 'users' ? openUserModal() : openRoleModal()}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition"
+          >
+            <Plus size={18} /> {tab === 'users' ? 'Add User' : 'Create Role'}
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -334,16 +390,22 @@ const AdminControl: React.FC<AdminControlProps> = ({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <select 
-                        value={user.roleId || ''} 
-                        onChange={e => onUpdateUserRole(user.email, e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      >
-                        <option value="" className="bg-slate-900">None</option>
-                        {roles.filter(r => r._id || r.id).map(r => (
-                          <option key={r._id || r.id} value={r._id || r.id} className="bg-slate-900">{r.name}</option>
-                        ))}
-                      </select>
+                      {canChangeUserRole(user) ? (
+                        <select 
+                          value={user.roleId || ''} 
+                          onChange={e => onUpdateUserRole(user.email, e.target.value)}
+                          className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        >
+                          <option value="" className="bg-slate-900">None</option>
+                          {roles.filter(r => r._id || r.id).map(r => (
+                            <option key={r._id || r.id} value={r._id || r.id} className="bg-slate-900">{r.name}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-slate-500 text-xs px-2 py-1.5">
+                          {user.roleId ? roles.find(r => (r._id || r.id) === user.roleId)?.name || 'Custom Role' : 'None'}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded text-xs ${user.isActive !== false ? 'text-emerald-300 bg-emerald-500/20' : 'text-red-300 bg-red-500/20'}`}>
@@ -352,12 +414,12 @@ const AdminControl: React.FC<AdminControlProps> = ({
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {onUpdateUser && (
+                        {onUpdateUser && canChangeUserRole(user) && (
                           <button onClick={() => openUserModal(user)} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-emerald-400">
                             <Edit size={14} />
                           </button>
                         )}
-                        {onDeleteUser && user.email !== currentUser?.email && (
+                        {onDeleteUser && canDeleteUsers && user.email !== currentUser?.email && canChangeUserRole(user) && (
                           <button onClick={() => deleteUser(user)} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-red-400">
                             <Trash2 size={14} />
                           </button>
@@ -393,10 +455,12 @@ const AdminControl: React.FC<AdminControlProps> = ({
                     </h3>
                     {role.isSystem && <span className="text-xs text-amber-400">System</span>}
                   </div>
-                  {!role.isSystem && (
+                  {!role.isSystem && canModifyRoles && (
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                       <button onClick={() => openRoleModal(role)} className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-emerald-400"><Edit size={14} /></button>
-                      <button onClick={() => deleteRole(role)} className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-red-400"><Trash2 size={14} /></button>
+                      {canDeleteRoles && (
+                        <button onClick={() => deleteRole(role)} className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-red-400"><Trash2 size={14} /></button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -468,15 +532,23 @@ const AdminControl: React.FC<AdminControlProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm text-slate-400 block mb-1">Role</label>
-                  <select value={userForm.role} onChange={e => setUserForm({...userForm, role: e.target.value as User['role']})}
-                    className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                  <select 
+                    value={userForm.role} 
+                    onChange={e => setUserForm({...userForm, role: e.target.value as User['role']})}
+                    disabled={currentUser?.role === 'staff'}
+                    className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed">
                     <option value="staff" className="bg-slate-900">Staff</option>
-                    <option value="admin" className="bg-slate-900">Admin</option>
+                    {(currentUser?.role === 'super_admin' || currentUser?.role === 'tenant_admin') && (
+                      <option value="admin" className="bg-slate-900">Admin</option>
+                    )}
                     {currentUser?.role === 'super_admin' && <>
                       <option value="tenant_admin" className="bg-slate-900">Tenant Admin</option>
                       <option value="super_admin" className="bg-slate-900">Super Admin</option>
                     </>}
                   </select>
+                  {currentUser?.role === 'staff' && (
+                    <p className="text-xs text-slate-500 mt-1">Only super admin can change base role</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-slate-400 block mb-1">Custom Role</label>

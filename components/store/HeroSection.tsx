@@ -1,0 +1,101 @@
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CarouselItem, WebsiteConfig } from '../../types';
+import { normalizeImageUrl } from '../../utils/imageUrlHelper';
+
+export interface HeroSectionProps {
+    carouselItems?: CarouselItem[];
+    websiteConfig?: WebsiteConfig;
+}
+
+export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
+    const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (items.length <= 1) return;
+        const timer = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % items.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [items.length]);
+
+    if (items.length === 0) return null;
+
+    return (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+            {/* Full Width Carousel */}
+            <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+                {items.map((item, index) => (
+                    <a
+                        href={item.url || '#'}
+                        key={item.id}
+                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                    >
+                        <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
+                    </a>
+                ))}
+
+                {items.length > 1 && (
+                    <>
+                        {/* Navigation Arrows */}
+                        <button
+                            onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev - 1 + items.length) % items.length); }}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                        <button
+                            onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev + 1) % items.length); }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
+                        >
+                            <ChevronRight size={20} />
+                        </button>
+
+                        {/* Dots Navigation */}
+                        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
+                            {items.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={(e) => { e.preventDefault(); setCurrentIndex(idx); }}
+                                    className={`h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50 w-2 hover:bg-white/80'}`}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+    <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
+            {icon}
+        </div>
+        <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-primary-600 text-center transition-colors">{name}</span>
+    </div>
+);
+
+export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-secondary-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
+        <div className="w-7 h-7 rounded-full bg-secondary-50 text-secondary-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+            {icon}
+        </div>
+        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-secondary-600 tracking-wide">{name}</span>
+    </div>
+);
+
+export const SectionHeader: React.FC<{ title: string; className?: string }> = ({ title, className }) => (
+    <div className="inline-flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+            <h2 className={`text-2xl font-black tracking-tight text-gray-900 dark:text-white drop-shadow-sm ${className ?? ''}`}>
+                {title}
+            </h2>
+        </div>
+        <span className="h-1 w-24 bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 rounded-full" />
+    </div>
+);
+
+export default HeroSection;

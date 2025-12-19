@@ -60,7 +60,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
            <div className="bg-white/70 rounded-lg p-4 mb-8 text-left border border-white/60 shadow-inner">
              <div className="flex justify-between items-center mb-2">
                <span className="text-sm text-gray-500">Order Status</span>
-               <span className="text-sm font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded">Pending</span>
+               <span className="text-sm font-bold text-theme-hover bg-theme-hover/10 px-2 py-1 rounded">Pending</span>
              </div>
              <p className="text-xs text-gray-400">You can track your order status in the "Track Order" section.</p>
            </div>

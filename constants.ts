@@ -48,7 +48,7 @@ export const LANDING_PAGE_TEMPLATES: LandingPageTemplate[] = [
     id: 'focus-split',
     name: 'Focused Split Hero',
     description: 'Two-column hero with sticky checkout and grid-based highlights.',
-    accentColor: '#7c3aed',
+    accentColor: '--color-primary-rgb',
     heroLayout: 'split',
     featuresLayout: 'grid',
     buttonShape: 'pill'
@@ -57,7 +57,7 @@ export const LANDING_PAGE_TEMPLATES: LandingPageTemplate[] = [
     id: 'pulse-center',
     name: 'Pulse Center Stage',
     description: 'Centered hero, stacked storytelling blocks, calm gradients.',
-    accentColor: '#f97316',
+    accentColor: '--color-accent-rgb',
     heroLayout: 'center',
     featuresLayout: 'stacked',
     buttonShape: 'rounded'

@@ -43,11 +43,35 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
       },
       colors: {
+        // Dynamic tenant theme colors - these map to CSS variables
+        // that are set per-tenant in App.tsx
         green: buildPalette('--color-primary-rgb', buildStops()),
         blue: buildPalette('--color-tertiary-rgb', buildStops()),
         orange: buildPalette('--color-secondary-rgb', buildStops()),
         pink: buildPalette('--color-secondary-rgb', buildStops()),
-        purple: buildPalette('--color-tertiary-rgb', buildStops())
+        purple: buildPalette('--color-tertiary-rgb', buildStops()),
+        
+        // Semantic theme colors for easier usage
+        primary: buildPalette('--color-primary-rgb', buildStops()),
+        secondary: buildPalette('--color-secondary-rgb', buildStops()),
+        tertiary: buildPalette('--color-tertiary-rgb', buildStops()),
+        accent: buildPalette('--color-hover-rgb', buildStops()),
+        surface: buildPalette('--color-surface-rgb', buildStops()),
+        
+        // Font color utility
+        'theme-font': {
+          DEFAULT: 'rgb(var(--color-font-rgb))',
+          50: 'rgb(var(--color-font-rgb) / 0.08)',
+          100: 'rgb(var(--color-font-rgb) / 0.16)',
+          200: 'rgb(var(--color-font-rgb) / 0.26)',
+          300: 'rgb(var(--color-font-rgb) / 0.38)',
+          400: 'rgb(var(--color-font-rgb) / 0.52)',
+          500: 'rgb(var(--color-font-rgb) / 1)',
+          600: 'rgb(var(--color-font-rgb) / 0.9)',
+          700: 'rgb(var(--color-font-rgb) / 0.8)',
+          800: 'rgb(var(--color-font-rgb) / 0.7)',
+          900: 'rgb(var(--color-font-rgb) / 0.6)',
+        }
       }
     }
   },

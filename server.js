@@ -72,8 +72,16 @@ async function createServer() {
       if (!isProduction && vite) {
         vite.ssrFixStacktrace(e);
       }
+      console.error('SSR Error:', e.message);
       console.error(e.stack);
-      next(e);
+      // Don't crash the server, return error page
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html><body>
+          <h1>Server Error</h1>
+          <pre>${e.message}</pre>
+        </body></html>
+      `);
     }
   });
 

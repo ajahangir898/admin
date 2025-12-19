@@ -449,8 +449,8 @@ const StoreProductDetail = ({
                   onClick={() => setSelectedImage(img)}
                   className={`flex-shrink-0 w-12 h-12 rounded border-2 p-0.5 transition-all ${
                     selectedImage === img
-                      ? 'border-orange-500 bg-orange-50'
-                      : 'border-gray-600 hover:border-orange-400'
+                      ? 'border-theme-primary bg-theme-primary/10'
+                      : 'border-gray-600 hover:border-theme-primary/70'
                   }`}
                   aria-label={`View image ${idx + 1}`}
                 >
@@ -496,7 +496,7 @@ const StoreProductDetail = ({
                     {/* Hover Zoom Lens Effect */}
                     {isHovering && (
                       <div
-                        className="absolute w-32 h-32 border-2 border-orange-400 rounded-lg pointer-events-none bg-white/20 backdrop-blur-[1px] shadow-lg hidden md:block"
+                        className="absolute w-32 h-32 border-2 border-theme-primary rounded-lg pointer-events-none bg-white/20 backdrop-blur-[1px] shadow-lg hidden md:block"
                         style={{
                           left: `calc(${zoomPosition.x}% - 64px)`,
                           top: `calc(${zoomPosition.y}% - 64px)`,
@@ -599,8 +599,8 @@ const StoreProductDetail = ({
                         onClick={() => handleThumbnailSelect(img, idx)}
                         className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 p-1 transition-all overflow-hidden ${
                           selectedImageIndex === idx
-                            ? 'border-orange-500 shadow-md'
-                            : 'border-gray-200 hover:border-orange-300'
+                            ? 'border-theme-primary shadow-md'
+                            : 'border-gray-200 hover:border-theme-primary/70'
                         }`}
                         aria-label={`View image ${idx + 1}`}
                         aria-pressed={selectedImageIndex === idx}
@@ -632,7 +632,7 @@ const StoreProductDetail = ({
                  </div>
 
                   <div className="flex items-end gap-3 mb-6">
-                    <span className="text-4xl font-bold text-orange-500">৳ {formattedPrice}</span>
+                    <span className="text-4xl font-bold text-theme-primary">৳ {formattedPrice}</span>
                     {formattedOriginalPrice && (
                       <span className="text-lg text-gray-400 line-through mb-1">৳ {formattedOriginalPrice}</span>
                     )}
@@ -655,15 +655,15 @@ const StoreProductDetail = ({
                     <div>
                       <p className="text-sm font-semibold text-gray-700 mb-2">Quantity</p>
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center border border-orange-200 rounded-lg">
+                        <div className="flex items-center border border-theme-primary/30 rounded-lg">
                            <button 
                              onClick={decreaseQuantity}
-                             className="px-4 py-2 text-orange-500 hover:bg-orange-50 font-bold transition"
+                             className="px-4 py-2 text-theme-primary hover:bg-theme-primary/10 font-bold transition"
                            >-</button>
                            <span className="px-4 py-2 font-bold text-gray-700 w-12 text-center">{quantity}</span>
                            <button 
                              onClick={increaseQuantity}
-                             className={`px-4 py-2 font-bold transition ${atStockLimit ? 'text-gray-400 cursor-not-allowed' : 'text-orange-500 hover:bg-orange-50'}`}
+                             className={`px-4 py-2 font-bold transition ${atStockLimit ? 'text-gray-400 cursor-not-allowed' : 'text-theme-primary hover:bg-theme-primary/10'}`}
                              disabled={atStockLimit}
                            >+</button>
                         </div>
@@ -692,8 +692,8 @@ const StoreProductDetail = ({
                                 aria-pressed={selectedColor === color}
                                 className={`px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all transform ${
                                   selectedColor === color 
-                                    ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-md scale-105' 
-                                    : 'border-gray-200 text-gray-600 hover:border-orange-300 hover:shadow'
+                                    ? 'border-theme-primary bg-theme-primary/10 text-theme-primary shadow-md scale-105' 
+                                    : 'border-gray-200 text-gray-600 hover:border-theme-primary/50 hover:shadow'
                                 }`}
                               >
                                 {color}
@@ -766,7 +766,7 @@ const StoreProductDetail = ({
                  </div>
 
                  <div className="space-y-2 text-sm text-gray-600 border-t border-gray-100 pt-4 mt-auto">
-                    <p><span className="font-semibold text-gray-800 w-24 inline-block">Category:</span> <span className="text-orange-500">{product.category || 'Electronics'}</span></p>
+                    <p><span className="font-semibold text-gray-800 w-24 inline-block">Category:</span> <span className="text-theme-primary">{product.category || 'Electronics'}</span></p>
                     {product.tags && (
                       <p><span className="font-semibold text-gray-800 w-24 inline-block">Tags:</span> {product.tags.join(', ')}</p>
                     )}
@@ -781,7 +781,7 @@ const StoreProductDetail = ({
                     onClick={() => setActiveTab('description')}
                     className={`flex-1 px-6 py-4 font-bold text-sm transition ${
                       activeTab === 'description' 
-                        ? 'text-orange-600 border-b-2 border-orange-500 bg-white' 
+                        ? 'text-theme-primary border-b-2 border-theme-primary bg-white' 
                         : 'text-gray-600 hover:text-gray-800'
                     }`}
                     aria-selected={activeTab === 'description'}
@@ -793,14 +793,14 @@ const StoreProductDetail = ({
                     onClick={() => setActiveTab('reviews')}
                     className={`flex-1 px-6 py-4 font-bold text-sm transition ${
                       activeTab === 'reviews' 
-                        ? 'text-orange-600 border-b-2 border-orange-500 bg-white' 
+                        ? 'text-theme-primary border-b-2 border-theme-primary bg-white' 
                         : 'text-gray-600 hover:text-gray-800'
                     }`}
                     aria-selected={activeTab === 'reviews'}
                     role="tab"
                   >
                     Reviews
-                    <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-xs font-bold text-orange-700">
+                    <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-theme-primary/15 text-xs font-bold text-theme-primary">
                       {product.reviews || 0}
                     </span>
                   </button>
@@ -829,7 +829,7 @@ const StoreProductDetail = ({
                           </div>
                           <p className="text-2xl font-bold text-gray-800">{product.rating || 4.5}/5</p>
                           <p className="text-gray-600">Based on {product.reviews} customer reviews</p>
-                          <button className="mt-4 px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition">
+                          <button className="mt-4 px-6 py-2 btn-theme-primary rounded-lg font-semibold transition">
                             Write a Review
                           </button>
                         </div>
@@ -838,7 +838,7 @@ const StoreProductDetail = ({
                           <Star size={48} className="mx-auto text-gray-300" />
                           <p className="text-gray-500 font-medium">No reviews yet</p>
                           <p className="text-gray-400 text-sm">Be the first to review this product and help others make informed decisions.</p>
-                          <button className="mt-4 px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition">
+                          <button className="mt-4 px-6 py-2 btn-theme-primary rounded-lg font-semibold transition">
                             Write a Review
                           </button>
                         </div>
@@ -870,7 +870,7 @@ const StoreProductDetail = ({
                        </div>
                        <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
-                            <h4 className="text-sm font-medium text-gray-800 line-clamp-2 group-hover:text-orange-500 transition">
+                            <h4 className="text-sm font-medium text-gray-800 line-clamp-2 group-hover:text-theme-primary transition">
                               {related.name}
                             </h4>
                             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${MATCH_BADGE[matchType].className}`}>
@@ -879,7 +879,7 @@ const StoreProductDetail = ({
                           </div>
                           <p className="text-xs text-gray-500 mt-1 line-clamp-2">{reason}</p>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-orange-500 font-bold text-sm">৳ {formatCurrency(related.price)}</span>
+                            <span className="text-theme-primary font-bold text-sm">৳ {formatCurrency(related.price)}</span>
                             <div className="text-[11px] text-gray-500">
                               {stockCount > 0 ? `${stockCount} in stock` : 'Restocking soon'}
                             </div>
@@ -897,7 +897,7 @@ const StoreProductDetail = ({
                <div className="space-y-2">
                  {CATEGORIES.slice(0, 6).map((cat, idx) => (
                    <div key={idx} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded transition cursor-pointer group">
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-500 transition">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-theme-primary/15 group-hover:text-theme-primary transition">
                         {iconMap[cat.icon]}
                       </div>
                       <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900">{cat.name}</span>

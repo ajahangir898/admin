@@ -55,6 +55,15 @@ const manualChunkResolver = (id: string): string | undefined => {
     }
   }
 
+  // Separate heavy store modals into their own chunks
+  if (normalized.includes('/components/store/')) {
+    const segment = normalized.split('/components/store/')[1];
+    if (segment) {
+      const componentName = segment.split('/')[0].replace(/\.(tsx|ts|jsx|js)$/, '').toLowerCase();
+      return `store-modal-${componentName}`;
+    }
+  }
+
   return undefined;
 };
 

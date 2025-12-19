@@ -1,6 +1,7 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { z } from 'zod';
 import { getTenantData, setTenantData } from '../services/tenantDataService';
+import { Server as SocketIOServer } from 'socket.io';
 
 const paramsSchema = z.object({
   tenantId: z.string().min(1, 'tenantId is required'),
@@ -12,6 +13,18 @@ const updateSchema = z.object({
 });
 
 export const tenantDataRouter = Router();
+
+// Helper to emit Socket.IO events
+const emitDataUpdate = (req: Request, tenantId: string, key: string, data: unknown) => {
+  const io = req.app.get('io') as SocketIOServer | undefined;
+  if (io) {
+    // Emit to tenant-specific room
+    io.to(`tenant:${tenantId}`).emit('data-update', { tenantId, key, data, timestamp: Date.now() });
+    // Also emit globally for cross-tenant admins
+    io.emit('data-update-global', { tenantId, key, timestamp: Date.now() });
+    console.log(`[Socket.IO] Emitted data-update for ${tenantId}/${key}`);
+  }
+};
 
 // Bootstrap endpoint - returns all critical data in ONE request
 tenantDataRouter.get('/:tenantId/bootstrap', async (req, res, next) => {
@@ -71,8 +84,14 @@ tenantDataRouter.put('/:tenantId/:key', async (req, res, next) => {
     const { tenantId, key } = paramsSchema.parse(req.params);
     const payload = updateSchema.parse(req.body ?? {});
     await setTenantData(tenantId, key, payload.data);
-    res.json({ data: { tenantId, key } });
+    
+    // Emit real-time update via Socket.IO
+    emitDataUpdate(req, tenantId, key, payload.data);
+    
+    console.log(`[TenantData] Saved ${key} for tenant ${tenantId}`);
+    res.json({ data: { tenantId, key, success: true } });
   } catch (error) {
+    console.error(`[TenantData] Error saving ${req.params.key} for ${req.params.tenantId}:`, error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.message });
     }

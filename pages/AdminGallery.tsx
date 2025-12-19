@@ -84,7 +84,7 @@ const AdminGallery: React.FC = () => {
            {/* Logo or Placeholder */}
            <div className="flex items-center text-xl font-bold tracking-tighter">
                 <span className="text-gray-800">GADGET</span>
-                <span className="text-pink-500">SHOB</span>
+                <span className="text-theme-primary">SHOB</span>
            </div>
         </div>
 

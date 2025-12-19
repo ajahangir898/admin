@@ -1,8 +1,77 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
 import { getAuthHeader } from './authService';
+import { io, Socket } from 'socket.io-client';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+// Socket.IO connection for real-time updates
+let socket: Socket | null = null;
+
+const initSocket = (): Socket | null => {
+  if (typeof window === 'undefined') return null;
+  if (socket?.connected) return socket;
+  
+  const socketUrl = API_BASE_URL || window.location.origin;
+  socket = io(socketUrl, {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    timeout: 10000
+  });
+  
+  socket.on('connect', () => {
+    console.log('[Socket.IO] Connected:', socket?.id);
+  });
+  
+  socket.on('disconnect', (reason) => {
+    console.log('[Socket.IO] Disconnected:', reason);
+  });
+  
+  socket.on('connect_error', (error) => {
+    console.warn('[Socket.IO] Connection error:', error.message);
+  });
+  
+  // Listen for data updates and notify listeners
+  socket.on('data-update', (payload: { tenantId: string; key: string; data: unknown }) => {
+    console.log('[Socket.IO] Data update received:', payload.tenantId, payload.key);
+    // Invalidate cache for this key
+    invalidateCache(payload.key, payload.tenantId);
+    // Notify UI listeners
+    notifyDataRefresh(payload.key, payload.tenantId);
+  });
+  
+  socket.on('new-order', (payload: { tenantId: string; data: unknown }) => {
+    console.log('[Socket.IO] New order received:', payload.tenantId);
+    invalidateCache('orders', payload.tenantId);
+    notifyDataRefresh('orders', payload.tenantId);
+  });
+  
+  socket.on('order-updated', (payload: { tenantId: string; data: unknown }) => {
+    console.log('[Socket.IO] Order updated:', payload.tenantId);
+    invalidateCache('orders', payload.tenantId);
+    notifyDataRefresh('orders', payload.tenantId);
+  });
+  
+  return socket;
+};
+
+// Join tenant room for targeted updates
+export const joinTenantRoom = (tenantId: string) => {
+  const s = initSocket();
+  if (s?.connected) {
+    s.emit('join-tenant', tenantId);
+    console.log('[Socket.IO] Joined tenant room:', tenantId);
+  }
+};
+
+// Leave tenant room
+export const leaveTenantRoom = (tenantId: string) => {
+  if (socket?.connected) {
+    socket.emit('leave-tenant', tenantId);
+  }
+};
 
 const buildApiUrl = (path: string) => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -281,7 +350,7 @@ class DataServiceImpl {
   // Bootstrap: Fetch all critical data in ONE API call
   async bootstrap(tenantId?: string): Promise<{
     products: Product[];
-    themeConfig: ThemeConfig;
+    themeConfig: ThemeConfig | null;
     websiteConfig: WebsiteConfig;
   }> {
     const scope = this.resolveTenantScope(tenantId);
@@ -302,13 +371,12 @@ class DataServiceImpl {
       if (theme_config) setCachedData('theme_config', theme_config, tenantId);
       if (website_config) setCachedData('website_config', website_config, tenantId);
       
-      // Return with defaults
-      const defaultTheme = await this.getDefaultThemeConfig();
+      // Return server data AS-IS - only use fallback defaults if server returns nothing
       const defaultWebsite = this.getDefaultWebsiteConfig();
       
       return {
         products: products?.length ? products.map((p, i) => ({ ...p, id: p.id ?? i + 1 })) : this.filterByTenant(PRODUCTS, tenantId),
-        themeConfig: theme_config ? { ...defaultTheme, ...theme_config } : defaultTheme,
+        themeConfig: theme_config || null, // Return null if no theme saved - let admin set it
         websiteConfig: website_config ? { ...defaultWebsite, ...website_config } : defaultWebsite
       };
     } catch (error) {
@@ -323,18 +391,7 @@ class DataServiceImpl {
     }
   }
 
-  private async getDefaultThemeConfig(): Promise<ThemeConfig> {
-    return {
-      primaryColor: '#f97316',
-      secondaryColor: '#1e293b',
-      tertiaryColor: '#c026d3',
-      fontColor: '#0f172a',
-      hoverColor: '#f97316',
-      surfaceColor: '#e2e8f0',
-      darkMode: false
-    };
-  }
-
+  // Default website config - used as fallback for new tenants
   private getDefaultWebsiteConfig(): WebsiteConfig {
     return {
       websiteName: 'SystemNext IT',
@@ -448,18 +505,10 @@ class DataServiceImpl {
     return remote;
   }
 
-  async getThemeConfig(tenantId?: string): Promise<ThemeConfig> {
-    const defaults: ThemeConfig = {
-      primaryColor: '#ec4899',
-      secondaryColor: '#a855f7',
-      tertiaryColor: '#c026d3',
-      fontColor: '#0f172a',
-      hoverColor: '#f97316',
-      surfaceColor: '#e2e8f0',
-      darkMode: false
-    };
-    const remote = await this.get<ThemeConfig>('theme', defaults, tenantId);
-    return { ...defaults, ...remote };
+  async getThemeConfig(tenantId?: string): Promise<ThemeConfig | null> {
+    // Return server data AS-IS - no defaults, fully dynamic from admin settings
+    const remote = await this.get<ThemeConfig | null>('theme_config', null, tenantId);
+    return remote;
   }
 
   async getWebsiteConfig(tenantId?: string): Promise<WebsiteConfig> {
@@ -544,6 +593,28 @@ class DataServiceImpl {
     }
 
     await this.enqueueSave(key, data, tenantId);
+  }
+
+  /**
+   * Save immediately without debounce - use for critical updates like theme changes
+   * that need to reflect instantly on the storefront
+   */
+  async saveImmediate<T>(key: string, data: T, tenantId?: string): Promise<void> {
+    if (DISABLE_REMOTE_SAVE) {
+      return;
+    }
+    
+    // Cancel any pending debounced save for this key
+    const queueKey = this.getSaveQueueKey(key, tenantId);
+    const existing = this.saveQueue.get(queueKey);
+    if (existing) {
+      clearTimeout(existing.timer);
+      this.saveQueue.delete(queueKey);
+      // Resolve pending promises since we're saving now
+      existing.resolvers.forEach(({ resolve }) => resolve());
+    }
+    
+    await this.commitSave(key, data, tenantId);
   }
 
   private async commitSave<T>(key: string, data: T, tenantId?: string): Promise<void> {

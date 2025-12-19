@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { DeliveryConfig } from '../types';
-import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface AdminDeliverySettingsProps {
   configs: DeliveryConfig[];
@@ -14,6 +15,8 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
   const [localConfigs, setLocalConfigs] = useState<DeliveryConfig[]>(configs);
   const [isFormVisible, setIsFormVisible] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Sync with props if they change externally
   useEffect(() => {
@@ -29,11 +32,31 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
     setLocalConfigs(updated);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(localConfigs);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    setSaveSuccess(false);
+    
+    try {
+      onSave(localConfigs);
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setSaveSuccess(true);
+      setShowSuccess(true);
+      toast.success('Delivery settings saved!');
+      
+      setTimeout(() => {
+        setSaveSuccess(false);
+        setShowSuccess(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to save:', error);
+      toast.error('Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -212,9 +235,22 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
               <div className="pt-6 border-t border-gray-100 mt-6 flex justify-end">
                  <button 
                    type="submit"
-                   className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200 transform active:scale-95"
+                   disabled={isSaving}
+                   className={`flex items-center gap-2 px-8 py-3 rounded-lg font-bold transition-all duration-300 shadow-lg min-w-[180px] justify-center transform active:scale-95 ${
+                     saveSuccess 
+                       ? 'bg-emerald-500 text-white shadow-emerald-200' 
+                       : isSaving 
+                         ? 'bg-purple-500 text-white shadow-purple-200 cursor-wait' 
+                         : 'bg-purple-600 text-white shadow-purple-200 hover:bg-purple-700'
+                   }`}
                  >
-                   <Save size={18} /> Save Changes
+                   {saveSuccess ? (
+                     <><CheckCircle2 size={18} className="animate-bounce" /> Saved!</>
+                   ) : isSaving ? (
+                     <><Loader2 size={18} className="animate-spin" /> Saving...</>
+                   ) : (
+                     <><Save size={18} /> Save Changes</>
+                   )}
                  </button>
               </div>
            </form>

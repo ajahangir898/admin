@@ -89,7 +89,7 @@ const DueHistoryModal: React.FC<DueHistoryModalProps> = ({ isOpen, onClose }) =>
                 }}
                 className={`px-4 py-2 font-medium transition ${
                   filterStatus === status
-                    ? 'text-pink-600 border-b-2 border-pink-600'
+                    ? 'text-theme-primary border-b-2 border-theme-primary'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -108,7 +108,7 @@ const DueHistoryModal: React.FC<DueHistoryModalProps> = ({ isOpen, onClose }) =>
           {/* Loading State */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-primary"></div>
             </div>
           ) : transactions.length === 0 ? (
             <div className="flex items-center justify-center py-12 text-gray-500">

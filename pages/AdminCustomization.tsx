@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
 import { convertFileToWebP, convertCarouselImage, CAROUSEL_WIDTH, CAROUSEL_HEIGHT } from '../services/imageUtils';
 import { DataService } from '../services/DataService';
@@ -269,26 +270,48 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         }));
     };
 
-  const handleSave = () => {
-    // Save Website Config
-    if (onUpdateWebsiteConfig) {
-      onUpdateWebsiteConfig(config);
-    }
-    
-    // Save Theme
-    if (onUpdateTheme) {
-      onUpdateTheme({
-        primaryColor: colors.primary,
-        secondaryColor: colors.secondary,
-                tertiaryColor: colors.tertiary,
-                fontColor: colors.font,
-                hoverColor: colors.hover,
-                surfaceColor: colors.surface,
-        darkMode: isDarkMode
-      });
-    }
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
-    alert('Settings saved successfully!');
+  const handleSave = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    setSaveSuccess(false);
+    
+    try {
+      // Save Website Config
+      if (onUpdateWebsiteConfig) {
+        onUpdateWebsiteConfig(config);
+      }
+      
+      // Save Theme
+      if (onUpdateTheme) {
+        onUpdateTheme({
+          primaryColor: colors.primary,
+          secondaryColor: colors.secondary,
+          tertiaryColor: colors.tertiary,
+          fontColor: colors.font,
+          hoverColor: colors.hover,
+          surfaceColor: colors.surface,
+          darkMode: isDarkMode
+        });
+      }
+
+      // Wait a bit to ensure changes are persisted
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setSaveSuccess(true);
+      toast.success('Changes saved successfully!');
+      
+      // Reset success state after animation
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+      toast.error('Failed to save changes. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Carousel Logic
@@ -424,9 +447,30 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         </div>
         <button 
            onClick={handleSave}
-           className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition shadow-lg shadow-green-200"
+           disabled={isSaving}
+           className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold transition-all duration-300 shadow-lg min-w-[160px] justify-center ${
+             saveSuccess 
+               ? 'bg-emerald-500 text-white shadow-emerald-200' 
+               : isSaving 
+                 ? 'bg-green-500 text-white shadow-green-200 cursor-wait' 
+                 : 'bg-green-600 text-white shadow-green-200 hover:bg-green-700 hover:shadow-xl'
+           }`}
         >
-           <Save size={18} /> Save Changes
+           {saveSuccess ? (
+             <>
+               <CheckCircle2 size={18} className="animate-bounce" />
+               Saved!
+             </>
+           ) : isSaving ? (
+             <>
+               <Loader2 size={18} className="animate-spin" />
+               Saving...
+             </>
+           ) : (
+             <>
+               <Save size={18} /> Save Changes
+             </>
+           )}
         </button>
       </div>
 

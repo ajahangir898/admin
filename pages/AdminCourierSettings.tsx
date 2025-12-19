@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft, Truck, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Circle, ChevronDown, ChevronUp, Save, ArrowLeft, Truck, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { CourierConfig } from '../types';
+import toast from 'react-hot-toast';
 
 interface AdminCourierSettingsProps {
   config: CourierConfig;
@@ -27,6 +28,8 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
   const [showSuccess, setShowSuccess] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ valid: boolean; message: string; balance?: number } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Load initial config
   useEffect(() => {
@@ -40,18 +43,39 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
     }
   }, [config, activeTab]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
+    
     if (activeTab === 'Steadfast') {
+      setIsSaving(true);
+      setSaveSuccess(false);
+      
+      try {
         onSave({
-            apiKey: formData.apiKey,
-        secretKey: formData.secretKey,
-        instruction: formData.instruction
+          apiKey: formData.apiKey,
+          secretKey: formData.secretKey,
+          instruction: formData.instruction
         });
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        setSaveSuccess(true);
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+        toast.success('Courier settings saved!');
+        
+        setTimeout(() => {
+          setSaveSuccess(false);
+          setShowSuccess(false);
+        }, 2000);
+      } catch (error) {
+        console.error('Failed to save:', error);
+        toast.error('Failed to save settings');
+      } finally {
+        setIsSaving(false);
+      }
     } else {
-        alert("Pathao Courier integration coming soon!");
+      toast('Pathao Courier integration coming soon!');
     }
   };
 
@@ -226,9 +250,22 @@ const AdminCourierSettings: React.FC<AdminCourierSettingsProps> = ({ config, onS
                </button>
                <button 
                  type="submit"
-                 className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
+                 disabled={isSaving}
+                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all duration-300 shadow-lg min-w-[160px] justify-center ${
+                   saveSuccess 
+                     ? 'bg-emerald-500 text-white shadow-emerald-200' 
+                     : isSaving 
+                       ? 'bg-purple-500 text-white shadow-purple-200 cursor-wait' 
+                       : 'bg-purple-600 text-white shadow-purple-200 hover:bg-purple-700'
+                 }`}
                >
-                 <Save size={18} /> Save Changes
+                 {saveSuccess ? (
+                   <><CheckCircle2 size={18} className="animate-bounce" /> Saved!</>
+                 ) : isSaving ? (
+                   <><Loader2 size={18} className="animate-spin" /> Saving...</>
+                 ) : (
+                   <><Save size={18} /> Save Changes</>
+                 )}
                </button>
             </div>
 

@@ -3,13 +3,168 @@
 @tailwind utilities;
 
 :root {
-  --color-primary-rgb: 14, 165, 233; /* crystal blue */
-  --color-secondary-rgb: 251, 146, 60; /* crystal orange */
-  --color-tertiary-rgb: 12, 74, 110;
-  --color-font-rgb: 15, 23, 42;
-  --color-hover-rgb: 249, 115, 22;
-  --color-surface-rgb: 226, 232, 240;
+  /* Neutral defaults - quickly replaced by tenant theme from admin settings */
+  --color-primary-rgb: 100, 116, 139; /* slate-500 neutral */
+  --color-secondary-rgb: 71, 85, 105; /* slate-600 neutral */
+  --color-tertiary-rgb: 100, 116, 139; /* slate-500 neutral */
+  --color-font-rgb: 15, 23, 42; /* slate-900 */
+  --color-hover-rgb: 100, 116, 139; /* slate-500 neutral */
+  --color-surface-rgb: 241, 245, 249; /* slate-100 */
 }
+
+/* ===========================================
+   DYNAMIC TENANT THEME UTILITIES
+   These classes use CSS variables that are
+   dynamically set per-tenant in App.tsx
+   =========================================== */
+
+/* Theme-aware text colors */
+.text-theme-primary { color: rgb(var(--color-primary-rgb)); }
+.text-theme-secondary { color: rgb(var(--color-secondary-rgb)); }
+.text-theme-tertiary { color: rgb(var(--color-tertiary-rgb)); }
+.text-theme-font { color: rgb(var(--color-font-rgb)); }
+.text-theme-hover { color: rgb(var(--color-hover-rgb)); }
+
+/* Theme-aware background colors */
+.bg-theme-primary { background-color: rgb(var(--color-primary-rgb)); }
+.bg-theme-secondary { background-color: rgb(var(--color-secondary-rgb)); }
+.bg-theme-tertiary { background-color: rgb(var(--color-tertiary-rgb)); }
+.bg-theme-surface { background-color: rgb(var(--color-surface-rgb)); }
+.bg-theme-hover { background-color: rgb(var(--color-hover-rgb)); }
+
+/* Theme-aware background with opacity */
+.bg-theme-primary\/10 { background-color: rgb(var(--color-primary-rgb) / 0.1); }
+.bg-theme-primary\/20 { background-color: rgb(var(--color-primary-rgb) / 0.2); }
+.bg-theme-primary\/50 { background-color: rgb(var(--color-primary-rgb) / 0.5); }
+.bg-theme-secondary\/10 { background-color: rgb(var(--color-secondary-rgb) / 0.1); }
+.bg-theme-secondary\/20 { background-color: rgb(var(--color-secondary-rgb) / 0.2); }
+.bg-theme-secondary\/50 { background-color: rgb(var(--color-secondary-rgb) / 0.5); }
+
+/* Theme-aware border colors */
+.border-theme-primary { border-color: rgb(var(--color-primary-rgb)); }
+.border-theme-secondary { border-color: rgb(var(--color-secondary-rgb)); }
+.border-theme-tertiary { border-color: rgb(var(--color-tertiary-rgb)); }
+.border-theme-hover { border-color: rgb(var(--color-hover-rgb)); }
+
+/* Theme-aware hover states */
+.hover\:text-theme-primary:hover { color: rgb(var(--color-primary-rgb)); }
+.hover\:text-theme-secondary:hover { color: rgb(var(--color-secondary-rgb)); }
+.hover\:text-theme-hover:hover { color: rgb(var(--color-hover-rgb)); }
+.hover\:bg-theme-primary:hover { background-color: rgb(var(--color-primary-rgb)); }
+.hover\:bg-theme-secondary:hover { background-color: rgb(var(--color-secondary-rgb)); }
+.hover\:bg-theme-primary\/10:hover { background-color: rgb(var(--color-primary-rgb) / 0.1); }
+.hover\:bg-theme-primary\/20:hover { background-color: rgb(var(--color-primary-rgb) / 0.2); }
+.hover\:bg-theme-secondary\/10:hover { background-color: rgb(var(--color-secondary-rgb) / 0.1); }
+.hover\:border-theme-primary:hover { border-color: rgb(var(--color-primary-rgb)); }
+.hover\:border-theme-secondary:hover { border-color: rgb(var(--color-secondary-rgb)); }
+
+/* Theme-aware text with opacity */
+.text-theme-primary\/70 { color: rgb(var(--color-primary-rgb) / 0.7); }
+.text-theme-primary\/80 { color: rgb(var(--color-primary-rgb) / 0.8); }
+.text-theme-secondary\/70 { color: rgb(var(--color-secondary-rgb) / 0.7); }
+.text-theme-secondary\/80 { color: rgb(var(--color-secondary-rgb) / 0.8); }
+
+/* Theme border with opacity */
+.border-theme-primary\/30 { border-color: rgb(var(--color-primary-rgb) / 0.3); }
+.border-theme-primary\/50 { border-color: rgb(var(--color-primary-rgb) / 0.5); }
+.border-theme-secondary\/30 { border-color: rgb(var(--color-secondary-rgb) / 0.3); }
+
+/* Additional background opacities for secondary */
+.bg-theme-secondary\/10 { background-color: rgb(var(--color-secondary-rgb) / 0.1); }
+.bg-theme-secondary\/15 { background-color: rgb(var(--color-secondary-rgb) / 0.15); }
+.bg-theme-secondary\/20 { background-color: rgb(var(--color-secondary-rgb) / 0.2); }
+
+/* Theme shadow colors */
+.shadow-theme-primary { box-shadow: 0 10px 25px rgb(var(--color-primary-rgb) / 0.25); }
+.shadow-theme-secondary { box-shadow: 0 10px 25px rgb(var(--color-secondary-rgb) / 0.25); }
+
+/* Focus states */
+.focus\:border-theme-primary:focus { border-color: rgb(var(--color-primary-rgb)); }
+.focus\:ring-theme-primary:focus { --tw-ring-color: rgb(var(--color-primary-rgb) / 0.5); }
+
+/* Group hover states */
+.group:hover .group-hover\:text-theme-primary { color: rgb(var(--color-primary-rgb)); }
+.group:hover .group-hover\:text-theme-secondary { color: rgb(var(--color-secondary-rgb)); }
+.group:hover .group-hover\:border-theme-primary { border-color: rgb(var(--color-primary-rgb)); }
+
+/* Theme-aware ring/focus colors */
+.ring-theme-primary { --tw-ring-color: rgb(var(--color-primary-rgb)); }
+.focus\:ring-theme-primary:focus { --tw-ring-color: rgb(var(--color-primary-rgb)); }
+
+/* Theme-aware gradients */
+.bg-gradient-theme-primary {
+  background-image: linear-gradient(to right, rgb(var(--color-primary-rgb)), rgb(var(--color-secondary-rgb)));
+}
+.bg-gradient-theme-vertical {
+  background-image: linear-gradient(to bottom, rgb(var(--color-primary-rgb)), rgb(var(--color-tertiary-rgb)));
+}
+.bg-theme-gradient {
+  background-image: linear-gradient(to bottom right, rgb(var(--color-primary-rgb)), rgb(var(--color-secondary-rgb)));
+}
+
+/* Theme hover color with opacity */
+.bg-theme-hover\/10 { background-color: rgb(var(--color-hover-rgb) / 0.1); }
+.bg-theme-hover\/20 { background-color: rgb(var(--color-hover-rgb) / 0.2); }
+.text-theme-hover\/80 { color: rgb(var(--color-hover-rgb) / 0.8); }
+
+/* Theme button styles */
+.btn-theme-primary {
+  background-color: rgb(var(--color-primary-rgb));
+  color: white;
+  transition: all 0.2s;
+}
+.btn-theme-primary:hover {
+  background-color: rgb(var(--color-primary-rgb) / 0.85);
+  box-shadow: 0 4px 12px rgb(var(--color-primary-rgb) / 0.3);
+}
+
+.btn-theme-secondary {
+  background-color: rgb(var(--color-secondary-rgb));
+  color: white;
+  transition: all 0.2s;
+}
+.btn-theme-secondary:hover {
+  background-color: rgb(var(--color-secondary-rgb) / 0.85);
+  box-shadow: 0 4px 12px rgb(var(--color-secondary-rgb) / 0.3);
+}
+
+.btn-theme-outline {
+  border: 1px solid rgb(var(--color-primary-rgb));
+  color: rgb(var(--color-primary-rgb));
+  background: transparent;
+  transition: all 0.2s;
+}
+.btn-theme-outline:hover {
+  background-color: rgb(var(--color-primary-rgb) / 0.1);
+}
+
+/* Theme badge styles */
+.badge-theme-primary {
+  background-color: rgb(var(--color-primary-rgb) / 0.15);
+  color: rgb(var(--color-primary-rgb));
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.3);
+}
+.badge-theme-secondary {
+  background-color: rgb(var(--color-secondary-rgb) / 0.15);
+  color: rgb(var(--color-secondary-rgb));
+  border: 1px solid rgb(var(--color-secondary-rgb) / 0.3);
+}
+
+/* Active tab/item indicator */
+.active-theme-indicator {
+  border-bottom: 2px solid rgb(var(--color-primary-rgb));
+  color: rgb(var(--color-primary-rgb));
+}
+
+/* Selection highlight using theme */
+.selection-theme::selection {
+  background: rgb(var(--color-primary-rgb) / 0.25);
+  color: #fff;
+}
+
+/* ===========================================
+   END DYNAMIC TENANT THEME UTILITIES
+   =========================================== */
 
 /* @layer base { */
   /* body { */

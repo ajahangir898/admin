@@ -4,11 +4,12 @@ import { Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { StoreSkeleton, AdminSkeleton, LoginSkeleton, ProductDetailSkeleton, CheckoutSkeleton, ProfileSkeleton } from './components/SkeletonLoaders';
-import { DataService } from './services/DataService';
+import { DataService, joinTenantRoom, leaveTenantRoom } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
 import { toast } from 'react-hot-toast';
+import { ThemeProvider } from './context/ThemeContext';
 
 
 
@@ -193,15 +194,8 @@ const App = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
-  const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
-    primaryColor: '#ec4899',
-    secondaryColor: '#a855f7',
-    tertiaryColor: '#c026d3',
-    fontColor: '#0f172a',
-    hoverColor: '#f97316',
-    surfaceColor: '#e2e8f0',
-    darkMode: false
-  });
+  // Theme config starts as null - will be loaded from server for each tenant
+  const [themeConfig, setThemeConfig] = useState<ThemeConfig | null>(null);
   const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(undefined);
   const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>([]);
   const [facebookPixelConfig, setFacebookPixelConfig] = useState<FacebookPixelConfig>({
@@ -291,6 +285,15 @@ const App = () => {
 
   useEffect(() => {
     activeTenantIdRef.current = activeTenantId;
+    // Join Socket.IO room for real-time updates
+    if (activeTenantId) {
+      joinTenantRoom(activeTenantId);
+    }
+    return () => {
+      if (activeTenantId) {
+        leaveTenantRoom(activeTenantId);
+      }
+    };
   }, [activeTenantId]);
 
   useEffect(() => {
@@ -608,8 +611,8 @@ const App = () => {
     }
   }, []);
 
-  // Subscribe to data refresh events with 500ms debounce
-  useDataRefreshDebounced(handleDataRefresh, 500);
+  // Subscribe to data refresh events with 150ms debounce for faster updates
+  useDataRefreshDebounced(handleDataRefresh, 150);
 
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
   
@@ -746,24 +749,37 @@ const App = () => {
     };
   }, [activeTenantId, isLoading, isChatOpen, isAdminChatOpen, user?.role]);
 
+  // Apply theme colors to CSS variables (always) and save to server (only after initial load)
+  const themeLoadedRef = useRef(false);
   useEffect(() => { 
-    if(!isLoading && themeConfig && activeTenantId) {
-      DataService.save('theme_config', themeConfig, activeTenantId);
-      const root = document.documentElement;
-      root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
-      root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
-      root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
-      root.style.setProperty('--color-font-rgb', hexToRgb(themeConfig.fontColor));
-      root.style.setProperty('--color-hover-rgb', hexToRgb(themeConfig.hoverColor));
-      root.style.setProperty('--color-surface-rgb', hexToRgb(themeConfig.surfaceColor));
-      if (themeConfig.darkMode) root.classList.add('dark');
-      else root.classList.remove('dark');
+    if(!themeConfig || !activeTenantId) return;
+    
+    // Always apply CSS variables for visual updates
+    const root = document.documentElement;
+    root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
+    root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
+    root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
+    root.style.setProperty('--color-font-rgb', hexToRgb(themeConfig.fontColor));
+    root.style.setProperty('--color-hover-rgb', hexToRgb(themeConfig.hoverColor));
+    root.style.setProperty('--color-surface-rgb', hexToRgb(themeConfig.surfaceColor));
+    if (themeConfig.darkMode) root.classList.add('dark');
+    else root.classList.remove('dark');
+    
+    // Only save to server AFTER initial data has loaded (to avoid overwriting saved data with defaults)
+    if(!isLoading && themeLoadedRef.current) {
+      DataService.saveImmediate('theme_config', themeConfig, activeTenantId);
+    }
+    
+    // Mark as loaded after first render with loaded data
+    if(!isLoading && !themeLoadedRef.current) {
+      themeLoadedRef.current = true;
     }
   }, [themeConfig, isLoading, activeTenantId]);
 
   useEffect(() => { 
     if(!isLoading && websiteConfig && activeTenantId) {
-      DataService.save('website_config', websiteConfig, activeTenantId);
+      // Use immediate save for website config to reflect instantly
+      DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
       if (websiteConfig.favicon) {
         let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
         if (!link) {
@@ -1534,11 +1550,12 @@ fbq('track', 'PageView');`;
   const suspenseVariant = currentView === 'admin-login' ? 'login' : currentView.startsWith('admin') ? 'admin' : 'store';
 
   return (
+    <ThemeProvider themeConfig={themeConfig || undefined}>
     <Suspense fallback={<SuspenseFallback variant={suspenseVariant} />}>
       <Suspense fallback={null}>
         <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
       </Suspense>
-      <div className={`relative ${themeConfig.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
+      <div className={`relative ${themeConfig?.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
         {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
 
     {currentView === 'admin-login' ? (
@@ -1783,6 +1800,7 @@ fbq('track', 'PageView');`;
         />
       )}
   </Suspense>
+  </ThemeProvider>
   );
 };
 

@@ -2,7 +2,7 @@
 // This file contains the main store header component with multiple style variants
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { ShoppingCart, Search, User, X, Loader2, Heart, LogOut, ChevronDown, Bell, Gift, Menu, Mic, Camera, Minus, Plus, Trash2, Info, Truck, Grid } from 'lucide-react';
+import { ShoppingCart, Search, User, X, Loader2, Heart, LogOut, ChevronDown, Bell, Gift, Menu, Mic, Camera, Minus, Plus, Trash2, Info, Truck, Grid, UserCircle } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
@@ -446,7 +446,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                 <aside className={`fixed inset-y-0 left-0 z-[99] w-[82%] max-w-sm bg-white shadow-2xl md:hidden transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                     <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100">
                         <div className="flex items-center gap-2">
-                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <span className="text-lg font-black tracking-tight text-gray-900">GADGET<span className="text-pink-500">SHOB</span></span>}
+                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <span className="text-lg font-black tracking-tight text-gray-900">GADGET<span className="text-theme-primary">SHOB</span></span>}
                         </div>
                         <button type="button" className="p-2 rounded-full text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
                     </div>
@@ -460,13 +460,13 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                         <div className={`border-t border-gray-200 transition-[max-height] duration-300 ${isCatalogDropdownOpen ? 'max-h-[520px]' : 'max-h-0'} overflow-hidden`}>
                             {catalogGroups.map((group) => (
                                 <div key={group.key}>
-                                    <button type="button" className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${activeCatalogSection === group.key ? 'text-orange-600 bg-orange-50/70' : 'text-gray-800'}`} onClick={() => toggleCatalogSection(group.key)}>
+                                    <button type="button" className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${activeCatalogSection === group.key ? 'text-theme-primary bg-theme-primary/10' : 'text-gray-800'}`} onClick={() => toggleCatalogSection(group.key)}>
                                         <span>{group.label}</span>
                                         {activeCatalogSection === group.key ? <Minus size={16} /> : <Plus size={16} />}
                                     </button>
                                     <ul className={`pl-10 pr-6 text-xs text-gray-600 transition-[max-height] duration-300 overflow-hidden ${activeCatalogSection === group.key ? 'max-h-60 py-3 space-y-1.5' : 'max-h-0'}`}>
                                         {group.items.map((item) => (
-                                            <li key={item}><button type="button" className="w-full text-left hover:text-orange-600" onClick={() => handleCatalogItemClick(item)}>{item}</button></li>
+                                            <li key={item}><button type="button" className="w-full text-left hover:text-theme-primary" onClick={() => handleCatalogItemClick(item)}>{item}</button></li>
                                         ))}
                                     </ul>
                                 </div>
@@ -492,12 +492,12 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                 <div className="md:hidden bg-white pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-3 h-8 gap-3">
                         <div className="flex items-center" onClick={onHomeClick}>
-                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900">GADGET</span><span className="text-pink-500">SHOB</span></h1>}
+                            {logo ? <img src={logo} alt="Store Logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900">GADGET</span><span className="text-theme-primary">SHOB</span></h1>}
                         </div>
                         <div className="flex items-center gap-3">
                             <button className="relative text-gray-800" onClick={() => setIsWishlistDrawerOpen(true)}>
                                 <Heart size={24} />
-                                {wishlistBadgeCount > 0 && <span className="absolute -top-1.5 -right-1 bg-pink-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">{wishlistBadgeCount}</span>}
+                                {wishlistBadgeCount > 0 && <span className="absolute -top-1.5 -right-1 bg-theme-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">{wishlistBadgeCount}</span>}
                             </button>
                             <button className="relative text-gray-800" onClick={() => setIsCartDrawerOpen(true)}>
                                 <ShoppingCart size={26} />
@@ -512,9 +512,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     <div className="flex items-center gap-3">
                         <button type="button" className="text-gray-800" onClick={() => setIsMobileMenuOpen(true)}><Menu size={28} /></button>
                         <div ref={searchContainerRef} className="flex-1 relative">
-                            <div className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-green-500 text-white flex items-center justify-center"><Search size={16} /></div>
+                            <div className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-theme-primary text-white flex items-center justify-center"><Search size={16} /></div>
                             {renderSearchHintOverlay('left-10', 'text-xs')}
-                            <input type="text" placeholder="Search..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full pl-12 pr-28 py-2.5 border border-gray-900 rounded-lg text-sm focus:outline-none placeholder-transparent" />
+                            <input type="text" placeholder="Search..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full pl-12 pr-28 py-2.5 border border-theme-primary rounded-lg text-sm focus:outline-none placeholder-transparent" />
                             <div className="absolute right-1 top-1 bottom-1 flex items-center gap-2">
                                 <CameraButton variant="light" />
                                 <VoiceButton supportsVoiceSearch={supportsVoiceSearch} isListening={isListening} onVoiceSearch={handleVoiceSearch} />
@@ -531,11 +531,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     <div className="max-w-7xl mx-auto px-4 py-1">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-                                {logo ? <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" /> : <h1 className="text-2xl font-bold tracking-tighter"><span className="text-gray-800">GADGET</span><span className="text-pink-500">SHOB</span></h1>}
+                                {logo ? <img src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" /> : <h1 className="text-2xl font-bold tracking-tighter"><span className="text-gray-800">GADGET</span><span className="text-theme-primary">SHOB</span></h1>}
                             </div>
                             <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
                                 {renderSearchHintOverlay('left-4')}
-                                <input type="text" placeholder="Search product..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full border-2 border-green-500 rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-green-200 placeholder-transparent" />
+                                <input type="text" placeholder="Search product..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full border-2 border-theme-primary rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-theme-primary/20 placeholder-transparent" />
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                     <CameraButton variant="light" />
                                     <VoiceButton supportsVoiceSearch={supportsVoiceSearch} isListening={isListening} onVoiceSearch={handleVoiceSearch} />
@@ -545,16 +545,16 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                                 <SearchSuggestionsDropdown />
                             </div>
                             <div className="flex items-center gap-6 text-gray-600">
-                                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition hidden md:flex" onClick={() => setIsWishlistDrawerOpen(true)}>
-                                    <div className="relative"><Heart size={24} />{wishlistBadgeCount > 0 && <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistBadgeCount}</span>}</div>
+                                <div className="flex items-center gap-2 cursor-pointer hover:text-theme-primary transition hidden md:flex" onClick={() => setIsWishlistDrawerOpen(true)}>
+                                    <div className="relative"><Heart size={24} />{wishlistBadgeCount > 0 && <span className="absolute -top-2 -right-2 bg-theme-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{wishlistBadgeCount}</span>}</div>
                                     <span className="hidden sm:inline text-sm font-medium">Wishlist</span>
                                 </div>
-                                <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition hidden md:flex" onClick={() => setIsCartDrawerOpen(true)}>
-                                    <div className="relative"><ShoppingCart size={24} />{cartBadgeCount > 0 && <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartBadgeCount}</span>}</div>
+                                <div className="flex items-center gap-2 cursor-pointer hover:text-theme-primary transition hidden md:flex" onClick={() => setIsCartDrawerOpen(true)}>
+                                    <div className="relative"><ShoppingCart size={24} />{cartBadgeCount > 0 && <span className="absolute -top-2 -right-2 bg-theme-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartBadgeCount}</span>}</div>
                                     <span className="hidden sm:inline text-sm font-medium">Cart</span>
                                 </div>
                                 <div className="relative hidden md:block" ref={menuRef}>
-                                    <div className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition" onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}>
+                                    <div className="flex items-center gap-2 cursor-pointer hover:text-theme-primary transition" onClick={user ? () => setIsMenuOpen(!isMenuOpen) : onLoginClick}>
                                         <div className="bg-gray-100 p-1 rounded-full"><User size={20} /></div>
                                         {user ? <span className="text-sm font-bold">{user.name.split(' ')[0]} <ChevronDown size={12} className="inline" /></span> : <span className="text-sm font-medium">Login</span>}
                                     </div>
@@ -573,21 +573,21 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     <div className="border-t border-gray-100">
                         <div className="max-w-7xl mx-auto px-4">
                             <nav className="flex gap-8 py-3 text-sm font-medium text-gray-700 items-center">
-                                <button onClick={onHomeClick} className="hover:text-green-500 transition">Home</button>
+                                <button onClick={onHomeClick} className="hover:text-theme-primary transition">Home</button>
                                 {websiteConfig?.showMobileHeaderCategory && (
                                     <div ref={categoryMenuRef} className="relative" onMouseEnter={() => setIsCategoryMenuOpen(true)} onMouseLeave={() => setIsCategoryMenuOpen(false)}>
-                                        <button type="button" onClick={onCategoriesClick} className="hover:text-green-500 transition">Categories</button>
+                                        <button type="button" onClick={onCategoriesClick} className="hover:text-theme-primary transition">Categories</button>
                                         {isCategoryMenuOpen && categoriesList?.length ? (
                                             <div className="absolute left-0 top-full mt-2 w-48 rounded-xl border bg-white py-2 shadow-lg">
                                                 {categoriesList.map((category) => (
-                                                    <button key={category} type="button" onClick={() => { onCategorySelect?.(category); setIsCategoryMenuOpen(false); }} className="block w-full px-4 py-1.5 text-left text-sm hover:bg-gray-50 hover:text-green-600">{category}</button>
+                                                    <button key={category} type="button" onClick={() => { onCategorySelect?.(category); setIsCategoryMenuOpen(false); }} className="block w-full px-4 py-1.5 text-left text-sm hover:bg-gray-50 hover:text-theme-primary">{category}</button>
                                                 ))}
                                             </div>
                                         ) : null}
                                     </div>
                                 )}
-                                <button onClick={onProductsClick} className="hover:text-green-500 transition">Products</button>
-                                <button onClick={onTrackOrder} className="hover:text-green-500 transition">Track Order</button>
+                                <button onClick={onProductsClick} className="hover:text-theme-primary transition">Products</button>
+                                <button onClick={onTrackOrder} className="hover:text-theme-primary transition">Track Order</button>
                             </nav>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
-﻿import React, { useState, useRef, useEffect, useMemo, useCallback, CSSProperties } from 'react';
+﻿import React, { useState, useRef, useEffect, useMemo, useCallback, CSSProperties, lazy, Suspense } from 'react';
 import { ShoppingCart, User, Facebook, Instagram, Twitter, Linkedin, Truck, X, CheckCircle, Sparkles, Wand2, Image as ImageIcon, Loader2, ArrowRight, Heart, LogOut, ChevronDown, Phone, Mail, MapPin, Youtube, ShoppingBag, Globe, Star, Eye, Bell, Gift, ChevronLeft, ChevronRight, MessageCircle, Home, MessageSquare, List, Menu, Mic, Camera, Minus, Plus, Send, Edit2, Trash2, Check, Video, Info, Smile, Clock } from 'lucide-react';
-import { Product, User as UserType, WebsiteConfig, CarouselItem, ProductVariantSelection, ChatMessage, ThemeConfig } from '../types';
+import { Product, User as UserType, WebsiteConfig, CarouselItem, ProductVariantSelection, ChatMessage, ThemeConfig, Order } from '../types';
 import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
@@ -10,6 +10,10 @@ import { normalizeImageUrl } from '../utils/imageUrlHelper';
 // Re-export StoreHeader from its own file for better code splitting
 export { StoreHeader } from './StoreHeader';
 export type { StoreHeaderProps } from './StoreHeader';
+
+// Lazy-loaded heavy modals for better code splitting
+export { LoginModal } from './store/LoginModal';
+export type { LoginModalProps } from './store/LoginModal';
 
 const buildWhatsAppLink = (rawNumber?: string | null) => {
     if (!rawNumber) return null;
@@ -94,12 +98,12 @@ export const MobileBottomNav: React.FC<{
         {/* Left Side */}
         <div className="flex-1 flex justify-around items-center h-full pb-2 pr-10">
                      {chatEnabled && onChatClick ? (
-                         <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+                         <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-theme-primary transition group">
                                 <MessageSquare size={20} strokeWidth={1.5} />
                                 <span className="text-[10px] font-medium">Chat</span>
                          </button>
                      ) : chatFallbackLink ? (
-                         <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+                         <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-theme-primary transition group">
                                 <MessageSquare size={20} strokeWidth={1.5} />
                                 <span className="text-[10px] font-medium">Chat</span>
                          </a>
@@ -109,7 +113,7 @@ export const MobileBottomNav: React.FC<{
                                 <span className="text-[10px] font-medium">Chat</span>
                          </button>
                      )}
-           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-theme-primary transition group">
               <List size={22} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Categories</span>
            </button>
@@ -119,7 +123,7 @@ export const MobileBottomNav: React.FC<{
         <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
            <button 
              onClick={onHomeClick}
-             className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[4px] border-white shadow-lg transform active:scale-95 transition-transform"
+             className="w-16 h-16 rounded-full bg-theme-primary/20 text-theme-primary flex flex-col items-center justify-center border-[4px] border-white shadow-lg transform active:scale-95 transition-transform"
            >
               <Home size={24} strokeWidth={2.5} className="mb-0.5" />
               <span className="text-[10px] font-bold">Home</span>
@@ -128,11 +132,11 @@ export const MobileBottomNav: React.FC<{
 
         {/* Right Side */}
         <div className="flex-1 flex justify-around items-center h-full pb-2 pl-10">
-           <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition group ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}>
+           <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition group ${activeTab === 'account' ? 'text-theme-primary' : 'text-gray-500 hover:text-theme-primary'}`}>
               <User size={22} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Account</span>
            </button>
-           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
+           <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-theme-primary transition group">
               <Menu size={22} strokeWidth={1.5} />
               <span className="text-[10px] font-medium">Menu</span>
            </button>
@@ -145,21 +149,21 @@ export const MobileBottomNav: React.FC<{
   if (style === 'style3') {
     return (
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2.5 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-lg pb-safe">
-        <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
-          <Home size={22} strokeWidth={2} className={activeTab === 'home' ? 'fill-pink-100' : ''} />
+        <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'home' ? 'text-theme-primary' : 'text-gray-500'}`}>
+          <Home size={22} strokeWidth={2} className={activeTab === 'home' ? 'fill-theme-primary/20' : ''} />
           <span className="text-[10px] font-medium">Home</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+        <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-theme-primary transition">
           <List size={22} strokeWidth={1.5} />
           <span className="text-[10px] font-medium">Categories</span>
         </button>
                 {chatEnabled && onChatClick ? (
-                    <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+                    <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-theme-primary transition">
                         <MessageSquare size={22} strokeWidth={1.5} />
                         <span className="text-[10px] font-medium">Chat</span>
                     </button>
                 ) : chatFallbackLink ? (
-                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
+                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-theme-primary transition">
                         <MessageSquare size={22} strokeWidth={1.5} />
                         <span className="text-[10px] font-medium">Chat</span>
                     </a>
@@ -169,7 +173,7 @@ export const MobileBottomNav: React.FC<{
                         <span className="text-[10px] font-medium">Chat</span>
                     </button>
                 )}
-        <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
+        <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'account' ? 'text-theme-primary' : 'text-gray-500'}`}>
           <User size={22} strokeWidth={1.5} />
           <span className="text-[10px] font-medium">Account</span>
         </button>
@@ -283,7 +287,7 @@ export const MobileBottomNav: React.FC<{
                         {user ? (
                             <>
                                 <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white flex items-center justify-center text-sm font-semibold">
+                                    <div className="w-10 h-10 rounded-full bg-theme-gradient text-white flex items-center justify-center text-sm font-semibold">
                                         {customerInitial}
                                     </div>
                                     <div className="min-w-0">
@@ -291,7 +295,7 @@ export const MobileBottomNav: React.FC<{
                                         {user.email && <p className="text-xs text-gray-500 truncate">{user.email}</p>}
                                     </div>
                                 </div>
-    <button onClick={handleAccountPrimaryAction} className="mt-3 w-full flex items-center justify-between rounded-2xl bg-gray-50 hover:bg-pink-50 text-gray-800 hover:text-pink-600 text-sm font-medium py-2.5 px-3 transition">
+    <button onClick={handleAccountPrimaryAction} className="mt-3 w-full flex items-center justify-between rounded-2xl bg-gray-50 hover:bg-theme-primary/10 text-gray-800 hover:text-theme-primary text-sm font-medium py-2.5 px-3 transition">
         <span>My Account</span>
         <ChevronRight size={16} />
     </button>
@@ -309,7 +313,7 @@ export const MobileBottomNav: React.FC<{
                                     Sign in / Sign up
                                 </button>
                                 {chatFallbackLink && (
-                                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="mt-2 block text-center text-xs text-gray-500 hover:text-pink-600 transition">
+                                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="mt-2 block text-center text-xs text-gray-500 hover:text-theme-primary transition">
                                         Need help? Chat on WhatsApp
                                     </a>
                                 )}
@@ -339,7 +343,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
         {/* Discount Badge */}
         <div className="absolute top-3 left-3 z-10">
           {product.discount && (
-            <span className="inline-block bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+            <span className="inline-block bg-theme-secondary text-white text-xs font-bold px-2 py-1 rounded-md">
               {product.discount}
             </span>
           )}
@@ -358,7 +362,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
         <div className="p-4 flex-1 flex flex-col">
           {/* Product Name */}
           <h3 
-            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 cursor-pointer hover:text-orange-500 transition"
+            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 cursor-pointer hover:text-theme-primary transition"
             onClick={() => onClick(product)}
           >
             {product.name}
@@ -404,7 +408,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
             <div className="relative aspect-square p-2 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
                 <LazyImage src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
                 {product.discount && (
-                    <span className="absolute top-1.5 left-1.5 bg-pink-600 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    <span className="absolute top-1.5 left-1.5 bg-theme-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                         {product.discount}
                     </span>
                 )}
@@ -422,7 +426,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
                 </div>
 
                 <h3 
-                  className="font-bold text-gray-800 text-xs leading-tight line-clamp-1 cursor-pointer hover:text-pink-600 transition"
+                  className="font-bold text-gray-800 text-xs leading-tight line-clamp-1 cursor-pointer hover:text-theme-primary transition"
                   onClick={() => onClick(product)}
                 >
                     {product.name}
@@ -430,7 +434,7 @@ export const ProductCard: React.FC<{ product: Product; onClick: (product: Produc
 
                 <div className="mt-auto">
                     <div className="flex items-center gap-1 mb-1">
-                        <span className="text-pink-600 font-bold text-sm"><b>à§³</b>{product.price}</span>
+                        <span className="text-theme-primary font-bold text-sm"><b>৳</b>{product.price}</span>
                         {product.originalPrice && (
                             <span className="text-gray-400 text-[10px] line-through">{product.originalPrice}</span>
                         )}
@@ -726,11 +730,11 @@ export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> =
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
 
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
-        <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-theme-primary hover:shadow-md cursor-pointer transition whitespace-nowrap group">
+        <div className="w-7 h-7 rounded-full bg-theme-primary/10 text-theme-primary flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
             {icon}
         </div>
-        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-pink-600 tracking-wide">{name}</span>
+        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-theme-primary tracking-wide">{name}</span>
     </div>
 );
 
@@ -742,7 +746,7 @@ export const SectionHeader: React.FC<{ title: string; className?: string }> = ({
                 {title}
             </h2>
         </div>
-        <span className="h-1 w-24 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full" />
+        <span className="h-1 w-24 bg-gradient-theme-primary rounded-full" />
     </div>
 );
 
@@ -831,8 +835,8 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                                     <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : (
                                     <>
-                                        <span className="text-xl md:text-2xl font-black text-blue-500 tracking-tight">SYSTEMNEXT</span>
-                                        <span className="text-lg md:text-xl font-bold text-pink-500 tracking-widest -mt-1 block">IT</span>
+                                        <span className="text-xl md:text-2xl font-black text-theme-primary tracking-tight">SYSTEMNEXT</span>
+                                        <span className="text-lg md:text-xl font-bold text-theme-secondary tracking-widest -mt-1 block">IT</span>
                                     </>
                                 )}
                             </div>
@@ -1701,109 +1705,6 @@ export const ProductQuickViewModal: React.FC<{
                             className="w-full py-3 rounded-2xl border border-gray-200 text-gray-700 font-semibold hover:border-emerald-400"
                         >
                             View Full Details
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export const LoginModal: React.FC<{ onClose: () => void, onLogin: (e: string, p: string) => Promise<boolean>, onRegister: (u: UserType) => Promise<boolean>, onGoogleLogin?: () => Promise<boolean> }> = ({ onClose, onLogin, onRegister, onGoogleLogin }) => {
-    const [isLogin, setIsLogin] = useState(true);
-    const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', address: '' });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setErrorMessage(null);
-        setIsSubmitting(true);
-        try {
-            const success = isLogin
-                ? await onLogin(formData.email.trim(), formData.password)
-                : await onRegister({ ...formData, role: 'customer' });
-            if (success) {
-                onClose();
-            } else {
-                setErrorMessage(isLogin ? 'Invalid credentials. Please try again.' : 'Unable to create account.');
-            }
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Something went wrong. Please try again.';
-            setErrorMessage(message);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
-                <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
-                <div className="p-8">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-                    <p className="text-gray-500 mb-6 text-sm">{isLogin ? 'Login to continue shopping' : 'Sign up to get started'}</p>
-                    
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {!isLogin && (
-                            <>
-                                <input type="text" placeholder="Full Name" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
-                                <input type="text" placeholder="Phone" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required />
-                            </>
-                        )}
-                        <input type="email" placeholder="Email Address" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
-                        <input type="password" placeholder="Password" className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.4)]" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required />
-                        
-                        <button type="submit" disabled={isSubmitting} className="w-full btn-order py-3 rounded-xl font-bold shadow-[0_18px_28px_rgba(var(--color-primary-rgb),0.25)] disabled:opacity-60 disabled:cursor-not-allowed">
-                            {isSubmitting ? 'Please wait...' : (isLogin ? 'Login' : 'Register')}
-                        </button>
-                        {errorMessage && (
-                            <p className="text-sm text-red-500 text-center">{errorMessage}</p>
-                        )}
-                    </form>
-
-                    {onGoogleLogin && (
-                        <div className="mt-6">
-                            <div className="relative flex items-center justify-center mb-3">
-                                <span className="px-3 text-xs text-gray-400 bg-white">OR</span>
-                                <div className="absolute left-0 right-0 h-px bg-gray-200" aria-hidden />
-                            </div>
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    if (!onGoogleLogin) return;
-                                    setErrorMessage(null);
-                                    setIsGoogleLoading(true);
-                                    try {
-                                        const success = await onGoogleLogin();
-                                        if (success) {
-                                            onClose();
-                                        }
-                                    } catch (error: any) {
-                                        setErrorMessage(error?.message || 'Unable to continue with Google.');
-                                    } finally {
-                                        setIsGoogleLoading(false);
-                                    }
-                                }}
-                                disabled={isGoogleLoading}
-                                className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
-                            >
-                                <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden>
-                                    <path d="M17.64 9.2045c0-.638-.0573-1.2517-.1636-1.8409H9v3.4818h4.8436c-.2091 1.125-.8436 2.0782-1.7968 2.7168v2.2582h2.9086c1.7018-1.5668 2.6846-3.8745 2.6846-6.6159z" fill="#4285F4" />
-                                    <path d="M9 18c2.43 0 4.4673-.8063 5.9564-2.1791l-2.9086-2.2582c-.8059.54-1.8377.8618-3.0478.8618-2.3445 0-4.3282-1.5832-5.0364-3.7105H.9573v2.3313C2.4382 15.9827 5.4818 18 9 18z" fill="#34A853" />
-                                    <path d="M3.9636 10.7141c-.18-.54-.2823-1.1168-.2823-1.7141 0-.5973.1023-1.1741.2823-1.7141V4.9545H.9573C.3477 6.1745 0 7.5473 0 9s.3477 2.8255.9573 4.0455l3.0063-2.3314z" fill="#FBBC05" />
-                                    <path d="M9 3.5455c1.3214 0 2.5073.4546 3.4405 1.345l2.5809-2.5809C13.4646.8973 11.4273 0 9 0 5.4818 0 2.4382 2.0177.9573 4.9545l3.0063 2.3314C4.6718 5.1286 6.6555 3.5455 9 3.5455z" fill="#EA4335" />
-                                </svg>
-                                {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="mt-6 text-center text-sm text-gray-600">
-                        {isLogin ? "Don't have an account? " : "Already have an account? "}
-                        <button onClick={() => setIsLogin(!isLogin)} className="text-[rgb(var(--color-primary-rgb))] font-bold hover:underline">
-                            {isLogin ? 'Sign Up' : 'Login'}
                         </button>
                     </div>
                 </div>

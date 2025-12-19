@@ -149,19 +149,23 @@ const initializeTenantData = async (tenantId: string, tenantName: string) => {
 
   // Default theme config
   await tenantDataCollection.updateOne(
-    { tenantId, key: 'theme' },
+    { tenantId, key: 'theme_config' },
     {
       $set: {
         data: {
           primaryColor: '#10b981',
           secondaryColor: '#f97316',
+          tertiaryColor: '#c026d3',
+          fontColor: '#0f172a',
+          hoverColor: '#f97316',
+          surfaceColor: '#e2e8f0',
           fontFamily: 'Inter',
           borderRadius: 'rounded',
           darkMode: false
         },
         updatedAt: now
       },
-      $setOnInsert: { tenantId, key: 'theme', createdAt: now }
+      $setOnInsert: { tenantId, key: 'theme_config', createdAt: now }
     },
     { upsert: true }
   );

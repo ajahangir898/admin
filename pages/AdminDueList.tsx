@@ -111,7 +111,7 @@ const AdminDueList: React.FC<AdminDueListProps> = ({ user, onLogout }) => {
             {/* Add New Due Button */}
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-pink-500 text-white rounded-lg font-medium hover:bg-pink-600 transition flex items-center gap-2"
+              className="px-4 py-2 btn-theme-primary rounded-lg font-medium transition flex items-center gap-2"
             >
               <Plus size={18} /> New Due
             </button>
@@ -172,7 +172,7 @@ const AdminDueList: React.FC<AdminDueListProps> = ({ user, onLogout }) => {
                       onClick={() => setSelectedEntity(entity)}
                       className={`w-full p-4 border-b border-gray-100 text-left transition ${
                         selectedEntity?._id === entity._id
-                          ? 'bg-pink-50 border-l-4 border-pink-500'
+                          ? 'bg-theme-primary/10 border-l-4 border-theme-primary'
                           : 'hover:bg-gray-50'
                       }`}
                     >

@@ -479,21 +479,21 @@ const StoreHome = ({
               <div className="mb-1 flex items-center gap-3">
                 <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
                 {showFlashSaleCounter && (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-100 via-white to-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-pink-900 )]">  
+                  <div className="inline-flex items-center gap-2 rounded-full bg-theme-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-theme-font">  
                   {/* shadow-[0_4px_12px_rgba(244,114,182,0.25 pink shadow*/}
-                    <div className="flex items-center gap-1 text-sky-700">
+                    <div className="flex items-center gap-1 text-theme-primary">
                       {flashSaleCountdown.map((segment) => (
                         <span
                           key={segment.label}
-                          className="flex min-w-[44px] flex-col items-center justify-center rounded-md border border-sky-200 bg-white px-2 py-0.5 text-sky-700 shadow-sm leading-tight"
+                          className="flex min-w-[44px] flex-col items-center justify-center rounded-md border border-theme-primary/30 bg-white px-2 py-0.5 text-theme-primary shadow-sm leading-tight"
                         >
                           <span className="text-[11px] font-black">{segment.value}</span>
-                          <span className="text-[7px] font-semibold uppercase tracking-tight text-sky-500">{segment.label}</span>
+                          <span className="text-[7px] font-semibold uppercase tracking-tight text-theme-primary/70">{segment.label}</span>
                         </span>
                       ))}
                     </div>
-                    <span className="relative flex items-center gap-2 text-pink-700">
-                      <span className="h-2 w-2 animate-ping rounded-full bg-rose-500" />
+                    <span className="relative flex items-center gap-2 text-theme-primary">
+                      <span className="h-2 w-2 animate-ping rounded-full bg-theme-primary" />
                     </span>
                   </div>
                 )}
@@ -610,7 +610,7 @@ const StoreHome = ({
             </div>
             <div className="hidden md:flex justify-center">
               <div className="relative w-72 h-72">
-                <div className="absolute -inset-6 bg-gradient-to-br from-pink-500/40 to-purple-700/40 blur-3xl" aria-hidden />
+                <div className="absolute -inset-6 bg-theme-gradient opacity-40 blur-3xl" aria-hidden />
                 <div className="relative bg-white/10 border border-white/20 rounded-[32px] h-full w-full backdrop-blur-md p-6 flex flex-col justify-between">
                   <div>
                     <p className="text-xs text-white/60">Feature Drop</p>

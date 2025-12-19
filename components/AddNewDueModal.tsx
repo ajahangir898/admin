@@ -154,7 +154,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                   setSelectedEntity(null);
                   setErrors({});
                 }}
-                className="text-pink-600 text-sm font-medium hover:underline"
+                className="text-theme-primary text-sm font-medium hover:underline"
               >
                 ← Change transaction type
               </button>
@@ -167,7 +167,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setShowEntityDropdown(!showEntityDropdown)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-theme-primary"
                   >
                     {selectedEntity ? selectedEntity.name : 'Select or search...'}
                   </button>
@@ -209,7 +209,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                           setShowAddEntity(true);
                           setShowEntityDropdown(false);
                         }}
-                        className="w-full px-4 py-2 text-pink-600 font-medium hover:bg-pink-50 transition border-t border-gray-200 flex items-center justify-center gap-2"
+                        className="w-full px-4 py-2 text-theme-primary font-medium hover:bg-theme-primary/10 transition border-t border-gray-200 flex items-center justify-center gap-2"
                       >
                         <Plus size={16} /> Add New
                       </button>
@@ -227,19 +227,19 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                     placeholder="Name"
                     value={newEntityData.name}
                     onChange={e => setNewEntityData({ ...newEntityData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary"
                   />
                   <input
                     type="tel"
                     placeholder="Phone"
                     value={newEntityData.phone}
                     onChange={e => setNewEntityData({ ...newEntityData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary"
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={handleAddEntity}
-                      className="flex-1 px-3 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition font-medium"
+                      className="flex-1 px-3 py-2 btn-theme-primary rounded-lg transition font-medium"
                     >
                       Add
                     </button>
@@ -266,7 +266,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                   value={formData.amount}
                   onChange={e => setFormData({ ...formData, amount: e.target.value })}
                   placeholder="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary"
                 />
                 {errors.amount && <p className="text-sm text-red-600">{errors.amount}</p>}
               </div>
@@ -278,7 +278,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                   type="date"
                   value={formData.transactionDate}
                   onChange={e => setFormData({ ...formData, transactionDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary"
                 />
                 {errors.date && <p className="text-sm text-red-600">{errors.date}</p>}
               </div>
@@ -290,7 +290,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                   type="date"
                   value={formData.dueDate}
                   onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary"
                 />
               </div>
 
@@ -302,7 +302,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                   onChange={e => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="e.g., Invoice #101 for 5kg coffee beans"
                   maxLength={500}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none h-20"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary resize-none h-20"
                 />
               </div>
 
@@ -317,7 +317,7 @@ const AddNewDueModal: React.FC<AddNewDueModalProps> = ({ isOpen, onClose, onSave
                 <button
                   onClick={handleSave}
                   disabled={!selectedEntity || !formData.amount}
-                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 btn-theme-primary rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save Transaction
                 </button>

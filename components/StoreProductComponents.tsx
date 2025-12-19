@@ -28,7 +28,7 @@ export const ProductCard: React.FC<{
       <div className="bg-white rounded-lg border border-gray-200 hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col">
         <div className="absolute top-3 left-3 z-10">
           {product.discount && (
-            <span className="inline-block bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+            <span className="inline-block bg-theme-secondary text-white text-xs font-bold px-2 py-1 rounded-md">
               {product.discount}
             </span>
           )}
@@ -42,7 +42,7 @@ export const ProductCard: React.FC<{
         </div>
         <div className="p-4 flex-1 flex flex-col">
           <h3 
-            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 cursor-pointer hover:text-orange-500 transition"
+            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 cursor-pointer hover:text-theme-primary transition"
             onClick={() => onClick(product)}
           >
             {product.name}
@@ -79,7 +79,7 @@ export const ProductCard: React.FC<{
         <div className="relative aspect-square p-2 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
           <LazyImage src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
           {product.discount && (
-            <span className="absolute top-1.5 left-1.5 bg-pink-600 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
+            <span className="absolute top-1.5 left-1.5 bg-secondary-500 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded">
               {product.discount}
             </span>
           )}
@@ -94,14 +94,14 @@ export const ProductCard: React.FC<{
             <span className="text-gray-400 text-[10px] ml-0.5">| 0 Sold</span>
           </div>
           <h3 
-            className="font-bold text-gray-800 text-xs leading-tight line-clamp-1 cursor-pointer hover:text-pink-600 transition"
+            className="font-bold text-gray-800 text-xs leading-tight line-clamp-1 cursor-pointer hover:text-secondary-600 transition"
             onClick={() => onClick(product)}
           >
             {product.name}
           </h3>
           <div className="mt-auto">
             <div className="flex items-center gap-1 mb-1">
-              <span className="text-pink-600 font-bold text-sm"><b>৳</b>{product.price}</span>
+              <span className="text-secondary-500 font-bold text-sm"><b>৳</b>{product.price}</span>
               {product.originalPrice && (
                 <span className="text-gray-400 text-[10px] line-through">{product.originalPrice}</span>
               )}
@@ -330,19 +330,19 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
 
 export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
   <div className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]">
-    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-green-500 group-hover:text-white group-hover:border-green-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
+    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition duration-300 shadow-sm hover:shadow-lg transform group-hover:-translate-y-1">
       {icon}
     </div>
-    <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-green-600 text-center transition-colors">{name}</span>
+    <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-primary-600 text-center transition-colors">{name}</span>
   </div>
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-  <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-pink-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
-    <div className="w-7 h-7 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+  <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-secondary-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
+    <div className="w-7 h-7 rounded-full bg-secondary-50 text-secondary-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
       {icon}
     </div>
-    <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-pink-600 tracking-wide">{name}</span>
+    <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-secondary-600 tracking-wide">{name}</span>
   </div>
 );
 
@@ -353,6 +353,6 @@ export const SectionHeader: React.FC<{ title: string; className?: string }> = ({
         {title}
       </h2>
     </div>
-    <span className="h-1 w-24 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full" />
+    <span className="h-1 w-24 bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 rounded-full" />
   </div>
 );

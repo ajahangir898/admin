@@ -267,7 +267,7 @@ const StoreProfile = ({
                                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                                             order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
                                             order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                                            'bg-orange-100 text-orange-700'
+                                            'bg-theme-hover/10 text-theme-hover'
                                          }`}>
                                             {order.status}
                                          </span>
@@ -283,7 +283,7 @@ const StoreProfile = ({
                                 <div className="flex justify-between items-center">
                                    <div className="flex items-center gap-2 text-sm text-gray-600">
                                       {order.status === 'Delivered' && <><CheckCircle size={16} className="text-green-500"/> Delivered</>}
-                                      {order.status === 'Pending' && <><Clock size={16} className="text-orange-500"/> Processing</>}
+                                      {order.status === 'Pending' && <><Clock size={16} className="text-theme-hover"/> Processing</>}
                                       {order.status === 'Shipped' && <><Truck size={16} className="text-blue-500"/> On the way</>}
                                    </div>
                                    <button className="text-green-600 text-sm font-medium hover:underline">View Details</button>

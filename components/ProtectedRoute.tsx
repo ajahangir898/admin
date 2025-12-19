@@ -211,6 +211,18 @@ export const RequireRole: React.FC<RequireRoleProps> = ({
 };
 
 /**
+ * Helper function to check if user has read-only access to a resource.
+ * Extracted to avoid code duplication between ReadOnlyWrapper and useReadOnly.
+ */
+const checkReadOnlyAccess = (
+  resource: ResourceType,
+  auth: { canRead: (r: ResourceType) => boolean; canWrite: (r: ResourceType) => boolean; canEdit: (r: ResourceType) => boolean; canDelete: (r: ResourceType) => boolean; isAuthenticated: boolean }
+): boolean => {
+  if (!auth.isAuthenticated) return true;
+  return auth.canRead(resource) && !auth.canWrite(resource) && !auth.canEdit(resource) && !auth.canDelete(resource);
+};
+
+/**
  * ReadOnlyWrapper Component
  * 
  * Wraps content and disables all interactive elements when user only has read permission.
@@ -236,8 +248,8 @@ export const ReadOnlyWrapper: React.FC<ReadOnlyWrapperProps> = ({
 }) => {
   const { canRead, canWrite, canEdit, canDelete, isAuthenticated } = useAuth();
   
-  // Check if user only has read permission
-  const hasReadOnly = isAuthenticated && canRead(resource) && !canWrite(resource) && !canEdit(resource) && !canDelete(resource);
+  // Check if user only has read permission using shared helper
+  const hasReadOnly = checkReadOnlyAccess(resource, { canRead, canWrite, canEdit, canDelete, isAuthenticated });
   
   if (!hasReadOnly) {
     return <>{children}</>;
@@ -275,9 +287,7 @@ export const ReadOnlyWrapper: React.FC<ReadOnlyWrapperProps> = ({
 export const useReadOnly = (resource: ResourceType): boolean => {
   const { canRead, canWrite, canEdit, canDelete, isAuthenticated } = useAuth();
   
-  if (!isAuthenticated) return true;
-  
-  return canRead(resource) && !canWrite(resource) && !canEdit(resource) && !canDelete(resource);
+  return checkReadOnlyAccess(resource, { canRead, canWrite, canEdit, canDelete, isAuthenticated });
 };
 
 export default ProtectedRoute;

@@ -105,13 +105,12 @@ const AdminControl: React.FC<AdminControlProps> = ({
   
   // Permission check helpers
   const hasAdminControlPermission = (action: ActionType): boolean => {
-    // Super admin has all permissions
+    // Super admin has full access to admin_control
     if (currentUser?.role === 'super_admin') return true;
-    // Admin has all permissions except tenants
+    // Admin and tenant_admin have access to admin_control (tenants resource is restricted elsewhere)
     if (currentUser?.role === 'admin') return true;
-    // Tenant admin has all permissions except tenants
     if (currentUser?.role === 'tenant_admin') return true;
-    // Staff - check permissions map
+    // Staff - check specific permissions from custom role
     if (userPermissions['admin_control']) {
       return userPermissions['admin_control'].includes(action);
     }
@@ -150,6 +149,16 @@ const AdminControl: React.FC<AdminControlProps> = ({
     }
     
     return false;
+  };
+  
+  // Check if current user can delete a specific user (combines permission and hierarchy checks)
+  const canDeleteSpecificUser = (targetUser: User): boolean => {
+    // Cannot delete yourself
+    if (targetUser.email === currentUser?.email) return false;
+    // Must have delete permission
+    if (!canDeleteUsers) return false;
+    // Must have hierarchical authority to modify this user
+    return canChangeUserRole(targetUser);
   };
   
   // User Modal
@@ -419,7 +428,7 @@ const AdminControl: React.FC<AdminControlProps> = ({
                             <Edit size={14} />
                           </button>
                         )}
-                        {onDeleteUser && canDeleteUsers && user.email !== currentUser?.email && canChangeUserRole(user) && (
+                        {onDeleteUser && canDeleteSpecificUser(user) && (
                           <button onClick={() => deleteUser(user)} className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-red-400">
                             <Trash2 size={14} />
                           </button>
@@ -535,18 +544,16 @@ const AdminControl: React.FC<AdminControlProps> = ({
                   <select 
                     value={userForm.role} 
                     onChange={e => setUserForm({...userForm, role: e.target.value as User['role']})}
-                    disabled={currentUser?.role === 'staff'}
+                    disabled={currentUser?.role === 'staff' || currentUser?.role === 'tenant_admin'}
                     className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed">
                     <option value="staff" className="bg-slate-900">Staff</option>
-                    {(currentUser?.role === 'super_admin' || currentUser?.role === 'tenant_admin') && (
-                      <option value="admin" className="bg-slate-900">Admin</option>
-                    )}
                     {currentUser?.role === 'super_admin' && <>
+                      <option value="admin" className="bg-slate-900">Admin</option>
                       <option value="tenant_admin" className="bg-slate-900">Tenant Admin</option>
                       <option value="super_admin" className="bg-slate-900">Super Admin</option>
                     </>}
                   </select>
-                  {currentUser?.role === 'staff' && (
+                  {(currentUser?.role === 'staff' || currentUser?.role === 'tenant_admin') && (
                     <p className="text-xs text-slate-500 mt-1">Only super admin can change base role</p>
                   )}
                 </div>

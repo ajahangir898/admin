@@ -181,6 +181,11 @@ export interface ThemeConfig {
   hoverColor: string;
   surfaceColor: string;
   darkMode: boolean;
+  // Admin theme colors
+  adminBgColor?: string;
+  adminInputBgColor?: string;
+  adminBorderColor?: string;
+  adminFocusColor?: string;
 }
 
 export interface SocialLink {

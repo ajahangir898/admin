@@ -377,17 +377,35 @@ const AdminApp: React.FC<AdminAppProps> = ({
     };
   }, [activeTenantId, user, hasLoadedAdminData]);
 
-  const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>) => ({
-    add: (item: any) => setter(prev => [...prev, { ...item, tenantId: item?.tenantId || activeTenantId }]),
-    update: (item: any) => setter(prev => prev.map(i => i.id === item.id ? { ...item, tenantId: item?.tenantId || activeTenantId } : i)),
-    delete: (id: string) => setter(prev => prev.filter(i => i.id !== id))
+  const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>, storageKey: string) => ({
+    add: (item: any) => {
+      setter(prev => {
+        const updated = [...prev, { ...item, tenantId: item?.tenantId || activeTenantId }];
+        DataService.save(storageKey, updated, activeTenantId);
+        return updated;
+      });
+    },
+    update: (item: any) => {
+      setter(prev => {
+        const updated = prev.map(i => i.id === item.id ? { ...item, tenantId: item?.tenantId || activeTenantId } : i);
+        DataService.save(storageKey, updated, activeTenantId);
+        return updated;
+      });
+    },
+    delete: (id: string) => {
+      setter(prev => {
+        const updated = prev.filter(i => i.id !== id);
+        DataService.save(storageKey, updated, activeTenantId);
+        return updated;
+      });
+    }
   });
 
-  const catHandlers = createCrudHandler(setCategories);
-  const subCatHandlers = createCrudHandler(setSubCategories);
-  const childCatHandlers = createCrudHandler(setChildCategories);
-  const brandHandlers = createCrudHandler(setBrands);
-  const tagHandlers = createCrudHandler(setTags);
+  const catHandlers = createCrudHandler(setCategories, 'categories');
+  const subCatHandlers = createCrudHandler(setSubCategories, 'subcategories');
+  const childCatHandlers = createCrudHandler(setChildCategories, 'childcategories');
+  const brandHandlers = createCrudHandler(setBrands, 'brands');
+  const tagHandlers = createCrudHandler(setTags, 'tags');
 
   const platformOperator = user?.role === 'super_admin';
   const selectedTenantRecord = tenants.find(t => t.id === activeTenantId) || null;

@@ -228,6 +228,7 @@ const App = () => {
   const [adminSection, setAdminSection] = useState('dashboard');
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [storeSearchQuery, setStoreSearchQuery] = useState('');
+  const [urlCategoryFilter, setUrlCategoryFilter] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariantSelection | null>(null);
@@ -564,6 +565,7 @@ const App = () => {
   // Reset admin data flag on tenant change
   useEffect(() => {
     adminDataLoadedRef.current = false;
+    websiteConfigLoadedRef.current = false;
   }, [activeTenantId]);
 
   // --- DATA REFRESH HANDLER (Sync Admin changes to Storefront) ---
@@ -772,6 +774,21 @@ const App = () => {
     root.style.setProperty('--color-font-rgb', hexToRgb(themeConfig.fontColor));
     root.style.setProperty('--color-hover-rgb', hexToRgb(themeConfig.hoverColor));
     root.style.setProperty('--color-surface-rgb', hexToRgb(themeConfig.surfaceColor));
+    
+    // Apply admin theme colors
+    if (themeConfig.adminBgColor) {
+      root.style.setProperty('--admin-bg', hexToRgb(themeConfig.adminBgColor));
+    }
+    if (themeConfig.adminInputBgColor) {
+      root.style.setProperty('--admin-bg-input', hexToRgb(themeConfig.adminInputBgColor));
+    }
+    if (themeConfig.adminBorderColor) {
+      root.style.setProperty('--admin-border-rgb', hexToRgb(themeConfig.adminBorderColor));
+    }
+    if (themeConfig.adminFocusColor) {
+      root.style.setProperty('--admin-focus-rgb', hexToRgb(themeConfig.adminFocusColor));
+    }
+    
     if (themeConfig.darkMode) root.classList.add('dark');
     else root.classList.remove('dark');
     
@@ -786,10 +803,22 @@ const App = () => {
     }
   }, [themeConfig, isLoading, activeTenantId]);
 
+  // Track if website config has been initially loaded to prevent overwriting saved data with defaults
+  const websiteConfigLoadedRef = useRef(false);
+
   useEffect(() => { 
     if(!isLoading && websiteConfig && activeTenantId) {
-      // Use immediate save for website config to reflect instantly
-      DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
+      // Only save AFTER initial load (to avoid overwriting saved data with defaults)
+      if (websiteConfigLoadedRef.current) {
+        // Use immediate save for website config to reflect instantly
+        DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
+      }
+      
+      // Mark as loaded after first render with loaded data
+      if (!websiteConfigLoadedRef.current) {
+        websiteConfigLoadedRef.current = true;
+      }
+      
       if (websiteConfig.favicon) {
         let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
         if (!link) {
@@ -1441,17 +1470,36 @@ fbq('track', 'PageView');`;
 
   const attachTenant = <T extends { tenantId?: string }>(item: T): T => ({ ...item, tenantId: item?.tenantId || activeTenantId });
 
-  const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>) => ({
-    add: (item: any) => setter(prev => [...prev, attachTenant(item)]),
-    update: (item: any) => setter(prev => prev.map(i => i.id === item.id ? attachTenant(item) : i)),
-    delete: (id: string) => setter(prev => prev.filter(i => i.id !== id))
+  // Create CRUD handlers that also persist to backend
+  const createCrudHandler = (setter: React.Dispatch<React.SetStateAction<any[]>>, storageKey: string) => ({
+    add: (item: any) => {
+      setter(prev => {
+        const updated = [...prev, attachTenant(item)];
+        DataService.save(storageKey, updated, activeTenantId);
+        return updated;
+      });
+    },
+    update: (item: any) => {
+      setter(prev => {
+        const updated = prev.map(i => i.id === item.id ? attachTenant(item) : i);
+        DataService.save(storageKey, updated, activeTenantId);
+        return updated;
+      });
+    },
+    delete: (id: string) => {
+      setter(prev => {
+        const updated = prev.filter(i => i.id !== id);
+        DataService.save(storageKey, updated, activeTenantId);
+        return updated;
+      });
+    }
   });
 
-  const catHandlers = createCrudHandler(setCategories);
-  const subCatHandlers = createCrudHandler(setSubCategories);
-  const childCatHandlers = createCrudHandler(setChildCategories);
-  const brandHandlers = createCrudHandler(setBrands);
-  const tagHandlers = createCrudHandler(setTags);
+  const catHandlers = createCrudHandler(setCategories, 'categories');
+  const subCatHandlers = createCrudHandler(setSubCategories, 'subcategories');
+  const childCatHandlers = createCrudHandler(setChildCategories, 'childcategories');
+  const brandHandlers = createCrudHandler(setBrands, 'brands');
+  const tagHandlers = createCrudHandler(setTags, 'tags');
   const platformOperator = isPlatformOperator(user?.role);
   const canAccessAdminChat = user?.role === 'super_admin';
   const selectedTenantRecord = tenants.find(t => t.id === activeTenantId) || tenantsRef.current.find(t => t.id === activeTenantId) || null;
@@ -1480,7 +1528,32 @@ fbq('track', 'PageView');`;
       return;
     }
 
+    // Handle /products route with optional category filter
+    if (trimmedPath === 'products') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const categorySlug = searchParams.get('categories');
+      // Only set filter if category is provided, otherwise redirect to home
+      if (categorySlug) {
+        setUrlCategoryFilter(categorySlug);
+        if (!activeView.startsWith('admin')) {
+          setSelectedProduct(null);
+          setCurrentView('store');
+        }
+        return;
+      } else {
+        // No category specified, redirect to home
+        window.history.replaceState({}, '', '/');
+        setUrlCategoryFilter(null);
+        if (!activeView.startsWith('admin')) {
+          setSelectedProduct(null);
+          setCurrentView('store');
+        }
+        return;
+      }
+    }
+
     if (!trimmedPath) {
+      setUrlCategoryFilter(null);
       if (!activeView.startsWith('admin')) {
         setSelectedProduct(null);
         setCurrentView('store');
@@ -1649,6 +1722,16 @@ fbq('track', 'PageView');`;
                   childCategories={childCategories}
                   brands={brands}
                   tags={tags}
+                  initialCategoryFilter={urlCategoryFilter}
+                  onCategoryFilterChange={(categorySlug) => {
+                    if (categorySlug) {
+                      window.history.pushState({}, '', `/products?categories=${categorySlug}`);
+                      setUrlCategoryFilter(categorySlug);
+                    } else {
+                      window.history.pushState({}, '', '/');
+                      setUrlCategoryFilter(null);
+                    }
+                  }}
                 />
                 <MobileBottomNav 
                   onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}

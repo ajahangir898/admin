@@ -1,14 +1,20 @@
 
-import React, { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback } from 'react';
-import { ProductCard, HeroSection, CategoryCircle, CategoryPill, SectionHeader } from '../components/StoreProductComponents';
+import React, { useState, useEffect, useRef, lazy, Suspense, useMemo, useCallback } from 'react';
+import { HeroSection } from '../components/StoreProductComponents';
 import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
-import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
-import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup } from '../types';
+import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
 import { DataService } from '../services/DataService';
-import { ProductFilter, SortOption } from '../components/ProductFilter';
-import { EmptySearchState } from '../components/EmptyStates';
-import { SkeletonCard, SkeletonImageGrid, StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
+import { SortOption } from '../components/ProductFilter';
+import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
+import { slugify } from '../services/slugify';
+
+// Import store sections
+import { FlashSalesSection } from '../components/store/FlashSalesSection';
+import { ProductGridSection } from '../components/store/ProductGridSection';
+import { PromoBanner } from '../components/store/PromoBanner';
+import { CategoriesSection } from '../components/store/CategoriesSection';
+import { SearchResultsSection } from '../components/store/SearchResultsSection';
 
 // Lazy load heavy components (StoreHeader, StoreFooter, modals)
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
@@ -16,18 +22,7 @@ const StoreFooter = lazy(() => import('../components/StoreComponents').then(m =>
 const ProductQuickViewModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.ProductQuickViewModal })));
 const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
 const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
-
-// Helper map for dynamic icons
-const iconMap: Record<string, React.ReactNode> = {
-  smartphone: <Smartphone size={28} strokeWidth={1.5} />,
-  watch: <Watch size={28} strokeWidth={1.5} />,
-  'battery-charging': <BatteryCharging size={28} strokeWidth={1.5} />,
-  headphones: <Headphones size={28} strokeWidth={1.5} />,
-  zap: <Zap size={28} strokeWidth={1.5} />,
-  bluetooth: <Bluetooth size={28} strokeWidth={1.5} />,
-  'gamepad-2': <Gamepad2 size={28} strokeWidth={1.5} />,
-  camera: <Camera size={28} strokeWidth={1.5} />,
-};
+const StoreCategoryProducts = lazy(() => import('../components/StoreCategoryProducts'));
 
 const getNextFlashSaleReset = () => {
   const now = new Date();
@@ -73,6 +68,8 @@ interface StoreHomeProps {
   childCategories?: any[];
   brands?: any[];
   tags?: any[];
+  initialCategoryFilter?: string | null;
+  onCategoryFilterChange?: (categorySlug: string | null) => void;
 }
 
 const StoreHome = ({ 
@@ -101,7 +98,9 @@ const StoreHome = ({
   searchValue,
   onSearchChange,
   onImageSearchClick,
-  onOpenChat
+  onOpenChat,
+  initialCategoryFilter,
+  onCategoryFilterChange
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
@@ -112,6 +111,28 @@ const StoreHome = ({
   const [popups, setPopups] = useState<Popup[]>([]);
   const [activePopup, setActivePopup] = useState<Popup | null>(null);
   const [popupIndex, setPopupIndex] = useState(0);
+  
+  // Category view state - shows category products page when a category is selected
+  const [selectedCategoryView, setSelectedCategoryView] = useState<string | null>(null);
+
+  // Sync category view with URL filter
+  useEffect(() => {
+    if (initialCategoryFilter) {
+      // Find category by slug
+      const category = categories?.find(c => slugify(c.name) === initialCategoryFilter);
+      if (category) {
+        setSelectedCategoryView(category.name);
+      } else {
+        // Check in default categories
+        const defaultCat = CATEGORIES.find(c => slugify(c.name) === initialCategoryFilter);
+        if (defaultCat) {
+          setSelectedCategoryView(defaultCat.name);
+        }
+      }
+    } else {
+      setSelectedCategoryView(null);
+    }
+  }, [initialCategoryFilter, categories]);
 
   // Simulate initial data loading
   useEffect(() => {
@@ -191,7 +212,25 @@ const StoreHome = ({
     }
     return false;
   };
+  
   const filteredProducts = normalizedSearch ? displayProducts.filter(matchesSearch) : displayProducts;
+  
+  // Handler for category click - navigates to category URL
+  const handleCategoryClick = (categoryName: string) => {
+    const categorySlug = slugify(categoryName);
+    if (onCategoryFilterChange) {
+      onCategoryFilterChange(categorySlug);
+    }
+    setSelectedCategoryView(categoryName);
+  };
+
+  // Handler for clearing category filter
+  const handleClearCategoryFilter = () => {
+    if (onCategoryFilterChange) {
+      onCategoryFilterChange(null);
+    }
+    setSelectedCategoryView(null);
+  };
   
   const sortedProducts = (() => {
     const products = [...filteredProducts];
@@ -333,6 +372,55 @@ const StoreHome = ({
     { label: 'Sec', value: formatSegment(flashTimeLeft.seconds) }
   ];
 
+  // If a category is selected, show the category products view
+  if (selectedCategoryView) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full" />
+        </div>
+      }>
+        <StoreCategoryProducts
+          products={displayProducts}
+          categories={categories}
+          subCategories={subCategories}
+          childCategories={childCategories}
+          brands={brands}
+          tags={tags}
+          selectedCategory={selectedCategoryView}
+          onCategoryChange={(category) => {
+            if (category) {
+              handleCategoryClick(category);
+            } else {
+              handleClearCategoryFilter();
+            }
+          }}
+          onBack={handleClearCategoryFilter}
+          onProductClick={onProductClick}
+          onBuyNow={handleBuyNow}
+          onQuickView={setQuickViewProduct}
+          onAddToCart={handleAddProductToCartFromCard}
+          websiteConfig={websiteConfig}
+          // Header/Footer props
+          logo={logo}
+          user={user}
+          wishlistCount={wishlistCount}
+          wishlist={wishlist}
+          onToggleWishlist={onToggleWishlist}
+          cart={cart}
+          onToggleCart={onToggleCart}
+          onCheckoutFromCart={onCheckoutFromCart}
+          onLoginClick={onLoginClick}
+          onLogoutClick={onLogoutClick}
+          onProfileClick={onProfileClick}
+          onOpenChat={onOpenChat}
+          onImageSearchClick={onImageSearchClick}
+          orders={orders}
+        />
+      </Suspense>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
       <Suspense fallback={<StoreHeaderSkeleton />}>
@@ -358,7 +446,7 @@ const StoreHome = ({
           onCategoriesClick={handleCategoriesNav}
           onProductsClick={handleProductsNav}
           categoriesList={CATEGORIES.map((cat) => cat.name)}
-          onCategorySelect={(categoryName) => updateSearchTerm(categoryName)}
+          onCategorySelect={(categoryName) => handleCategoryClick(categoryName)}
           onProductClick={onProductClick}
           categories={categories}
           subCategories={subCategories}
@@ -395,303 +483,78 @@ const StoreHome = ({
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">
         {hasSearchQuery ? (
-          <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs uppercase tracking-[0.4em] text-gray-400">Search</p>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white break-words">
-                  {sortedProducts.length} {sortedProducts.length === 1 ? 'result' : 'results'} for "{searchTerm.trim()}".
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-300">Matching product titles, categories, brands, and tags.</p>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <ProductFilter value={sortOption} onChange={setSortOption} />
-                <button
-                  onClick={() => {
-                    updateSearchTerm('');
-                    setSortOption('relevance');
-                  }}
-                  className="rounded-full border border-gray-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition hover:border-rose-400 hover:text-rose-500 dark:border-slate-700 dark:text-gray-300 h-10 min-w-[80px] sm:min-w-[100px]"
-                  aria-label="Clear search filters"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-            {sortedProducts.length ? (
-              <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5 auto-rows-max">
-                {sortedProducts.map((product) => (
-                  <ProductCard
-                    key={`search-${product.id}`}
-                    product={product}
-                    onClick={onProductClick}
-                    onBuyNow={handleBuyNow}
-                    variant={websiteConfig?.productCardStyle}
-                    onQuickView={setQuickViewProduct}
-                    onAddToCart={handleAddProductToCartFromCard}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptySearchState searchTerm={searchTerm.trim()} onClearSearch={() => updateSearchTerm('')} />
-            )}
-          </section>
+          <SearchResultsSection
+            searchTerm={searchTerm.trim()}
+            products={sortedProducts}
+            sortOption={sortOption}
+            onSortChange={setSortOption}
+            onClearSearch={() => {
+              updateSearchTerm('');
+              setSortOption('relevance');
+            }}
+            onProductClick={onProductClick}
+            onBuyNow={handleBuyNow}
+            onQuickView={setQuickViewProduct}
+            onAddToCart={handleAddProductToCartFromCard}
+            productCardStyle={websiteConfig?.productCardStyle}
+          />
         ) : (
           <>
             {/* Categories */}
-            <div ref={categoriesSectionRef}>
-            {websiteConfig?.categorySectionStyle === 'style2' ? (
-              <div className="mt-1 -mb-1">
-                <div className="flex items-end justify-between border-b border-gray-100 pb-0 md:pb-1">
-                  <div className="relative pb-1">
-                    <h2 className="text-[15px] md:text-[20px] font-bold text-gray-800 dark:text-white">
-                      {/* Categories */}
-                    </h2>
-                  </div>
-                  <a
-                    href="#"
-                    className="group mb-1 flex items-center gap-2 text-xs md:text-sm font-bold text-gray-600 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition dark:text-gray-400"
-                    role="button"
-                    aria-label="View all categories"
-                  >
-                    {/* View All */}
-                    <div className="h-0 w-0 border-b-[4px] border-l-[6px] border-t-[4px] border-b-transparent border-l-blue-500 border-t-transparent transition-transform group-hover:translate-x-1" />
-                  </a>
-                </div>
-                {/* rolling category pills */}
-                <div
-                  ref={categoryScrollRef}
-                  className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
-                  style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
-                >
-                  {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
-                    <CategoryPill
-                      key={`${cat.name}-${idx}`}
-                      name={cat.name}
-                      icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                <SectionHeader title="Categories" />
-                <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
-                  {CATEGORIES.map((cat, idx) => (
-                    <CategoryCircle
-                      key={idx}
-                      name={cat.name}
-                      icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 32, strokeWidth: 1.5 })}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-            </div>
+            <CategoriesSection
+              style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | undefined}
+              categories={categories}
+              onCategoryClick={handleCategoryClick}
+              categoryScrollRef={categoryScrollRef}
+              sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
+            />
 
             {/* Flash Deals */}
-            <section ref={productsSectionRef}>
-              <div className="mb-1 flex items-center gap-3">
-                <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
-                {showFlashSaleCounter && (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-theme-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-theme-font">  
-                  {/* shadow-[0_4px_12px_rgba(244,114,182,0.25 pink shadow*/}
-                    <div className="flex items-center gap-1 text-theme-primary">
-                      {flashSaleCountdown.map((segment) => (
-                        <span
-                          key={segment.label}
-                          className="flex min-w-[44px] flex-col items-center justify-center rounded-md border border-theme-primary/30 bg-white px-2 py-0.5 text-theme-primary shadow-sm leading-tight"
-                        >
-                          <span className="text-[11px] font-black">{segment.value}</span>
-                          <span className="text-[7px] font-semibold uppercase tracking-tight text-theme-primary/70">{segment.label}</span>
-                        </span>
-                      ))}
-                    </div>
-                    <span className="relative flex items-center gap-2 text-theme-primary">
-                      <span className="h-2 w-2 animate-ping rounded-full bg-theme-primary" />
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-                {isLoading ? (
-                  // Show skeletons while loading
-                  [...Array(5)].map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)
-                ) : (
-                  displayProducts.map((product) => (
-                    <ProductCard
-                      key={`flash-${product.id}`}
-                      product={product}
-                      onClick={onProductClick}
-                      onBuyNow={handleBuyNow}
-                      variant={websiteConfig?.productCardStyle}
-                      onQuickView={setQuickViewProduct}
-                      onAddToCart={handleAddProductToCartFromCard}
-                    />
-                  ))
-                )}
-                {displayProducts.length > 0 && displayProducts.length < 5 && (
-                  <ProductCard
-                    product={{ ...displayProducts[0], id: 99 }}
-                    onClick={onProductClick}
-                    onBuyNow={handleBuyNow}
-                    variant={websiteConfig?.productCardStyle}
-                    onQuickView={setQuickViewProduct}
-                    onAddToCart={handleAddProductToCartFromCard}
-                  />
-                )}
-              </div>
-            </section>
+            <FlashSalesSection
+              products={displayProducts}
+              isLoading={isLoading}
+              showCounter={showFlashSaleCounter}
+              countdown={flashSaleCountdown}
+              onProductClick={onProductClick}
+              onBuyNow={handleBuyNow}
+              onQuickView={setQuickViewProduct}
+              onAddToCart={handleAddProductToCartFromCard}
+              productCardStyle={websiteConfig?.productCardStyle}
+              sectionRef={productsSectionRef}
+            />
 
             {/* Best Sale Products */}
-            <section>
-              <div className="mb-1 flex items-center gap-3">
-                <div className="h-8 w-1.5 rounded-full bg-green-500"></div>
-                <SectionHeader title="Best Sale Products" className="text-xl text-red-600" />
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-                {displayProducts
-                  .slice()
-                  .reverse()
-                  .map((product) => (
-                    <ProductCard
-                      key={`best-${product.id}`}
-                      product={product}
-                      onClick={onProductClick}
-                      onBuyNow={handleBuyNow}
-                      variant={websiteConfig?.productCardStyle}
-                      onQuickView={setQuickViewProduct}
-                      onAddToCart={handleAddProductToCartFromCard}
-                    />
-                  ))}
-                {displayProducts.length > 0 && displayProducts.length < 5 && (
-                  <ProductCard
-                    product={{ ...displayProducts[1], id: 98 }}
-                    onClick={onProductClick}
-                    onBuyNow={handleBuyNow}
-                    variant={websiteConfig?.productCardStyle}
-                    onQuickView={setQuickViewProduct}
-                    onAddToCart={handleAddProductToCartFromCard}
-                  />
-                )}
-              </div>
-            </section>
+            <ProductGridSection
+              title="Best Sale Products"
+              products={displayProducts}
+              accentColor="green"
+              keyPrefix="best"
+              maxProducts={10}
+              reverseOrder={true}
+              onProductClick={onProductClick}
+              onBuyNow={handleBuyNow}
+              onQuickView={setQuickViewProduct}
+              onAddToCart={handleAddProductToCartFromCard}
+              productCardStyle={websiteConfig?.productCardStyle}
+            />
 
             {/* OMG Fashion Banner */}
-            <section className="relative mt-4 mb-8 overflow-hidden rounded-3xl px-6 py-10 text-white shadow-2xl sm:px-10">
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#150c2e] via-[#5b21b6] to-[#f472b6] opacity-95" />
-            <div
-              className="absolute inset-0 opacity-30"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.35), transparent 45%), radial-gradient(circle at 80% 0%, rgba(249,168,212,0.4), transparent 40%)'
-              }}
-            />
-          </div>
-          <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
-            <div>
-              <span className="inline-flex items-center gap-2 bg-white/15 backdrop-blur px-4 py-1.5 text-xs font-semibold rounded-full border border-white/20">
-                <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" /> NEW ARRIVAL
-              </span>
-              <h2 className="text-3xl md:text-5xl font-black mt-5 leading-tight tracking-tight">
-                OMG Fashion Weekend
-              </h2>
-              <p className="mt-4 text-sm md:text-base text-white/80 max-w-xl">
-                Curated accessories, bold statements, and capsule outfits ready to ship worldwide. Save up to 70% on
-                limited drops while stock lasts.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
-                <div className="bg-white/15 rounded-2xl px-5 py-3 border border-white/20">
-                  <p className="text-xs text-white/60 uppercase">Exclusive</p>
-                  <p className="text-lg">Limited Drops</p>
-                </div>
-                <div className="bg-white/15 rounded-2xl px-5 py-3 border border-white/20">
-                  <p className="text-xs text-white/60 uppercase">Up to</p>
-                  <p className="text-lg">70% OFF</p>
-                </div>
-                <div className="bg-white/15 rounded-2xl px-5 py-3 border border-white/20">
-                  <p className="text-xs text-white/60 uppercase">Ships</p>
-                  <p className="text-lg">48h Express</p>
-                </div>
-              </div>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <button className="btn-order px-8 py-3 rounded-full font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
-                  Explore Collection
-                </button>
-                <button className="px-8 py-3 rounded-full font-bold border-2 border-white/60 text-white hover:bg-white/10">
-                  Watch Lookbook
-                </button>
-              </div>
-            </div>
-            <div className="hidden md:flex justify-center">
-              <div className="relative w-72 h-72">
-                <div className="absolute -inset-6 bg-theme-gradient opacity-40 blur-3xl" aria-hidden />
-                <div className="relative bg-white/10 border border-white/20 rounded-[32px] h-full w-full backdrop-blur-md p-6 flex flex-col justify-between">
-                  <div>
-                    <p className="text-xs text-white/60">Feature Drop</p>
-                    <p className="text-2xl font-bold">Neon Bloom Set</p>
-                    <p className="text-sm text-white/70">Starting at ৳2,990</p>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center">
-                    <div
-                      className="w-40 h-40 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl"
-                      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960')", backgroundSize: 'cover', backgroundPosition: 'center' }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <div>
-                      <p className="text-xs text-white/60">Colorways</p>
-                      <p className="font-semibold">6 curated</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-white/60">Sizes</p>
-                      <p className="font-semibold">XS - XL</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-white/60">Stock</p>
-                      <p className="font-semibold text-emerald-300">In stock</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute -right-8 -bottom-6 bg-white/10 border border-white/20 backdrop-blur rounded-2xl px-4 py-3 text-sm font-semibold">
-                  <p className="text-xs text-white/60">Early Access</p>
-                  <p>500 VIP slots</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+            <PromoBanner />
 
             {/* Popular Products */}
-            <section>
-              <div className="mb-1 flex items-center gap-3">
-                <div className="h-8 w-1.5 rounded-full bg-purple-500"></div>
-                <SectionHeader title="Popular products" className="text-xl text-red-600" />
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-                {displayProducts.map((product) => (
-                  <ProductCard
-                    key={`pop-${product.id}`}
-                    product={product}
-                    onClick={onProductClick}
-                    onBuyNow={handleBuyNow}
-                    variant={websiteConfig?.productCardStyle}
-                    onQuickView={setQuickViewProduct}
-                    onAddToCart={handleAddProductToCartFromCard}
-                  />
-                ))}
-                {displayProducts.length > 0 && displayProducts.length < 5 && (
-                  <ProductCard
-                    product={{ ...displayProducts[2], id: 97 }}
-                    onClick={onProductClick}
-                    onBuyNow={handleBuyNow}
-                    variant={websiteConfig?.productCardStyle}
-                    onQuickView={setQuickViewProduct}
-                    onAddToCart={handleAddProductToCartFromCard}
-                  />
-                )}
-              </div>
-            </section>
+            <ProductGridSection
+              title="Popular products"
+              products={displayProducts}
+              accentColor="purple"
+              keyPrefix="pop"
+              maxProducts={10}
+              reverseOrder={false}
+              onProductClick={onProductClick}
+              onBuyNow={handleBuyNow}
+              onQuickView={setQuickViewProduct}
+              onAddToCart={handleAddProductToCartFromCard}
+              productCardStyle={websiteConfig?.productCardStyle}
+            />
           </>
         )}
       </main>

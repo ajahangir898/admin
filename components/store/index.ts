@@ -15,6 +15,13 @@ export const TrackOrderModal = lazy(() => import('./TrackOrderModal').then(m => 
 export const AIStudioModal = lazy(() => import('./AIStudioModal').then(m => ({ default: m.AIStudioModal })));
 export const AddToCartSuccessModal = lazy(() => import('./AddToCartSuccessModal').then(m => ({ default: m.AddToCartSuccessModal })));
 
+// Store sections
+export { FlashSalesSection } from './FlashSalesSection';
+export { ProductGridSection } from './ProductGridSection';
+export { PromoBanner } from './PromoBanner';
+export { CategoriesSection } from './CategoriesSection';
+export { SearchResultsSection } from './SearchResultsSection';
+
 // Helper components from HeroSection (not lazy, small)
 export { CategoryCircle, CategoryPill, SectionHeader } from './HeroSection';
 

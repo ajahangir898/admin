@@ -84,7 +84,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const faviconInputRef = useRef<HTMLInputElement>(null);
   
   // Theme State
-        type ThemeColorKey = 'primary' | 'secondary' | 'tertiary' | 'font' | 'hover' | 'surface';
+        type ThemeColorKey = 'primary' | 'secondary' | 'tertiary' | 'font' | 'hover' | 'surface' | 'adminBg' | 'adminInputBg' | 'adminBorder' | 'adminFocus';
 
         const defaultThemeColors: Record<ThemeColorKey, string> = {
         primary: '#22c55e',
@@ -92,7 +92,12 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         tertiary: '#9333ea',
             font: '#0f172a',
             hover: '#f97316',
-            surface: '#e2e8f0'
+            surface: '#e2e8f0',
+            // Admin theme colors
+            adminBg: '#030407',
+            adminInputBg: '#0f172a',
+            adminBorder: '#ffffff',
+            adminFocus: '#f87171'
     };
 
     const [colors, setColors] = useState({ ...defaultThemeColors });
@@ -145,7 +150,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 tertiary: themeConfig.tertiaryColor,
                 font: themeConfig.fontColor || defaultThemeColors.font,
                 hover: themeConfig.hoverColor || defaultThemeColors.hover,
-                surface: themeConfig.surfaceColor || defaultThemeColors.surface
+                surface: themeConfig.surfaceColor || defaultThemeColors.surface,
+                adminBg: themeConfig.adminBgColor || defaultThemeColors.adminBg,
+                adminInputBg: themeConfig.adminInputBgColor || defaultThemeColors.adminInputBg,
+                adminBorder: themeConfig.adminBorderColor || defaultThemeColors.adminBorder,
+                adminFocus: themeConfig.adminFocusColor || defaultThemeColors.adminFocus
       });
       setIsDarkMode(themeConfig.darkMode);
     }
@@ -244,7 +253,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         { key: 'tertiary', label: 'Depth Accent', helper: 'Charts, outlines, subtle gradients' },
         { key: 'font', label: 'Global Font Color', helper: 'Header links, footer text, storefront typography' },
         { key: 'hover', label: 'Hover Accent', helper: 'Header & footer hover states, interactive link highlights' },
-        { key: 'surface', label: 'Surface Glow', helper: 'Footer background wash, elevated cards, wishlist buttons' }
+        { key: 'surface', label: 'Surface Glow', helper: 'Footer background wash, elevated cards, wishlist buttons' },
+        { key: 'adminBg', label: 'Admin Background', helper: 'Admin panel main background color' },
+        { key: 'adminInputBg', label: 'Admin Input Background', helper: 'Admin input fields, select boxes, text areas background' },
+        { key: 'adminBorder', label: 'Admin Border Color', helper: 'Admin panel borders, dividers, outlines' },
+        { key: 'adminFocus', label: 'Admin Focus Color', helper: 'Input focus states, active highlights in admin' }
     ];
 
     const addFooterLink = (field: FooterLinkField) => {
@@ -294,7 +307,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           fontColor: colors.font,
           hoverColor: colors.hover,
           surfaceColor: colors.surface,
-          darkMode: isDarkMode
+          darkMode: isDarkMode,
+          adminBgColor: colors.adminBg,
+          adminInputBgColor: colors.adminInputBg,
+          adminBorderColor: colors.adminBorder,
+          adminFocusColor: colors.adminFocus
         });
       }
 

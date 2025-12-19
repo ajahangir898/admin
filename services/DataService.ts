@@ -354,6 +354,7 @@ class DataServiceImpl {
     websiteConfig: WebsiteConfig;
   }> {
     const scope = this.resolveTenantScope(tenantId);
+    console.log(`[DataService] Bootstrap loading for tenant: ${scope}`);
     
     try {
       const response = await this.requestTenantApi<{
@@ -365,6 +366,8 @@ class DataServiceImpl {
       }>(`/api/tenant-data/${scope}/bootstrap`);
       
       const { products, theme_config, website_config } = response.data;
+      console.log(`[DataService] Bootstrap received website_config:`, website_config);
+      console.log(`[DataService] Bootstrap carouselItems:`, website_config?.carouselItems);
       
       // Cache the results
       if (products) setCachedData('products', products, tenantId);
@@ -391,49 +394,38 @@ class DataServiceImpl {
     }
   }
 
-  // Default website config - used as fallback for new tenants
+  // Default website config - used as fallback for new tenants (minimal defaults, all content is dynamic)
   private getDefaultWebsiteConfig(): WebsiteConfig {
     return {
-      websiteName: 'SystemNext IT',
-      shortDescription: 'Get the best for less',
-      whatsappNumber: '+8801615332701',
+      websiteName: '',
+      shortDescription: '',
+      whatsappNumber: '',
       favicon: null,
-      addresses: ['D-14/3, Bank Colony, Savar, Dhaka'],
-      emails: ['opbd.shop@gmail.com', 'lunik.hasan@gmail.com'],
-      phones: ['+8801615332701', '+8801611053430'],
-      socialLinks: [
-        { id: '1', platform: 'Facebook', url: 'https://facebook.com' },
-        { id: '2', platform: 'Instagram', url: 'https://instagram.com' }
-      ],
-      footerQuickLinks: [
-        { id: 'quick-1', label: 'About Us', url: '#' },
-        { id: 'quick-2', label: 'Contact', url: '#' },
-        { id: 'quick-3', label: 'Terms & Conditions', url: '#' }
-      ],
-      footerUsefulLinks: [
-        { id: 'useful-1', label: 'Returns & Refunds', url: '#' },
-        { id: 'useful-2', label: 'Privacy Policy', url: '#' },
-        { id: 'useful-3', label: 'FAQ', url: '#' }
-      ],
+      addresses: [],
+      emails: [],
+      phones: [],
+      socialLinks: [],
+      footerQuickLinks: [],
+      footerUsefulLinks: [],
       showMobileHeaderCategory: true,
-      showNewsSlider: true,
-      headerSliderText: 'Easy return policy and complete cash on delivery, ease of shopping!',
+      showNewsSlider: false,
+      headerSliderText: '',
       hideCopyright: false,
       hideCopyrightText: false,
       showPoweredBy: false,
-      brandingText: 'SystemNext IT',
+      brandingText: '',
       carouselItems: [],
-      searchHints: 'gadget item, gift, educational toy, mobile accessories',
+      searchHints: '',
       orderLanguage: 'English',
       productCardStyle: 'style2',
       categorySectionStyle: 'style2',
       productSectionStyle: 'style2',
       footerStyle: 'style2',
-      chatEnabled: true,
-      chatGreeting: 'Hi there! How can we help today?',
-      chatOfflineMessage: 'We are currently offline. Drop your message and we will reach out soon.',
-      chatSupportHours: { from: '10:00', to: '22:00' },
-      chatWhatsAppFallback: true
+      chatEnabled: false,
+      chatGreeting: '',
+      chatOfflineMessage: '',
+      chatSupportHours: { from: '09:00', to: '18:00' },
+      chatWhatsAppFallback: false
     };
   }
 
@@ -512,54 +504,8 @@ class DataServiceImpl {
   }
 
   async getWebsiteConfig(tenantId?: string): Promise<WebsiteConfig> {
-    const defaultConfig: WebsiteConfig = {
-      websiteName: 'SystemNext IT',
-      shortDescription: 'Get the best for less',
-      whatsappNumber: '+8801615332701',
-      favicon: null,
-      addresses: ['D-14/3, Bank Colony, Savar, Dhaka'],
-      emails: ['opbd.shop@gmail.com', 'lunik.hasan@gmail.com'],
-      phones: ['+8801615332701', '+8801611053430'],
-      socialLinks: [
-        { id: '1', platform: 'Facebook', url: 'https://facebook.com' },
-        { id: '2', platform: 'Instagram', url: 'https://instagram.com' }
-      ],
-      footerQuickLinks: [
-        { id: 'quick-1', label: 'About Us', url: '#' },
-        { id: 'quick-2', label: 'Contact', url: '#' },
-        { id: 'quick-3', label: 'Terms & Conditions', url: '#' }
-      ],
-      footerUsefulLinks: [
-        { id: 'useful-1', label: 'Returns & Refunds', url: '#' },
-        { id: 'useful-2', label: 'Privacy Policy', url: '#' },
-        { id: 'useful-3', label: 'FAQ', url: '#' }
-      ],
-      showMobileHeaderCategory: true,
-      showNewsSlider: true,
-      headerSliderText: 'Easy return policy and complete cash on delivery, ease of shopping!',
-      hideCopyright: false,
-      hideCopyrightText: false,
-      showPoweredBy: false,
-      brandingText: 'SystemNext IT',
-      carouselItems: [
-        { id: '1', name: 'Mobile Holder', image: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&q=80&w=400', url: '/magnetic-suction-vacuum', urlType: 'Internal', serial: 3, status: 'Publish' },
-        { id: '2', name: 'Main', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=400', url: '/Product-categories', urlType: 'Internal', serial: 1, status: 'Publish' },
-        { id: '3', name: 'Gift', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=400', url: 'https://www.opbd.shop/products?categories=gift', urlType: 'External', serial: 7, status: 'Publish' }
-      ],
-      searchHints: 'gadget item, gift, educational toy, mobile accessories',
-      orderLanguage: 'English',
-      productCardStyle: 'style2',
-      categorySectionStyle: 'style2',
-      productSectionStyle: 'style2',
-      footerStyle: 'style2',
-      chatEnabled: true,
-      chatGreeting: 'Hi there! How can we help today?',
-      chatOfflineMessage: 'We are currently offline. Drop your message and we will reach out soon.',
-      chatSupportHours: { from: '10:00', to: '22:00' },
-      chatWhatsAppFallback: true,
-      androidAppUrl: 'aaa',
-      iosAppUrl: 'aaa'
-    };
+    // Use minimal defaults - all content should come from the database
+    const defaultConfig = this.getDefaultWebsiteConfig();
     return this.get<WebsiteConfig>('website_config', defaultConfig, tenantId);
   }
 
@@ -618,12 +564,15 @@ class DataServiceImpl {
   }
 
   private async commitSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
+    const scope = this.resolveTenantScope(tenantId);
+    console.log(`[DataService] Saving ${key} for tenant ${scope}`, data);
     try {
       await this.persistTenantDocument(key, data, tenantId);
       // Invalidate cache when data is saved
       invalidateCache(key, tenantId);
       // Notify listeners that data has been updated
       notifyDataRefresh(key, tenantId);
+      console.log(`[DataService] Successfully saved ${key} for tenant ${scope}`);
     } catch (error) {
       console.error(`Failed to persist ${key}`, error);
     }

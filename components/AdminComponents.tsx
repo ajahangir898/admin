@@ -831,26 +831,24 @@ export const AdminHeader: React.FC<{
 };
 
 export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon, colorClass }) => {
-	const palette: Record<string, string> = {
-		primary: 'bg-gradient-to-br from-[#062017] via-[#05160f] to-[#0c1411] text-emerald-100 border border-emerald-500/30 hover:border-emerald-400/50 shadow-emerald-900/30',
-		'primary-strong': 'bg-gradient-to-br from-[#0f2e22] via-[#041911] to-[#130c11] text-emerald-100 border border-emerald-400/40 hover:border-emerald-300/50 shadow-emerald-900/30',
-		secondary: 'bg-gradient-to-br from-[#2b0a0d] via-[#1a0507] to-[#120508] text-red-100 border border-red-500/30 hover:border-red-400/50 shadow-red-900/30',
-		'secondary-strong': 'bg-gradient-to-br from-[#360f12] via-[#200608] to-[#150407] text-red-100 border border-red-500/40 hover:border-red-400/60 shadow-red-900/30',
-		neutral: 'bg-[#0b0f12] text-slate-200 border border-white/5 hover:border-white/20 shadow-black/30'
+	const getCardStyle = (color: string) => {
+		if (['green', 'blue', 'teal', 'primary'].includes(color)) {
+			return { background: 'var(--admin-card-primary, linear-gradient(to bottom right, #062017, #05160f, #0c1411))', color: 'var(--admin-accent-light, #d1fae5)', border: '1px solid var(--admin-accent, rgba(16,185,129,0.3))' };
+		}
+		if (['purple', 'primary-strong'].includes(color)) {
+			return { background: 'var(--admin-card-primary-strong, linear-gradient(to bottom right, #0f2e22, #041911, #130c11))', color: 'var(--admin-accent-light, #d1fae5)', border: '1px solid var(--admin-accent, rgba(52,211,153,0.4))' };
+		}
+		if (['orange', 'pink', 'red', 'cyan', 'secondary'].includes(color)) {
+			return { background: 'var(--admin-card-secondary, linear-gradient(to bottom right, #2b0a0d, #1a0507, #120508))', color: 'var(--admin-danger-light, #fecaca)', border: '1px solid var(--admin-danger, rgba(239,68,68,0.3))' };
+		}
+		if (color === 'secondary-strong') {
+			return { background: 'var(--admin-card-secondary-strong, linear-gradient(to bottom right, #360f12, #200608, #150407))', color: 'var(--admin-danger-light, #fecaca)', border: '1px solid var(--admin-danger, rgba(239,68,68,0.4))' };
+		}
+		return { background: 'var(--admin-card-neutral, #0b0f12)', color: 'var(--admin-text, #e2e8f0)', border: '1px solid var(--admin-border, rgba(255,255,255,0.05))' };
 	};
-
-	const getColors = (color: string) => {
-		if (['green', 'blue', 'teal', 'primary'].includes(color)) return palette.primary;
-		if (['purple', 'primary-strong'].includes(color)) return palette['primary-strong'];
-		if (['orange', 'pink', 'red', 'cyan', 'secondary'].includes(color)) return palette.secondary;
-		if (color === 'secondary-strong') return palette['secondary-strong'];
-		return palette.neutral;
-	};
-
-	const styleClass = getColors(colorClass);
 
 	return (
-		<div className={`p-4 rounded-xl ${styleClass} transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-32 relative overflow-hidden group`}>
+		<div className="p-4 rounded-xl transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-32 relative overflow-hidden group" style={getCardStyle(colorClass)}>
 			<div className="z-10 relative">
 				<p className="text-xs font-semibold opacity-70 mb-1 uppercase tracking-wide">{title}</p>
 				<h3 className="text-2xl font-extrabold">{value}</h3>

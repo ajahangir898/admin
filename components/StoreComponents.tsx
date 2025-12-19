@@ -835,7 +835,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                                     <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : (
                                     <>
-                                        <span className="text-lg md:text-xl font-black text-theme-primary tracking-tight">OPBD.SHOP</span>
+                                        {/* <span className="text-lg md:text-xl font-black text-theme-primary tracking-tight">OPBD.SHOP</span> */}
                                         <span className="text-base md:text-lg font-bold text-theme-secondary tracking-widest -mt-1 block"></span>
                                     </>
                                 )}

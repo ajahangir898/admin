@@ -424,8 +424,14 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     <div className="max-w-7xl mx-auto px-4 py-1">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-                               {logo ? <img key={logoKey} src={logo} alt="Store Logo" className="h-10 md:h-12 object-contain" /> : <span className="text-xl font-black tracking-tight text-gray-900">GADGET<span className="text-theme-primary">SHOB</span></span>}
-                            </div>
+{logo ? (
+					<img src={logo} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
+				) : (
+					<h2 className="text-2xl font-black tracking-widest">
+						<span style={{ color: 'var(--admin-text, white)' }}>GADGET</span>
+						<span style={{ color: 'var(--admin-accent-secondary, #ef4444)' }}>SHOB</span>
+					</h2>
+				)}                            </div>
                             <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
                                 {renderSearchHintOverlay('left-4')}
                                 <input type="text" placeholder="Search product..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full border-2 border-theme-primary rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-theme-primary/20 placeholder-transparent" />

@@ -129,6 +129,7 @@ const hexToRgb = (hex: string) => {
 
 const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
 const SESSION_STORAGE_KEY = 'seven-days-user';
+const ACTIVE_TENANT_STORAGE_KEY = 'seven-days-active-tenant';
 const CART_STORAGE_KEY = 'seven-days-cart';
 
 const getAuthErrorMessage = (error: unknown) => {
@@ -186,26 +187,33 @@ const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tenants, setTenants] = useState<Tenant[]>([]);
-  // Get subdomain early to determine if we need to wait for tenant resolution
-  const [hostTenantSlug] = useState<string | null>(() => getHostTenantSlug());
+
+  // Capture the tenant slug (if any) once per session
+  const initialHostTenantSlug = useMemo(() => getHostTenantSlug(), []);
+  const [hostTenantSlug] = useState<string | null>(initialHostTenantSlug);
   
-  // Initialize activeTenantId - if we have a subdomain but no session, return empty string to defer loading
+  // Initialize activeTenantId - prefer session/cache, otherwise defer until tenant resolved
   const [activeTenantId, setActiveTenantId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       try {
-        // Check session first
         const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed?.tenantId) return parsed.tenantId;
+          const sessionTenantId = parsed?.tenantId || parsed?.tenant?.id || parsed?.tenant?._id;
+          if (sessionTenantId) return sessionTenantId as string;
+        }
+
+        const cachedTenantId = window.localStorage.getItem(ACTIVE_TENANT_STORAGE_KEY);
+        if (cachedTenantId) {
+          return cachedTenantId;
         }
       } catch {}
     }
-    // If subdomain exists but no session, return empty to defer bootstrap until tenant resolved
-    const slug = getHostTenantSlug();
-    if (slug && slug !== DEFAULT_TENANT_SLUG) {
-      return ''; // Will be set after tenant list loads
+
+    if (initialHostTenantSlug && initialHostTenantSlug !== DEFAULT_TENANT_SLUG) {
+      return ''; // Defer bootstrap until tenant resolved from slug
     }
+
     return DEFAULT_TENANT_ID;
   });
   const [hostTenantId, setHostTenantId] = useState<string | null>(null);
@@ -339,6 +347,17 @@ const App = () => {
   }, [activeTenantId]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (activeTenantId) {
+        window.localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, activeTenantId);
+      } else {
+        window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
+      }
+    } catch {}
+  }, [activeTenantId]);
+
+  useEffect(() => {
     hostTenantSlugRef.current = hostTenantSlug;
   }, [hostTenantSlug]);
 
@@ -440,13 +459,16 @@ const App = () => {
       const parsed = JSON.parse(stored) as User;
       if (parsed) {
         setUser(parsed);
-        if (parsed.tenantId) {
-          setActiveTenantId(parsed.tenantId);
+        const tenantInfo = (parsed as unknown as { tenant?: { id?: string; _id?: string } }).tenant;
+        const parsedTenantId = parsed.tenantId || tenantInfo?.id || tenantInfo?._id;
+        if (parsedTenantId) {
+          setActiveTenantId(parsedTenantId);
         }
       }
     } catch (error) {
       console.warn('Unable to restore session', error);
       window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
     }
   }, []);
 
@@ -456,6 +478,7 @@ const App = () => {
       window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
     } else {
       window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
     }
   }, [user]);
 

@@ -289,15 +289,30 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
   return (
     <div className="max-w-7xl mx-auto px-4 mt-4">
       <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-        {items.map((item, index) => (
-          <a
-            href={item.url || '#'}
-            key={item.id}
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-          >
-            <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
-          </a>
-        ))}
+        {items.map((item, index) => {
+          const isActive = index === currentIndex;
+          const priorityProps = isActive
+            ? { loading: 'eager' as const, fetchpriority: 'high' as const }
+            : { loading: 'lazy' as const, fetchpriority: 'low' as const };
+
+          return (
+            <a
+              href={item.url || '#'}
+              key={item.id}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+            >
+              <img
+                src={normalizeImageUrl(item.image)}
+                alt={item.name}
+                className="w-full h-full object-cover"
+                decoding="async"
+                width={1600}
+                height={400}
+                {...priorityProps}
+              />
+            </a>
+          );
+        })}
         {items.length > 1 && (
           <>
             <button

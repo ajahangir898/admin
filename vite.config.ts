@@ -1,8 +1,103 @@
 import path from 'path';
-import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
+import { defineConfig, loadEnv, splitVendorChunkPlugin, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const toPosixPath = (id: string) => id.split('\\').join('/');
+
+// Critical chunks that should be modulepreloaded (must match vendorChunkMatchers names)
+const CRITICAL_JS_CHUNKS = ['react-dom', 'react-core', 'scheduler', 'index-'];
+
+// Critical CSS patterns for preloading (ordered by priority)
+const CRITICAL_CSS_PATTERNS = [
+  { pattern: 'index-', priority: 1 },    // Main CSS bundle - highest priority
+  { pattern: 'skeleton', priority: 2 }   // Skeleton loaders CSS
+];
+
+/**
+ * Vite plugin to optimize critical request chains by:
+ * 1. Injecting preload hints for CSS and JS
+ * 2. Converting main CSS to non-render-blocking using media="print" pattern
+ * This reduces unused CSS impact by deferring non-critical CSS loading
+ */
+function criticalPreloadPlugin(): Plugin {
+  return {
+    name: 'critical-preload',
+    enforce: 'post',
+    transformIndexHtml(html, ctx) {
+      // Only process in build mode
+      if (!ctx.bundle) return html;
+
+      // Collect CSS files and JS modulepreloads
+      const cssFiles: Array<{ fileName: string; priority: number }> = [];
+      const modulepreloadLinks: string[] = [];
+
+      // Find critical assets from the bundle
+      for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
+        // Collect main CSS files
+        if (fileName.endsWith('.css')) {
+          const matchedPattern = CRITICAL_CSS_PATTERNS.find(p => fileName.includes(p.pattern));
+          if (matchedPattern) {
+            cssFiles.push({
+              fileName,
+              priority: matchedPattern.priority
+            });
+          }
+        }
+        
+        // Modulepreload critical JS chunks
+        if (fileName.endsWith('.js') && 'code' in chunk) {
+          if (CRITICAL_JS_CHUNKS.some(name => fileName.includes(name))) {
+            modulepreloadLinks.push(`<link rel="modulepreload" href="/${fileName}" />`);
+          }
+        }
+      }
+
+      // Sort CSS files by priority
+      cssFiles.sort((a, b) => a.priority - b.priority);
+
+      // Create preload hints for CSS
+      const cssPreloads = cssFiles.map(({ fileName }) => 
+        `<link rel="preload" href="/${fileName}" as="style" />`
+      ).join('\n    ');
+
+      const allPreloads = [cssPreloads, ...modulepreloadLinks].filter(Boolean).join('\n    ');
+      
+      if (allPreloads) {
+        html = html.replace(
+          /<head>/i,
+          `<head>\n    <!-- Critical resource preloads to reduce request chain latency -->\n    ${allPreloads}`
+        );
+      }
+
+      // Convert CSS stylesheet links to non-render-blocking using media="print" pattern
+      // This defers CSS loading without blocking first paint
+      for (const { fileName } of cssFiles) {
+        const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const cssLinkRegex = new RegExp(
+          `<link[^>]*href="[^"]*${escapedFileName}"[^>]*rel="stylesheet"[^>]*>|` +
+          `<link[^>]*rel="stylesheet"[^>]*href="[^"]*${escapedFileName}"[^>]*>`,
+          'gi'
+        );
+        
+        html = html.replace(cssLinkRegex, (match) => {
+          // Skip if already has media attribute or onload
+          if (match.includes('media=') || match.includes('onload=')) {
+            return match;
+          }
+          // Convert to non-render-blocking CSS using media="print" pattern
+          // This loads CSS asynchronously and switches to media="all" when loaded
+          const deferredCss = match
+            .replace('rel="stylesheet"', 'rel="stylesheet" media="print" onload="this.media=\'all\'"');
+          // Add noscript fallback for users without JavaScript
+          const noscriptFallback = `<noscript>${match}</noscript>`;
+          return `${deferredCss}\n    ${noscriptFallback}`;
+        });
+      }
+
+      return html;
+    }
+  };
+}
 
 const vendorChunkMatchers = [
   { name: 'react-dom', matcher: /node_modules\/react-dom\// },
@@ -100,7 +195,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         target: 'es2020',
         logOverride: { 'this-is-undefined-in-esm': 'silent' }
       },
-      plugins: [react(), splitVendorChunkPlugin()],
+      plugins: [react(), splitVendorChunkPlugin(), criticalPreloadPlugin()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -120,10 +215,18 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         target: 'es2020',
         chunkSizeWarningLimit: 200,
         outDir: isSsrBuild ? 'dist/server' : 'dist/client',
+        // Enable CSS code splitting for better caching
+        cssCodeSplit: true,
+        // Minify CSS in production builds (Vite disables this in dev mode automatically)
+        cssMinify: mode === 'production',
         rollupOptions: {
           input: isSsrBuild ? './entry-server.tsx' : './index.html',
           output: {
-            manualChunks: isSsrBuild ? undefined : (id) => manualChunkResolver(id)
+            manualChunks: isSsrBuild ? undefined : (id) => manualChunkResolver(id),
+            // Ensure consistent chunk naming for better caching
+            chunkFileNames: 'assets/[name]-[hash].js',
+            entryFileNames: 'assets/[name]-[hash].js',
+            assetFileNames: 'assets/[name]-[hash].[ext]'
           }
         }
       }

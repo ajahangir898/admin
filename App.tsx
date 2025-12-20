@@ -703,35 +703,14 @@ const App = () => {
   }, [activeTenantId]);
 
   // OPTIMIZED: Only save when data actually changes (not on initial load)
-  // CRITICAL FIX: Added multiple safeguards to prevent accidental data loss
   const prevProductsRef = useRef<Product[]>([]);
   const isFirstProductUpdateRef = useRef(true);
   useEffect(() => { 
-    // Don't save while still loading initial data
-    if (isLoading || !initialDataLoadedRef.current || !activeTenantId) return;
-    
-    // Skip the very first update after load - this is the initial data from server
-    if (isFirstProductUpdateRef.current) {
-      isFirstProductUpdateRef.current = false;
-      prevProductsRef.current = products;
-      productsLoadedFromServerRef.current = true;
-      return;
-    }
-    
-    // Safety check: Never save an empty array if we previously had products
-    // This prevents accidental data wipe from race conditions
-    if (products.length === 0 && prevProductsRef.current.length > 0) {
-      console.warn('[DataService] Prevented saving empty products array - possible race condition');
-      return;
-    }
-    
-    // Only save if data actually changed
-    if (JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
-    
+    if(!initialDataLoadedRef.current || !activeTenantId) return;
+    if(JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
     prevProductsRef.current = products;
-    // Use saveImmediate for products to prevent race conditions with data refresh
-    DataService.saveImmediate('products', products, activeTenantId); 
-  }, [products, activeTenantId, isLoading]);
+    DataService.save('products', products, activeTenantId); 
+  }, [products, activeTenantId]);
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);

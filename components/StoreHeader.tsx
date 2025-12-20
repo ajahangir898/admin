@@ -1,13 +1,26 @@
 // StoreHeader - Extracted from StoreComponents for better code splitting
 // This file contains the main store header component with multiple style variants
+// Sub-components are split into separate files for better code splitting
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { ShoppingCart, Search, User, X, Loader2, Heart, LogOut, ChevronDown, Bell, Gift, Menu, Mic, Camera, Minus, Plus, Trash2, Info, Truck, Grid, UserCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import { ShoppingCart, Search, User, Heart, LogOut, ChevronDown, Bell, Menu, Truck, UserCircle } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig } from '../types';
-import { formatCurrency } from '../utils/format';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
-import { normalizeImageUrl } from '../utils/imageUrlHelper';
+
+// Import lightweight search components directly (they're needed immediately)
+import { 
+  VoiceButton, 
+  CameraButton, 
+  SearchSuggestions, 
+  VoiceStreamOverlay, 
+  SearchHintOverlay 
+} from './store/header/SearchBar';
+
+// Lazy load heavier modal components (only loaded when opened)
+const CartModal = lazy(() => import('./store/header/CartModal'));
+const WishlistModal = lazy(() => import('./store/header/WishlistModal'));
+const MobileDrawer = lazy(() => import('./store/header/MobileDrawer'));
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -30,13 +43,6 @@ const ADMIN_NOTICE_TICKER_STYLES = `
     white-space: nowrap;
 }
 `;
-
-type DrawerLinkItem = {
-    key: string;
-    label: string;
-    icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
-    action?: () => void;
-};
 
 type CatalogGroup = {
     key: string;
@@ -74,46 +80,6 @@ export interface StoreHeaderProps {
     productCatalog?: Product[];
     onProductClick?: (product: Product) => void;
 }
-
-// Sub-components for cleaner code
-const VoiceButton: React.FC<{ 
-    variant?: 'light' | 'dark'; 
-    supportsVoiceSearch: boolean;
-    isListening: boolean;
-    onVoiceSearch: () => void;
-}> = ({ variant = 'dark', supportsVoiceSearch, isListening, onVoiceSearch }) => {
-    if (!supportsVoiceSearch) return null;
-    const baseClasses = variant === 'light'
-        ? 'bg-white/90 text-gray-700 hover:bg-white'
-        : 'bg-gray-100 text-gray-700 hover:bg-gray-200';
-    return (
-        <button
-            type="button"
-            onClick={onVoiceSearch}
-            className={`${baseClasses} border border-gray-200 rounded-full p-2 flex items-center justify-center transition shadow-sm disabled:opacity-50`}
-            title="Voice search"
-            aria-pressed={isListening}
-        >
-            {isListening ? <Loader2 size={16} className="animate-spin" /> : <Mic size={16} />}
-        </button>
-    );
-};
-
-const CameraButton: React.FC<{ variant?: 'light' | 'dark' }> = ({ variant = 'dark' }) => {
-    const baseClasses = variant === 'light'
-        ? 'bg-white/90 text-gray-700 hover:bg-white'
-        : 'bg-gray-100 text-gray-700 hover:bg-gray-200';
-    return (
-        <button
-            type="button"
-            className={`${baseClasses} border border-gray-200 rounded-full p-2 flex items-center justify-center transition shadow-sm`}
-            title="Visual search"
-            aria-label="Visual search"
-        >
-            <Camera size={16} />
-        </button>
-    );
-};
 
 export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     const {
@@ -228,13 +194,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
             .slice(0, 6);
     }, [activeSearchValue, catalogSource]);
 
-    // Drawer links
-    const mobileDrawerLinks = useMemo<DrawerLinkItem[]>(() => [
-        { key: 'campaign', label: 'Campaign', icon: () => <Gift size={18} /> },
-        { key: 'recommend', label: 'Recommend', icon: () => <Heart size={18} />, action: onTrackOrder },
-        { key: 'faqs', label: 'FAQs', icon: () => <Info size={18} /> },
-    ], [onTrackOrder]);
-
     // Callbacks
     const emitSearchValue = useCallback((value: string) => {
         onSearchChange?.(value);
@@ -279,11 +238,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
 
     const toggleCatalogSection = useCallback((key: string) => {
         setActiveCatalogSection((prev) => (prev === key ? '' : key));
-    }, []);
-
-    const handleDrawerNavClick = useCallback((action?: () => void) => {
-        setIsMobileMenuOpen(false);
-        action?.();
     }, []);
 
     const handleCatalogItemClick = useCallback((item: string) => {
@@ -381,47 +335,32 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Render helpers
-    const renderSearchHintOverlay = (offsetClass = 'left-4', textSizeClass = 'text-sm') => {
-        if (activeSearchValue.trim() || !activeHint) return null;
-        return (
-            <div key={`${offsetClass}-${activeHintIndex}`} className={`pointer-events-none absolute inset-y-0 ${offsetClass} flex items-center text-gray-400 ${textSizeClass} z-10`}>
-                <span className="search-hint-animate">{activeHint}</span>
-            </div>
-        );
-    };
+    // Render helpers - use imported components
+    const renderSearchHintOverlay = (offsetClass = 'left-4', textSizeClass = 'text-sm') => (
+        <SearchHintOverlay
+            activeSearchValue={activeSearchValue}
+            activeHint={activeHint}
+            activeHintIndex={activeHintIndex}
+            offsetClass={offsetClass}
+            textSizeClass={textSizeClass}
+        />
+    );
 
-    const renderVoiceStreamOverlay = (positionClass = 'absolute -bottom-11 left-0 right-0') => {
-        if (!isListening) return null;
-        return (
-            <div className={`pointer-events-none ${positionClass}`}>
-                <div className="flex items-center gap-2 rounded-full border border-blue-200 bg-white/95 px-3 py-1 text-xs font-semibold text-blue-600 shadow-sm">
-                    <span className="h-2 w-2 rounded-full bg-blue-500 animate-ping" />
-                    <span className="truncate">{liveTranscript || 'Listening…'}</span>
-                </div>
-            </div>
-        );
-    };
+    const renderVoiceStreamOverlay = (positionClass = 'absolute -bottom-11 left-0 right-0') => (
+        <VoiceStreamOverlay
+            isListening={isListening}
+            transcript={liveTranscript}
+            positionClass={positionClass}
+        />
+    );
 
-    const SearchSuggestionsDropdown = () => {
-        if (!isSearchSuggestionsOpen || searchSuggestions.length === 0) return null;
-        return (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto z-50">
-                {searchSuggestions.map((product) => (
-                    <button key={product.id} onClick={() => handleSuggestionClick(product)} className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0 text-left">
-                        <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-14 h-14 object-cover rounded" />
-                        <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 truncate">{product.name}</div>
-                            <div className="text-xs text-gray-500">{product.category}</div>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-sm font-bold text-green-600">{formatCurrency(product.price)}</div>
-                        </div>
-                    </button>
-                ))}
-            </div>
-        );
-    };
+    const SearchSuggestionsDropdown = () => (
+        <SearchSuggestions
+            isOpen={isSearchSuggestionsOpen}
+            suggestions={searchSuggestions}
+            onSuggestionClick={handleSuggestionClick}
+        />
+    );
 
     // Default Style 1 (GadgetShob) - Simplified
     return (
@@ -442,55 +381,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
             )}
             
             <header className="store-header w-full bg-white shadow-sm sticky top-0 z-50 transition-colors duration-300">
-                {/* Mobile Drawer Overlay */}
-                <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileMenuOpen(false)} />
-                
-                {/* Mobile Drawer */}
-                <aside className={`fixed inset-y-0 left-0 z-[99] w-[82%] max-w-sm bg-white shadow-2xl md:hidden transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100">
-                        <div className="flex items-center gap-2">
-                            {logo ? <img key={logoKey} src={logo} alt="Store Logo" className="h-8 object-contain" /> : <span className="text-lg font-black tracking-tight text-gray-900">GADGET<span className="text-theme-primary">SHOB</span></span>}
-                        </div>
-                        <button type="button" className="p-2 rounded-full text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
-                    </div>
-                    
-                    {/* Catalog dropdown */}
-                    <div className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-2 mx-4">
-                        <button type="button" className="flex w-full items-center justify-between px-5 py-3 text-sm font-semibold text-gray-900 bg-gray-50" onClick={() => setIsCatalogDropdownOpen((prev) => !prev)}>
-                            <div className="flex items-center gap-3"><Grid size={18} /><span>Catalog</span></div>
-                            <ChevronDown className={`transition-transform ${isCatalogDropdownOpen ? 'rotate-180' : ''}`} size={18} />
-                        </button>
-                        <div className={`border-t border-gray-200 transition-[max-height] duration-300 ${isCatalogDropdownOpen ? 'max-h-[520px]' : 'max-h-0'} overflow-hidden`}>
-                            {catalogGroups.map((group) => (
-                                <div key={group.key}>
-                                    <button type="button" className={`flex w-full items-center justify-between px-4 py-3 text-sm font-semibold ${activeCatalogSection === group.key ? 'text-theme-primary bg-theme-primary/10' : 'text-gray-800'}`} onClick={() => toggleCatalogSection(group.key)}>
-                                        <span>{group.label}</span>
-                                        {activeCatalogSection === group.key ? <Minus size={16} /> : <Plus size={16} />}
-                                    </button>
-                                    <ul className={`pl-10 pr-6 text-xs text-gray-600 transition-[max-height] duration-300 overflow-hidden ${activeCatalogSection === group.key ? 'max-h-60 py-3 space-y-1.5' : 'max-h-0'}`}>
-                                        {group.items.map((item) => (
-                                            <li key={item}><button type="button" className="w-full text-left hover:text-theme-primary" onClick={() => handleCatalogItemClick(item)}>{item}</button></li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-                        <nav className="space-y-2">
-                            {mobileDrawerLinks.map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                    <button key={item.key} type="button" className="w-full flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-left text-sm font-semibold text-gray-800 shadow-sm" onClick={() => handleDrawerNavClick(item.action)}>
-                                        <Icon /><span>{item.label}</span>
-                                    </button>
-                                );
-                            })}
-                        </nav>
-                    </div>
-                </aside>
-
                 {/* MOBILE HEADER */}
                 <div className="md:hidden bg-white pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-3 h-8 gap-3">
@@ -597,63 +487,50 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                 </div>
             </header>
 
-            {/* Wishlist Modal */}
+            {/* Lazy-loaded Wishlist Modal */}
             {isWishlistDrawerOpen && (
-                <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center" onClick={() => setIsWishlistDrawerOpen(false)}>
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
-                        <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsWishlistDrawerOpen(false)}><X size={22} /></button>
-                        <h2 className="text-lg font-bold mb-4">My Wishlist</h2>
-                        {wishlistItems.length === 0 ? <div className="text-center text-gray-500 py-8">No items in wishlist.</div> : (
-                            <ul className="space-y-4 max-h-96 overflow-y-auto">
-                                {wishlistItems.map((id) => {
-                                    const product = catalogSource.find(p => p.id === id);
-                                    if (!product) return null;
-                                    return (
-                                        <li key={id} className="flex items-center gap-3 border-b pb-3 last:border-b-0">
-                                            <img src={product.image} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="font-semibold">{product.name}</div>
-                                                <div className="text-sm font-bold text-green-600 mt-1">৳ {formatCurrency(product.price)}</div>
-                                            </div>
-                                            <button className="text-red-500 hover:text-red-700" onClick={() => handleWishlistItemToggle(id)}><Trash2 size={18} /></button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </div>
-                </div>
+                <Suspense fallback={null}>
+                    <WishlistModal
+                        isOpen={isWishlistDrawerOpen}
+                        onClose={() => setIsWishlistDrawerOpen(false)}
+                        wishlistItems={wishlistItems}
+                        catalogSource={catalogSource}
+                        onToggleWishlist={handleWishlistItemToggle}
+                    />
+                </Suspense>
             )}
 
-            {/* Cart Modal */}
+            {/* Lazy-loaded Cart Modal */}
             {isCartDrawerOpen && (
-                <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center" onClick={() => setIsCartDrawerOpen(false)}>
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
-                        <button className="absolute top-3 right-3 text-gray-500 hover:text-gray-900" onClick={() => setIsCartDrawerOpen(false)}><X size={22} /></button>
-                        <h2 className="text-lg font-bold mb-4">My Cart</h2>
-                        {cartItems.length === 0 ? <div className="text-center text-gray-500 py-8">No items in cart.</div> : (
-                            <ul className="space-y-4 max-h-96 overflow-y-auto">
-                                {cartItems.map((id) => {
-                                    const product = catalogSource.find(p => p.id === id);
-                                    if (!product) return null;
-                                    return (
-                                        <li key={id} className="flex items-center gap-3 border-b pb-3 last:border-b-0">
-                                            <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="font-semibold">{product.name}</div>
-                                                <div className="text-sm font-bold text-green-600 mt-1">৳ {formatCurrency(product.price)}</div>
-                                                <div className="mt-3 flex gap-2">
-                                                    <button className="flex-1 btn-order py-1.5 text-sm" onClick={() => handleCheckoutFromCartClick(id)}>Checkout</button>
-                                                    <button className="rounded-lg border border-red-200 text-red-500 text-xs font-semibold px-3 py-2 hover:bg-red-50" onClick={() => handleCartItemToggle(id)}>Remove</button>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </div>
-                </div>
+                <Suspense fallback={null}>
+                    <CartModal
+                        isOpen={isCartDrawerOpen}
+                        onClose={() => setIsCartDrawerOpen(false)}
+                        cartItems={cartItems}
+                        catalogSource={catalogSource}
+                        onToggleCart={handleCartItemToggle}
+                        onCheckout={handleCheckoutFromCartClick}
+                    />
+                </Suspense>
+            )}
+
+            {/* Lazy-loaded Mobile Drawer */}
+            {isMobileMenuOpen && (
+                <Suspense fallback={null}>
+                    <MobileDrawer
+                        isOpen={isMobileMenuOpen}
+                        onClose={() => setIsMobileMenuOpen(false)}
+                        logo={logo}
+                        logoKey={logoKey}
+                        catalogGroups={catalogGroups}
+                        activeCatalogSection={activeCatalogSection}
+                        isCatalogDropdownOpen={isCatalogDropdownOpen}
+                        onCatalogDropdownToggle={() => setIsCatalogDropdownOpen((prev) => !prev)}
+                        onCatalogSectionToggle={toggleCatalogSection}
+                        onCatalogItemClick={handleCatalogItemClick}
+                        onTrackOrder={onTrackOrder}
+                    />
+                </Suspense>
             )}
         </>
     );

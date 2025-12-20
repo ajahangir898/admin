@@ -186,7 +186,19 @@ const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [activeTenantId, setActiveTenantId] = useState<string>(DEFAULT_TENANT_ID);
+  // Initialize activeTenantId from localStorage if available to avoid double bootstrap
+  const [activeTenantId, setActiveTenantId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = window.localStorage.getItem('gadgetshob_session');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.tenantId) return parsed.tenantId;
+        }
+      } catch {}
+    }
+    return DEFAULT_TENANT_ID;
+  });
   const [hostTenantSlug] = useState<string | null>(() => getHostTenantSlug());
   const [hostTenantId, setHostTenantId] = useState<string | null>(null);
 
@@ -802,8 +814,9 @@ const App = () => {
     DataService.saveImmediate('products', products, activeTenantId); 
   }, [products, activeTenantId, isLoading]);
   
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
+  // Only save roles/users when admin data is loaded (prevents empty saves on initial load)
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && roles.length > 0) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && users.length > 0) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
   
   // Logo save - only save when logo actually changes from user action
   useEffect(() => {
@@ -828,16 +841,18 @@ const App = () => {
     DataService.save('logo', logo, activeTenantId);
   }, [logo, isLoading, activeTenantId]);
   
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('delivery_config', deliveryConfig, activeTenantId); }, [deliveryConfig, isLoading, activeTenantId]);
+  // Only save delivery_config when it has items
+  useEffect(() => { if(!isLoading && activeTenantId && deliveryConfig.length > 0) DataService.save('delivery_config', deliveryConfig, activeTenantId); }, [deliveryConfig, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, activeTenantId]);
   
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && initialDataLoadedRef.current) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
+  // Only save catalog data when it has items
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && categories.length > 0) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && subCategories.length > 0) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && childCategories.length > 0) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && brands.length > 0) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && tags.length > 0) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && initialDataLoadedRef.current && landingPages.length > 0) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
 
   // OPTIMIZED: Chat polling - only start when chat is opened or user is admin
   const chatPollingActiveRef = useRef(false);

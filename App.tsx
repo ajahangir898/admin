@@ -468,8 +468,9 @@ const App = () => {
         setThemeConfig(bootstrapData.themeConfig);
         setWebsiteConfig(bootstrapData.websiteConfig);
 
-        // DEFERRED: Load secondary data after first paint (use setTimeout for better priority)
-        setTimeout(() => {
+        // DEFERRED: Load secondary data immediately after critical data (no delay)
+        // Using requestIdleCallback for better scheduling when browser is idle
+        const loadSecondaryData = () => {
           if (!isMounted) return;
           Promise.all([
             DataService.getOrders(activeTenantId),
@@ -492,7 +493,9 @@ const App = () => {
             chatMessagesLoadedRef.current = true;
             setChatMessages(hydratedMessages);
             chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
-            setHasUnreadChat(false);
+            // Check for unread customer messages on initial load for admins
+            const hasCustomerMessages = hydratedMessages.some(m => m.sender === 'customer');
+            setHasUnreadChat(false); // Reset on load
             setIsAdminChatOpen(false);
             setLandingPages(landingPagesData);
             setCategories(categoriesData);
@@ -500,8 +503,16 @@ const App = () => {
             setChildCategories(childCategoriesData);
             setBrands(brandsData);
             setTags(tagsData);
+            console.log(`[Perf] Secondary data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
           }).catch(error => console.warn('Failed to load deferred data', error));
-        }, 100);
+        };
+        
+        // Use requestIdleCallback if available, otherwise use minimal setTimeout
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(loadSecondaryData, { timeout: 50 });
+        } else {
+          setTimeout(loadSecondaryData, 10);
+        }
       } catch (error) {
         loadError = error as Error;
         console.error('Failed to load data', error);
@@ -568,6 +579,7 @@ const App = () => {
   useEffect(() => {
     adminDataLoadedRef.current = false;
     websiteConfigLoadedRef.current = false;
+    isFirstProductUpdateRef.current = true; // Reset product save guard on tenant change
   }, [activeTenantId]);
 
   // --- DATA REFRESH HANDLER (Sync Admin changes to Storefront) ---
@@ -612,6 +624,23 @@ const App = () => {
         case 'landing_pages':
           const landingData = await DataService.getLandingPages(tenantId);
           setLandingPages(landingData);
+          break;
+        case 'chat_messages':
+          // Real-time chat update - always refresh chat messages when update received
+          // Use refs to avoid stale closure issues
+          {
+            const chatData = await DataService.getChatMessages(tenantId);
+            const normalized = Array.isArray(chatData) ? [...chatData] : [];
+            normalized.sort((a, b) => (a?.timestamp || 0) - (b?.timestamp || 0));
+            skipNextChatSaveRef.current = true;
+            setChatMessages(normalized);
+            // Check for unread messages from customer (for admin notification)
+            const localIds = new Set(chatMessagesRef.current.map(m => m.id));
+            const newCustomerMessages = normalized.filter(m => !localIds.has(m.id) && m.sender === 'customer');
+            if (newCustomerMessages.length > 0 && !isAdminChatOpenRef.current && isAdminRole(userRef.current?.role)) {
+              setHasUnreadChat(true);
+            }
+          }
           break;
         case 'popups':
           // Popups are loaded in StoreHome directly, trigger re-render
@@ -661,20 +690,48 @@ const App = () => {
   
   // OPTIMIZED: Track if initial data is loaded to prevent unnecessary saves
   const initialDataLoadedRef = useRef(false);
+  const productsLoadedFromServerRef = useRef(false);
   useEffect(() => {
     if (!isLoading && activeTenantId) {
       initialDataLoadedRef.current = true;
     }
   }, [isLoading, activeTenantId]);
 
+  // Reset productsLoadedFromServerRef when tenant changes
+  useEffect(() => {
+    productsLoadedFromServerRef.current = false;
+  }, [activeTenantId]);
+
   // OPTIMIZED: Only save when data actually changes (not on initial load)
+  // CRITICAL FIX: Added multiple safeguards to prevent accidental data loss
   const prevProductsRef = useRef<Product[]>([]);
+  const isFirstProductUpdateRef = useRef(true);
   useEffect(() => { 
-    if(!initialDataLoadedRef.current || !activeTenantId) return;
-    if(JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
+    // Don't save while still loading initial data
+    if (isLoading || !initialDataLoadedRef.current || !activeTenantId) return;
+    
+    // Skip the very first update after load - this is the initial data from server
+    if (isFirstProductUpdateRef.current) {
+      isFirstProductUpdateRef.current = false;
+      prevProductsRef.current = products;
+      productsLoadedFromServerRef.current = true;
+      return;
+    }
+    
+    // Safety check: Never save an empty array if we previously had products
+    // This prevents accidental data wipe from race conditions
+    if (products.length === 0 && prevProductsRef.current.length > 0) {
+      console.warn('[DataService] Prevented saving empty products array - possible race condition');
+      return;
+    }
+    
+    // Only save if data actually changed
+    if (JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
+    
     prevProductsRef.current = products;
-    DataService.save('products', products, activeTenantId); 
-  }, [products, activeTenantId]);
+    // Use saveImmediate for products to prevent race conditions with data refresh
+    DataService.saveImmediate('products', products, activeTenantId); 
+  }, [products, activeTenantId, isLoading]);
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
@@ -742,8 +799,8 @@ const App = () => {
         }
 
         const shouldNotify = newMessages.some((message) => message.sender === 'customer');
-        const isSuperAdmin = userRef.current?.role === 'super_admin';
-        if (shouldNotify && isSuperAdmin && !isAdminChatOpenRef.current) {
+        // Notify any admin role, not just super_admin
+        if (shouldNotify && isAdminRole(userRef.current?.role) && !isAdminChatOpenRef.current) {
           setHasUnreadChat(true);
         }
       } catch (error) {
@@ -1505,7 +1562,8 @@ fbq('track', 'PageView');`;
   const brandHandlers = createCrudHandler(setBrands, 'brands');
   const tagHandlers = createCrudHandler(setTags, 'tags');
   const platformOperator = isPlatformOperator(user?.role);
-  const canAccessAdminChat = user?.role === 'super_admin';
+  // Allow any admin role to access the chat, not just super_admin
+  const canAccessAdminChat = isAdminRole(user?.role);
   const selectedTenantRecord = tenants.find(t => t.id === activeTenantId) || tenantsRef.current.find(t => t.id === activeTenantId) || null;
   const isTenantLockedByHost = Boolean(hostTenantId);
   const scopedTenants = isTenantLockedByHost ? tenants.filter((tenant) => tenant.id === hostTenantId) : tenants;

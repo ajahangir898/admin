@@ -20,6 +20,13 @@ const emitDataUpdate = (req: Request, tenantId: string, key: string, data: unkno
   if (io) {
     // Emit to tenant-specific room
     io.to(`tenant:${tenantId}`).emit('data-update', { tenantId, key, data, timestamp: Date.now() });
+    
+    // Emit specific event for chat messages for real-time chat
+    if (key === 'chat_messages') {
+      io.to(`tenant:${tenantId}`).emit('chat-update', { tenantId, data, timestamp: Date.now() });
+      console.log(`[Socket.IO] Emitted chat-update for ${tenantId}`);
+    }
+    
     // Also emit globally for cross-tenant admins
     io.emit('data-update-global', { tenantId, key, timestamp: Date.now() });
     console.log(`[Socket.IO] Emitted data-update for ${tenantId}/${key}`);

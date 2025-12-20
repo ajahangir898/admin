@@ -8,40 +8,52 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 // Socket.IO connection for real-time updates
 let socket: Socket | null = null;
 let socketInitAttempted = false;
+let pendingTenantJoin: string | null = null;
 
 const initSocket = (): Socket | null => {
   if (typeof window === 'undefined') return null;
   if (socket?.connected) return socket;
-  if (socketInitAttempted && !socket?.connected) return null; // Don't retry if already failed
+  
+  // If socket exists but disconnected, try to reconnect
+  if (socket && !socket.connected) {
+    socket.connect();
+    return socket;
+  }
+  
+  // Only create new socket once
+  if (socketInitAttempted) return socket;
   
   socketInitAttempted = true;
   const socketUrl = API_BASE_URL || window.location.origin;
+  
+  console.log('[Socket.IO] Initializing connection to:', socketUrl);
   
   try {
     socket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 2, // Reduced from 5
-      reconnectionDelay: 2000,
-      timeout: 5000,
-      autoConnect: true
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 10000,
+      autoConnect: true,
+      withCredentials: true
     });
     
     socket.on('connect', () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Socket.IO] Connected:', socket?.id);
+      console.log('[Socket.IO] Connected:', socket?.id);
+      // Join pending tenant room after connection
+      if (pendingTenantJoin && socket?.connected) {
+        socket.emit('join-tenant', pendingTenantJoin);
+        console.log('[Socket.IO] Joined pending tenant room:', pendingTenantJoin);
       }
     });
     
     socket.on('disconnect', (reason) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Socket.IO] Disconnected:', reason);
-      }
+      console.log('[Socket.IO] Disconnected:', reason);
     });
     
-    socket.on('connect_error', () => {
-      // Silently handle connection errors in production
-      // Socket.IO will fallback to HTTP polling or just not use real-time features
+    socket.on('connect_error', (error) => {
+      console.warn('[Socket.IO] Connection error:', error.message);
     });
   
   // Listen for data updates and notify listeners
@@ -52,25 +64,28 @@ const initSocket = (): Socket | null => {
     // Notify UI listeners
     notifyDataRefresh(payload.key, payload.tenantId);
   });
+
+  // Listen for chat message updates
+  socket.on('chat-update', (payload: { tenantId: string; data: unknown }) => {
+    console.log('[Socket.IO] Chat update received:', payload.tenantId);
+    invalidateCache('chat_messages', payload.tenantId);
+    notifyDataRefresh('chat_messages', payload.tenantId);
+  });
   
   socket.on('new-order', (payload: { tenantId: string; data: unknown }) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Socket.IO] New order received:', payload.tenantId);
-    }
+    console.log('[Socket.IO] New order received:', payload.tenantId);
     invalidateCache('orders', payload.tenantId);
     notifyDataRefresh('orders', payload.tenantId);
   });
   
   socket.on('order-updated', (payload: { tenantId: string; data: unknown }) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Socket.IO] Order updated:', payload.tenantId);
-    }
+    console.log('[Socket.IO] Order updated:', payload.tenantId);
     invalidateCache('orders', payload.tenantId);
     notifyDataRefresh('orders', payload.tenantId);
   });
   
   } catch (e) {
-    // Socket initialization failed, continue without real-time features
+    console.error('[Socket.IO] Initialization failed:', e);
     return null;
   }
   
@@ -79,12 +94,13 @@ const initSocket = (): Socket | null => {
 
 // Join tenant room for targeted updates
 export const joinTenantRoom = (tenantId: string) => {
+  pendingTenantJoin = tenantId; // Store for reconnection
   const s = initSocket();
   if (s?.connected) {
     s.emit('join-tenant', tenantId);
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Socket.IO] Joined tenant room:', tenantId);
-    }
+    console.log('[Socket.IO] Joined tenant room:', tenantId);
+  } else {
+    console.log('[Socket.IO] Socket not connected, will join room on connect');
   }
 };
 
@@ -562,6 +578,15 @@ class DataServiceImpl {
       return;
     }
 
+    // Safety check: Prevent saving empty products array to avoid data loss
+    if (key === 'products' && Array.isArray(data) && data.length === 0) {
+      const cached = getCachedData<T[]>('products', tenantId);
+      if (cached && cached.length > 0) {
+        console.warn('[DataService] Blocked enqueueing empty products save - cache has data. This prevents accidental data loss.');
+        return;
+      }
+    }
+
     if (SAVE_DEBOUNCE_MS <= 0) {
       await this.commitSave(key, data, tenantId);
       return;
@@ -577,6 +602,15 @@ class DataServiceImpl {
   async saveImmediate<T>(key: string, data: T, tenantId?: string): Promise<void> {
     if (DISABLE_REMOTE_SAVE) {
       return;
+    }
+
+    // Safety check: Prevent saving empty products array to avoid data loss
+    if (key === 'products' && Array.isArray(data) && data.length === 0) {
+      const cached = getCachedData<T[]>('products', tenantId);
+      if (cached && cached.length > 0) {
+        console.warn('[DataService] Blocked saving empty products array - cache has data. This prevents accidental data loss.');
+        return;
+      }
     }
     
     // Cancel any pending debounced save for this key
@@ -594,11 +628,22 @@ class DataServiceImpl {
 
   private async commitSave<T>(key: string, data: T, tenantId?: string): Promise<void> {
     const scope = this.resolveTenantScope(tenantId);
-    console.log(`[DataService] Saving ${key} for tenant ${scope}`, data);
+    
+    // Safety check: Prevent saving empty products array when cache has data
+    // This prevents race conditions from wiping out product data
+    if (key === 'products' && Array.isArray(data) && data.length === 0) {
+      const cached = getCachedData<T[]>('products', tenantId);
+      if (cached && cached.length > 0) {
+        console.warn(`[DataService] Blocked saving empty products array for tenant ${scope} - cache has ${cached.length} products`);
+        return;
+      }
+    }
+    
+    console.log(`[DataService] Saving ${key} for tenant ${scope}`, Array.isArray(data) ? `(${data.length} items)` : data);
     try {
       await this.persistTenantDocument(key, data, tenantId);
-      // Invalidate cache when data is saved
-      invalidateCache(key, tenantId);
+      // Update cache with new data
+      setCachedData(key, data, tenantId);
       // Notify listeners that data has been updated
       notifyDataRefresh(key, tenantId);
       console.log(`[DataService] Successfully saved ${key} for tenant ${scope}`);
@@ -608,13 +653,22 @@ class DataServiceImpl {
   }
 
   async listTenants(): Promise<Tenant[]> {
+    // Check cache first for instant load
+    const cached = getCachedData<Tenant[]>('tenants', 'global');
+    if (cached && cached.length) {
+      console.log('[DataService] Using cached tenant list');
+      return cached;
+    }
+    
     try {
       const response = await this.requestTenantApi<TenantApiListResponse>('/api/tenants');
       const tenants = Array.isArray(response?.data)
         ? response.data.map(doc => this.normalizeTenantDocument(doc))
         : [];
       if (tenants.length) {
-        return tenants.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        const sorted = tenants.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        setCachedData('tenants', sorted, 'global');
+        return sorted;
       }
     } catch (error) {
       console.warn('Unable to load tenants from backend API', error);

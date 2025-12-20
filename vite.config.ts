@@ -14,8 +14,10 @@ const CRITICAL_CSS_PATTERNS = [
 ];
 
 /**
- * Vite plugin to optimize critical request chains by injecting preload hints
- * This reduces the maximum critical path latency by loading CSS and JS in parallel
+ * Vite plugin to optimize critical request chains by:
+ * 1. Injecting preload hints for CSS and JS
+ * 2. Converting main CSS to non-render-blocking using media="print" pattern
+ * This reduces unused CSS impact by deferring non-critical CSS loading
  */
 function criticalPreloadPlugin(): Plugin {
   return {
@@ -25,18 +27,18 @@ function criticalPreloadPlugin(): Plugin {
       // Only process in build mode
       if (!ctx.bundle) return html;
 
-      // Collect and sort CSS preloads by priority
-      const cssPreloads: Array<{ link: string; priority: number }> = [];
+      // Collect CSS files and JS modulepreloads
+      const cssFiles: Array<{ fileName: string; priority: number }> = [];
       const modulepreloadLinks: string[] = [];
 
       // Find critical assets from the bundle
       for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
-        // Preload main CSS files (critical for LCP)
+        // Collect main CSS files
         if (fileName.endsWith('.css')) {
           const matchedPattern = CRITICAL_CSS_PATTERNS.find(p => fileName.includes(p.pattern));
           if (matchedPattern) {
-            cssPreloads.push({
-              link: `<link rel="preload" href="/${fileName}" as="style" />`,
+            cssFiles.push({
+              fileName,
               priority: matchedPattern.priority
             });
           }
@@ -50,19 +52,46 @@ function criticalPreloadPlugin(): Plugin {
         }
       }
 
-      // Sort CSS preloads by priority (lower number = higher priority)
-      cssPreloads.sort((a, b) => a.priority - b.priority);
-      const preloadLinks = cssPreloads.map(p => p.link);
+      // Sort CSS files by priority
+      cssFiles.sort((a, b) => a.priority - b.priority);
 
-      // Combine all preloads: CSS first (by priority), then JS modulepreloads
-      const allPreloads = [...preloadLinks, ...modulepreloadLinks].join('\n    ');
+      // Create preload hints for CSS
+      const cssPreloads = cssFiles.map(({ fileName }) => 
+        `<link rel="preload" href="/${fileName}" as="style" />`
+      ).join('\n    ');
+
+      const allPreloads = [cssPreloads, ...modulepreloadLinks].filter(Boolean).join('\n    ');
       
       if (allPreloads) {
-        // Insert preload links after <head> (case-insensitive regex)
-        return html.replace(
+        html = html.replace(
           /<head>/i,
           `<head>\n    <!-- Critical resource preloads to reduce request chain latency -->\n    ${allPreloads}`
         );
+      }
+
+      // Convert CSS stylesheet links to non-render-blocking using media="print" pattern
+      // This defers CSS loading without blocking first paint
+      for (const { fileName } of cssFiles) {
+        const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const cssLinkRegex = new RegExp(
+          `<link[^>]*href="[^"]*${escapedFileName}"[^>]*rel="stylesheet"[^>]*>|` +
+          `<link[^>]*rel="stylesheet"[^>]*href="[^"]*${escapedFileName}"[^>]*>`,
+          'gi'
+        );
+        
+        html = html.replace(cssLinkRegex, (match) => {
+          // Skip if already has media attribute or onload
+          if (match.includes('media=') || match.includes('onload=')) {
+            return match;
+          }
+          // Convert to non-render-blocking CSS using media="print" pattern
+          // This loads CSS asynchronously and switches to media="all" when loaded
+          const deferredCss = match
+            .replace('rel="stylesheet"', 'rel="stylesheet" media="print" onload="this.media=\'all\'"');
+          // Add noscript fallback for users without JavaScript
+          const noscriptFallback = `<noscript>${match}</noscript>`;
+          return `${deferredCss}\n    ${noscriptFallback}`;
+        });
       }
 
       return html;

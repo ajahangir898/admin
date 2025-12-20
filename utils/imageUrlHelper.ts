@@ -18,9 +18,14 @@ const IMAGE_SIZES: Record<ImageSize, { width: number; quality: number }> = {
 export const normalizeImageUrl = (url: string | undefined | null): string => {
   if (!url) return '';
   
-  // If it's a localhost URL, replace with production domain
+  // Data URIs are already complete - return as-is
+  if (url.startsWith('data:')) {
+    return url;
+  }
+  
+  // If it's already a full URL with systemnextit.com, return as-is
   if (url.includes('systemnextit.com')) {
-    return url.replace('https://systemnextit.com', PRODUCTION_URL);
+    return url;
   }
   
   // If it's a relative URL (starts with /uploads), prepend the base URL
@@ -28,7 +33,17 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
     return `${PRODUCTION_URL}${url}`;
   }
   
-  // Return as-is if already a valid URL
+  // Handle relative URLs without leading slash (e.g., uploads/...)
+  if (url.startsWith('uploads/')) {
+    return `${PRODUCTION_URL}/${url}`;
+  }
+  
+  // If it's a localhost URL, replace with production domain
+  if (url.includes('localhost')) {
+    return url.replace(/https?:\/\/localhost:\d+/, PRODUCTION_URL);
+  }
+  
+  // Return as-is if already a valid URL or other format
   return url;
 };
 

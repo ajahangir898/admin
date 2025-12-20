@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect, useRef, lazy, Suspense, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react';
 import { HeroSection } from '../components/StoreProductComponents';
 import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
-import { DataService } from '../services/DataService';
 import { SortOption } from '../components/ProductFilter';
 import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
 import { slugify } from '../services/slugify';
@@ -23,6 +22,9 @@ const ProductQuickViewModal = lazy(() => import('../components/StoreComponents')
 const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
 const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
 const StoreCategoryProducts = lazy(() => import('../components/StoreCategoryProducts'));
+
+const POPUP_CACHE_KEY = 'ds_cache_public::popups';
+const LOCAL_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const getNextFlashSaleReset = () => {
   const now = new Date();
@@ -111,6 +113,9 @@ const StoreHome = ({
   const [popups, setPopups] = useState<Popup[]>([]);
   const [activePopup, setActivePopup] = useState<Popup | null>(null);
   const [popupIndex, setPopupIndex] = useState(0);
+  const showPopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextPopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialPopupShownRef = useRef(false);
   
   // Category view state - shows category products page when a category is selected
   const [selectedCategoryView, setSelectedCategoryView] = useState<string | null>(null);
@@ -133,35 +138,110 @@ const StoreHome = ({
       setSelectedCategoryView(null);
     }
   }, [initialCategoryFilter, categories]);
+  const scheduleInitialPopup = useCallback((popupList: Popup[]) => {
+    if (popupList.length === 0 || initialPopupShownRef.current) {
+      return;
+    }
+    if (showPopupTimerRef.current) {
+      clearTimeout(showPopupTimerRef.current);
+    }
+    showPopupTimerRef.current = setTimeout(() => {
+      initialPopupShownRef.current = true;
+      setPopupIndex(0);
+      setActivePopup(popupList[0]);
+      showPopupTimerRef.current = null;
+    }, 1500);
+  }, []);
 
-  // Load popups
   useEffect(() => {
-    const loadPopups = async () => {
-      const allPopups = await DataService.get<Popup[]>('popups', []);
-      const publishedPopups = allPopups
-        .filter((p) => p.status?.toLowerCase() === 'publish')
-        .sort((a, b) => (a.priority || 0) - (b.priority || 0));
-      setPopups(publishedPopups);
-      
-      // Show first popup after a delay
-      if (publishedPopups.length > 0) {
-        setTimeout(() => {
-          setActivePopup(publishedPopups[0]);
-          setPopupIndex(0);
-        }, 1500);
+    let isMounted = true;
+
+    const readCachedPopups = (): Popup[] => {
+      if (typeof window === 'undefined') return [];
+      try {
+        const cached = localStorage.getItem(POPUP_CACHE_KEY);
+        if (!cached) return [];
+        const parsed = JSON.parse(cached) as { data?: Popup[]; timestamp?: number };
+        if (!parsed?.data || !Array.isArray(parsed.data)) return [];
+        const timestamp = typeof parsed.timestamp === 'number' ? parsed.timestamp : 0;
+        if (Date.now() - timestamp > LOCAL_CACHE_TTL_MS) {
+          return [];
+        }
+        return parsed.data;
+      } catch {
+        return [];
       }
     };
+
+    const normalizePopups = (list: Popup[]) =>
+      list
+        .filter((p) => p.status?.toLowerCase() === 'publish')
+        .sort((a, b) => (a.priority || 0) - (b.priority || 0));
+
+    const applyPopups = (list: Popup[]) => {
+      if (!isMounted) return;
+      setPopups(list);
+      if (list.length === 0) {
+        initialPopupShownRef.current = false;
+        setActivePopup(null);
+        setPopupIndex(0);
+        if (showPopupTimerRef.current) {
+          clearTimeout(showPopupTimerRef.current);
+          showPopupTimerRef.current = null;
+        }
+        return;
+      }
+      scheduleInitialPopup(list);
+    };
+
+    const cachedPopups = normalizePopups(readCachedPopups());
+    if (cachedPopups.length) {
+      applyPopups(cachedPopups);
+    }
+
+    const loadPopups = async () => {
+      try {
+        const module = await import('../services/DataService');
+        if (!isMounted) return;
+        const allPopups = await module.DataService.get<Popup[]>('popups', []);
+        const publishedPopups = normalizePopups(allPopups);
+        applyPopups(publishedPopups);
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('[StoreHome] Failed to load popups', error);
+        }
+      }
+    };
+
     loadPopups();
-  }, []);
+
+    return () => {
+      isMounted = false;
+      if (showPopupTimerRef.current) {
+        clearTimeout(showPopupTimerRef.current);
+        showPopupTimerRef.current = null;
+      }
+      if (nextPopupTimerRef.current) {
+        clearTimeout(nextPopupTimerRef.current);
+        nextPopupTimerRef.current = null;
+      }
+      initialPopupShownRef.current = false;
+    };
+  }, [scheduleInitialPopup]);
 
   const handleClosePopup = () => {
     setActivePopup(null);
+    if (nextPopupTimerRef.current) {
+      clearTimeout(nextPopupTimerRef.current);
+      nextPopupTimerRef.current = null;
+    }
     // Show next popup if available
     const nextIndex = popupIndex + 1;
     if (nextIndex < popups.length) {
-      setTimeout(() => {
+      nextPopupTimerRef.current = setTimeout(() => {
         setActivePopup(popups[nextIndex]);
         setPopupIndex(nextIndex);
+        nextPopupTimerRef.current = null;
       }, 30000); // Show next popup after 30 seconds
     }
   };

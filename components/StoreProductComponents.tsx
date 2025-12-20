@@ -291,24 +291,19 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
       <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
         {items.map((item, index) => {
           const isActive = index === currentIndex;
-          const priorityProps = isActive
-            ? { loading: 'eager' as const, fetchpriority: 'high' as const }
-            : { loading: 'lazy' as const, fetchpriority: 'low' as const };
-
           return (
             <a
               href={item.url || '#'}
               key={item.id}
               className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
             >
-              <img
+              <LazyImage
                 src={normalizeImageUrl(item.image)}
                 alt={item.name}
-                className="w-full h-full object-cover"
-                decoding="async"
-                width={1600}
-                height={400}
-                {...priorityProps}
+                className="absolute inset-0"
+                size="full"
+                priority={isActive}
+                optimizationOptions={{ width: 1600, quality: 85 }}
               />
             </a>
           );

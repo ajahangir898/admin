@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Popup } from '../types';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
+import { LazyImage } from '../utils/performanceOptimization';
 
 interface StorePopupProps {
   popup: Popup;
@@ -62,12 +63,15 @@ export const StorePopup: React.FC<StorePopupProps> = ({ popup, onClose, onNaviga
           }`}
           onClick={popup.url ? handleImageClick : undefined}
         >
-          <img
+          <LazyImage
             src={normalizeImageUrl(popup.image)}
             alt={popup.name}
-            className="w-full h-auto max-h-[60vh] object-contain"
+            className="w-full"
+            imgClassName="w-full h-auto max-h-[60vh] object-contain"
+            size="large"
+            optimizationOptions={{ width: 960, quality: 80 }}
           />
-          
+
           {popup.url && (
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 text-center">
               <p className="text-white text-sm font-medium">Click to learn more</p>

@@ -340,7 +340,8 @@ export const LazyImage: React.FC<{
   size?: ImageSize;
   priority?: boolean;
   optimizationOptions?: ImageOptimizationOptions;
-}> = ({ src, alt, width, height, className = '', size = 'medium', priority = false, optimizationOptions = {} }) => {
+  imgClassName?: string;
+}> = ({ src, alt, width, height, className = '', size = 'medium', priority = false, optimizationOptions = {}, imgClassName }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
@@ -401,7 +402,7 @@ export const LazyImage: React.FC<{
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
+          className={`${imgClassName || 'w-full h-full object-cover'} transition-opacity duration-300 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
         />

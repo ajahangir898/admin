@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CarouselItem, WebsiteConfig } from '../../types';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
+import { LazyImage } from '../../utils/performanceOptimization';
 
 export interface HeroSectionProps {
     carouselItems?: CarouselItem[];
@@ -32,7 +33,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
                         key={item.id}
                         className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                     >
-                        <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
+                        <LazyImage
+                            src={normalizeImageUrl(item.image)}
+                            alt={item.name}
+                            className="absolute inset-0"
+                            size="full"
+                            priority={index === currentIndex}
+                            optimizationOptions={{ width: 1600, quality: 85 }}
+                        />
                     </a>
                 ))}
 

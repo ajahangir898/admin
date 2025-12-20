@@ -500,45 +500,31 @@ const App = () => {
         setThemeConfig(bootstrapData.themeConfig);
         setWebsiteConfig(bootstrapData.websiteConfig);
 
-        // DEFERRED: Load secondary data immediately after critical data (no delay)
-        // Using requestIdleCallback for better scheduling when browser is idle
+        // DEFERRED: Load secondary data in ONE request instead of 10 separate calls
         const loadSecondaryData = () => {
           if (!isMounted) return;
-          Promise.all([
-            DataService.getOrders(activeTenantId),
-            DataService.get<string | null>('logo', null, activeTenantId),
-            DataService.getDeliveryConfig(activeTenantId),
-            DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId),
-            DataService.getLandingPages(activeTenantId),
-            DataService.getCatalog('categories', [], activeTenantId),
-            DataService.getCatalog('subcategories', [], activeTenantId),
-            DataService.getCatalog('childcategories', [], activeTenantId),
-            DataService.getCatalog('brands', [], activeTenantId),
-            DataService.getCatalog('tags', [], activeTenantId)
-          ]).then(([ordersData, logoData, deliveryData, chatMessagesData, landingPagesData, categoriesData, subCategoriesData, childCategoriesData, brandsData, tagsData]) => {
+          DataService.getSecondaryData(activeTenantId).then((data) => {
             if (!isMounted) return;
-            setOrders(ordersData);
+            setOrders(data.orders);
             // Set logo - prevLogoRef will prevent unnecessary save
-            prevLogoRef.current = logoData;
-            setLogo(logoData);
-            setDeliveryConfig(deliveryData);
-            const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
+            prevLogoRef.current = data.logo;
+            setLogo(data.logo);
+            setDeliveryConfig(data.deliveryConfig);
+            const hydratedMessages = Array.isArray(data.chatMessages) ? data.chatMessages : [];
             skipNextChatSaveRef.current = true;
             chatMessagesLoadedRef.current = true;
             setChatMessages(hydratedMessages);
             chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
-            // Check for unread customer messages on initial load for admins
-            const hasCustomerMessages = hydratedMessages.some(m => m.sender === 'customer');
-            setHasUnreadChat(false); // Reset on load
+            setHasUnreadChat(false);
             setIsAdminChatOpen(false);
-            setLandingPages(landingPagesData);
-            setCategories(categoriesData);
-            setSubCategories(subCategoriesData);
-            setChildCategories(childCategoriesData);
-            setBrands(brandsData);
-            setTags(tagsData);
+            setLandingPages(data.landingPages);
+            setCategories(data.categories);
+            setSubCategories(data.subcategories);
+            setChildCategories(data.childcategories);
+            setBrands(data.brands);
+            setTags(data.tags);
             console.log(`[Perf] Secondary data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
-          }).catch(error => console.warn('Failed to load deferred data', error));
+          }).catch(error => console.warn('Failed to load secondary data', error));
         };
         
         // Use requestIdleCallback if available, otherwise use minimal setTimeout

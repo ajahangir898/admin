@@ -1,4 +1,4 @@
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload, ChatMessage } from '../types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload, ChatMessage, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
 import { getAuthHeader } from './authService';
 import { io, Socket } from 'socket.io-client';
@@ -484,6 +484,70 @@ class DataServiceImpl {
       chatSupportHours: { from: '09:00', to: '18:00' },
       chatWhatsAppFallback: false
     };
+  }
+
+  // Secondary data: Fetch all secondary data in ONE API call
+  async getSecondaryData(tenantId?: string): Promise<{
+    orders: Order[];
+    logo: string | null;
+    deliveryConfig: DeliveryConfig[];
+    chatMessages: ChatMessage[];
+    landingPages: LandingPage[];
+    categories: Category[];
+    subcategories: SubCategory[];
+    childcategories: ChildCategory[];
+    brands: Brand[];
+    tags: Tag[];
+  }> {
+    const scope = this.resolveTenantScope(tenantId);
+    console.log(`[DataService] Loading secondary data for tenant: ${scope}`);
+    
+    try {
+      const response = await this.requestTenantApi<{
+        data: {
+          orders: Order[] | null;
+          logo: string | null;
+          delivery_config: DeliveryConfig[] | null;
+          chat_messages: ChatMessage[] | null;
+          landing_pages: LandingPage[] | null;
+          categories: Category[] | null;
+          subcategories: SubCategory[] | null;
+          childcategories: ChildCategory[] | null;
+          brands: Brand[] | null;
+          tags: Tag[] | null;
+        };
+      }>(`/api/tenant-data/${scope}/secondary`);
+      
+      const data = response.data;
+      
+      return {
+        orders: data.orders || [],
+        logo: data.logo || null,
+        deliveryConfig: data.delivery_config || [],
+        chatMessages: data.chat_messages || [],
+        landingPages: data.landing_pages || [],
+        categories: data.categories || [],
+        subcategories: data.subcategories || [],
+        childcategories: data.childcategories || [],
+        brands: data.brands || [],
+        tags: data.tags || []
+      };
+    } catch (error) {
+      console.warn('[DataService] Secondary data fetch failed', error);
+      // Return empty defaults on error
+      return {
+        orders: [],
+        logo: null,
+        deliveryConfig: [],
+        chatMessages: [],
+        landingPages: [],
+        categories: [],
+        subcategories: [],
+        childcategories: [],
+        brands: [],
+        tags: []
+      };
+    }
   }
 
   private async getCollection<T>(key: string, defaultValue: T[], tenantId?: string): Promise<T[]> {

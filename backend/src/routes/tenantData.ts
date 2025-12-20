@@ -65,6 +65,54 @@ tenantDataRouter.get('/:tenantId/bootstrap', async (req, res, next) => {
   }
 });
 
+// Secondary data endpoint - returns all secondary data in ONE request
+tenantDataRouter.get('/:tenantId/secondary', async (req, res, next) => {
+  try {
+    const tenantId = req.params.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'tenantId is required' });
+    }
+    
+    // Fetch all secondary data in parallel (single DB query batch)
+    const [
+      orders, logo, delivery_config, chat_messages, landing_pages,
+      categories, subcategories, childcategories, brands, tags
+    ] = await Promise.all([
+      getTenantData(tenantId, 'orders'),
+      getTenantData(tenantId, 'logo'),
+      getTenantData(tenantId, 'delivery_config'),
+      getTenantData(tenantId, 'chat_messages'),
+      getTenantData(tenantId, 'landing_pages'),
+      getTenantData(tenantId, 'categories'),
+      getTenantData(tenantId, 'subcategories'),
+      getTenantData(tenantId, 'childcategories'),
+      getTenantData(tenantId, 'brands'),
+      getTenantData(tenantId, 'tags')
+    ]);
+    
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+    });
+    
+    res.json({
+      data: {
+        orders: orders || [],
+        logo: logo || null,
+        delivery_config: delivery_config || [],
+        chat_messages: chat_messages || [],
+        landing_pages: landing_pages || [],
+        categories: categories || [],
+        subcategories: subcategories || [],
+        childcategories: childcategories || [],
+        brands: brands || [],
+        tags: tags || []
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 tenantDataRouter.get('/:tenantId/:key', async (req, res, next) => {
   try {
     const { tenantId, key } = paramsSchema.parse(req.params);

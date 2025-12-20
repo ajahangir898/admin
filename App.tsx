@@ -669,9 +669,9 @@ const App = () => {
 
   // OPTIMIZED: Only save when data actually changes (not on initial load)
   // Use saveImmediate for products to prevent race conditions with data refresh
+  // Don't save while loading to prevent saving stale data during tenant switch
   const prevProductsRef = useRef<Product[]>([]);
   useEffect(() => { 
-    // Don't save while loading to prevent saving stale data during tenant switch
     if(isLoading || !initialDataLoadedRef.current || !activeTenantId) return;
     if(JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
     prevProductsRef.current = products;

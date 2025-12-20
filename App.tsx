@@ -256,6 +256,7 @@ const App = () => {
   const isAdminChatOpenRef = useRef(false);
   const chatSyncLockRef = useRef(false);
   const skipNextChatSaveRef = useRef(false);
+  const chatMessagesLoadedRef = useRef(false);
   const hostTenantSlugRef = useRef<string | null>(hostTenantSlug);
   const hostTenantWarningRef = useRef(false);
   const activeTenantIdRef = useRef<string>(activeTenantId);
@@ -488,6 +489,7 @@ const App = () => {
             setDeliveryConfig(deliveryData);
             const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
             skipNextChatSaveRef.current = true;
+            chatMessagesLoadedRef.current = true;
             setChatMessages(hydratedMessages);
             chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
             setHasUnreadChat(false);
@@ -630,7 +632,8 @@ const App = () => {
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('orders', orders, activeTenantId); }, [orders, isLoading, activeTenantId]);
   useEffect(() => {
-    if (isLoading || !activeTenantId) return;
+    // Don't save until chat messages have been initially loaded from server
+    if (isLoading || !activeTenantId || !chatMessagesLoadedRef.current) return;
     if (skipNextChatSaveRef.current) {
       skipNextChatSaveRef.current = false;
       return;
@@ -1199,6 +1202,7 @@ fbq('track', 'PageView');`;
     }
     tenantSwitchTargetRef.current = tenantId;
     setIsTenantSwitching(true);
+    chatMessagesLoadedRef.current = false; // Reset so we don't save stale messages
     setActiveTenantId(tenantId);
     setAdminSection('dashboard');
     setSelectedProduct(null);

@@ -4,6 +4,15 @@ import react from '@vitejs/plugin-react';
 
 const toPosixPath = (id: string) => id.split('\\').join('/');
 
+// Critical chunks that should be modulepreloaded (must match vendorChunkMatchers names)
+const CRITICAL_JS_CHUNKS = ['react-dom', 'react-core', 'scheduler', 'index-'];
+
+// Critical CSS patterns for preloading (ordered by priority)
+const CRITICAL_CSS_PATTERNS = [
+  { pattern: 'index-', priority: 1 },    // Main CSS bundle - highest priority
+  { pattern: 'skeleton', priority: 2 }   // Skeleton loaders CSS
+];
+
 /**
  * Vite plugin to optimize critical request chains by injecting preload hints
  * This reduces the maximum critical path latency by loading CSS and JS in parallel
@@ -16,35 +25,42 @@ function criticalPreloadPlugin(): Plugin {
       // Only process in build mode
       if (!ctx.bundle) return html;
 
-      const preloadLinks: string[] = [];
+      // Collect and sort CSS preloads by priority
+      const cssPreloads: Array<{ link: string; priority: number }> = [];
       const modulepreloadLinks: string[] = [];
 
       // Find critical assets from the bundle
       for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
         // Preload main CSS files (critical for LCP)
         if (fileName.endsWith('.css')) {
-          // Prioritize main index CSS and skeleton loader CSS
-          if (fileName.includes('index-') || fileName.includes('skeleton')) {
-            preloadLinks.unshift(`<link rel="preload" href="/${fileName}" as="style" />`);
+          const matchedPattern = CRITICAL_CSS_PATTERNS.find(p => fileName.includes(p.pattern));
+          if (matchedPattern) {
+            cssPreloads.push({
+              link: `<link rel="preload" href="/${fileName}" as="style" />`,
+              priority: matchedPattern.priority
+            });
           }
         }
         
-        // Modulepreload critical JS chunks (react-dom, react-core, main index)
+        // Modulepreload critical JS chunks
         if (fileName.endsWith('.js') && 'code' in chunk) {
-          const criticalChunks = ['react-dom', 'react-core', 'scheduler', 'index-'];
-          if (criticalChunks.some(name => fileName.includes(name))) {
+          if (CRITICAL_JS_CHUNKS.some(name => fileName.includes(name))) {
             modulepreloadLinks.push(`<link rel="modulepreload" href="/${fileName}" />`);
           }
         }
       }
 
-      // Inject preload hints right after the opening head tag
+      // Sort CSS preloads by priority (lower number = higher priority)
+      cssPreloads.sort((a, b) => a.priority - b.priority);
+      const preloadLinks = cssPreloads.map(p => p.link);
+
+      // Combine all preloads: CSS first (by priority), then JS modulepreloads
       const allPreloads = [...preloadLinks, ...modulepreloadLinks].join('\n    ');
       
       if (allPreloads) {
-        // Insert preload links after <head> but before other elements
+        // Insert preload links after <head> (case-insensitive regex)
         return html.replace(
-          /<head>/,
+          /<head>/i,
           `<head>\n    <!-- Critical resource preloads to reduce request chain latency -->\n    ${allPreloads}`
         );
       }
@@ -172,8 +188,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         outDir: isSsrBuild ? 'dist/server' : 'dist/client',
         // Enable CSS code splitting for better caching
         cssCodeSplit: true,
-        // Minify CSS for smaller bundle size
-        cssMinify: true,
+        // Minify CSS in production builds (Vite disables this in dev mode automatically)
+        cssMinify: mode === 'production',
         rollupOptions: {
           input: isSsrBuild ? './entry-server.tsx' : './index.html',
           output: {

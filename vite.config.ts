@@ -1,8 +1,58 @@
 import path from 'path';
-import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
+import { defineConfig, loadEnv, splitVendorChunkPlugin, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const toPosixPath = (id: string) => id.split('\\').join('/');
+
+/**
+ * Vite plugin to optimize critical request chains by injecting preload hints
+ * This reduces the maximum critical path latency by loading CSS and JS in parallel
+ */
+function criticalPreloadPlugin(): Plugin {
+  return {
+    name: 'critical-preload',
+    enforce: 'post',
+    transformIndexHtml(html, ctx) {
+      // Only process in build mode
+      if (!ctx.bundle) return html;
+
+      const preloadLinks: string[] = [];
+      const modulepreloadLinks: string[] = [];
+
+      // Find critical assets from the bundle
+      for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
+        // Preload main CSS files (critical for LCP)
+        if (fileName.endsWith('.css')) {
+          // Prioritize main index CSS and skeleton loader CSS
+          if (fileName.includes('index-') || fileName.includes('skeleton')) {
+            preloadLinks.unshift(`<link rel="preload" href="/${fileName}" as="style" />`);
+          }
+        }
+        
+        // Modulepreload critical JS chunks (react-dom, react-core, main index)
+        if (fileName.endsWith('.js') && 'code' in chunk) {
+          const criticalChunks = ['react-dom', 'react-core', 'scheduler', 'index-'];
+          if (criticalChunks.some(name => fileName.includes(name))) {
+            modulepreloadLinks.push(`<link rel="modulepreload" href="/${fileName}" />`);
+          }
+        }
+      }
+
+      // Inject preload hints right after the opening head tag
+      const allPreloads = [...preloadLinks, ...modulepreloadLinks].join('\n    ');
+      
+      if (allPreloads) {
+        // Insert preload links after <head> but before other elements
+        return html.replace(
+          /<head>/,
+          `<head>\n    <!-- Critical resource preloads to reduce request chain latency -->\n    ${allPreloads}`
+        );
+      }
+
+      return html;
+    }
+  };
+}
 
 const vendorChunkMatchers = [
   { name: 'react-dom', matcher: /node_modules\/react-dom\// },
@@ -100,7 +150,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         target: 'es2020',
         logOverride: { 'this-is-undefined-in-esm': 'silent' }
       },
-      plugins: [react(), splitVendorChunkPlugin()],
+      plugins: [react(), splitVendorChunkPlugin(), criticalPreloadPlugin()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -120,10 +170,18 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         target: 'es2020',
         chunkSizeWarningLimit: 200,
         outDir: isSsrBuild ? 'dist/server' : 'dist/client',
+        // Enable CSS code splitting for better caching
+        cssCodeSplit: true,
+        // Minify CSS for smaller bundle size
+        cssMinify: true,
         rollupOptions: {
           input: isSsrBuild ? './entry-server.tsx' : './index.html',
           output: {
-            manualChunks: isSsrBuild ? undefined : (id) => manualChunkResolver(id)
+            manualChunks: isSsrBuild ? undefined : (id) => manualChunkResolver(id),
+            // Ensure consistent chunk naming for better caching
+            chunkFileNames: 'assets/[name]-[hash].js',
+            entryFileNames: 'assets/[name]-[hash].js',
+            assetFileNames: 'assets/[name]-[hash].[ext]'
           }
         }
       }

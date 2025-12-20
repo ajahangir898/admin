@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2 } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
 import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
@@ -171,6 +171,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [colorInput, setColorInput] = useState('');
   const [sizeInput, setSizeInput] = useState('');
   const [isSlugTouched, setIsSlugTouched] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(0);
   
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -350,6 +352,9 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   };
 
   const handleCloseModal = () => {
+    // Don't allow closing while saving
+    if (isSaving) return;
+    
     const isDirty = JSON.stringify(formData) !== JSON.stringify(initialFormData);
     
     if (isDirty) {
@@ -360,18 +365,21 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     setIsModalOpen(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent double submit
+    if (isSaving) return;
     
     // Basic validation
     if (!formData.name || !pricingData.regularPrice) {
-      alert("Please fill in required fields (Name, Regular Price)");
+      toast.error("Please fill in required fields (Name, Regular Price)");
       return;
     }
 
     const gallery = formData.galleryImages || [];
     if (gallery.length === 0) {
-      alert("Please upload at least one product image.");
+      toast.error("Please upload at least one product image.");
       return;
     }
     if (gallery.length < 5) {
@@ -380,33 +388,65 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       }
     }
 
-    const primaryImage = gallery[0] || '';
-    const normalizedSlug = buildSlugFromName(formData.slug || formData.name || '');
-    const finalSlug = ensureUniqueSlug(normalizedSlug, editingProduct?.id);
-    const productData = {
-      ...formData,
-      image: primaryImage,
-      galleryImages: gallery,
-      slug: finalSlug,
-      // Update with pricing data
-      price: pricingData.regularPrice,
-      originalPrice: pricingData.salesPrice,
-      costPrice: pricingData.costPrice,
-      stock: pricingData.stockValue,
-      sku: pricingData.sku,
-      isWholesale: pricingData.isWholesale,
-      // Ensure defaults
-      rating: editingProduct ? editingProduct.rating : 5.0, // Default rating for new products
-      reviews: editingProduct ? editingProduct.reviews : 0,
-      status: formData.status || 'Active'
-    } as Product;
+    // Start saving with progress animation
+    setIsSaving(true);
+    setSavingProgress(0);
 
-    if (editingProduct) {
-      onUpdateProduct({ ...productData, id: editingProduct.id });
-    } else {
-      onAddProduct({ ...productData, id: Date.now() }); // Simple ID generation
+    // Animate progress bar
+    const progressInterval = setInterval(() => {
+      setSavingProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 150);
+
+    try {
+      const primaryImage = gallery[0] || '';
+      const normalizedSlug = buildSlugFromName(formData.slug || formData.name || '');
+      const finalSlug = ensureUniqueSlug(normalizedSlug, editingProduct?.id);
+      const productData = {
+        ...formData,
+        image: primaryImage,
+        galleryImages: gallery,
+        slug: finalSlug,
+        // Update with pricing data
+        price: pricingData.regularPrice,
+        originalPrice: pricingData.salesPrice,
+        costPrice: pricingData.costPrice,
+        stock: pricingData.stockValue,
+        sku: pricingData.sku,
+        isWholesale: pricingData.isWholesale,
+        // Ensure defaults
+        rating: editingProduct ? editingProduct.rating : 5.0, // Default rating for new products
+        reviews: editingProduct ? editingProduct.reviews : 0,
+        status: formData.status || 'Active'
+      } as Product;
+
+      // Small delay to show the loading animation
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      if (editingProduct) {
+        onUpdateProduct({ ...productData, id: editingProduct.id });
+      } else {
+        onAddProduct({ ...productData, id: Date.now() }); // Simple ID generation
+      }
+
+      // Complete the progress bar
+      clearInterval(progressInterval);
+      setSavingProgress(100);
+
+      // Small delay to show completion
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      toast.success(editingProduct ? 'Product updated successfully!' : 'Product added successfully!');
+      setIsModalOpen(false);
+    } catch (error) {
+      clearInterval(progressInterval);
+      toast.error('Failed to save product. Please try again.');
+    } finally {
+      setIsSaving(false);
+      setSavingProgress(0);
     }
-    setIsModalOpen(false);
   };
 
   const handleDelete = (id: number) => {
@@ -1604,20 +1644,48 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                  </form>
               </div>
 
+              {/* Saving Progress Bar */}
+              {isSaving && (
+                <div className="px-6 py-3 bg-purple-50 border-t border-purple-100">
+                  <div className="flex items-center gap-3">
+                    <Loader2 size={18} className="text-purple-600 animate-spin" />
+                    <span className="text-sm font-medium text-purple-700">
+                      {savingProgress < 100 ? 'Saving product...' : 'Saved!'}
+                    </span>
+                  </div>
+                  <div className="mt-2 w-full bg-purple-200 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full transition-all duration-150 ease-out"
+                      style={{ width: `${savingProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-end gap-3">
                  <button 
                    type="button" 
                    onClick={handleCloseModal}
-                   className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-white transition"
+                   disabled={isSaving}
+                   className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                  >
                    Cancel
                  </button>
                  <button 
                    type="submit" 
                    form="productForm"
-                   className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg transition text-sm font-medium shadow-lg"
+                   disabled={isSaving}
+                   className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg transition text-sm font-medium shadow-lg hover:bg-purple-700 disabled:opacity-70 disabled:cursor-not-allowed"
                  >
-                   <Save size={18} /> Save Product
+                   {isSaving ? (
+                     <>
+                       <Loader2 size={18} className="animate-spin" /> Saving...
+                     </>
+                   ) : (
+                     <>
+                       <Save size={18} /> Save Product
+                     </>
+                   )}
                  </button>
               </div>
            </div>

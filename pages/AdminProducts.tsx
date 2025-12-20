@@ -177,6 +177,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
   const viewMenuRef = useRef<HTMLDivElement>(null);
+  const savingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Form Sections State
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -208,6 +209,15 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  // Cleanup saving interval on unmount
+  useEffect(() => {
+    return () => {
+      if (savingIntervalRef.current) {
+        clearInterval(savingIntervalRef.current);
+      }
+    };
   }, []);
 
   // Derived State for filtering
@@ -390,15 +400,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
     // Start saving with progress animation
     setIsSaving(true);
-    setSavingProgress(0);
+    setSavingProgress(10);
 
-    // Animate progress bar
-    const progressInterval = setInterval(() => {
-      setSavingProgress(prev => {
-        if (prev >= 90) return prev;
-        return prev + Math.random() * 15;
-      });
-    }, 150);
+    // Animate progress bar with deterministic steps
+    let progress = 10;
+    savingIntervalRef.current = setInterval(() => {
+      progress = Math.min(progress + 20, 80);
+      setSavingProgress(progress);
+    }, 100);
 
     try {
       const primaryImage = gallery[0] || '';
@@ -422,9 +431,6 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         status: formData.status || 'Active'
       } as Product;
 
-      // Small delay to show the loading animation
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       if (editingProduct) {
         onUpdateProduct({ ...productData, id: editingProduct.id });
       } else {
@@ -432,16 +438,19 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       }
 
       // Complete the progress bar
-      clearInterval(progressInterval);
+      if (savingIntervalRef.current) {
+        clearInterval(savingIntervalRef.current);
+        savingIntervalRef.current = null;
+      }
       setSavingProgress(100);
-
-      // Small delay to show completion
-      await new Promise(resolve => setTimeout(resolve, 300));
 
       toast.success(editingProduct ? 'Product updated successfully!' : 'Product added successfully!');
       setIsModalOpen(false);
     } catch (error) {
-      clearInterval(progressInterval);
+      if (savingIntervalRef.current) {
+        clearInterval(savingIntervalRef.current);
+        savingIntervalRef.current = null;
+      }
       toast.error('Failed to save product. Please try again.');
     } finally {
       setIsSaving(false);

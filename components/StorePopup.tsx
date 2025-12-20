@@ -41,7 +41,7 @@ export const StorePopup: React.FC<StorePopupProps> = ({ popup, onClose, onNaviga
       onClick={handleClose}
     >
       <div
-        className={`relative max-w-2xl w-full transition-all duration-300 transform ${
+        className={`relative max-w-md w-full transition-all duration-300 transform ${
           isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -49,10 +49,10 @@ export const StorePopup: React.FC<StorePopupProps> = ({ popup, onClose, onNaviga
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute -top-4 -right-4 z-10 p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition"
+          className="absolute -top-3 -right-3 z-10 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition"
           aria-label="Close popup"
         >
-          <X size={24} className="text-gray-700 dark:text-gray-300" />
+          <X size={20} className="text-gray-700 dark:text-gray-300" />
         </button>
 
         {/* Popup Image */}
@@ -65,7 +65,7 @@ export const StorePopup: React.FC<StorePopupProps> = ({ popup, onClose, onNaviga
           <img
             src={normalizeImageUrl(popup.image)}
             alt={popup.name}
-            className="w-full h-auto max-h-[80vh] object-contain"
+            className="w-full h-auto max-h-[60vh] object-contain"
           />
           
           {popup.url && (

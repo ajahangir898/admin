@@ -107,7 +107,7 @@ const StoreHome = ({
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading] = useState(false);
   const [popups, setPopups] = useState<Popup[]>([]);
   const [activePopup, setActivePopup] = useState<Popup | null>(null);
   const [popupIndex, setPopupIndex] = useState(0);
@@ -133,12 +133,6 @@ const StoreHome = ({
       setSelectedCategoryView(null);
     }
   }, [initialCategoryFilter, categories]);
-
-  // Simulate initial data loading
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Load popups
   useEffect(() => {

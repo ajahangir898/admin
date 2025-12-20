@@ -4,7 +4,7 @@ import { Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 import { StoreSkeleton, AdminSkeleton, LoginSkeleton, ProductDetailSkeleton, CheckoutSkeleton, ProfileSkeleton } from './components/SkeletonLoaders';
-import { DataService, joinTenantRoom, leaveTenantRoom } from './services/DataService';
+import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
@@ -280,6 +280,24 @@ const App = () => {
   useEffect(() => {
     isAdminChatOpenRef.current = isAdminChatOpen;
   }, [isAdminChatOpen]);
+
+  // Listen for notification click navigation events
+  useEffect(() => {
+    const handleNavigateToOrder = (event: CustomEvent<{ orderId: string; tenantId?: string }>) => {
+      const { orderId } = event.detail;
+      console.log('[App] Navigate to order:', orderId);
+      // Switch to admin view and orders section
+      setCurrentView('admin');
+      setAdminSection('orders');
+      // Store the order ID to highlight/scroll to it
+      window.sessionStorage.setItem('highlightOrderId', orderId);
+    };
+    
+    window.addEventListener('navigate-to-order', handleNavigateToOrder as EventListener);
+    return () => {
+      window.removeEventListener('navigate-to-order', handleNavigateToOrder as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     chatGreetingSeedRef.current = null;
@@ -579,23 +597,28 @@ const App = () => {
   useEffect(() => {
     adminDataLoadedRef.current = false;
     websiteConfigLoadedRef.current = false;
-    isFirstProductUpdateRef.current = true; // Reset product save guard on tenant change
   }, [activeTenantId]);
 
   // --- DATA REFRESH HANDLER (Sync Admin changes to Storefront) ---
-  const handleDataRefresh = useCallback(async (key: string, eventTenantId?: string) => {
+  const handleDataRefresh = useCallback(async (key: string, eventTenantId?: string, fromSocket = false) => {
     // Only refresh if we're viewing the store and the update is for our tenant
     if (currentViewRef.current.startsWith('admin')) return;
     if (eventTenantId && eventTenantId !== activeTenantIdRef.current) return;
 
     const tenantId = eventTenantId || activeTenantIdRef.current;
-    console.log(`[DataRefresh] Refreshing ${key} for tenant ${tenantId}`);
+    console.log(`[DataRefresh] Refreshing ${key} for tenant ${tenantId} (fromSocket: ${fromSocket})`);
 
     try {
       switch (key) {
         case 'products':
           const productsData = await DataService.getProducts(tenantId);
-          setProducts(normalizeProductCollection(productsData, tenantId));
+          // Safety: Don't overwrite existing products with empty array
+          if (productsData.length > 0 || products.length === 0) {
+            isFirstProductUpdateRef.current = true; // Prevent save after socket update
+            setProducts(normalizeProductCollection(productsData, tenantId));
+          } else {
+            console.warn('[DataRefresh] Skipped setting empty products - keeping existing data');
+          }
           break;
         case 'orders':
           const ordersData = await DataService.getOrders(tenantId);
@@ -658,8 +681,38 @@ const App = () => {
   useDataRefreshDebounced(handleDataRefresh, 150);
 
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
+  const ordersLoadedRef = useRef(false);
+  const prevOrdersRef = useRef<Order[]>([]);
   
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('orders', orders, activeTenantId); }, [orders, isLoading, activeTenantId]);
+  useEffect(() => { 
+    if(!isLoading && activeTenantId) {
+      // Skip if this update came from socket
+      if (isKeyFromSocket('orders', activeTenantId)) {
+        clearSocketFlag('orders', activeTenantId);
+        prevOrdersRef.current = orders;
+        console.log('[Orders] Skipped save - update came from socket');
+        return;
+      }
+      // Skip first load from server
+      if (!ordersLoadedRef.current) {
+        ordersLoadedRef.current = true;
+        prevOrdersRef.current = orders;
+        console.log('[Orders] Skipped save - first load from server');
+        return;
+      }
+      // Safety: Don't save empty orders if we previously had orders
+      if (orders.length === 0 && prevOrdersRef.current.length > 0) {
+        console.warn('[Orders] Prevented saving empty orders - possible race condition');
+        return;
+      }
+      // Only save if actually changed
+      if (JSON.stringify(orders) !== JSON.stringify(prevOrdersRef.current)) {
+        console.log('[Orders] Saving orders, count:', orders.length);
+        prevOrdersRef.current = orders;
+        DataService.save('orders', orders, activeTenantId);
+      }
+    }
+  }, [orders, isLoading, activeTenantId]);
   useEffect(() => {
     // Don't save until chat messages have been initially loaded from server
     if (isLoading || !activeTenantId || !chatMessagesLoadedRef.current) return;
@@ -691,26 +744,58 @@ const App = () => {
   // OPTIMIZED: Track if initial data is loaded to prevent unnecessary saves
   const initialDataLoadedRef = useRef(false);
   const productsLoadedFromServerRef = useRef(false);
+  const prevProductsRef = useRef<Product[]>([]);
+  const isFirstProductUpdateRef = useRef(true);
+  
   useEffect(() => {
     if (!isLoading && activeTenantId) {
       initialDataLoadedRef.current = true;
     }
   }, [isLoading, activeTenantId]);
 
-  // Reset productsLoadedFromServerRef when tenant changes
+  // Reset refs when tenant changes
   useEffect(() => {
     productsLoadedFromServerRef.current = false;
+    isFirstProductUpdateRef.current = true;
+    ordersLoadedRef.current = false;
+    prevProductsRef.current = [];
+    prevOrdersRef.current = [];
   }, [activeTenantId]);
 
   // OPTIMIZED: Only save when data actually changes (not on initial load)
-  const prevProductsRef = useRef<Product[]>([]);
-  const isFirstProductUpdateRef = useRef(true);
   useEffect(() => { 
-    if(!initialDataLoadedRef.current || !activeTenantId) return;
-    if(JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
+    // Don't save while still loading initial data
+    if (isLoading || !initialDataLoadedRef.current || !activeTenantId) return;
+    
+    // Skip if this update came from a socket event
+    if (isKeyFromSocket('products', activeTenantId)) {
+      clearSocketFlag('products', activeTenantId);
+      prevProductsRef.current = products;
+      console.log('[Products] Skipped save - update came from socket');
+      return;
+    }
+    
+    // Skip the very first update after load - this is the initial data from server
+    if (isFirstProductUpdateRef.current) {
+      isFirstProductUpdateRef.current = false;
+      prevProductsRef.current = products;
+      productsLoadedFromServerRef.current = true;
+      return;
+    }
+    
+    // Safety check: Never save an empty array if we previously had products
+    if (products.length === 0 && prevProductsRef.current.length > 0) {
+      console.warn('[DataService] Prevented saving empty products array - possible race condition');
+      return;
+    }
+    
+    // Only save if data actually changed
+    if (JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
+    
     prevProductsRef.current = products;
-    DataService.save('products', products, activeTenantId); 
-  }, [products, activeTenantId]);
+    // Use saveImmediate for products to prevent race conditions with data refresh
+    DataService.saveImmediate('products', products, activeTenantId); 
+  }, [products, activeTenantId, isLoading]);
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
@@ -802,6 +887,8 @@ const App = () => {
 
   // Apply theme colors to CSS variables (always) and save to server (only after initial load)
   const themeLoadedRef = useRef(false);
+  const lastSavedThemeRef = useRef<string>('');
+  
   useEffect(() => { 
     if(!themeConfig || !activeTenantId) return;
     
@@ -831,31 +918,57 @@ const App = () => {
     if (themeConfig.darkMode) root.classList.add('dark');
     else root.classList.remove('dark');
     
-    // Only save to server AFTER initial data has loaded (to avoid overwriting saved data with defaults)
+    // Only save to server AFTER initial data has loaded
+    // Skip if this update came from socket (server already has the data)
     if(!isLoading && themeLoadedRef.current) {
-      DataService.saveImmediate('theme_config', themeConfig, activeTenantId);
+      // Check if this update came from socket - don't save back to server
+      if (isKeyFromSocket('theme_config', activeTenantId)) {
+        clearSocketFlag('theme_config', activeTenantId);
+        lastSavedThemeRef.current = JSON.stringify(themeConfig);
+        return;
+      }
+      
+      const currentThemeStr = JSON.stringify(themeConfig);
+      if (currentThemeStr !== lastSavedThemeRef.current) {
+        lastSavedThemeRef.current = currentThemeStr;
+        DataService.saveImmediate('theme_config', themeConfig, activeTenantId);
+      }
     }
     
     // Mark as loaded after first render with loaded data
     if(!isLoading && !themeLoadedRef.current) {
       themeLoadedRef.current = true;
+      lastSavedThemeRef.current = JSON.stringify(themeConfig);
     }
   }, [themeConfig, isLoading, activeTenantId]);
 
   // Track if website config has been initially loaded to prevent overwriting saved data with defaults
   const websiteConfigLoadedRef = useRef(false);
+  const lastSavedWebsiteConfigRef = useRef<string>('');
 
   useEffect(() => { 
     if(!isLoading && websiteConfig && activeTenantId) {
       // Only save AFTER initial load (to avoid overwriting saved data with defaults)
+      // Skip if this update came from socket (server already has the data)
       if (websiteConfigLoadedRef.current) {
-        // Use immediate save for website config to reflect instantly
-        DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
+        // Check if this update came from socket - don't save back to server
+        if (isKeyFromSocket('website_config', activeTenantId)) {
+          clearSocketFlag('website_config', activeTenantId);
+          lastSavedWebsiteConfigRef.current = JSON.stringify(websiteConfig);
+        } else {
+          const currentConfigStr = JSON.stringify(websiteConfig);
+          if (currentConfigStr !== lastSavedWebsiteConfigRef.current) {
+            lastSavedWebsiteConfigRef.current = currentConfigStr;
+            // Use immediate save for website config to reflect instantly
+            DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
+          }
+        }
       }
       
       // Mark as loaded after first render with loaded data
       if (!websiteConfigLoadedRef.current) {
         websiteConfigLoadedRef.current = true;
+        lastSavedWebsiteConfigRef.current = JSON.stringify(websiteConfig);
       }
       
       if (websiteConfig.favicon) {
@@ -1430,26 +1543,30 @@ fbq('track', 'PageView');`;
       deliveryType: formData.deliveryType,
       deliveryCharge: formData.deliveryCharge
     };
-    setOrders([newOrder, ...orders]);
 
-    // Create notification for new order (lazy loaded)
+    // POST to backend API - this will create notification and emit socket event
     try {
-      const notificationService = await getNotificationService();
-      await notificationService.createNotification(activeTenantId, {
-        type: 'order',
-        title: 'New Order Received',
-        message: `Order ${orderId} from ${formData.fullName} - ৳${formData.amount}`,
-        data: {
-          orderId,
-          customerName: formData.fullName,
-          customerPhone: formData.phone,
-          amount: formData.amount,
-          productName: selectedProduct?.name,
-          quantity: formData.quantity || checkoutQuantity,
-        },
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+      const response = await fetch(`${apiBase}/api/orders/${activeTenantId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder)
       });
+      
+      if (response.ok) {
+        const result = await response.json();
+        // Use the order from API response (may have server-side modifications)
+        setOrders([result.data || newOrder, ...orders]);
+        console.log('[Order] Created via API:', result.data?.id || orderId);
+      } else {
+        // Fallback to local state if API fails
+        setOrders([newOrder, ...orders]);
+        console.warn('[Order] API failed, using local state');
+      }
     } catch (error) {
-      console.warn('Failed to create order notification:', error);
+      // Fallback to local state if API unreachable
+      setOrders([newOrder, ...orders]);
+      console.warn('[Order] API error, using local state:', error);
     }
 
     setCurrentView('success');
@@ -1478,27 +1595,27 @@ fbq('track', 'PageView');`;
       productName: product.name,
       quantity: payload.quantity
     };
-    setOrders(prev => [newOrder, ...prev]);
 
-    // Create notification for landing page order (lazy loaded)
+    // POST to backend API - this will create notification and emit socket event
     try {
-      const notificationService = await getNotificationService();
-      await notificationService.createNotification(activeTenantId, {
-        type: 'order',
-        title: 'New Landing Page Order',
-        message: `Order ${orderId} from ${payload.fullName} - ৳${orderAmount}`,
-        data: {
-          orderId,
-          customerName: payload.fullName,
-          customerPhone: payload.phone,
-          amount: orderAmount,
-          productName: product.name,
-          quantity: payload.quantity,
-          landingPageId: payload.pageId,
-        },
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+      const response = await fetch(`${apiBase}/api/orders/${activeTenantId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder)
       });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setOrders(prev => [result.data || newOrder, ...prev]);
+        console.log('[LandingOrder] Created via API:', result.data?.id || orderId);
+      } else {
+        setOrders(prev => [newOrder, ...prev]);
+        console.warn('[LandingOrder] API failed, using local state');
+      }
     } catch (error) {
-      console.warn('Failed to create landing page order notification:', error);
+      setOrders(prev => [newOrder, ...prev]);
+      console.warn('[LandingOrder] API error, using local state:', error);
     }
   };
 // ...existing code...

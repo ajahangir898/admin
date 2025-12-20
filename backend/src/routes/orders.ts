@@ -2,6 +2,7 @@ import { Router, Request } from 'express';
 import { z } from 'zod';
 import { getTenantData, setTenantData } from '../services/tenantDataService';
 import { Server as SocketIOServer } from 'socket.io';
+import { Notification } from '../models/Notification';
 
 export const ordersRouter = Router();
 
@@ -92,6 +93,32 @@ ordersRouter.post('/:tenantId', async (req, res, next) => {
     
     // Emit real-time update
     emitOrderUpdate(req, tenantId, 'new-order', orderData);
+    
+    // Create notification for admin
+    try {
+      const notification = await Notification.create({
+        tenantId,
+        type: 'order',
+        title: `নতুন অর্ডার ${orderData.id}`,
+        message: `${orderData.customer} থেকে ৳${orderData.amount.toLocaleString()} টাকার অর্ডার এসেছে`,
+        data: {
+          orderId: orderData.id,
+          customerName: orderData.customer,
+          amount: orderData.amount,
+          productName: orderData.productName,
+          phone: orderData.phone
+        }
+      });
+      
+      // Emit socket event for real-time notification with sound trigger
+      const io = req.app.get('io') as SocketIOServer | undefined;
+      if (io) {
+        io.to(`tenant:${tenantId}`).emit('new-notification', notification);
+        console.log(`[Notification] Sent new order notification to tenant ${tenantId}`);
+      }
+    } catch (notifError) {
+      console.warn('[Orders] Failed to create notification:', notifError);
+    }
     
     console.log(`[Orders] New order ${orderData.id} created for tenant ${tenantId}`);
     res.status(201).json({ data: orderData, success: true });

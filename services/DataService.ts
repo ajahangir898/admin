@@ -61,27 +61,27 @@ const initSocket = (): Socket | null => {
     console.log('[Socket.IO] Data update received:', payload.tenantId, payload.key);
     // Invalidate cache for this key
     invalidateCache(payload.key, payload.tenantId);
-    // Notify UI listeners
-    notifyDataRefresh(payload.key, payload.tenantId);
+    // Notify UI listeners - mark as from socket to prevent save loops
+    notifyDataRefresh(payload.key, payload.tenantId, true);
   });
 
   // Listen for chat message updates
   socket.on('chat-update', (payload: { tenantId: string; data: unknown }) => {
     console.log('[Socket.IO] Chat update received:', payload.tenantId);
     invalidateCache('chat_messages', payload.tenantId);
-    notifyDataRefresh('chat_messages', payload.tenantId);
+    notifyDataRefresh('chat_messages', payload.tenantId, true);
   });
   
   socket.on('new-order', (payload: { tenantId: string; data: unknown }) => {
     console.log('[Socket.IO] New order received:', payload.tenantId);
     invalidateCache('orders', payload.tenantId);
-    notifyDataRefresh('orders', payload.tenantId);
+    notifyDataRefresh('orders', payload.tenantId, true);
   });
   
   socket.on('order-updated', (payload: { tenantId: string; data: unknown }) => {
     console.log('[Socket.IO] Order updated:', payload.tenantId);
     invalidateCache('orders', payload.tenantId);
-    notifyDataRefresh('orders', payload.tenantId);
+    notifyDataRefresh('orders', payload.tenantId, true);
   });
   
   } catch (e) {
@@ -137,18 +137,37 @@ type SaveQueueEntry = {
 };
 
 // Data refresh event system for cross-component synchronization
-type DataRefreshListener = (key: string, tenantId?: string) => void;
+type DataRefreshListener = (key: string, tenantId?: string, fromSocket?: boolean) => void;
 const dataRefreshListeners = new Set<DataRefreshListener>();
+
+// Track keys that were just updated from socket to prevent save loops
+const socketUpdatedKeys = new Set<string>();
+
+export const isKeyFromSocket = (key: string, tenantId?: string): boolean => {
+  const cacheKey = `${tenantId || 'public'}::${key}`;
+  return socketUpdatedKeys.has(cacheKey);
+};
+
+export const clearSocketFlag = (key: string, tenantId?: string): void => {
+  const cacheKey = `${tenantId || 'public'}::${key}`;
+  socketUpdatedKeys.delete(cacheKey);
+};
 
 export const onDataRefresh = (listener: DataRefreshListener): (() => void) => {
   dataRefreshListeners.add(listener);
   return () => dataRefreshListeners.delete(listener);
 };
 
-const notifyDataRefresh = (key: string, tenantId?: string) => {
+const notifyDataRefresh = (key: string, tenantId?: string, fromSocket = false) => {
+  if (fromSocket) {
+    const cacheKey = `${tenantId || 'public'}::${key}`;
+    socketUpdatedKeys.add(cacheKey);
+    // Clear flag after a short delay to allow state to settle
+    setTimeout(() => socketUpdatedKeys.delete(cacheKey), 2000);
+  }
   dataRefreshListeners.forEach(listener => {
     try {
-      listener(key, tenantId);
+      listener(key, tenantId, fromSocket);
     } catch (error) {
       console.error('Data refresh listener error:', error);
     }
@@ -644,8 +663,8 @@ class DataServiceImpl {
       await this.persistTenantDocument(key, data, tenantId);
       // Update cache with new data
       setCachedData(key, data, tenantId);
-      // Notify listeners that data has been updated
-      notifyDataRefresh(key, tenantId);
+      // NOTE: Don't call notifyDataRefresh here - the server will emit a socket event
+      // that triggers the refresh. Calling it here causes infinite save loops.
       console.log(`[DataService] Successfully saved ${key} for tenant ${scope}`);
     } catch (error) {
       console.error(`Failed to persist ${key}`, error);

@@ -1,4 +1,14 @@
 // Service Worker for E-Commerce Solutions
+// Disable in development mode
+const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
+
+if (IS_DEV) {
+  console.log('[SW] Development mode - Service Worker disabled');
+  self.addEventListener('install', () => self.skipWaiting());
+  self.addEventListener('activate', () => self.clients.claim());
+  self.addEventListener('fetch', () => {}); // Do nothing in dev
+} else {
+
 const CACHE_VERSION = 'v1.0.0';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
@@ -196,5 +206,7 @@ self.addEventListener('message', (event) => {
     });
   }
 });
+
+} // End of IS_DEV else block
 
 console.log('[SW] Service worker loaded');

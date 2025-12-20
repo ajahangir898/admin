@@ -459,7 +459,20 @@ export const AdminHeader: React.FC<{
 		if (!notification.isRead) {
 			await markAsRead([notification._id]);
 		}
-		// You can add navigation logic here based on notification.type and notification.data
+		
+		// Navigate based on notification type
+		if (notification.type === 'order' && notification.data?.orderId) {
+			// Close notification dropdown
+			setIsNotificationOpen(false);
+			// Navigate to orders page with the order ID
+			// Dispatch custom event for navigation
+			window.dispatchEvent(new CustomEvent('navigate-to-order', { 
+				detail: { 
+					orderId: notification.data.orderId,
+					tenantId: notification.data?.tenantId || activeTenantId
+				} 
+			}));
+		}
 	};
 
 	// Handle mark all as read

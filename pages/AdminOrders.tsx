@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Search, Filter, Edit3, Printer, ShieldAlert, ShieldCheck, X, Package2, MapPin, Mail, Truck, AlertTriangle, CheckCircle2, Send, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Order, CourierConfig } from '../types';
@@ -54,12 +54,36 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
   const [isSendingToSteadfast, setIsSendingToSteadfast] = useState(false);
   const [fraudResult, setFraudResult] = useState<FraudCheckResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [highlightedOrderId, setHighlightedOrderId] = useState<string | null>(null);
+  const orderRowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
 
   // Simulate initial data loading
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, []);
+
+  // Check for highlighted order from notification click
+  useEffect(() => {
+    const storedOrderId = window.sessionStorage.getItem('highlightOrderId');
+    if (storedOrderId) {
+      setHighlightedOrderId(storedOrderId);
+      window.sessionStorage.removeItem('highlightOrderId');
+      
+      // Scroll to the order after a short delay
+      setTimeout(() => {
+        const orderRow = orderRowRefs.current.get(storedOrderId);
+        if (orderRow) {
+          orderRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedOrderId(null);
+        }, 3000);
+      }, 500);
+    }
+  }, [orders]);
 
   const metrics = useMemo(() => {
     const total = orders.length;
@@ -405,7 +429,16 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
             <tbody className="divide-y divide-white/5">
               {filteredOrders.length ? (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className="cursor-pointer bg-white/0 transition hover:bg-white/5" onClick={() => openOrderModal(order)}>
+                  <tr 
+                    key={order.id} 
+                    ref={(el) => { if (el) orderRowRefs.current.set(order.id, el); }}
+                    className={`cursor-pointer transition hover:bg-white/5 ${
+                      highlightedOrderId === order.id 
+                        ? 'bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse' 
+                        : 'bg-white/0'
+                    }`} 
+                    onClick={() => openOrderModal(order)}
+                  >
                     <td className="px-6 py-4 text-white">
                       <p className="font-semibold">{order.id}</p>
                       <p className="text-xs text-white/50">{order.date}</p>

@@ -194,6 +194,9 @@ const App = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
+  // Logo save protection refs (declared early for use in data loading)
+  const logoLoadedRef = useRef(false);
+  const prevLogoRef = useRef<string | null>(null);
   // Theme config starts as null - will be loaded from server for each tenant
   const [themeConfig, setThemeConfig] = useState<ThemeConfig | null>(null);
   const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(undefined);
@@ -504,6 +507,9 @@ const App = () => {
           ]).then(([ordersData, logoData, deliveryData, chatMessagesData, landingPagesData, categoriesData, subCategoriesData, childCategoriesData, brandsData, tagsData]) => {
             if (!isMounted) return;
             setOrders(ordersData);
+            // Set logo without triggering save (mark as loaded from server)
+            logoLoadedRef.current = false; // Reset to skip next save
+            prevLogoRef.current = logoData;
             setLogo(logoData);
             setDeliveryConfig(deliveryData);
             const hydratedMessages = Array.isArray(chatMessagesData) ? chatMessagesData : [];
@@ -801,21 +807,32 @@ const App = () => {
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
   
-  // Logo save with socket flag protection
-  const logoLoadedRef = useRef(false);
+  // Logo save with proper protection against loops
   useEffect(() => {
     if (!activeTenantId || isLoading) return;
-    // Skip first load
+    
+    // Skip first load (initial data fetch)
     if (!logoLoadedRef.current) {
       logoLoadedRef.current = true;
+      prevLogoRef.current = logo;
       return;
     }
+    
+    // Skip if logo hasn't actually changed
+    if (logo === prevLogoRef.current) {
+      return;
+    }
+    
     // Skip if logo came from socket
     if (isKeyFromSocket('logo', activeTenantId)) {
       clearSocketFlag('logo', activeTenantId);
+      prevLogoRef.current = logo;
       console.log('[Logo] Skipped save - update came from socket');
       return;
     }
+    
+    prevLogoRef.current = logo;
+    console.log('[Logo] Saving logo...');
     DataService.save('logo', logo, activeTenantId);
   }, [logo, isLoading, activeTenantId]);
   

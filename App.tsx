@@ -186,20 +186,28 @@ const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tenants, setTenants] = useState<Tenant[]>([]);
-  // Initialize activeTenantId from localStorage if available to avoid double bootstrap
+  // Get subdomain early to determine if we need to wait for tenant resolution
+  const [hostTenantSlug] = useState<string | null>(() => getHostTenantSlug());
+  
+  // Initialize activeTenantId - if we have a subdomain but no session, return empty string to defer loading
   const [activeTenantId, setActiveTenantId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = window.localStorage.getItem('gadgetshob_session');
+        // Check session first
+        const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed?.tenantId) return parsed.tenantId;
         }
       } catch {}
     }
+    // If subdomain exists but no session, return empty to defer bootstrap until tenant resolved
+    const slug = getHostTenantSlug();
+    if (slug && slug !== DEFAULT_TENANT_SLUG) {
+      return ''; // Will be set after tenant list loads
+    }
     return DEFAULT_TENANT_ID;
   });
-  const [hostTenantSlug] = useState<string | null>(() => getHostTenantSlug());
   const [hostTenantId, setHostTenantId] = useState<string | null>(null);
 
   // --- STATE ---
@@ -475,27 +483,50 @@ const App = () => {
   useEffect(() => {
     let isMounted = true;
     const loadInitialData = async () => {
-      if (!activeTenantId) return;
       setIsLoading(true);
       let loadError: Error | null = null;
       const startTime = performance.now();
       
       try {
-        // Load tenants AND bootstrap data in parallel (2 requests instead of 4)
+        // If activeTenantId is empty (subdomain mode waiting), resolve tenant first
+        let resolvedTenantId = activeTenantId;
+        if (!resolvedTenantId && hostTenantSlug) {
+          const tenantList = await DataService.listTenants();
+          if (!isMounted) return;
+          const sanitizedSlug = sanitizeSubdomainSlug(hostTenantSlug);
+          const matchedTenant = tenantList.find((t) => sanitizeSubdomainSlug(t.subdomain || '') === sanitizedSlug);
+          if (matchedTenant) {
+            resolvedTenantId = matchedTenant.id;
+            setActiveTenantId(resolvedTenantId);
+            setHostTenantId(matchedTenant.id);
+            setTenants(tenantList);
+          } else {
+            // No matching tenant, fall back to default
+            resolvedTenantId = DEFAULT_TENANT_ID;
+            setActiveTenantId(resolvedTenantId);
+            setTenants(tenantList);
+          }
+        }
+        
+        if (!resolvedTenantId) return;
+        
+        // Load tenants (if not already loaded) AND bootstrap data in parallel
         const [tenantList, bootstrapData] = await Promise.all([
-          DataService.listTenants(),
-          DataService.bootstrap(activeTenantId)
+          tenants.length > 0 ? Promise.resolve(tenants) : DataService.listTenants(),
+          DataService.bootstrap(resolvedTenantId)
         ]);
         
         console.log(`[Perf] Bootstrap data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
 
         if (!isMounted) return;
         
-        // Apply tenants
-        applyTenantList(tenantList);
+        // Apply tenants if not already set
+        if (tenants.length === 0) {
+          applyTenantList(tenantList);
+        }
         
         // Apply critical store data immediately
-        const normalizedProducts = normalizeProductCollection(bootstrapData.products, activeTenantId);
+        const normalizedProducts = normalizeProductCollection(bootstrapData.products, resolvedTenantId);
         setProducts(normalizedProducts);
         setThemeConfig(bootstrapData.themeConfig);
         setWebsiteConfig(bootstrapData.websiteConfig);
@@ -503,13 +534,22 @@ const App = () => {
         // DEFERRED: Load secondary data in ONE request instead of 10 separate calls
         const loadSecondaryData = () => {
           if (!isMounted) return;
-          DataService.getSecondaryData(activeTenantId).then((data) => {
+          DataService.getSecondaryData(resolvedTenantId).then((data) => {
             if (!isMounted) return;
+            
+            // Set orders - mark as loaded from server to skip save
+            ordersLoadedRef.current = false; // Reset so first update is skipped
+            prevOrdersRef.current = data.orders;
             setOrders(data.orders);
+            
             // Set logo - prevLogoRef will prevent unnecessary save
             prevLogoRef.current = data.logo;
             setLogo(data.logo);
+            
+            // Set delivery config - track previous to skip first save
+            prevDeliveryConfigRef.current = data.deliveryConfig;
             setDeliveryConfig(data.deliveryConfig);
+            
             const hydratedMessages = Array.isArray(data.chatMessages) ? data.chatMessages : [];
             skipNextChatSaveRef.current = true;
             chatMessagesLoadedRef.current = true;
@@ -517,7 +557,12 @@ const App = () => {
             chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
             setHasUnreadChat(false);
             setIsAdminChatOpen(false);
+            
+            // Set landing pages with skip flag
+            prevLandingPagesRef.current = data.landingPages;
             setLandingPages(data.landingPages);
+            
+            // Categories etc - these use adminDataLoadedRef check so they're safe
             setCategories(data.categories);
             setSubCategories(data.subcategories);
             setChildCategories(data.childcategories);
@@ -555,7 +600,7 @@ const App = () => {
 
     loadInitialData();
     return () => { isMounted = false; };
-  }, [activeTenantId, applyTenantList]);
+  }, [activeTenantId, hostTenantSlug, tenants.length, applyTenantList]);
 
   // Load admin-only data when entering admin view (deferred)
   const loadAdminData = useCallback(async () => {
@@ -686,6 +731,8 @@ const App = () => {
   // --- PERSISTENCE WRAPPERS (Simulating DB Writes) ---
   const ordersLoadedRef = useRef(false);
   const prevOrdersRef = useRef<Order[]>([]);
+  const prevDeliveryConfigRef = useRef<DeliveryConfig[]>([]);
+  const prevLandingPagesRef = useRef<LandingPage[]>([]);
   
   useEffect(() => { 
     if(!isLoading && activeTenantId) {
@@ -827,8 +874,17 @@ const App = () => {
     DataService.save('logo', logo, activeTenantId);
   }, [logo, isLoading, activeTenantId]);
   
-  // Only save delivery_config when it has items
-  useEffect(() => { if(!isLoading && activeTenantId && deliveryConfig.length > 0) DataService.save('delivery_config', deliveryConfig, activeTenantId); }, [deliveryConfig, isLoading, activeTenantId]);
+  // Only save delivery_config when it has items AND actually changed
+  useEffect(() => { 
+    if(!isLoading && activeTenantId && deliveryConfig.length > 0) {
+      // Skip if same as previous (first load from server)
+      if (JSON.stringify(deliveryConfig) === JSON.stringify(prevDeliveryConfigRef.current)) {
+        return;
+      }
+      prevDeliveryConfigRef.current = deliveryConfig;
+      DataService.save('delivery_config', deliveryConfig, activeTenantId);
+    }
+  }, [deliveryConfig, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, activeTenantId]);
   
@@ -838,7 +894,16 @@ const App = () => {
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && childCategories.length > 0) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && brands.length > 0) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && tags.length > 0) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && initialDataLoadedRef.current && landingPages.length > 0) DataService.save('landing_pages', landingPages, activeTenantId); }, [landingPages, isLoading, activeTenantId]);
+  // Only save landing_pages when actually changed
+  useEffect(() => { 
+    if(!isLoading && activeTenantId && initialDataLoadedRef.current && landingPages.length > 0) {
+      if (JSON.stringify(landingPages) === JSON.stringify(prevLandingPagesRef.current)) {
+        return;
+      }
+      prevLandingPagesRef.current = landingPages;
+      DataService.save('landing_pages', landingPages, activeTenantId);
+    }
+  }, [landingPages, isLoading, activeTenantId]);
 
   // OPTIMIZED: Chat polling - only start when chat is opened or user is admin
   const chatPollingActiveRef = useRef(false);

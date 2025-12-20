@@ -55,9 +55,9 @@ function criticalPreloadPlugin(): Plugin {
       // Sort CSS files by priority
       cssFiles.sort((a, b) => a.priority - b.priority);
 
-      // Create preload hints for CSS
+      // Create preload hints for CSS with crossorigin for subdomain support
       const cssPreloads = cssFiles.map(({ fileName }) => 
-        `<link rel="preload" href="/${fileName}" as="style" />`
+        `<link rel="preload" href="/${fileName}" as="style" crossorigin />`
       ).join('\n    ');
 
       const allPreloads = [cssPreloads, ...modulepreloadLinks].filter(Boolean).join('\n    ');

@@ -668,13 +668,15 @@ const App = () => {
   }, [isLoading, activeTenantId]);
 
   // OPTIMIZED: Only save when data actually changes (not on initial load)
+  // Use saveImmediate for products to prevent race conditions with data refresh
   const prevProductsRef = useRef<Product[]>([]);
   useEffect(() => { 
-    if(!initialDataLoadedRef.current || !activeTenantId) return;
+    // Don't save while loading to prevent saving stale data during tenant switch
+    if(isLoading || !initialDataLoadedRef.current || !activeTenantId) return;
     if(JSON.stringify(products) === JSON.stringify(prevProductsRef.current)) return;
     prevProductsRef.current = products;
-    DataService.save('products', products, activeTenantId); 
-  }, [products, activeTenantId]);
+    DataService.saveImmediate('products', products, activeTenantId); 
+  }, [products, activeTenantId, isLoading]);
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);

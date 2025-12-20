@@ -26,9 +26,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   onUpdateWebsiteConfig,
   initialTab = 'website_info'
 }) => {
-  // DEBUG: Check logo value
-  console.log('[AdminCustomization] logo prop:', logo ? `${logo.substring(0, 50)}...` : 'null/undefined');
-  
   const [activeTab, setActiveTab] = useState(initialTab);
   
   // Sync tab with prop change (for sidebar navigation)
@@ -725,7 +722,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         <div className="flex flex-col items-center gap-3">
                             <ImageIcon size={32} className="text-gray-400"/>
                             <p className="text-sm font-bold text-gray-700">Website Logo (Horizontal 256x56px)</p>
-                            {logo && <img src={normalizeImageUrl(logo)} alt="Logo" className="h-10 object-contain my-2"/>}
+                            {logo ? (
+                                <img src={normalizeImageUrl(logo)} alt="Logo" className="h-12 max-w-[200px] object-contain my-2 border border-gray-200 rounded p-1 bg-gray-50"/>
+                            ) : (
+                                <p className="text-xs text-gray-400">No logo uploaded</p>
+                            )}
                             <div className="flex gap-2">
                                 <button onClick={() => logoInputRef.current?.click()} className="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
                                 {logo && <button onClick={() => handleRemoveImage('logo')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}

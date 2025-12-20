@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2 } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2, FileEdit } from 'lucide-react';
 import { convertFileToWebP } from '../services/imageUtils';
 import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
@@ -10,6 +10,7 @@ import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import { RichTextEditor } from '../components/RichTextEditor';
 import ProductPricingAndStock, { ProductPricingData } from '../components/ProductPricingAndStock';
 import toast from 'react-hot-toast';
+import { getDrafts, saveDraft, deleteDraft, generateDraftId, DraftProduct } from '../utils/draftManager';
 
 interface AdminProductsProps {
   products: Product[];
@@ -110,7 +111,12 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingDraft, setEditingDraft] = useState<DraftProduct | null>(null);
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const shareOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://mydomain.com';
+
+  // Draft products state
+  const [draftProducts, setDraftProducts] = useState<DraftProduct[]>([]);
 
   // Deep Search State
   const [isDeepSearchOpen, setIsDeepSearchOpen] = useState(false);
@@ -173,11 +179,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [isSlugTouched, setIsSlugTouched] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savingProgress, setSavingProgress] = useState(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
   const viewMenuRef = useRef<HTMLDivElement>(null);
   const savingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Form Sections State
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -217,11 +225,117 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       if (savingIntervalRef.current) {
         clearInterval(savingIntervalRef.current);
       }
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
     };
   }, []);
 
-  // Derived State for filtering
-  const filteredProducts = products.filter(p => {
+  // Load drafts on mount
+  useEffect(() => {
+    const drafts = getDrafts(activeTenantId);
+    setDraftProducts(drafts);
+  }, [activeTenantId]);
+
+  // Auto-save draft when formData changes
+  useEffect(() => {
+    if (!isModalOpen || !hasUnsavedChanges) return;
+
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Set new timer for auto-save (debounced by 5 seconds)
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleAutoSaveDraft();
+    }, 5000);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [formData, isModalOpen, hasUnsavedChanges]);
+
+  // Add beforeunload warning for unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges && isModalOpen) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges, isModalOpen]);
+
+  // Auto-save draft function
+  const handleAutoSaveDraft = useCallback(() => {
+    if (!formData.name) return; // Don't save empty drafts
+
+    const draftId = currentDraftId || generateDraftId();
+    if (!currentDraftId) {
+      setCurrentDraftId(draftId);
+    }
+
+    saveDraft(formData, draftId, activeTenantId);
+    
+    // Update local draft products list
+    setDraftProducts(prev => {
+      const existing = prev.findIndex(d => d.draftId === draftId);
+      const draftProduct: DraftProduct = {
+        ...formData,
+        draftId,
+        lastSaved: new Date().toISOString(),
+        isDraft: true,
+      };
+      
+      if (existing >= 0) {
+        const updated = [...prev];
+        updated[existing] = draftProduct;
+        return updated;
+      }
+      return [...prev, draftProduct];
+    });
+  }, [formData, currentDraftId, activeTenantId]);
+
+  // Derived State for filtering - combine real products with drafts
+  const allProducts = [
+    ...products,
+    ...draftProducts.map(draft => ({
+      id: parseInt(draft.draftId.replace('draft_', '')) || Date.now(),
+      name: draft.name || 'Untitled Draft',
+      price: draft.price || 0,
+      originalPrice: draft.originalPrice,
+      category: draft.category,
+      subCategory: draft.subCategory,
+      childCategory: draft.childCategory,
+      brand: draft.brand,
+      description: draft.description,
+      image: draft.image || '',
+      galleryImages: draft.galleryImages || [],
+      slug: draft.slug,
+      discount: draft.discount,
+      tags: draft.tags,
+      searchTags: draft.searchTags,
+      colors: draft.colors,
+      sizes: draft.sizes,
+      status: 'Draft' as const,
+      stock: draft.stock,
+      rating: draft.rating,
+      reviews: draft.reviews,
+      sku: draft.sku,
+      costPrice: draft.costPrice,
+      isWholesale: draft.isWholesale,
+      _isDraft: true,
+      _draftId: draft.draftId,
+    } as Product & { _isDraft?: boolean; _draftId?: string }))
+  ];
+
+  const filteredProducts = allProducts.filter(p => {
     // Basic search - now includes searchTags
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -309,10 +423,23 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     return candidate;
   };
 
-  const handleOpenModal = (product?: Product) => {
+  const handleOpenModal = (product?: Product & { _isDraft?: boolean; _draftId?: string }) => {
     let initialData: Partial<Product>;
     if (product) {
-      setEditingProduct(product);
+      // Check if this is a draft
+      if (product._isDraft && product._draftId) {
+        const draft = draftProducts.find(d => d.draftId === product._draftId);
+        if (draft) {
+          setEditingDraft(draft);
+          setCurrentDraftId(draft.draftId);
+          setEditingProduct(null);
+        }
+      } else {
+        setEditingProduct(product);
+        setEditingDraft(null);
+        setCurrentDraftId(null);
+      }
+      
       initialData = { ...product, status: product.status || 'Active', colors: product.colors || [], sizes: product.sizes || [], galleryImages: product.galleryImages || [], slug: product.slug };
       setIsSlugTouched(true);
       // Initialize pricing data from product
@@ -326,6 +453,9 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       });
     } else {
       setEditingProduct(null);
+      setEditingDraft(null);
+      // Generate new draft ID for new product
+      setCurrentDraftId(generateDraftId());
       initialData = {
         name: '',
         price: 0,
@@ -358,6 +488,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     }
     setFormData(initialData);
     setInitialFormData(initialData);
+    setHasUnsavedChanges(false);
     setIsModalOpen(true);
   };
 
@@ -368,11 +499,21 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     const isDirty = JSON.stringify(formData) !== JSON.stringify(initialFormData);
     
     if (isDirty) {
+      // Auto-save as draft before closing
+      if (formData.name) {
+        handleAutoSaveDraft();
+        toast.success('Draft saved automatically');
+      }
+      
       if (!window.confirm("You have unsaved changes. Are you sure you want to discard them?")) {
         return;
       }
     }
+    
     setIsModalOpen(false);
+    setHasUnsavedChanges(false);
+    setCurrentDraftId(null);
+    setEditingDraft(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -437,6 +578,12 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         onAddProduct({ ...productData, id: Date.now() }); // Simple ID generation
       }
 
+      // Delete draft if this was a draft being published
+      if (currentDraftId) {
+        deleteDraft(currentDraftId, activeTenantId);
+        setDraftProducts(prev => prev.filter(d => d.draftId !== currentDraftId));
+      }
+
       // Complete the progress bar
       if (savingIntervalRef.current) {
         clearInterval(savingIntervalRef.current);
@@ -446,6 +593,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
       toast.success(editingProduct ? 'Product updated successfully!' : 'Product added successfully!');
       setIsModalOpen(false);
+      setHasUnsavedChanges(false);
+      setCurrentDraftId(null);
     } catch (error) {
       if (savingIntervalRef.current) {
         clearInterval(savingIntervalRef.current);
@@ -458,9 +607,15 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number, isDraft?: boolean, draftId?: string) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      onDeleteProduct(id);
+      if (isDraft && draftId) {
+        deleteDraft(draftId, activeTenantId);
+        setDraftProducts(prev => prev.filter(d => d.draftId !== draftId));
+        toast.success('Draft deleted successfully');
+      } else {
+        onDeleteProduct(id);
+      }
     }
   };
 
@@ -547,11 +702,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       updated.slug = buildSlugFromName(value);
     }
     setFormData(updated);
+    setHasUnsavedChanges(true);
   };
 
   // Memoized handler for RichTextEditor to prevent infinite re-renders
   const handleDescriptionChange = useCallback((html: string) => {
     setFormData(prev => ({ ...prev, description: html }));
+    setHasUnsavedChanges(true);
   }, []);
 
   // Memoized handler for ProductPricingAndStock to prevent infinite re-renders
@@ -562,6 +719,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       price: data.regularPrice,
       originalPrice: data.salesPrice,
     }));
+    setHasUnsavedChanges(true);
   }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -619,6 +777,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         ...formData,
         galleryImages: [...currentGallery, ...uploadedUrls]
       });
+
+      setHasUnsavedChanges(true);
+      
+      // Immediately save draft after image upload
+      setTimeout(() => {
+        handleAutoSaveDraft();
+        toast.success('Draft auto-saved', { duration: 2000 });
+      }, 100);
 
       toast.success(`Successfully uploaded ${uploadedUrls.length} image(s)`, { id: loadingToast });
 
@@ -1027,17 +1193,21 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
            const formattedPrice = formatCurrency(product.price);
            const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
            const isSelected = selectedIds.includes(product.id);
+           const isDraftProduct = (product as any)._isDraft;
+           const draftId = (product as any)._draftId;
            const statusClass = (product.status || 'Active') === 'Active' 
              ? 'bg-green-100 text-green-700' 
+             : isDraftProduct 
+             ? 'bg-yellow-100 text-yellow-700'
              : 'bg-gray-100 text-gray-600';
 
            if (isListLikeView) {
              return (
                <div 
-                 key={product.id}
+                 key={isDraftProduct ? draftId : product.id}
                  className={`bg-white rounded-2xl border shadow-sm transition ${
                    isSelected ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
-                 }`}
+                 } ${isDraftProduct ? 'border-l-4 border-l-yellow-500' : ''}`}
                >
                  <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
                    <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -1052,6 +1222,11 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                         {product.discount && (
                           <span className="absolute bottom-1 right-1 bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
                             {product.discount}
+                          </span>
+                        )}
+                        {isDraftProduct && (
+                          <span className="absolute top-1 left-1 bg-yellow-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm flex items-center gap-1">
+                            <FileEdit size={10} /> DRAFT
                           </span>
                         )}
                      </div>
@@ -1086,7 +1261,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                           <span className="text-xs text-gray-400 line-through">৳ {formattedOriginalPrice}</span>
                         )}
                         <span className={`inline-flex mt-2 px-2 py-1 rounded text-[10px] font-bold uppercase shadow-sm ${statusClass}`}>
-                          {product.status || 'Active'}
+                          {isDraftProduct ? 'Draft' : product.status || 'Active'}
                         </span>
                      </div>
                      <div className="flex flex-wrap gap-2 justify-end">
@@ -1094,7 +1269,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleOpenModal(product);
+                            handleOpenModal(product as any);
                           }}
                           className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-900"
                         >
@@ -1104,7 +1279,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(product.id);
+                            handleDelete(product.id, isDraftProduct, draftId);
                           }}
                           className="px-3 py-1.5 border border-red-200 text-sm text-red-600 rounded-lg hover:bg-red-50"
                         >
@@ -1119,10 +1294,10 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
            return (
              <div 
-               key={product.id} 
+               key={isDraftProduct ? draftId : product.id} 
                className={`bg-white rounded-xl border shadow-sm overflow-hidden hover:shadow-md transition group relative ${
                  isSelected ? 'border-purple-500 ring-1 ring-purple-500' : 'border-gray-200'
-               }`}
+               } ${isDraftProduct ? 'border-t-4 border-t-yellow-500' : ''}`}
              >
               <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                 <input 
@@ -1133,9 +1308,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                 />
               </div>
               
-              <div className="absolute top-3 right-3 z-10">
+              <div className="absolute top-3 right-3 z-10 flex gap-2">
+                 {isDraftProduct && (
+                   <span className="px-2 py-1 rounded text-[10px] font-bold uppercase shadow-sm bg-yellow-500 text-white flex items-center gap-1">
+                     <FileEdit size={10} /> DRAFT
+                   </span>
+                 )}
                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase shadow-sm ${statusClass}`}>
-                    {product.status || 'Active'}
+                    {isDraftProduct ? 'Draft' : product.status || 'Active'}
                  </span>
               </div>
 
@@ -1148,14 +1328,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                  )}
                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3 backdrop-blur-[1px]">
                     <button 
-                      onClick={() => handleOpenModal(product)}
+                      onClick={() => handleOpenModal(product as any)}
                       className="bg-white text-gray-800 p-2 rounded-full hover:bg-purple-50 hover:text-purple-600 transition shadow-lg"
                       title="Edit"
                     >
                       <Edit size={18} />
                     </button>
                     <button 
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => handleDelete(product.id, isDraftProduct, draftId)}
                       className="bg-white text-gray-800 p-2 rounded-full hover:bg-red-50 hover:text-red-600 transition shadow-lg"
                       title="Delete"
                     >
@@ -1215,9 +1395,17 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
               <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
-                 <h3 className="text-xl font-bold text-gray-800">
-                   {editingProduct ? 'Edit Product' : 'Add New Product'}
-                 </h3>
+                 <div className="flex items-center gap-3">
+                   <h3 className="text-xl font-bold text-gray-800">
+                     {editingProduct ? 'Edit Product' : editingDraft ? 'Edit Draft' : 'Add New Product'}
+                   </h3>
+                   {hasUnsavedChanges && (
+                     <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                       <AlertCircle size={12} />
+                       Unsaved changes
+                     </span>
+                   )}
+                 </div>
                  <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
                    <X size={24} />
                  </button>

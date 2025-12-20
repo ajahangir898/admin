@@ -8,6 +8,42 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 const port = process.env.PORT || 3000;
 
+// Cache durations
+const ONE_YEAR = 31536000; // 1 year in seconds
+const ONE_DAY = 86400; // 1 day in seconds
+const ONE_WEEK = 604800; // 1 week in seconds
+
+// Set cache headers based on file type and whether it's hashed
+const setCacheHeaders = (res, filePath) => {
+  const ext = path.extname(filePath).toLowerCase();
+  const filename = path.basename(filePath);
+  
+  // Check if file is in assets directory (Vite output) or has a content hash
+  // Vite adds 8-character hashes like: filename.abc12345.js
+  const isInAssets = filePath.includes('/assets/');
+  const hasHash = /\.[a-f0-9]{8}\.(js|css|woff2?|ttf|eot)$/i.test(filename);
+  
+  if (isInAssets || hasHash) {
+    // Hashed assets: immutable, long cache (1 year)
+    res.setHeader('Cache-Control', `public, max-age=${ONE_YEAR}, immutable`);
+  } else if (['.js', '.css'].includes(ext)) {
+    // Unhashed JS/CSS: short cache with revalidation
+    res.setHeader('Cache-Control', `public, max-age=${ONE_DAY}, stale-while-revalidate=${ONE_WEEK}`);
+  } else if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp'].includes(ext)) {
+    // Images: moderate cache with revalidation
+    res.setHeader('Cache-Control', `public, max-age=${ONE_WEEK}, stale-while-revalidate=${ONE_YEAR}`);
+  } else if (['.woff', '.woff2', '.ttf', '.eot'].includes(ext)) {
+    // Unhashed fonts: moderate cache with revalidation
+    res.setHeader('Cache-Control', `public, max-age=${ONE_WEEK}, stale-while-revalidate=${ONE_YEAR}`);
+  } else if (['.json', '.xml', '.txt'].includes(ext)) {
+    // Config/data files: short cache with revalidation
+    res.setHeader('Cache-Control', `public, max-age=${ONE_DAY}, stale-while-revalidate=${ONE_WEEK}`);
+  } else {
+    // Default: moderate cache
+    res.setHeader('Cache-Control', `public, max-age=${ONE_DAY}`);
+  }
+};
+
 async function createServer() {
   const app = express();
 
@@ -24,11 +60,10 @@ async function createServer() {
     });
     app.use(vite.middlewares);
   } else {
-    // Production: serve static files
+    // Production: serve static files with optimized caching
     app.use(express.static(path.resolve(__dirname, 'dist/client'), {
       index: false,
-      maxAge: '1y',
-      immutable: true
+      setHeaders: setCacheHeaders
     }));
   }
 

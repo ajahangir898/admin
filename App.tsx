@@ -194,8 +194,7 @@ const App = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
-  // Logo save protection refs (declared early for use in data loading)
-  const logoLoadedRef = useRef(false);
+  // Logo save protection ref - tracks previous value to prevent unnecessary saves
   const prevLogoRef = useRef<string | null>(null);
   // Theme config starts as null - will be loaded from server for each tenant
   const [themeConfig, setThemeConfig] = useState<ThemeConfig | null>(null);
@@ -507,8 +506,7 @@ const App = () => {
           ]).then(([ordersData, logoData, deliveryData, chatMessagesData, landingPagesData, categoriesData, subCategoriesData, childCategoriesData, brandsData, tagsData]) => {
             if (!isMounted) return;
             setOrders(ordersData);
-            // Set logo without triggering save (mark as loaded from server)
-            logoLoadedRef.current = false; // Reset to skip next save
+            // Set logo - prevLogoRef will prevent unnecessary save
             prevLogoRef.current = logoData;
             setLogo(logoData);
             setDeliveryConfig(deliveryData);
@@ -603,7 +601,7 @@ const App = () => {
   useEffect(() => {
     adminDataLoadedRef.current = false;
     websiteConfigLoadedRef.current = false;
-    logoLoadedRef.current = false;
+    prevLogoRef.current = null; // Reset logo ref on tenant change
   }, [activeTenantId]);
 
   // --- DATA REFRESH HANDLER (Sync Admin changes to Storefront) ---
@@ -807,18 +805,11 @@ const App = () => {
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
   
-  // Logo save with proper protection against loops
+  // Logo save - only save when logo actually changes from user action
   useEffect(() => {
     if (!activeTenantId || isLoading) return;
     
-    // Skip first load (initial data fetch)
-    if (!logoLoadedRef.current) {
-      logoLoadedRef.current = true;
-      prevLogoRef.current = logo;
-      return;
-    }
-    
-    // Skip if logo hasn't actually changed
+    // Skip if logo hasn't changed (handles initial load and socket updates)
     if (logo === prevLogoRef.current) {
       return;
     }
@@ -831,8 +822,9 @@ const App = () => {
       return;
     }
     
+    // Update ref and save
     prevLogoRef.current = logo;
-    console.log('[Logo] Saving logo...');
+    console.log('[Logo] Saving logo to backend...');
     DataService.save('logo', logo, activeTenantId);
   }, [logo, isLoading, activeTenantId]);
   

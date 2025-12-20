@@ -26,6 +26,9 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   onUpdateWebsiteConfig,
   initialTab = 'website_info'
 }) => {
+  // DEBUG: Check logo value
+  console.log('[AdminCustomization] logo prop:', logo ? `${logo.substring(0, 50)}...` : 'null/undefined');
+  
   const [activeTab, setActiveTab] = useState(initialTab);
   
   // Sync tab with prop change (for sidebar navigation)

@@ -7,31 +7,42 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Socket.IO connection for real-time updates
 let socket: Socket | null = null;
+let socketInitAttempted = false;
 
 const initSocket = (): Socket | null => {
   if (typeof window === 'undefined') return null;
   if (socket?.connected) return socket;
+  if (socketInitAttempted && !socket?.connected) return null; // Don't retry if already failed
   
+  socketInitAttempted = true;
   const socketUrl = API_BASE_URL || window.location.origin;
-  socket = io(socketUrl, {
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    timeout: 10000
-  });
   
-  socket.on('connect', () => {
-    console.log('[Socket.IO] Connected:', socket?.id);
-  });
-  
-  socket.on('disconnect', (reason) => {
-    console.log('[Socket.IO] Disconnected:', reason);
-  });
-  
-  socket.on('connect_error', (error) => {
-    console.warn('[Socket.IO] Connection error:', error.message);
-  });
+  try {
+    socket = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 2, // Reduced from 5
+      reconnectionDelay: 2000,
+      timeout: 5000,
+      autoConnect: true
+    });
+    
+    socket.on('connect', () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Socket.IO] Connected:', socket?.id);
+      }
+    });
+    
+    socket.on('disconnect', (reason) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Socket.IO] Disconnected:', reason);
+      }
+    });
+    
+    socket.on('connect_error', () => {
+      // Silently handle connection errors in production
+      // Socket.IO will fallback to HTTP polling or just not use real-time features
+    });
   
   // Listen for data updates and notify listeners
   socket.on('data-update', (payload: { tenantId: string; key: string; data: unknown }) => {
@@ -43,16 +54,25 @@ const initSocket = (): Socket | null => {
   });
   
   socket.on('new-order', (payload: { tenantId: string; data: unknown }) => {
-    console.log('[Socket.IO] New order received:', payload.tenantId);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Socket.IO] New order received:', payload.tenantId);
+    }
     invalidateCache('orders', payload.tenantId);
     notifyDataRefresh('orders', payload.tenantId);
   });
   
   socket.on('order-updated', (payload: { tenantId: string; data: unknown }) => {
-    console.log('[Socket.IO] Order updated:', payload.tenantId);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Socket.IO] Order updated:', payload.tenantId);
+    }
     invalidateCache('orders', payload.tenantId);
     notifyDataRefresh('orders', payload.tenantId);
   });
+  
+  } catch (e) {
+    // Socket initialization failed, continue without real-time features
+    return null;
+  }
   
   return socket;
 };
@@ -62,7 +82,9 @@ export const joinTenantRoom = (tenantId: string) => {
   const s = initSocket();
   if (s?.connected) {
     s.emit('join-tenant', tenantId);
-    console.log('[Socket.IO] Joined tenant room:', tenantId);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Socket.IO] Joined tenant room:', tenantId);
+    }
   }
 };
 

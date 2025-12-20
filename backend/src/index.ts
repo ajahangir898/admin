@@ -24,6 +24,7 @@ import authRouter from './routes/auth';
 import { notificationsRouter } from './routes/notifications';
 import { courierRouter } from './routes/courier';
 import { User } from './models/User';
+import imageOptimizeRouter from './routes/imageOptimize';
 
 const app = express();
 const httpServer = createServer(app);
@@ -122,6 +123,9 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(morgan('dev'));
 
 // Serve static files for uploaded images
+// Use image optimization route first (handles ?w=&q= params)
+app.use('/uploads', imageOptimizeRouter);
+// Fallback to static files for non-optimized requests
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/', (_req, res) => {

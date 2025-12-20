@@ -599,7 +599,13 @@ const StoreCheckout = ({
 
               <div className="flex gap-3 mb-6">
                 <div className="w-16 h-16 bg-gray-50 rounded border border-gray-200 p-1 flex-shrink-0">
-                  <img src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                  <img 
+                    src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} 
+                    alt={product.name} 
+                    className="w-full h-full object-contain mix-blend-multiply" 
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start">

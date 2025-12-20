@@ -40,7 +40,13 @@ export const CartModal: React.FC<CartModalProps> = ({
               if (!product) return null;
               return (
                 <li key={id} className="flex items-center gap-3 border-b pb-3 last:border-b-0">
-                  <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-14 h-14 rounded-lg object-cover border" />
+                  <img 
+                    src={normalizeImageUrl(product.image)} 
+                    alt={product.name} 
+                    className="w-14 h-14 rounded-lg object-cover border" 
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold">{product.name}</div>
                     <div className="text-sm font-bold text-green-600 mt-1">৳ {formatCurrency(product.price)}</div>

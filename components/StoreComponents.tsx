@@ -682,7 +682,13 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
             key={item.id}
             className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
           >
-            <img src={normalizeImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
+            <img 
+              src={normalizeImageUrl(item.image)} 
+              alt={item.name} 
+              className="w-full h-full object-cover" 
+              loading={index === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
           </a>
         ))}
 

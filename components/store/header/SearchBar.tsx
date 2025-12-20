@@ -75,7 +75,13 @@ export const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
           onClick={() => onSuggestionClick(product)} 
           className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0 text-left"
         >
-          <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-14 h-14 object-cover rounded" />
+          <img 
+            src={normalizeImageUrl(product.image)} 
+            alt={product.name} 
+            className="w-14 h-14 object-cover rounded" 
+            loading="lazy"
+            decoding="async"
+          />
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium text-gray-900 truncate">{product.name}</div>
             <div className="text-xs text-gray-500">{product.category}</div>

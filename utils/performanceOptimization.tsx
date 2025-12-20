@@ -318,38 +318,56 @@ export const runInWorker = async (computation: string, data: any): Promise<any> 
 // LAZY IMAGE COMPONENT
 // ============================================================================
 
+// Image size presets
+type ImageSize = 'thumb' | 'small' | 'medium' | 'large' | 'full';
+const IMAGE_SIZES: Record<ImageSize, { width: number; quality: number }> = {
+  thumb: { width: 100, quality: 60 },
+  small: { width: 200, quality: 70 },
+  medium: { width: 400, quality: 75 },
+  large: { width: 800, quality: 80 },
+  full: { width: 1200, quality: 85 },
+};
+
+// Placeholder SVG
+const PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"%3E%3Crect fill="%23f3f4f6" width="1" height="1"/%3E%3C/svg%3E';
+
 export const LazyImage: React.FC<{
   src: string;
   alt: string;
   width?: number;
   height?: number;
   className?: string;
+  size?: ImageSize;
+  priority?: boolean;
   optimizationOptions?: ImageOptimizationOptions;
-}> = ({ src, alt, width, height, className = '', optimizationOptions = {} }) => {
+}> = ({ src, alt, width, height, className = '', size = 'medium', priority = false, optimizationOptions = {} }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  // Get size-based optimization
+  const sizeConfig = IMAGE_SIZES[size];
+  const mergedOptions = {
+    width: optimizationOptions.width || sizeConfig.width,
+    quality: optimizationOptions.quality || sizeConfig.quality,
+    ...optimizationOptions
+  };
+
   useEffect(() => {
+    if (priority) {
+      setIsInView(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          const optimized = optimizeImage(src, optimizationOptions);
-          
-          // Preload image
-          const img = new Image();
-          img.src = optimized;
-          img.onload = () => {
-            setImageUrl(optimized);
-            setIsLoaded(true);
-          };
-
-          if (imgRef.current) {
-            observer.unobserve(imgRef.current);
-          }
+          setIsInView(true);
+          observer.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { rootMargin: '200px', threshold: 0.01 }
     );
 
     if (imgRef.current) {
@@ -357,18 +375,47 @@ export const LazyImage: React.FC<{
     }
 
     return () => observer.disconnect();
-  }, [src, optimizationOptions]);
+  }, [priority]);
+
+  const handleLoad = () => setIsLoaded(true);
+  const handleError = () => setHasError(true);
+
+  // Build optimized URL
+  const optimizedSrc = isInView ? optimizeImage(src, mergedOptions) : PLACEHOLDER;
 
   return (
-    <img
-      ref={imgRef}
-      src={imageUrl || ''}
-      alt={alt}
-      width={width}
-      height={height}
-      className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-50'} transition-opacity duration-300`}
-      loading="lazy"
-    />
+    <div ref={imgRef as any} className={`relative overflow-hidden ${className}`}>
+      {/* Placeholder background */}
+      {!isLoaded && !hasError && (
+        <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+      )}
+      
+      {/* Actual image */}
+      {!hasError && (
+        <img
+          src={optimizedSrc}
+          alt={alt}
+          width={width}
+          height={height}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          onLoad={handleLoad}
+          onError={handleError}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      )}
+
+      {/* Error state */}
+      {hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -710,7 +710,7 @@ const App = () => {
       if (!isMounted || isFetching || chatSyncLockRef.current || !chatPollingActiveRef.current) return;
       isFetching = true;
       try {
-        const latest = await DataService.get<ChatMessage[]>('chat_messages', [], activeTenantId);
+        const latest = await DataService.getChatMessages(activeTenantId);
         if (!isMounted) return;
         const normalized = Array.isArray(latest) ? [...latest] : [];
         normalized.sort((a, b) => (a?.timestamp || 0) - (b?.timestamp || 0));

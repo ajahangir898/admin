@@ -1,4 +1,4 @@
-import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload } from '../types';
+import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload, ChatMessage } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
 import { getAuthHeader } from './authService';
 import { io, Socket } from 'socket.io-client';
@@ -502,21 +502,28 @@ class DataServiceImpl {
     return remote.length ? remote : defaultRoles;
   }
 
-  async get<T>(key: string, defaultValue: T, tenantId?: string): Promise<T> {
-    // Check cache for simple gets
-    const cached = getCachedData<T>(key, tenantId);
-    if (cached !== null) return cached;
+  async get<T>(key: string, defaultValue: T, tenantId?: string, skipCache = false): Promise<T> {
+    // Check cache for simple gets (skip for real-time data like chat)
+    if (!skipCache) {
+      const cached = getCachedData<T>(key, tenantId);
+      if (cached !== null) return cached;
+    }
     
     const remote = await this.fetchTenantDocument<T>(key, tenantId);
     if (remote === null || remote === undefined) {
       return defaultValue;
     }
     if (Array.isArray(defaultValue) && Array.isArray(remote)) {
-      setCachedData(key, remote, tenantId);
+      if (!skipCache) setCachedData(key, remote, tenantId);
       return this.filterByTenant(remote as Array<{ tenantId?: string }> as any, tenantId) as unknown as T;
     }
-    setCachedData(key, remote, tenantId);
+    if (!skipCache) setCachedData(key, remote, tenantId);
     return remote;
+  }
+
+  // Get chat messages - always fresh, no cache
+  async getChatMessages(tenantId?: string): Promise<ChatMessage[]> {
+    return this.get<ChatMessage[]>('chat_messages', [], tenantId, true);
   }
 
   async getThemeConfig(tenantId?: string): Promise<ThemeConfig | null> {

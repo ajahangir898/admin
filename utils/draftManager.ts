@@ -81,5 +81,5 @@ export const clearAllDrafts = (tenantId: string = 'default'): void => {
  * Generate a unique draft ID
  */
 export const generateDraftId = (): string => {
-  return `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `draft_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 };

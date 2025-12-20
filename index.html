@@ -23,12 +23,6 @@
       *{box-sizing:border-box}
       body{margin:0;background:#ffffff;font-family:Inter,system-ui,-apple-system,sans-serif}
       #root{min-height:100vh;background:#ffffff}
-      /* Critical skeleton loader styles */
-      .init-loader{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;z-index:9999}
-      .init-logo{width:48px;height:48px;margin-bottom:24px;opacity:0.7}
-      .init-bar{width:200px;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden}
-      .init-progress{width:30%;height:100%;background:#9ca3af;border-radius:2px;animation:loading 1.5s ease-in-out infinite}
-      @keyframes loading{0%{width:0;margin-left:0}50%{width:70%;margin-left:15%}100%{width:0;margin-left:100%}}
       /* Critical above-the-fold utilities */
       .flex{display:flex}.hidden{display:none}.min-h-screen{min-height:100vh}
       .items-center{align-items:center}.justify-center{justify-content:center}
@@ -41,29 +35,7 @@
     </style>
   </head>
   <body>
-    <div class="init-loader" id="init-loader">
-      <svg class="init-logo" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
-        <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
-        <circle cx="12" cy="9" r="3"/>
-      </svg>
-      <div class="init-bar"><div class="init-progress"></div></div>
-    </div>
     <div id="root"></div>
-    <script>
-      // Remove loader when React mounts
-      var check = setInterval(function() {
-        if (document.getElementById('root').children.length > 0) {
-          var l = document.getElementById('init-loader');
-          if (l) l.style.display = 'none';
-          clearInterval(check);
-        }
-      }, 50);
-      setTimeout(function() {
-        var l = document.getElementById('init-loader');
-        if (l) l.style.display = 'none';
-        clearInterval(check);
-      }, 5000);
-    </script>
     <script type="module" src="/entry-client.tsx"></script>
   </body>
 </html>

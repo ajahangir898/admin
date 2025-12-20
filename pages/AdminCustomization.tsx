@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2 } from 'lucide-react';
+import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
 import { convertFileToWebP, convertCarouselImage, CAROUSEL_WIDTH, CAROUSEL_HEIGHT } from '../services/imageUtils';
@@ -496,6 +496,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
          <TabButton id="carousel" label="Carousel" icon={<ImageIcon size={18}/>} />
          <TabButton id="popup" label="Popup" icon={<Layers size={18}/>} />
          <TabButton id="website_info" label="Website Information" icon={<Globe size={18}/>} />
+         <TabButton id="chat_settings" label="Chat Settings" icon={<MessageCircle size={18}/>} />
          <TabButton id="theme_view" label="Theme View" icon={<Layout size={18}/>} />
          <TabButton id="theme_colors" label="Theme Colors" icon={<Palette size={18}/>} />
       </div>
@@ -923,6 +924,98 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         </div>
                      </div>
                  </div>
+            </div>
+        )}
+
+        {/* CHAT SETTINGS TAB */}
+        {activeTab === 'chat_settings' && (
+            <div className="space-y-6 max-w-2xl">
+                <div>
+                    <h3 className="font-bold text-xl mb-2">Chat Settings</h3>
+                    <p className="text-gray-500 text-sm mb-6">Configure live chat for your store</p>
+                </div>
+
+                {/* Chat Enable Toggle */}
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-gray-50">
+                    <div>
+                        <p className="font-semibold text-gray-800">Enable Live Chat</p>
+                        <p className="text-sm text-gray-500">Allow customers to chat with you</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={config.chatEnabled ?? false}
+                            onChange={(e) => setConfig({...config, chatEnabled: e.target.checked})}
+                            className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                    </label>
+                </div>
+
+                {/* Chat Greeting */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message</label>
+                    <input 
+                        type="text" 
+                        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
+                        placeholder="Hi! How can we help you today?"
+                        value={config.chatGreeting || ''}
+                        onChange={(e) => setConfig({...config, chatGreeting: e.target.value})}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">This message appears when chat opens</p>
+                </div>
+
+                {/* Offline Message */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Offline Message</label>
+                    <input 
+                        type="text" 
+                        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
+                        placeholder="We're currently offline. Leave a message!"
+                        value={config.chatOfflineMessage || ''}
+                        onChange={(e) => setConfig({...config, chatOfflineMessage: e.target.value})}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Shown when support is unavailable</p>
+                </div>
+
+                {/* Support Hours */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Support Hours From</label>
+                        <input 
+                            type="time" 
+                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
+                            value={config.chatSupportHours?.from || '09:00'}
+                            onChange={(e) => setConfig({...config, chatSupportHours: {...(config.chatSupportHours || {}), from: e.target.value}})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Support Hours To</label>
+                        <input 
+                            type="time" 
+                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500" 
+                            value={config.chatSupportHours?.to || '18:00'}
+                            onChange={(e) => setConfig({...config, chatSupportHours: {...(config.chatSupportHours || {}), to: e.target.value}})}
+                        />
+                    </div>
+                </div>
+
+                {/* WhatsApp Fallback */}
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-gray-50">
+                    <div>
+                        <p className="font-semibold text-gray-800">WhatsApp Fallback</p>
+                        <p className="text-sm text-gray-500">Redirect to WhatsApp when chat is disabled</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            checked={config.chatWhatsAppFallback ?? false}
+                            onChange={(e) => setConfig({...config, chatWhatsAppFallback: e.target.checked})}
+                            className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                    </label>
+                </div>
             </div>
         )}
 

@@ -83,6 +83,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'banner', label: 'Banner' },
 		{ id: 'popup', label: 'PopUp' },
 		{ id: 'website_info', label: 'Website Information' },
+		{ id: 'chat_settings', label: 'Chat Settings' },
 		{ id: 'theme_view', label: 'Theme View' },
 		{ id: 'theme_colors', label: 'Theme Colors' },
 	];

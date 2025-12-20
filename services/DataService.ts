@@ -421,7 +421,7 @@ class DataServiceImpl {
       categorySectionStyle: 'style2',
       productSectionStyle: 'style2',
       footerStyle: 'style2',
-      chatEnabled: false,
+      chatEnabled: true,
       chatGreeting: '',
       chatOfflineMessage: '',
       chatSupportHours: { from: '09:00', to: '18:00' },

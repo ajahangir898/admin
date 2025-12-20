@@ -144,17 +144,14 @@ const StoreHome = ({
   useEffect(() => {
     const loadPopups = async () => {
       const allPopups = await DataService.get<Popup[]>('popups', []);
-      console.log('[StoreHome] All popups loaded:', allPopups);
       const publishedPopups = allPopups
         .filter((p) => p.status?.toLowerCase() === 'publish')
         .sort((a, b) => (a.priority || 0) - (b.priority || 0));
-      console.log('[StoreHome] Published popups:', publishedPopups);
       setPopups(publishedPopups);
       
       // Show first popup after a delay
       if (publishedPopups.length > 0) {
         setTimeout(() => {
-          console.log('[StoreHome] Showing popup:', publishedPopups[0]);
           setActivePopup(publishedPopups[0]);
           setPopupIndex(0);
         }, 1500);

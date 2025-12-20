@@ -597,6 +597,7 @@ const App = () => {
   useEffect(() => {
     adminDataLoadedRef.current = false;
     websiteConfigLoadedRef.current = false;
+    logoLoadedRef.current = false;
   }, [activeTenantId]);
 
   // --- DATA REFRESH HANDLER (Sync Admin changes to Storefront) ---
@@ -799,7 +800,25 @@ const App = () => {
   
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('users', users, activeTenantId); }, [users, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId) DataService.save('logo', logo, activeTenantId); }, [logo, isLoading, activeTenantId]);
+  
+  // Logo save with socket flag protection
+  const logoLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!activeTenantId || isLoading) return;
+    // Skip first load
+    if (!logoLoadedRef.current) {
+      logoLoadedRef.current = true;
+      return;
+    }
+    // Skip if logo came from socket
+    if (isKeyFromSocket('logo', activeTenantId)) {
+      clearSocketFlag('logo', activeTenantId);
+      console.log('[Logo] Skipped save - update came from socket');
+      return;
+    }
+    DataService.save('logo', logo, activeTenantId);
+  }, [logo, isLoading, activeTenantId]);
+  
   useEffect(() => { if(!isLoading && activeTenantId) DataService.save('delivery_config', deliveryConfig, activeTenantId); }, [deliveryConfig, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, activeTenantId]);

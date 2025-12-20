@@ -7,6 +7,7 @@ import { ShoppingCart, Search, User, Heart, LogOut, ChevronDown, Bell, Menu, Tru
 import { Product, User as UserType, WebsiteConfig } from '../types';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 // Import lightweight search components directly (they're needed immediately)
 import { 
@@ -385,7 +386,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                 <div className="md:hidden bg-white pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-3 h-8 gap-3">
                         <div className="flex items-center" onClick={onHomeClick}>
-                            {logo ? <img key={logoKey} src={logo} alt="Store Logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900">GADGET</span><span className="text-theme-primary">SHOB</span></h1>}
+                            {logo ? <img key={logoKey} src={normalizeImageUrl(logo)} alt="Store Logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900">GADGET</span><span className="text-theme-primary">SHOB</span></h1>}
                         </div>
                         <div className="flex items-center gap-3">
                             <button className="relative text-gray-800" onClick={() => setIsWishlistDrawerOpen(true)}>
@@ -425,7 +426,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
 {logo ? (
-					<img src={logo} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
+					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
 				) : (
 					<h2 className="text-2xl font-black tracking-widest">
 						<span style={{ color: 'var(--admin-text, white)' }}>GADGET</span>

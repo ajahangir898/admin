@@ -722,7 +722,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         <div className="flex flex-col items-center gap-3">
                             <ImageIcon size={32} className="text-gray-400"/>
                             <p className="text-sm font-bold text-gray-700">Website Logo (Horizontal 256x56px)</p>
-                            {logo && <img src={logo} alt="Logo" className="h-10 object-contain my-2"/>}
+                            {logo && <img src={normalizeImageUrl(logo)} alt="Logo" className="h-10 object-contain my-2"/>}
                             <div className="flex gap-2">
                                 <button onClick={() => logoInputRef.current?.click()} className="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
                                 {logo && <button onClick={() => handleRemoveImage('logo')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}

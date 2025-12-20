@@ -9,6 +9,7 @@ import {
 import { StatCardProps, User, Tenant } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import type { Notification as AppNotification } from '../backend/src/services/NotificationService';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 // Permission checking types
 type PermissionMap = Record<string, string[]>;
@@ -120,7 +121,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		<>
 			<div className="p-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--admin-border, rgba(255,255,255,0.1))', background: 'var(--admin-sidebar-header, linear-gradient(to right, #0f0f1a, #061410, #1a0b0f))' }}>
 				{logo ? (
-					<img src={logo} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
+					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
 				) : (
 					<h2 className="text-2xl font-black tracking-widest">
 						<span style={{ color: 'var(--admin-text, white)' }}>GADGET</span>
@@ -827,7 +828,7 @@ export const AdminHeader: React.FC<{
 								<div className="bg-gray-50 p-4 text-center">
 									<p className="text-xs text-gray-500 mb-1">(Login as {user?.username || 'admin'})</p>
 									{logo ? (
-										<img src={logo} alt="Brand" className="h-6 mx-auto object-contain opacity-70" />
+										<img src={normalizeImageUrl(logo)} alt="Brand" className="h-6 mx-auto object-contain opacity-70" />
 									) : (
 										<div className="flex items-center justify-center gap-1 opacity-70">
 											<div className="w-4 h-4 rounded-full border-2 border-green-500"></div>

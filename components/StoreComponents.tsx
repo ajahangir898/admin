@@ -836,9 +836,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         <div className="flex flex-col items-center md:items-start">
                             <div className="mb-2 md:mb-3 flex flex-col items-center md:items-start">
                                 {websiteConfig?.favicon ? (
-                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
+                                    <img src={normalizeImageUrl(websiteConfig.favicon)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : logo ? (
-                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
+                                    <img src={normalizeImageUrl(logo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : (
                                     <>
                                         {/* <span className="text-lg md:text-xl font-black text-theme-primary tracking-tight">OPBD.SHOP</span> */}
@@ -936,9 +936,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         <div className="space-y-6">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                                 {websiteConfig?.favicon ? (
-                                    <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
+                                    <img src={normalizeImageUrl(websiteConfig.favicon)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
                                 ) : logo ? (
-                                    <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
+                                    <img src={normalizeImageUrl(logo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
                                 ) : (
                                     <div className="text-3xl font-black tracking-tight text-gray-900">
                                         {websiteConfig?.websiteName || 'Your Store'}
@@ -1165,9 +1165,9 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
                     {websiteConfig?.favicon ? (
-                        <img src={websiteConfig.favicon} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
+                        <img src={normalizeImageUrl(websiteConfig.favicon)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
                     ) : logo ? (
-                        <img src={logo} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
+                        <img src={normalizeImageUrl(logo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
                     ) : (
                         <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
                     )}

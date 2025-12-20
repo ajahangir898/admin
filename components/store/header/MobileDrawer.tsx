@@ -1,6 +1,7 @@
 // MobileDrawer - Mobile navigation drawer
 import React from 'react';
 import { X, Grid, ChevronDown, Minus, Plus, Gift, Heart, Info } from 'lucide-react';
+import { normalizeImageUrl } from '../../../utils/imageUrlHelper';
 
 type CatalogGroup = {
   key: string;
@@ -66,7 +67,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             {logo ? (
-              <img key={logoKey} src={logo} alt="Store Logo" className="h-8 object-contain" />
+              <img key={logoKey} src={normalizeImageUrl(logo)} alt="Store Logo" className="h-8 object-contain" />
             ) : (
               <span className="text-lg font-black tracking-tight text-gray-900">
                 GADGET<span className="text-theme-primary">SHOB</span>

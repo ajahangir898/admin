@@ -18,11 +18,12 @@ const setCacheHeaders = (res, filePath) => {
   const ext = path.extname(filePath).toLowerCase();
   const filename = path.basename(filePath);
   
-  // Check if file has a content hash (Vite adds hashes like: filename.abc123.js)
-  const hasHash = /\.[a-f0-9]{8,}\.(js|css|woff2?|ttf|eot)$/i.test(filename) ||
-                  /assets\//.test(filePath);
+  // Check if file is in assets directory (Vite output) or has a content hash
+  // Vite adds 8-character hashes like: filename.abc12345.js
+  const isInAssets = filePath.includes('/assets/');
+  const hasHash = /\.[a-f0-9]{8}\.(js|css|woff2?|ttf|eot)$/i.test(filename);
   
-  if (hasHash) {
+  if (isInAssets || hasHash) {
     // Hashed assets: immutable, long cache (1 year)
     res.setHeader('Cache-Control', `public, max-age=${ONE_YEAR}, immutable`);
   } else if (['.js', '.css'].includes(ext)) {
@@ -32,8 +33,8 @@ const setCacheHeaders = (res, filePath) => {
     // Images: moderate cache with revalidation
     res.setHeader('Cache-Control', `public, max-age=${ONE_WEEK}, stale-while-revalidate=${ONE_YEAR}`);
   } else if (['.woff', '.woff2', '.ttf', '.eot'].includes(ext)) {
-    // Fonts: long cache
-    res.setHeader('Cache-Control', `public, max-age=${ONE_YEAR}, immutable`);
+    // Unhashed fonts: moderate cache with revalidation
+    res.setHeader('Cache-Control', `public, max-age=${ONE_WEEK}, stale-while-revalidate=${ONE_YEAR}`);
   } else if (['.json', '.xml', '.txt'].includes(ext)) {
     // Config/data files: short cache with revalidation
     res.setHeader('Cache-Control', `public, max-age=${ONE_DAY}, stale-while-revalidate=${ONE_WEEK}`);

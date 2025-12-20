@@ -72,9 +72,10 @@ function criticalPreloadPlugin(): Plugin {
       // Convert CSS stylesheet links to non-render-blocking using media="print" pattern
       // This defers CSS loading without blocking first paint
       for (const { fileName } of cssFiles) {
+        const escapedFileName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const cssLinkRegex = new RegExp(
-          `<link[^>]*href="[^"]*${fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*rel="stylesheet"[^>]*>|` +
-          `<link[^>]*rel="stylesheet"[^>]*href="[^"]*${fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`,
+          `<link[^>]*href="[^"]*${escapedFileName}"[^>]*rel="stylesheet"[^>]*>|` +
+          `<link[^>]*rel="stylesheet"[^>]*href="[^"]*${escapedFileName}"[^>]*>`,
           'gi'
         );
         

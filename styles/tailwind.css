@@ -61,7 +61,7 @@
 }
 
 ::selection {
-  background: rgba(var(--color-primary-rgb), 0.25);
+  background-color: rgb(var(--color-primary-rgb) / 0.25);
   color: #fff;
 }
 

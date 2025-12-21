@@ -53,17 +53,19 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
         {/* rolling category pills */}
         <div
           ref={categoryScrollRef}
-          className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide animate-fade-in"
+          className="overflow-x-hidden whitespace-nowrap scrollbar-hide"
           style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
         >
-          {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
-            <div key={`${cat.name}-${idx}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
-              <CategoryPill
-                name={cat.name}
-                icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })}
-              />
-            </div>
-          ))}
+          <div className="flex gap-6 animate-marquee">
+            {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
+              <div key={`${cat.name}-${idx}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
+                <CategoryPill
+                  name={cat.name}
+                  icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

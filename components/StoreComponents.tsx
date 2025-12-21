@@ -771,6 +771,7 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
     const whatsappLink = buildWhatsAppLink(websiteConfig?.whatsappNumber);
     const chatEnabled = websiteConfig?.chatEnabled ?? true;
     const chatFallbackLink = !chatEnabled && websiteConfig?.chatWhatsAppFallback ? whatsappLink : null;
+    const resolvedFooterLogo = websiteConfig?.footerLogo || websiteConfig?.favicon || logo || null;
 
     const floatingChatButton = (() => {
         const baseClasses = 'hidden md:flex fixed bottom-8 right-8 w-16 h-16 items-center justify-center rounded-[26px] text-white shadow-[0_18px_35px_rgba(255,122,85,0.35)] border border-white/30 transition-transform duration-200 hover:-translate-y-1 z-40';
@@ -835,14 +836,13 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                         {/* Logo & Social */}
                         <div className="flex flex-col items-center md:items-start">
                             <div className="mb-2 md:mb-3 flex flex-col items-center md:items-start">
-                                {websiteConfig?.favicon ? (
-                                    <img src={normalizeImageUrl(websiteConfig.favicon)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
-                                ) : logo ? (
-                                    <img src={normalizeImageUrl(logo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
+                                {resolvedFooterLogo ? (
+                                    <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
                                 ) : (
                                     <>
-                                        {/* <span className="text-lg md:text-xl font-black text-theme-primary tracking-tight">OPBD.SHOP</span> */}
-                                        <span className="text-base md:text-lg font-bold text-theme-secondary tracking-widest -mt-1 block"></span>
+                                        <span className="text-base md:text-lg font-bold text-theme-secondary tracking-widest -mt-1 block">
+                                            {websiteConfig?.websiteName || 'Your Store'}
+                                        </span>
                                     </>
                                 )}
                             </div>
@@ -935,10 +935,8 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.2fr,0.8fr,0.8fr]">
                         <div className="space-y-6">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                {websiteConfig?.favicon ? (
-                                    <img src={normalizeImageUrl(websiteConfig.favicon)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
-                                ) : logo ? (
-                                    <img src={normalizeImageUrl(logo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
+                                {resolvedFooterLogo ? (
+                                    <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
                                 ) : (
                                     <div className="text-3xl font-black tracking-tight text-gray-900">
                                         {websiteConfig?.websiteName || 'Your Store'}
@@ -1054,8 +1052,8 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
                     <div className="max-w-7xl mx-auto space-y-4">
                         {/* Logo & Tagline */}
                         <div className="text-center">
-                            {websiteConfig?.favicon && (
-                                <img src={websiteConfig.favicon} alt="Favicon" className="w-24 h-24 mx-auto mb-2 object-contain" />
+                            {resolvedFooterLogo && (
+                                <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="w-24 h-24 mx-auto mb-2 object-contain" />
                             )}
                             <p className="text-white text-sm font-light tracking-wide">{websiteConfig?.shortDescription || 'Get the best for less'}</p>
                         </div>
@@ -1164,10 +1162,8 @@ export const StoreFooter: React.FC<{ websiteConfig?: WebsiteConfig; logo?: strin
         <footer className={`store-footer surface-panel bg-white border-t border-gray-100 pt-1 pb-1 text-gray-600 max-w-7xl mx-auto px-4`}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
-                    {websiteConfig?.favicon ? (
-                        <img src={normalizeImageUrl(websiteConfig.favicon)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
-                    ) : logo ? (
-                        <img src={normalizeImageUrl(logo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
+                    {resolvedFooterLogo ? (
+                        <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-20 object-contain mb-4" />
                     ) : (
                         <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
                     )}

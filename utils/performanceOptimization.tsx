@@ -341,7 +341,7 @@ export const LazyImage: React.FC<{
   priority?: boolean;
   optimizationOptions?: ImageOptimizationOptions;
   imgClassName?: string;
-}> = ({ src, alt, width, height, className = '', size = 'medium', priority = false, optimizationOptions = {}, imgClassName }) => {
+}> = ({ src, alt, width, height, className = '', size = 'medium', priority = false, optimizationOptions = {} as ImageOptimizationOptions, imgClassName }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);

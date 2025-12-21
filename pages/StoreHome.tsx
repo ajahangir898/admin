@@ -1,19 +1,20 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react';
-import { HeroSection } from '../components/StoreProductComponents';
 import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
 import { SortOption } from '../components/ProductFilter';
-import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
+import {
+  StoreHeaderSkeleton,
+  StoreFooterSkeleton,
+  HeroSectionSkeleton,
+  CategoriesSectionSkeleton,
+  FlashSalesSkeleton,
+  ProductGridSkeleton,
+  PromoBannerSkeleton,
+  SearchResultsSkeleton,
+} from '../components/SkeletonLoaders';
 import { slugify } from '../services/slugify';
-
-// Import store sections
-import { FlashSalesSection } from '../components/store/FlashSalesSection';
-import { ProductGridSection } from '../components/store/ProductGridSection';
-import { PromoBanner } from '../components/store/PromoBanner';
-import { CategoriesSection } from '../components/store/CategoriesSection';
-import { SearchResultsSection } from '../components/store/SearchResultsSection';
 
 // Lazy load heavy components (StoreHeader, StoreFooter, modals)
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
@@ -22,6 +23,12 @@ const ProductQuickViewModal = lazy(() => import('../components/StoreComponents')
 const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
 const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
 const StoreCategoryProducts = lazy(() => import('../components/StoreCategoryProducts'));
+const HeroSection = lazy(() => import('../components/store/HeroSection').then(m => ({ default: m.HeroSection })));
+const FlashSalesSection = lazy(() => import('../components/store/FlashSalesSection').then(m => ({ default: m.FlashSalesSection })));
+const ProductGridSection = lazy(() => import('../components/store/ProductGridSection').then(m => ({ default: m.ProductGridSection })));
+const PromoBanner = lazy(() => import('../components/store/PromoBanner').then(m => ({ default: m.PromoBanner })));
+const CategoriesSection = lazy(() => import('../components/store/CategoriesSection').then(m => ({ default: m.CategoriesSection })));
+const SearchResultsSection = lazy(() => import('../components/store/SearchResultsSection').then(m => ({ default: m.SearchResultsSection })));
 
 const POPUP_CACHE_KEY = 'ds_cache_public::popups';
 const LOCAL_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -553,82 +560,96 @@ const StoreHome = ({
       )}
       
       {/* Hero Section */}
-      <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
+      <Suspense fallback={<HeroSectionSkeleton />}>
+        <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">
         {hasSearchQuery ? (
-          <SearchResultsSection
-            searchTerm={searchTerm.trim()}
-            products={sortedProducts}
-            sortOption={sortOption}
-            onSortChange={setSortOption}
-            onClearSearch={() => {
-              updateSearchTerm('');
-              setSortOption('relevance');
-            }}
-            onProductClick={onProductClick}
-            onBuyNow={handleBuyNow}
-            onQuickView={setQuickViewProduct}
-            onAddToCart={handleAddProductToCartFromCard}
-            productCardStyle={websiteConfig?.productCardStyle}
-          />
+          <Suspense fallback={<SearchResultsSkeleton />}>
+            <SearchResultsSection
+              searchTerm={searchTerm.trim()}
+              products={sortedProducts}
+              sortOption={sortOption}
+              onSortChange={setSortOption}
+              onClearSearch={() => {
+                updateSearchTerm('');
+                setSortOption('relevance');
+              }}
+              onProductClick={onProductClick}
+              onBuyNow={handleBuyNow}
+              onQuickView={setQuickViewProduct}
+              onAddToCart={handleAddProductToCartFromCard}
+              productCardStyle={websiteConfig?.productCardStyle}
+            />
+          </Suspense>
         ) : (
           <>
             {/* Categories */}
-            <CategoriesSection
-              style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | undefined}
-              categories={categories}
-              onCategoryClick={handleCategoryClick}
-              categoryScrollRef={categoryScrollRef}
-              sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
-            />
+            <Suspense fallback={<CategoriesSectionSkeleton />}>
+              <CategoriesSection
+                style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | undefined}
+                categories={categories}
+                onCategoryClick={handleCategoryClick}
+                categoryScrollRef={categoryScrollRef}
+                sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
+              />
+            </Suspense>
 
             {/* Flash Deals */}
-            <FlashSalesSection
-              products={displayProducts}
-              isLoading={isLoading}
-              showCounter={showFlashSaleCounter}
-              countdown={flashSaleCountdown}
-              onProductClick={onProductClick}
-              onBuyNow={handleBuyNow}
-              onQuickView={setQuickViewProduct}
-              onAddToCart={handleAddProductToCartFromCard}
-              productCardStyle={websiteConfig?.productCardStyle}
-              sectionRef={productsSectionRef}
-            />
+            <Suspense fallback={<FlashSalesSkeleton />}>
+              <FlashSalesSection
+                products={displayProducts}
+                isLoading={isLoading}
+                showCounter={showFlashSaleCounter}
+                countdown={flashSaleCountdown}
+                onProductClick={onProductClick}
+                onBuyNow={handleBuyNow}
+                onQuickView={setQuickViewProduct}
+                onAddToCart={handleAddProductToCartFromCard}
+                productCardStyle={websiteConfig?.productCardStyle}
+                sectionRef={productsSectionRef}
+              />
+            </Suspense>
 
             {/* Best Sale Products */}
-            <ProductGridSection
-              title="Best Sale Products"
-              products={displayProducts}
-              accentColor="green"
-              keyPrefix="best"
-              maxProducts={10}
-              reverseOrder={true}
-              onProductClick={onProductClick}
-              onBuyNow={handleBuyNow}
-              onQuickView={setQuickViewProduct}
-              onAddToCart={handleAddProductToCartFromCard}
-              productCardStyle={websiteConfig?.productCardStyle}
-            />
+            <Suspense fallback={<ProductGridSkeleton />}>
+              <ProductGridSection
+                title="Best Sale Products"
+                products={displayProducts}
+                accentColor="green"
+                keyPrefix="best"
+                maxProducts={10}
+                reverseOrder={true}
+                onProductClick={onProductClick}
+                onBuyNow={handleBuyNow}
+                onQuickView={setQuickViewProduct}
+                onAddToCart={handleAddProductToCartFromCard}
+                productCardStyle={websiteConfig?.productCardStyle}
+              />
+            </Suspense>
 
             {/* OMG Fashion Banner */}
-            <PromoBanner />
+            <Suspense fallback={<PromoBannerSkeleton />}>
+              <PromoBanner />
+            </Suspense>
 
             {/* Popular Products */}
-            <ProductGridSection
-              title="Popular products"
-              products={displayProducts}
-              accentColor="purple"
-              keyPrefix="pop"
-              maxProducts={10}
-              reverseOrder={false}
-              onProductClick={onProductClick}
-              onBuyNow={handleBuyNow}
-              onQuickView={setQuickViewProduct}
-              onAddToCart={handleAddProductToCartFromCard}
-              productCardStyle={websiteConfig?.productCardStyle}
-            />
+            <Suspense fallback={<ProductGridSkeleton />}>
+              <ProductGridSection
+                title="Popular products"
+                products={displayProducts}
+                accentColor="purple"
+                keyPrefix="pop"
+                maxProducts={10}
+                reverseOrder={false}
+                onProductClick={onProductClick}
+                onBuyNow={handleBuyNow}
+                onQuickView={setQuickViewProduct}
+                onAddToCart={handleAddProductToCartFromCard}
+                productCardStyle={websiteConfig?.productCardStyle}
+              />
+            </Suspense>
           </>
         )}
       </main>

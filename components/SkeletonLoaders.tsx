@@ -57,6 +57,149 @@ export const StoreSkeleton: React.FC = memo(() => (
 ));
 StoreSkeleton.displayName = 'StoreSkeleton';
 
+const productCardPlaceholders = Array.from({ length: 8 });
+
+export const HeroSectionSkeleton: React.FC = memo(() => (
+  <SkeletonWrapper>
+    <section className="relative overflow-hidden">
+      <Skeleton height={420} className="w-full" />
+      <div className="absolute inset-0 flex flex-col justify-end gap-4 p-6 md:p-10">
+        <Skeleton height={24} width="18%" />
+        <Skeleton height={48} width="40%" />
+        <div className="flex flex-wrap gap-3">
+          <Skeleton height={44} width={140} />
+          <Skeleton height={44} width={140} />
+        </div>
+      </div>
+    </section>
+  </SkeletonWrapper>
+));
+HeroSectionSkeleton.displayName = 'HeroSectionSkeleton';
+
+export const CategoriesSectionSkeleton: React.FC = memo(() => (
+  <SkeletonWrapper>
+    <section className="rounded-3xl border border-gray-200 bg-white/70 p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton height={28} width="18%" />
+        <Skeleton height={36} width={100} />
+      </div>
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+        {Array.from({ length: 16 }).map((_, index) => (
+          <div key={index} className="flex flex-col items-center gap-3 rounded-2xl bg-white/90 p-4 shadow">
+            <Skeleton height={60} width={60} circle />
+            <Skeleton height={14} width="80%" />
+          </div>
+        ))}
+      </div>
+    </section>
+  </SkeletonWrapper>
+));
+CategoriesSectionSkeleton.displayName = 'CategoriesSectionSkeleton';
+
+export const FlashSalesSkeleton: React.FC = memo(() => (
+  <SkeletonWrapper>
+    <section className="rounded-3xl border border-red-100 bg-white/80 p-4 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Skeleton height={24} width={24} circle />
+          <Skeleton height={26} width={160} />
+        </div>
+        <div className="flex gap-3">
+          <Skeleton height={44} width={60} />
+          <Skeleton height={44} width={60} />
+          <Skeleton height={44} width={60} />
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {productCardPlaceholders.map((_, index) => (
+          <div key={index} className="rounded-2xl bg-white p-4 shadow">
+            <Skeleton height={160} className="rounded-xl mb-3" />
+            <Skeleton height={18} className="mb-2" />
+            <Skeleton height={14} width="80%" className="mb-2" />
+            <div className="flex items-center justify-between pt-2">
+              <Skeleton height={20} width="30%" />
+              <Skeleton height={36} width="40%" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </SkeletonWrapper>
+));
+FlashSalesSkeleton.displayName = 'FlashSalesSkeleton';
+
+export const ProductGridSkeleton: React.FC = memo(() => (
+  <SkeletonWrapper>
+    <section className="rounded-3xl border border-gray-200 bg-white/80 p-4 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <Skeleton height={26} width={200} />
+        <Skeleton height={36} width={100} />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {productCardPlaceholders.map((_, index) => (
+          <div key={index} className="rounded-2xl bg-white p-4 shadow">
+            <Skeleton height={160} className="rounded-xl mb-3" />
+            <Skeleton height={18} className="mb-2" />
+            <Skeleton height={14} width="75%" className="mb-2" />
+            <div className="flex items-center justify-between pt-2">
+              <Skeleton height={20} width="32%" />
+              <Skeleton height={36} width="42%" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </SkeletonWrapper>
+));
+ProductGridSkeleton.displayName = 'ProductGridSkeleton';
+
+export const PromoBannerSkeleton: React.FC = memo(() => (
+  <SkeletonWrapper>
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-500/60 to-pink-500/60 p-8">
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-4">
+          <Skeleton height={20} width="30%" />
+          <Skeleton height={36} width="70%" />
+          <Skeleton height={16} count={3} />
+          <div className="flex gap-3">
+            <Skeleton height={44} width={140} />
+            <Skeleton height={44} width={140} />
+          </div>
+        </div>
+        <div className="flex items-center justify-center">
+          <Skeleton height={220} width={220} circle />
+        </div>
+      </div>
+    </section>
+  </SkeletonWrapper>
+));
+PromoBannerSkeleton.displayName = 'PromoBannerSkeleton';
+
+export const SearchResultsSkeleton: React.FC = memo(() => (
+  <SkeletonWrapper>
+    <section className="rounded-3xl border border-gray-200 bg-white/80 p-4 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Skeleton height={28} width={240} />
+        <Skeleton height={40} width={180} />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {productCardPlaceholders.map((_, index) => (
+          <div key={index} className="rounded-2xl bg-white p-4 shadow">
+            <Skeleton height={160} className="rounded-xl mb-3" />
+            <Skeleton height={18} className="mb-2" />
+            <Skeleton height={14} width="70%" className="mb-2" />
+            <div className="flex items-center justify-between pt-2">
+              <Skeleton height={20} width="32%" />
+              <Skeleton height={36} width="42%" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </SkeletonWrapper>
+));
+SearchResultsSkeleton.displayName = 'SearchResultsSkeleton';
+
 // Admin Skeleton - Optimized for admin dashboard
 export const AdminSkeleton: React.FC = memo(() => (
   <SkeletonWrapper>

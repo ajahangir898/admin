@@ -28,6 +28,35 @@ export const FlashSalesSection: React.FC<FlashSalesSectionProps> = ({
   productCardStyle,
   sectionRef
 }) => {
+  const [visibleCount, setVisibleCount] = React.useState(() => {
+    if (typeof window === 'undefined') {
+      return Math.min(4, products.length);
+    }
+    return Math.min(window.innerWidth >= 1024 ? 6 : 4, products.length);
+  });
+
+  React.useEffect(() => {
+    setVisibleCount((current) => {
+      const base = typeof window === 'undefined'
+        ? Math.min(4, products.length)
+        : Math.min(window.innerWidth >= 1024 ? 6 : 4, products.length);
+      return Math.min(base, products.length);
+    });
+  }, [products.length]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (visibleCount >= products.length) return;
+
+    const timer = window.setTimeout(() => {
+      setVisibleCount((current) => Math.min(products.length, current + 2));
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [products.length, visibleCount]);
+
+  const productsToRender = products.slice(0, visibleCount);
+
   return (
     <section ref={sectionRef}>
       <div className="mb-1 flex items-center gap-3">
@@ -57,7 +86,7 @@ export const FlashSalesSection: React.FC<FlashSalesSectionProps> = ({
         {isLoading ? (
           [...Array(5)].map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)
         ) : (
-          products.map((product) => (
+          productsToRender.map((product) => (
             <ProductCard
               key={`flash-${product.id}`}
               product={product}

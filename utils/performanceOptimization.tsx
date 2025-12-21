@@ -321,11 +321,11 @@ export const runInWorker = async (computation: string, data: any): Promise<any> 
 // Image size presets
 type ImageSize = 'thumb' | 'small' | 'medium' | 'large' | 'full';
 const IMAGE_SIZES: Record<ImageSize, { width: number; quality: number }> = {
-  thumb: { width: 100, quality: 60 },
-  small: { width: 200, quality: 70 },
-  medium: { width: 400, quality: 75 },
-  large: { width: 800, quality: 80 },
-  full: { width: 1200, quality: 85 },
+  thumb: { width: 100, quality: 58 },
+  small: { width: 200, quality: 68 },
+  medium: { width: 400, quality: 72 },
+  large: { width: 720, quality: 70 },
+  full: { width: 1100, quality: 78 },
 };
 
 // Placeholder SVG
@@ -443,6 +443,7 @@ export const LazyImage: React.FC<{
           width={resolvedWidth}
           height={resolvedHeight}
           loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'auto'}
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}

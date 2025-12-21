@@ -341,124 +341,56 @@ export const LazyImage: React.FC<{
   priority?: boolean;
   optimizationOptions?: ImageOptimizationOptions;
   imgClassName?: string;
-}> = ({ src, alt, width, height, className = '', size = 'medium', priority = false, optimizationOptions = {} as ImageOptimizationOptions, imgClassName }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
+}> = ({ src, alt, width, height, className = '', size = 'medium', priority = false, imgClassName }) => {
+  const [isLoaded, setIsLoaded] = useState(priority);
   const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(priority);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const imgRef = useRef<HTMLDivElement>(null);
+  const [shouldRender, setShouldRender] = useState(priority);
 
-  // Get size-based optimization
-  const sizeConfig = IMAGE_SIZES[size];
-  const mergedOptions = {
-    width: optimizationOptions.width || sizeConfig.width,
-    quality: optimizationOptions.quality || sizeConfig.quality,
-    ...optimizationOptions
-  };
-
+  // Simple intersection observer - just trigger load when near viewport
   useEffect(() => {
-    if (priority) {
-      setIsInView(true);
-      return;
-    }
+    if (priority || shouldRender) return;
+    const el = imgRef.current;
+    if (!el) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsInView(true);
+          setShouldRender(true);
           observer.disconnect();
         }
       },
-      { rootMargin: '200px', threshold: 0.01 }
+      { rootMargin: '100px', threshold: 0 }
     );
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
-
+    observer.observe(el);
     return () => observer.disconnect();
-  }, [priority]);
-
-  const handleLoad = () => setIsLoaded(true);
-  const handleError = () => setHasError(true);
-
-  const resolvedWidth = useMemo(() => {
-    return Math.max(1, Math.round(width || mergedOptions.width || sizeConfig.width));
-  }, [width, mergedOptions.width, sizeConfig.width]);
-
-  const resolvedHeight = useMemo(() => {
-    if (height) return Math.max(1, Math.round(height));
-    if (optimizationOptions.height) return Math.max(1, Math.round(optimizationOptions.height));
-    if (optimizationOptions.width && optimizationOptions.height) {
-      const ratio = optimizationOptions.height / Math.max(1, optimizationOptions.width);
-      return Math.max(1, Math.round(resolvedWidth * ratio));
-    }
-    return resolvedWidth;
-  }, [height, optimizationOptions.height, optimizationOptions.width, resolvedWidth]);
-
-  const aspectStyle = useMemo(() => {
-    if (!resolvedWidth || !resolvedHeight) return undefined;
-    return { aspectRatio: `${resolvedWidth} / ${resolvedHeight}` } as React.CSSProperties;
-  }, [resolvedWidth, resolvedHeight]);
-
-  // Build optimized URL + srcset once visible
-  const optimizedSrc = useMemo(() => {
-    return isInView ? optimizeImage(src, { ...mergedOptions, width: resolvedWidth, height: resolvedHeight }) : PLACEHOLDER;
-  }, [isInView, mergedOptions, resolvedHeight, resolvedWidth, src]);
-
-  const srcSet = useMemo(() => {
-    if (!isInView) return undefined;
-    const candidates = [0.5, 1, 1.5]
-      .map((scale) => Math.max(1, Math.round(resolvedWidth * scale)))
-      .filter((value, index, array) => array.indexOf(value) === index)
-      .sort((a, b) => a - b);
-
-    return candidates
-      .map((candidateWidth) => {
-        const candidateHeight = Math.max(1, Math.round((candidateWidth / resolvedWidth) * resolvedHeight));
-        return `${optimizeImage(src, { ...mergedOptions, width: candidateWidth, height: candidateHeight })} ${candidateWidth}w`;
-      })
-      .join(', ');
-  }, [isInView, mergedOptions, resolvedHeight, resolvedWidth, src]);
-
-  const sizesAttr = useMemo(() => {
-    return `(max-width: 768px) 88vw, (max-width: 1280px) 45vw, ${resolvedWidth}px`;
-  }, [resolvedWidth]);
+  }, [priority, shouldRender]);
 
   return (
-    <div
-      ref={imgRef as any}
-      className={`relative overflow-hidden ${className}`}
-      style={aspectStyle}
-    >
-      {/* Placeholder background */}
+    <div ref={imgRef} className={`relative overflow-hidden bg-gray-100 ${className}`}>
       {!isLoaded && !hasError && (
         <div className="absolute inset-0 bg-gray-100 animate-pulse" />
       )}
       
-      {/* Actual image */}
-      {!hasError && (
+      {shouldRender && !hasError && (
         <img
-          src={optimizedSrc}
+          src={src}
           alt={alt}
-          width={resolvedWidth}
-          height={resolvedHeight}
+          width={width}
+          height={height}
           loading={priority ? 'eager' : 'lazy'}
-          fetchPriority={priority ? 'high' : 'auto'}
           decoding="async"
-          onLoad={handleLoad}
-          onError={handleError}
-          srcSet={srcSet}
-          sizes={sizesAttr}
-          className={`${imgClassName || 'w-full h-full object-cover'} transition-opacity duration-300 ${
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setHasError(true)}
+          className={`${imgClassName || 'w-full h-full object-cover'} transition-opacity duration-200 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
         />
       )}
 
-      {/* Error state */}
       {hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>

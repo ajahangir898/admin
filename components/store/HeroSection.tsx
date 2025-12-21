@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CarouselItem, WebsiteConfig } from '../../types';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
-import { LazyImage } from '../../utils/performanceOptimization';
 
 export interface HeroSectionProps {
     carouselItems?: CarouselItem[];
@@ -10,13 +9,14 @@ export interface HeroSectionProps {
 }
 
 const MAX_CAROUSEL_ITEMS = 3;
-const HERO_IMAGE_OPTIONS = { width: 1120, quality: 62, format: 'webp' as const };
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
     const items = (carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [])
         .slice(0, MAX_CAROUSEL_ITEMS);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
 
+    // Auto-advance carousel
     useEffect(() => {
         if (items.length <= 1) return;
         const timer = setInterval(() => {
@@ -25,32 +25,51 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
         return () => clearInterval(timer);
     }, [items.length]);
 
-    if (items.length === 0) return null;
+    // Preload next image
+    useEffect(() => {
+        if (items.length <= 1) return;
+        const nextIndex = (currentIndex + 1) % items.length;
+        setLoadedImages(prev => new Set([...prev, currentIndex, nextIndex]));
+    }, [currentIndex, items.length]);
 
+    // Reset index if items change
     useEffect(() => {
         setCurrentIndex((prev) => (prev >= items.length ? 0 : prev));
     }, [items.length]);
 
+    const handleImageLoad = useCallback((index: number) => {
+        setLoadedImages(prev => new Set([...prev, index]));
+    }, []);
+
+    if (items.length === 0) return null;
+
     return (
         <div className="max-w-7xl mx-auto px-4 mt-4">
             {/* Full Width Carousel */}
-            <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-                {items.map((item, index) => (
-                    <a
-                        href={item.url || '#'}
-                        key={item.id}
-                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                    >
-                        <LazyImage
-                            src={normalizeImageUrl(item.image)}
-                            alt={item.name}
-                            className="absolute inset-0"
-                            size="large"
-                            priority={index === currentIndex}
-                            optimizationOptions={HERO_IMAGE_OPTIONS}
-                        />
-                    </a>
-                ))}
+            <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gray-100">
+                {items.map((item, index) => {
+                    const isActive = index === currentIndex;
+                    const shouldLoad = loadedImages.has(index) || isActive;
+                    return (
+                        <a
+                            href={item.url || '#'}
+                            key={item.id}
+                            className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                        >
+                            {shouldLoad && (
+                                <img
+                                    src={normalizeImageUrl(item.image)}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover"
+                                    loading={index === 0 ? 'eager' : 'lazy'}
+                                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                                    decoding="async"
+                                    onLoad={() => handleImageLoad(index)}
+                                />
+                            )}
+                        </a>
+                    );
+                })}
 
                 {items.length > 1 && (
                     <>

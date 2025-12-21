@@ -234,6 +234,8 @@ export interface WebsiteConfig {
   shortDescription: string;
   whatsappNumber: string;
   favicon: string | null;
+  headerLogo?: string | null;
+  footerLogo?: string | null;
   addresses: string[];
   emails: string[];
   phones: string[];

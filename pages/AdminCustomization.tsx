@@ -38,6 +38,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     shortDescription: '',
     whatsappNumber: '',
     favicon: null,
+    headerLogo: null,
+    footerLogo: null,
     addresses: [],
     emails: [],
     phones: [],
@@ -66,7 +68,9 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 ...websiteConfig,
                 footerQuickLinks: websiteConfig.footerQuickLinks || [],
                 footerUsefulLinks: websiteConfig.footerUsefulLinks || [],
-                showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true
+                showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true,
+                headerLogo: websiteConfig.headerLogo ?? null,
+                footerLogo: websiteConfig.footerLogo ?? null
             }));
     }
   }, [websiteConfig]);
@@ -82,6 +86,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
+    const headerLogoInputRef = useRef<HTMLInputElement>(null);
+    const footerLogoInputRef = useRef<HTMLInputElement>(null);
   
   // Theme State
         type ThemeColorKey = 'primary' | 'secondary' | 'tertiary' | 'font' | 'hover' | 'surface' | 'adminBg' | 'adminInputBg' | 'adminBorder' | 'adminFocus';
@@ -164,7 +170,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         setColorDrafts(colors);
     }, [colors]);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel' | 'popup') => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel' | 'popup' | 'headerLogo' | 'footerLogo') => {
         const input = e.target as HTMLInputElement;
         const file = input.files?.[0];
         if (!file) return;
@@ -193,6 +199,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 onUpdateLogo(converted);
             } else if (type === 'favicon') {
                 setConfig(prev => ({ ...prev, favicon: converted }));
+            } else if (type === 'headerLogo') {
+                setConfig(prev => ({ ...prev, headerLogo: converted }));
+            } else if (type === 'footerLogo') {
+                setConfig(prev => ({ ...prev, footerLogo: converted }));
             } else if (type === 'carousel') {
                 setCarouselFormData(prev => ({ ...prev, image: converted }));
             } else if (type === 'popup') {
@@ -206,15 +216,28 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         }
     };
 
-  const handleRemoveImage = (type: 'logo' | 'favicon') => {
-    if (type === 'logo') {
-      onUpdateLogo(null);
-      if (logoInputRef.current) logoInputRef.current.value = '';
-    } else {
-      setConfig(prev => ({ ...prev, favicon: null }));
-      if (faviconInputRef.current) faviconInputRef.current.value = '';
-    }
-  };
+    const handleRemoveImage = (type: 'logo' | 'favicon' | 'headerLogo' | 'footerLogo') => {
+        if (type === 'logo') {
+            onUpdateLogo(null);
+            if (logoInputRef.current) logoInputRef.current.value = '';
+            return;
+        }
+
+        if (type === 'favicon') {
+            setConfig(prev => ({ ...prev, favicon: null }));
+            if (faviconInputRef.current) faviconInputRef.current.value = '';
+            return;
+        }
+
+        if (type === 'headerLogo') {
+            setConfig(prev => ({ ...prev, headerLogo: null }));
+            if (headerLogoInputRef.current) headerLogoInputRef.current.value = '';
+            return;
+        }
+
+        setConfig(prev => ({ ...prev, footerLogo: null }));
+        if (footerLogoInputRef.current) footerLogoInputRef.current.value = '';
+    };
 
   // Helper for array fields
   const addArrayItem = (field: 'addresses' | 'emails' | 'phones') => {
@@ -717,13 +740,13 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         {activeTab === 'website_info' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                  <div className="space-y-6">
-                    {/* Logo Section */}
+                    {/* Default Logo Section */}
                      <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
                         <div className="flex flex-col items-center gap-3">
                             <ImageIcon size={32} className="text-gray-400"/>
-                            <p className="text-sm font-bold text-gray-700">Website Logo (Horizontal 256x56px)</p>
+                            <p className="text-sm font-bold text-gray-700">Primary Store Logo (Fallback)</p>
                             {logo ? (
-                                <img src={normalizeImageUrl(logo)} alt="Logo" className="h-12 max-w-[200px] object-contain my-2 border border-gray-200 rounded p-1 bg-gray-50"/>
+                                <img src={normalizeImageUrl(logo)} alt="Store logo" className="h-12 max-w-[200px] object-contain my-2 border border-gray-200 rounded p-1 bg-gray-50"/>
                             ) : (
                                 <p className="text-xs text-gray-400">No logo uploaded</p>
                             )}
@@ -732,6 +755,42 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                                 {logo && <button onClick={() => handleRemoveImage('logo')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}
                             </div>
                             <input type="file" ref={logoInputRef} onChange={(e) => handleImageUpload(e, 'logo')} className="hidden" accept="image/*" />
+                        </div>
+                     </div>
+
+                     {/* Header Logo Section */}
+                     <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <ImageIcon size={32} className="text-gray-400"/>
+                            <p className="text-sm font-bold text-gray-700">Header Logo Override</p>
+                            {config.headerLogo ? (
+                                <img src={normalizeImageUrl(config.headerLogo)} alt="Header logo" className="h-12 max-w-[200px] object-contain my-2 border border-gray-200 rounded p-1 bg-gray-50"/>
+                            ) : (
+                                <p className="text-xs text-gray-400">No header logo uploaded</p>
+                            )}
+                            <div className="flex gap-2">
+                                <button onClick={() => headerLogoInputRef.current?.click()} className="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
+                                {config.headerLogo && <button onClick={() => handleRemoveImage('headerLogo')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}
+                            </div>
+                            <input type="file" ref={headerLogoInputRef} onChange={(e) => handleImageUpload(e, 'headerLogo')} className="hidden" accept="image/*" />
+                        </div>
+                     </div>
+
+                     {/* Footer Logo Section */}
+                     <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <ImageIcon size={32} className="text-gray-400"/>
+                            <p className="text-sm font-bold text-gray-700">Footer Logo Override</p>
+                            {config.footerLogo ? (
+                                <img src={normalizeImageUrl(config.footerLogo)} alt="Footer logo" className="h-12 max-w-[200px] object-contain my-2 border border-gray-200 rounded p-1 bg-gray-50"/>
+                            ) : (
+                                <p className="text-xs text-gray-400">No footer logo uploaded</p>
+                            )}
+                            <div className="flex gap-2">
+                                <button onClick={() => footerLogoInputRef.current?.click()} className="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold">Select Image</button>
+                                {config.footerLogo && <button onClick={() => handleRemoveImage('footerLogo')} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded font-bold">Remove</button>}
+                            </div>
+                            <input type="file" ref={footerLogoInputRef} onChange={(e) => handleImageUpload(e, 'footerLogo')} className="hidden" accept="image/*" />
                         </div>
                      </div>
                      

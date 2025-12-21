@@ -458,6 +458,8 @@ class DataServiceImpl {
       shortDescription: '',
       whatsappNumber: '',
       favicon: null,
+      headerLogo: null,
+      footerLogo: null,
       addresses: [],
       emails: [],
       phones: [],

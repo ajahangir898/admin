@@ -122,7 +122,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     ), [productCatalog]);
 
     // Generate a cache-busting key for logo to force re-render when logo changes
-    const logoKey = useMemo(() => logo ? `logo-${logo.slice(-20)}` : 'no-logo', [logo]);
+    const resolvedHeaderLogo = websiteConfig?.headerLogo || logo || null;
+    const logoKey = useMemo(() => resolvedHeaderLogo ? `logo-${resolvedHeaderLogo.slice(-20)}` : 'no-logo', [resolvedHeaderLogo]);
 
     // State
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -386,7 +387,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                 <div className="md:hidden bg-white pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-3 h-8 gap-3">
                         <div className="flex items-center" onClick={onHomeClick}>
-                            {logo ? <img key={logoKey} src={normalizeImageUrl(logo)} alt="Store Logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900">GADGET</span><span className="text-theme-primary">SHOB</span></h1>}
+                            {resolvedHeaderLogo ? <img key={logoKey} src={normalizeImageUrl(resolvedHeaderLogo)} alt="Store logo" className="h-8 object-contain" /> : <h1 className="text-lg font-bold tracking-tight"><span className="text-gray-900">GADGET</span><span className="text-theme-primary">SHOB</span></h1>}
                         </div>
                         <div className="flex items-center gap-3">
                             <button className="relative text-gray-800" onClick={() => setIsWishlistDrawerOpen(true)}>
@@ -425,8 +426,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     <div className="max-w-7xl mx-auto px-4 py-1">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center cursor-pointer" onClick={onHomeClick}>
-{logo ? (
-					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
+{resolvedHeaderLogo ? (
+                    <img src={normalizeImageUrl(resolvedHeaderLogo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
 				) : (
 					<h2 className="text-2xl font-black tracking-widest">
 						<span style={{ color: 'var(--admin-text, white)' }}>GADGET</span>

@@ -37,15 +37,17 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
 
 interface CameraButtonProps {
   variant?: 'light' | 'dark';
+  onClick?: () => void;
 }
 
-export const CameraButton: React.FC<CameraButtonProps> = ({ variant = 'dark' }) => {
+export const CameraButton: React.FC<CameraButtonProps> = ({ variant = 'dark', onClick }) => {
   const baseClasses = variant === 'light'
     ? 'bg-white/90 text-gray-700 hover:bg-white'
     : 'bg-gray-100 text-gray-700 hover:bg-gray-200';
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`${baseClasses} border border-gray-200 rounded-full p-2 flex items-center justify-center transition shadow-sm`}
       title="Visual search"
       aria-label="Visual search"

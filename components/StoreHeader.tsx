@@ -3,11 +3,12 @@
 // Sub-components are split into separate files for better code splitting
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { ShoppingCart, Search, User, Heart, LogOut, ChevronDown, Bell, Menu, Truck, UserCircle } from 'lucide-react';
+import { ShoppingCart, Search, User, Heart, LogOut, ChevronDown, Bell, Menu, Truck, UserCircle, Loader2 } from 'lucide-react';
 import { Product, User as UserType, WebsiteConfig } from '../types';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
+import type { VisualSearchResult } from '../services/visualSearch';
 
 // Import lightweight search components directly (they're needed immediately)
 import { 
@@ -22,6 +23,7 @@ import {
 const CartModal = lazy(() => import('./store/header/CartModal'));
 const WishlistModal = lazy(() => import('./store/header/WishlistModal'));
 const MobileDrawer = lazy(() => import('./store/header/MobileDrawer'));
+const VisualSearchModal = lazy(() => import('./store/visualSearch/VisualSearchModal'));
 
 const SEARCH_HINT_ANIMATION = `
 @keyframes searchHintSlideUp {
@@ -135,6 +137,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     const [isWishlistDrawerOpen, setIsWishlistDrawerOpen] = useState(false);
     const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
     const [activeHintIndex, setActiveHintIndex] = useState(0);
+    const [isVisualSearchOpen, setIsVisualSearchOpen] = useState(false);
+    const [isVisualSearchProcessing, setIsVisualSearchProcessing] = useState(false);
+    const [visualSearchResult, setVisualSearchResult] = useState<VisualSearchResult | null>(null);
+    const [visualSearchImage, setVisualSearchImage] = useState<string | null>(null);
+    const [visualSearchError, setVisualSearchError] = useState<string | null>(null);
     
     // Voice search state
     const [supportsVoiceSearch, setSupportsVoiceSearch] = useState(false);
@@ -148,6 +155,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     const searchContainerRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<any>(null);
     const speechApiRef = useRef<any>(null);
+    const visualSearchModuleRef = useRef<typeof import('../services/visualSearch') | null>(null);
 
     // Computed values
     const cartItems = normalizedCart;
@@ -195,6 +203,55 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
             })
             .slice(0, 6);
     }, [activeSearchValue, catalogSource]);
+
+    const visualSearchMatches = useMemo(() => {
+        if (!visualSearchResult) return [];
+        const nameQuery = visualSearchResult.productName?.toLowerCase().trim() || '';
+        const brandQuery = visualSearchResult.brand?.toLowerCase().trim() || '';
+        const categoryQuery = visualSearchResult.category?.toLowerCase().trim() || '';
+
+        if (!nameQuery && !brandQuery && !categoryQuery) return [];
+
+        return catalogSource
+            .map((product) => {
+                let score = 0;
+                const productName = product.name?.toLowerCase() || '';
+                const productBrand = product.brand?.toLowerCase() || '';
+                const productCategory = product.category?.toLowerCase() || '';
+
+                if (nameQuery) {
+                    if (productName === nameQuery) score += 8;
+                    else if (productName.includes(nameQuery)) score += 5;
+                    const nameTokens = nameQuery.split(/\s+/).filter(Boolean);
+                    const matchedTokens = nameTokens.filter((token) => productName.includes(token));
+                    score += matchedTokens.length * 1.2;
+                }
+
+                if (brandQuery) {
+                    if (productBrand === brandQuery) score += 4;
+                    else if (productBrand.includes(brandQuery)) score += 3;
+                }
+
+                if (categoryQuery) {
+                    if (productCategory === categoryQuery) score += 2.4;
+                    else if (productCategory.includes(categoryQuery)) score += 1.4;
+                }
+
+                if (nameQuery) {
+                    const tags = Array.isArray(product.searchTags) ? product.searchTags : [];
+                    if (tags.some((tag) => tag.toLowerCase().includes(nameQuery))) score += 1.6;
+                    const description = product.description?.toLowerCase() || '';
+                    if (description.includes(nameQuery)) score += 1.1;
+                }
+
+                if (!score) return null;
+                return { product, score };
+            })
+            .filter((entry): entry is { product: Product; score: number } => Boolean(entry))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 4)
+            .map((entry) => entry.product);
+    }, [visualSearchResult, catalogSource]);
 
     // Callbacks
     const emitSearchValue = useCallback((value: string) => {
@@ -301,6 +358,63 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
         recognitionRef.current = recognition;
         try { recognition.start(); } catch (error) { recognitionRef.current = null; }
     }, [supportsVoiceSearch, buildRecognition, notifyVoiceSearchIssue]);
+
+    const handleVisualSearchOpen = useCallback(() => {
+        setIsVisualSearchOpen(true);
+        setVisualSearchError(null);
+        if (!visualSearchModuleRef.current) {
+            import('../services/visualSearch')
+                .then((module) => { visualSearchModuleRef.current = module; })
+                .catch((error) => {
+                    console.error('Preloading visual search failed', error);
+                });
+        }
+    }, []);
+
+    const handleVisualSearchClose = useCallback(() => {
+        setIsVisualSearchOpen(false);
+        setIsVisualSearchProcessing(false);
+    }, []);
+
+    const handleVisualSearchCapture = useCallback(async (imageData: string) => {
+        if (!imageData) return;
+
+        setVisualSearchImage(imageData);
+        setVisualSearchError(null);
+        setIsVisualSearchProcessing(true);
+        setVisualSearchResult(null);
+
+        try {
+            if (!visualSearchModuleRef.current) {
+                visualSearchModuleRef.current = await import('../services/visualSearch');
+            }
+
+            const identifyProductFn = visualSearchModuleRef.current?.identifyProduct;
+            if (!identifyProductFn) {
+                throw new Error('Visual search module failed to load correctly.');
+            }
+
+            const aiResult = await identifyProductFn(imageData);
+            setVisualSearchResult(aiResult);
+
+            const normalizedName = aiResult.productName?.trim();
+            if (normalizedName && normalizedName.toLowerCase() !== 'unknown product') {
+                handleSearchInput(normalizedName);
+                setIsSearchSuggestionsOpen(true);
+            }
+        } catch (error: any) {
+            const message = error?.message || 'Visual search failed. Please try again.';
+            setVisualSearchError(message);
+            toast.error(message);
+        } finally {
+            setIsVisualSearchProcessing(false);
+        }
+    }, [handleSearchInput]);
+
+    const handleVisualSearchProductView = useCallback((product: Product) => {
+        onProductClick?.(product);
+        handleVisualSearchClose();
+    }, [onProductClick, handleVisualSearchClose]);
 
     // Effects
     useEffect(() => {
@@ -411,7 +525,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                             {renderSearchHintOverlay('left-10', 'text-xs')}
                             <input type="text" placeholder="Search..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full pl-12 pr-28 py-2.5 border border-theme-primary rounded-lg text-sm focus:outline-none placeholder-transparent" />
                             <div className="absolute right-1 top-1 bottom-1 flex items-center gap-2">
-                                <CameraButton variant="light" />
+                                <CameraButton variant="light" onClick={handleVisualSearchOpen} />
                                 <VoiceButton supportsVoiceSearch={supportsVoiceSearch} isListening={isListening} onVoiceSearch={handleVoiceSearch} />
                                 <button className="btn-search text-xs font-bold px-4 h-full rounded-md">Search</button>
                             </div>
@@ -438,7 +552,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                                 {renderSearchHintOverlay('left-4')}
                                 <input type="text" placeholder="Search product..." value={activeSearchValue} onChange={(e) => handleSearchInput(e.target.value)} className="w-full border-2 border-theme-primary rounded-full py-2 pl-4 pr-32 focus:outline-none focus:ring-2 focus:ring-theme-primary/20 placeholder-transparent" />
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                    <CameraButton variant="light" />
+                                    <CameraButton variant="light" onClick={handleVisualSearchOpen} />
                                     <VoiceButton supportsVoiceSearch={supportsVoiceSearch} isListening={isListening} onVoiceSearch={handleVoiceSearch} />
                                     <button className="btn-search px-6 py-2 rounded-full flex items-center justify-center"><Search size={20} /></button>
                                 </div>
@@ -494,6 +608,32 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
                     </div>
                 </div>
             </header>
+
+            {isVisualSearchOpen && (
+                <Suspense
+                    fallback={(
+                        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/70 backdrop-blur-xl">
+                            <div className="flex items-center gap-3 rounded-full bg-white/10 px-5 py-3 text-white">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <span className="text-sm font-semibold tracking-wide">Loading visual search…</span>
+                            </div>
+                        </div>
+                    )}
+                >
+                    <VisualSearchModal
+                        isOpen={isVisualSearchOpen}
+                        isProcessing={isVisualSearchProcessing}
+                        capturedImage={visualSearchImage}
+                        result={visualSearchResult}
+                        matches={visualSearchMatches}
+                        errorMessage={visualSearchError}
+                        onClose={handleVisualSearchClose}
+                        onCapture={handleVisualSearchCapture}
+                        onAddToCart={handleCartItemToggle}
+                        onViewProduct={handleVisualSearchProductView}
+                    />
+                </Suspense>
+            )}
 
             {/* Lazy-loaded Wishlist Modal */}
             {isWishlistDrawerOpen && (

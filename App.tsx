@@ -1010,39 +1010,39 @@ const App = () => {
     if(!themeConfig || !activeTenantId) return;
     const root = document.documentElement;
 
-    // Only paint admin theme tokens when the admin shell is active
-    const isAdminView = currentView === 'admin' || currentView === 'admin-login';
-    if (!isAdminView) {
-      ['--color-primary-rgb','--color-secondary-rgb','--color-tertiary-rgb','--color-font-rgb','--color-hover-rgb','--color-surface-rgb','--admin-bg','--admin-bg-input','--admin-border-rgb','--admin-focus-rgb']
-        .forEach((key) => root.style.removeProperty(key));
-      root.classList.remove('dark');
-      return;
-    }
-    
-    // Apply CSS variables for admin visuals
+    // Store theme colors - apply for ALL views (store needs these too)
     root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
     root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
     root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
     root.style.setProperty('--color-font-rgb', hexToRgb(themeConfig.fontColor));
     root.style.setProperty('--color-hover-rgb', hexToRgb(themeConfig.hoverColor));
     root.style.setProperty('--color-surface-rgb', hexToRgb(themeConfig.surfaceColor));
-    
-    // Apply admin theme colors
-    if (themeConfig.adminBgColor) {
-      root.style.setProperty('--admin-bg', hexToRgb(themeConfig.adminBgColor));
+
+    // Admin-only theme tokens - only apply when admin shell is active
+    const isAdminView = currentView === 'admin' || currentView === 'admin-login';
+    if (!isAdminView) {
+      // Remove admin-specific variables when not in admin
+      ['--admin-bg','--admin-bg-input','--admin-border-rgb','--admin-focus-rgb']
+        .forEach((key) => root.style.removeProperty(key));
+      root.classList.remove('dark');
+    } else {
+      // Apply admin theme colors only in admin view
+      if (themeConfig.adminBgColor) {
+        root.style.setProperty('--admin-bg', hexToRgb(themeConfig.adminBgColor));
+      }
+      if (themeConfig.adminInputBgColor) {
+        root.style.setProperty('--admin-bg-input', hexToRgb(themeConfig.adminInputBgColor));
+      }
+      if (themeConfig.adminBorderColor) {
+        root.style.setProperty('--admin-border-rgb', hexToRgb(themeConfig.adminBorderColor));
+      }
+      if (themeConfig.adminFocusColor) {
+        root.style.setProperty('--admin-focus-rgb', hexToRgb(themeConfig.adminFocusColor));
+      }
+      
+      if (themeConfig.darkMode) root.classList.add('dark');
+      else root.classList.remove('dark');
     }
-    if (themeConfig.adminInputBgColor) {
-      root.style.setProperty('--admin-bg-input', hexToRgb(themeConfig.adminInputBgColor));
-    }
-    if (themeConfig.adminBorderColor) {
-      root.style.setProperty('--admin-border-rgb', hexToRgb(themeConfig.adminBorderColor));
-    }
-    if (themeConfig.adminFocusColor) {
-      root.style.setProperty('--admin-focus-rgb', hexToRgb(themeConfig.adminFocusColor));
-    }
-    
-    if (themeConfig.darkMode) root.classList.add('dark');
-    else root.classList.remove('dark');
     
     // Only save to server AFTER initial data has loaded
     // Skip if this update came from socket (server already has the data)

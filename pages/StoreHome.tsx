@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
 import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
@@ -294,31 +294,91 @@ const StoreHome = ({
   // Use passed products or fallback to initial constants
   const displayProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
 
+  const initialProductSlice = useMemo(() => {
+    const total = displayProducts.length;
+    if (total <= 12) return displayProducts;
+    if (typeof window === 'undefined') {
+      return displayProducts.slice(0, Math.min(16, total));
+    }
+    const width = window.innerWidth;
+    const sliceTarget = width >= 1536 ? 28 : width >= 1280 ? 22 : width >= 768 ? 16 : 12;
+    return displayProducts.slice(0, Math.min(sliceTarget, total));
+  }, [displayProducts]);
+
+  const [activeProducts, setActiveProducts] = useState<Product[]>(initialProductSlice);
+
+  useEffect(() => {
+    setActiveProducts(initialProductSlice);
+    if (displayProducts.length <= initialProductSlice.length) {
+      return;
+    }
+
+    let cancelled = false;
+    const hydrate = () => {
+      if (!cancelled) {
+        setActiveProducts(displayProducts);
+      }
+    };
+
+    if (typeof window === 'undefined') {
+      const fallbackTimer = setTimeout(() => hydrate(), 320);
+      return () => {
+        cancelled = true;
+        clearTimeout(fallbackTimer);
+      };
+    }
+
+    const idleCallback = (window as any).requestIdleCallback;
+    if (typeof idleCallback === 'function') {
+      const idleId = idleCallback(hydrate, { timeout: 900 });
+      return () => {
+        cancelled = true;
+        const cancelIdle = (window as any).cancelIdleCallback;
+        if (typeof cancelIdle === 'function') {
+          cancelIdle(idleId);
+        }
+      };
+    }
+
+    const timer = window.setTimeout(() => hydrate(), 320);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [displayProducts, initialProductSlice]);
+
   const normalizedSearch = searchTerm.trim().toLowerCase();
-  const matchesSearch = (product: Product) => {
-    if (!normalizedSearch) return true;
-    const contains = (value?: string) => Boolean(value && value.toLowerCase().includes(normalizedSearch));
-    if (
-      contains(product.name) ||
-      contains(product.description) ||
-      contains(product.brand) ||
-      contains(product.category) ||
-      contains(product.subCategory) ||
-      contains(product.childCategory)
-    ) {
-      return true;
+
+  const filteredProducts = useMemo(() => {
+    if (!normalizedSearch) {
+      return activeProducts;
     }
-    if (product.tags && product.tags.length) {
-      return product.tags.some((tag) => contains(tag));
-    }
-    // Include searchTags for deep search
-    if (product.searchTags && product.searchTags.length) {
-      return product.searchTags.some((tag) => contains(tag));
-    }
-    return false;
-  };
-  
-  const filteredProducts = normalizedSearch ? displayProducts.filter(matchesSearch) : displayProducts;
+    return activeProducts.filter((product) => {
+      const needle = normalizedSearch;
+      const contains = (value?: string) => Boolean(value && value.toLowerCase().includes(needle));
+      if (
+        contains(product.name) ||
+        contains(product.description) ||
+        contains(product.brand) ||
+        contains(product.category) ||
+        contains(product.subCategory) ||
+        contains(product.childCategory)
+      ) {
+        return true;
+      }
+      if (product.tags && product.tags.length) {
+        if (product.tags.some((tag) => contains(tag))) {
+          return true;
+        }
+      }
+      if (product.searchTags && product.searchTags.length) {
+        if (product.searchTags.some((tag) => contains(tag))) {
+          return true;
+        }
+      }
+      return false;
+    });
+  }, [activeProducts, normalizedSearch]);
   
   // Handler for category click - navigates to category URL
   const handleCategoryClick = (categoryName: string) => {
@@ -337,22 +397,22 @@ const StoreHome = ({
     setSelectedCategoryView(null);
   };
   
-  const sortedProducts = (() => {
-    const products = [...filteredProducts];
+  const sortedProducts = useMemo(() => {
+    const productsClone = [...filteredProducts];
     switch (sortOption) {
       case 'price-low':
-        return products.sort((a, b) => (a.price || 0) - (b.price || 0));
+        return productsClone.sort((a, b) => (a.price || 0) - (b.price || 0));
       case 'price-high':
-        return products.sort((a, b) => (b.price || 0) - (a.price || 0));
+        return productsClone.sort((a, b) => (b.price || 0) - (a.price || 0));
       case 'rating':
-        return products.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        return productsClone.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       case 'newest':
-        return products.sort((a, b) => (b.id || 0) - (a.id || 0));
+        return productsClone.sort((a, b) => (b.id || 0) - (a.id || 0));
       case 'relevance':
       default:
-        return products;
+        return productsClone;
     }
-  })();
+  }, [filteredProducts, sortOption]);
   
   const hasSearchQuery = Boolean(normalizedSearch);
 
@@ -533,7 +593,7 @@ const StoreHome = ({
           onTrackOrder={() => setIsTrackOrderOpen(true)} 
           onOpenAIStudio={() => setIsAIStudioOpen(true)}
           onImageSearchClick={onImageSearchClick}
-          productCatalog={displayProducts}
+          productCatalog={activeProducts}
           wishlistCount={wishlistCount}
           wishlist={wishlist}
           onToggleWishlist={onToggleWishlist}
@@ -630,7 +690,7 @@ const StoreHome = ({
             <LazySection fallback={<FlashSalesSkeleton />} rootMargin="0px 0px 200px">
               <Suspense fallback={<FlashSalesSkeleton />}>
                 <FlashSalesSection
-                  products={displayProducts}
+                  products={activeProducts}
                   isLoading={isLoading}
                   showCounter={showFlashSaleCounter}
                   countdown={flashSaleCountdown}
@@ -649,7 +709,7 @@ const StoreHome = ({
               <Suspense fallback={<ProductGridSkeleton />}>
                 <ProductGridSection
                   title="Best Sale Products"
-                  products={displayProducts}
+                  products={activeProducts}
                   accentColor="green"
                   keyPrefix="best"
                   maxProducts={10}
@@ -675,7 +735,7 @@ const StoreHome = ({
               <Suspense fallback={<ProductGridSkeleton />}>
                 <ProductGridSection
                   title="Popular products"
-                  products={displayProducts}
+                  products={activeProducts}
                   accentColor="purple"
                   keyPrefix="pop"
                   maxProducts={10}

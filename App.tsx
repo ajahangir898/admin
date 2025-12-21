@@ -1008,9 +1008,18 @@ const App = () => {
   
   useEffect(() => { 
     if(!themeConfig || !activeTenantId) return;
-    
-    // Always apply CSS variables for visual updates
     const root = document.documentElement;
+
+    // Only paint admin theme tokens when the admin shell is active
+    const isAdminView = currentView === 'admin' || currentView === 'admin-login';
+    if (!isAdminView) {
+      ['--color-primary-rgb','--color-secondary-rgb','--color-tertiary-rgb','--color-font-rgb','--color-hover-rgb','--color-surface-rgb','--admin-bg','--admin-bg-input','--admin-border-rgb','--admin-focus-rgb']
+        .forEach((key) => root.style.removeProperty(key));
+      root.classList.remove('dark');
+      return;
+    }
+    
+    // Apply CSS variables for admin visuals
     root.style.setProperty('--color-primary-rgb', hexToRgb(themeConfig.primaryColor));
     root.style.setProperty('--color-secondary-rgb', hexToRgb(themeConfig.secondaryColor));
     root.style.setProperty('--color-tertiary-rgb', hexToRgb(themeConfig.tertiaryColor));
@@ -1057,7 +1066,7 @@ const App = () => {
       themeLoadedRef.current = true;
       lastSavedThemeRef.current = JSON.stringify(themeConfig);
     }
-  }, [themeConfig, isLoading, activeTenantId]);
+  }, [themeConfig, isLoading, activeTenantId, currentView]);
 
   // Track if website config has been initially loaded to prevent overwriting saved data with defaults
   const websiteConfigLoadedRef = useRef(false);

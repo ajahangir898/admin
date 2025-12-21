@@ -56,11 +56,17 @@ export default {
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' }
+        },
+        'marquee': {
+          // Translate by -33.33% because the content is repeated 3x for seamless looping
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-33.33%)' }
         }
       },
       animation: {
         'slide-in-right': 'slide-in-right 0.5s ease-out forwards',
-        'fade-in': 'fade-in 0.4s ease-in-out forwards'
+        'fade-in': 'fade-in 0.4s ease-in-out forwards',
+        'marquee': 'marquee 20s linear infinite'
       },
       colors: {
         // Dynamic tenant theme colors - these map to CSS variables

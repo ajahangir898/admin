@@ -62,7 +62,7 @@ export const PromoBanner: React.FC = () => {
                   className="w-40 h-40 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl"
                   style={{
                     backgroundImage:
-                      "url('https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=80&w=960')",
+                      "url('https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&q=65&w=640')",
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                   }}

@@ -9,8 +9,12 @@ export interface HeroSectionProps {
     websiteConfig?: WebsiteConfig;
 }
 
+const MAX_CAROUSEL_ITEMS = 3;
+const HERO_IMAGE_OPTIONS = { width: 1120, quality: 62, format: 'webp' as const };
+
 export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
-    const items = carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [];
+    const items = (carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [])
+        .slice(0, MAX_CAROUSEL_ITEMS);
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
@@ -22,6 +26,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
     }, [items.length]);
 
     if (items.length === 0) return null;
+
+    useEffect(() => {
+        setCurrentIndex((prev) => (prev >= items.length ? 0 : prev));
+    }, [items.length]);
 
     return (
         <div className="max-w-7xl mx-auto px-4 mt-4">
@@ -37,9 +45,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
                             src={normalizeImageUrl(item.image)}
                             alt={item.name}
                             className="absolute inset-0"
-                            size="full"
+                            size="large"
                             priority={index === currentIndex}
-                            optimizationOptions={{ width: 1600, quality: 85 }}
+                            optimizationOptions={HERO_IMAGE_OPTIONS}
                         />
                     </a>
                 ))}

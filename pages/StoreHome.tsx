@@ -422,39 +422,88 @@ const StoreHome = ({
   const [flashTimeLeft, setFlashTimeLeft] = useState(() => getTimeSegments(flashSaleEndRef.current - Date.now()));
 
   useEffect(() => {
-    if (websiteConfig?.categorySectionStyle === 'style2') {
-      const el = categoryScrollRef.current;
-      if (!el) return;
-      
-      let animationId: number;
-      const speed = 0.8; // Scroll speed
-      
-      const scroll = () => {
-        // If scrolled past half the width (since we duplicated content), reset to 0
-        if (el.scrollLeft >= (el.scrollWidth / 2)) {
-          el.scrollLeft = 0;
-        } else {
-          el.scrollLeft += speed;
-        }
-        animationId = requestAnimationFrame(scroll);
-      };
-      
-      animationId = requestAnimationFrame(scroll);
-      
-      const stop = () => cancelAnimationFrame(animationId);
-      const start = () => { stop(); animationId = requestAnimationFrame(scroll); };
-      
-      el.addEventListener('mouseenter', stop);
-      el.addEventListener('mouseleave', start);
-      
-      return () => {
-        stop();
-        if (el) {
-            el.removeEventListener('mouseenter', stop);
-            el.removeEventListener('mouseleave', start);
-        }
-      };
+    if (websiteConfig?.categorySectionStyle !== 'style2') {
+      return;
     }
+
+    const el = categoryScrollRef.current;
+    if (!el || typeof window === 'undefined') return;
+
+    const motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    if (motionQuery?.matches) {
+      return;
+    }
+
+    let isActive = false;
+    let animationId: number | null = null;
+    const speed = 0.8;
+
+    const stop = () => {
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    };
+
+    const tick = () => {
+      if (!el) return;
+      if (el.scrollLeft >= el.scrollWidth / 2) {
+        el.scrollLeft = 0;
+      } else {
+        el.scrollLeft += speed;
+      }
+      animationId = requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+      if (!isActive || animationId !== null) return;
+      animationId = requestAnimationFrame(tick);
+    };
+
+    const handleVisibility: IntersectionObserverCallback = ([entry]) => {
+      isActive = entry.isIntersecting;
+      if (isActive) {
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    const observer = new IntersectionObserver(handleVisibility, { threshold: 0.2 });
+    observer.observe(el);
+
+    const handleMouseEnter = () => stop();
+    const handleMouseLeave = () => start();
+
+    el.addEventListener('mouseenter', handleMouseEnter);
+    el.addEventListener('mouseleave', handleMouseLeave);
+
+    const handleMotionChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        stop();
+        observer.disconnect();
+        el.removeEventListener('mouseenter', handleMouseEnter);
+        el.removeEventListener('mouseleave', handleMouseLeave);
+      }
+    };
+
+    if (motionQuery?.addEventListener) {
+      motionQuery.addEventListener('change', handleMotionChange);
+    } else if (motionQuery?.addListener) {
+      motionQuery.addListener(handleMotionChange);
+    }
+
+    return () => {
+      stop();
+      observer.disconnect();
+      el.removeEventListener('mouseenter', handleMouseEnter);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+      if (motionQuery?.removeEventListener) {
+        motionQuery.removeEventListener('change', handleMotionChange);
+      } else if (motionQuery?.removeListener) {
+        motionQuery.removeListener(handleMotionChange);
+      }
+    };
   }, [websiteConfig?.categorySectionStyle]);
 
   const showFlashSaleCounter = websiteConfig?.showFlashSaleCounter ?? true;

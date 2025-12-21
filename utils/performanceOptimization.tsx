@@ -3,7 +3,7 @@
  * Image optimization, virtual scrolling, code splitting, and caching strategies
  */
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 
 // ============================================================================
 // IMAGE OPTIMIZATION
@@ -381,11 +381,55 @@ export const LazyImage: React.FC<{
   const handleLoad = () => setIsLoaded(true);
   const handleError = () => setHasError(true);
 
-  // Build optimized URL
-  const optimizedSrc = isInView ? optimizeImage(src, mergedOptions) : PLACEHOLDER;
+  const resolvedWidth = useMemo(() => {
+    return Math.max(1, Math.round(width || mergedOptions.width || sizeConfig.width));
+  }, [width, mergedOptions.width, sizeConfig.width]);
+
+  const resolvedHeight = useMemo(() => {
+    if (height) return Math.max(1, Math.round(height));
+    if (optimizationOptions.height) return Math.max(1, Math.round(optimizationOptions.height));
+    if (optimizationOptions.width && optimizationOptions.height) {
+      const ratio = optimizationOptions.height / Math.max(1, optimizationOptions.width);
+      return Math.max(1, Math.round(resolvedWidth * ratio));
+    }
+    return resolvedWidth;
+  }, [height, optimizationOptions.height, optimizationOptions.width, resolvedWidth]);
+
+  const aspectStyle = useMemo(() => {
+    if (!resolvedWidth || !resolvedHeight) return undefined;
+    return { aspectRatio: `${resolvedWidth} / ${resolvedHeight}` } as React.CSSProperties;
+  }, [resolvedWidth, resolvedHeight]);
+
+  // Build optimized URL + srcset once visible
+  const optimizedSrc = useMemo(() => {
+    return isInView ? optimizeImage(src, { ...mergedOptions, width: resolvedWidth, height: resolvedHeight }) : PLACEHOLDER;
+  }, [isInView, mergedOptions, resolvedHeight, resolvedWidth, src]);
+
+  const srcSet = useMemo(() => {
+    if (!isInView) return undefined;
+    const candidates = [0.5, 1, 1.5]
+      .map((scale) => Math.max(1, Math.round(resolvedWidth * scale)))
+      .filter((value, index, array) => array.indexOf(value) === index)
+      .sort((a, b) => a - b);
+
+    return candidates
+      .map((candidateWidth) => {
+        const candidateHeight = Math.max(1, Math.round((candidateWidth / resolvedWidth) * resolvedHeight));
+        return `${optimizeImage(src, { ...mergedOptions, width: candidateWidth, height: candidateHeight })} ${candidateWidth}w`;
+      })
+      .join(', ');
+  }, [isInView, mergedOptions, resolvedHeight, resolvedWidth, src]);
+
+  const sizesAttr = useMemo(() => {
+    return `(max-width: 768px) 88vw, (max-width: 1280px) 45vw, ${resolvedWidth}px`;
+  }, [resolvedWidth]);
 
   return (
-    <div ref={imgRef as any} className={`relative overflow-hidden ${className}`}>
+    <div
+      ref={imgRef as any}
+      className={`relative overflow-hidden ${className}`}
+      style={aspectStyle}
+    >
       {/* Placeholder background */}
       {!isLoaded && !hasError && (
         <div className="absolute inset-0 bg-gray-100 animate-pulse" />
@@ -396,12 +440,14 @@ export const LazyImage: React.FC<{
         <img
           src={optimizedSrc}
           alt={alt}
-          width={width}
-          height={height}
+          width={resolvedWidth}
+          height={resolvedHeight}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
+          srcSet={srcSet}
+          sizes={sizesAttr}
           className={`${imgClassName || 'w-full h-full object-cover'} transition-opacity duration-300 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}

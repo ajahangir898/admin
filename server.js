@@ -15,12 +15,13 @@ const ONE_WEEK = 604800; // 1 week in seconds
 
 // Set cache headers based on file type and whether it's hashed
 const setCacheHeaders = (res, filePath) => {
+  const normalizedPath = filePath.replace(/\\/g, '/');
   const ext = path.extname(filePath).toLowerCase();
   const filename = path.basename(filePath);
   
   // Check if file is in assets directory (Vite output) or has a content hash
   // Vite adds 8-character hashes like: filename.abc12345.js
-  const isInAssets = filePath.includes('/assets/');
+  const isInAssets = normalizedPath.includes('/assets/');
   const hasHash = /\.[a-f0-9]{8}\.(js|css|woff2?|ttf|eot)$/i.test(filename);
   
   if (isInAssets || hasHash) {

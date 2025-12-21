@@ -25,7 +25,7 @@ interface CategoriesSectionProps {
 }
 
 export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
-  style = 'style2',
+  style = 'style1',
   categories,
   onCategoryClick,
   categoryScrollRef,

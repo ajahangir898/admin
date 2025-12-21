@@ -170,7 +170,14 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         port: 3000,
         host: '0.0.0.0',
         warmup: {
-          clientFiles: ['./App.tsx', './entry-client.tsx', './components/SkeletonLoaders.tsx', './pages/StoreHome.tsx']
+          clientFiles: [
+            './App.tsx', 
+            './entry-client.tsx', 
+            './components/SkeletonLoaders.tsx', 
+            './pages/StoreHome.tsx',
+            './components/store/CategoriesSection.tsx',
+            './components/store/HeroSection.tsx'
+          ]
         }
       },
       optimizeDeps: {
@@ -219,6 +226,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         cssCodeSplit: true,
         // Minify CSS in production builds (Vite disables this in dev mode automatically)
         cssMinify: mode === 'production',
+        // Minify for better performance
+        minify: mode === 'production' ? 'esbuild' : false,
         rollupOptions: {
           input: isSsrBuild ? './entry-server.tsx' : './index.html',
           output: {

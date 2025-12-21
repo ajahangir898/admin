@@ -42,6 +42,26 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
       },
+      keyframes: {
+        'slide-in-right': {
+          '0%': { 
+            opacity: '0',
+            transform: 'translateX(100px)'
+          },
+          '100%': { 
+            opacity: '1',
+            transform: 'translateX(0)'
+          }
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }
+        }
+      },
+      animation: {
+        'slide-in-right': 'slide-in-right 0.5s ease-out forwards',
+        'fade-in': 'fade-in 0.4s ease-in-out forwards'
+      },
       colors: {
         // Dynamic tenant theme colors - these map to CSS variables
         // that are set per-tenant in App.tsx

@@ -53,7 +53,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
         {/* rolling category pills */}
         <div
           ref={categoryScrollRef}
-          className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
+          className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide animate-fade-in"
           style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
         >
           {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
@@ -82,7 +82,12 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
             }))
           : CATEGORIES
         ).map((cat, idx) => (
-          <div key={idx} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
+          <div 
+            key={idx} 
+            onClick={() => onCategoryClick(cat.name)} 
+            className="cursor-pointer animate-slide-in-right opacity-0"
+            style={{ animationDelay: `${idx * 0.1}s` }}
+          >
             <CategoryCircle
               name={cat.name}
               icon={React.cloneElement(

@@ -419,7 +419,7 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
                     {resolvedFooterLogo ? (
-                        <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-14 object-contain mb-4" />
+                        <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-8 object-contain mb-4" />
                     ) : (
                         <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">{websiteConfig?.websiteName || 'GadgetShob'}</h3>
                     )}

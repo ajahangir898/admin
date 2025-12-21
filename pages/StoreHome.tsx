@@ -146,6 +146,29 @@ const StoreHome = ({
       setSelectedCategoryView(null);
     }
   }, [initialCategoryFilter, categories]);
+
+  // Warm up heavy storefront chunks once header and hero are rendered to keep subsequent sections snappy on both desktop and mobile.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const connection = (navigator as any)?.connection;
+    if (connection?.saveData) return;
+
+    const isSlowConnection = Boolean(connection?.effectiveType && /2g|slow-2g/i.test(connection.effectiveType));
+    const warmupDelay = isSlowConnection ? 2000 : 900;
+
+    const timer = window.setTimeout(() => {
+      Promise.all([
+        import('../components/store/FlashSalesSection'),
+        import('../components/store/ProductGridSection'),
+        import('../components/store/PromoBanner'),
+        import('../components/store/CategoriesSection'),
+        import('../components/store/SearchResultsSection'),
+      ]).catch(() => undefined);
+    }, warmupDelay);
+
+    return () => window.clearTimeout(timer);
+  }, []);
   const scheduleInitialPopup = useCallback((popupList: Popup[]) => {
     if (popupList.length === 0 || initialPopupShownRef.current) {
       return;

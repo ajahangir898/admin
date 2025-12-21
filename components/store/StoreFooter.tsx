@@ -96,7 +96,7 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                         <div className="flex flex-col items-center md:items-start">
                             <div className="mb-2 md:mb-3 flex flex-col items-center md:items-start">
                                 {resolvedFooterLogo ? (
-                                    <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[106px] md:h-[141px] object-contain" />
+                                    <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-[72px] md:h-[96px] object-contain" />
                                 ) : (
                                     <>
                                         <span className="text-xl md:text-2xl font-black text-theme-primary tracking-tight">OPBD</span>
@@ -145,7 +145,7 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                     </div>
 
                     <div className="border-t border-gray-100 mt-4 md:mt-6 pt-3 md:pt-4 text-center text-sm md:text-base text-gray-500">
-                        &copy; All Copyrights Reserved by {websiteConfig?.websiteName || 'Your Store'}. {new Date().getFullYear()}
+                        &copy; All Copyrights Reserved by {websiteConfig?.websiteName || 'Gadgetshop'}. {new Date().getFullYear()}
                     </div>
                 </div>
             </footer>
@@ -194,7 +194,7 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                         <div className="space-y-6">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                                 {resolvedFooterLogo ? (
-                                    <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-24 object-contain" />
+                                    <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-16 md:h-20 object-contain" />
                                 ) : (
                                     <div className="text-3xl font-black tracking-tight text-gray-900">
                                         {websiteConfig?.websiteName || 'Your Store'}
@@ -311,7 +311,7 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                         {/* Logo & Tagline */}
                         <div className="text-center">
                             {resolvedFooterLogo && (
-                                <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="w-24 h-24 mx-auto mb-2 object-contain" />
+                                <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-2 object-contain" />
                             )}
                             <p className="text-white text-lg font-light tracking-wide">{websiteConfig?.shortDescription || 'Get the best for less'}</p>
                         </div>

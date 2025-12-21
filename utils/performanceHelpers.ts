@@ -62,16 +62,21 @@ export const useIntersectionObserver = (
 ) => {
   React.useEffect(() => {
     if (!ref.current) return;
-    
+
+    if (typeof IntersectionObserver === 'undefined') {
+      callback(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(([entry]) => {
       callback(entry.isIntersecting);
     }, {
       threshold: 0.1,
       ...options,
     });
-    
+
     observer.observe(ref.current);
-    
+
     return () => {
       if (ref.current) observer.unobserve(ref.current);
     };

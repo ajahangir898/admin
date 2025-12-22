@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { CategoryCircle, CategoryPill, SectionHeader } from '../StoreProductComponents';
 import { CATEGORIES } from '../../constants';
 import { Category } from '../../types';
 
-// Helper map for dynamic icons
+// Pre-rendered icon map for faster access
 const iconMap: Record<string, React.ReactNode> = {
   smartphone: <Smartphone size={28} strokeWidth={1.5} />,
   watch: <Watch size={28} strokeWidth={1.5} />,
@@ -16,6 +16,30 @@ const iconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={28} strokeWidth={1.5} />,
 };
 
+// Pre-rendered small icons for style2
+const smallIconMap: Record<string, React.ReactNode> = {
+  smartphone: <Smartphone size={20} strokeWidth={2} />,
+  watch: <Watch size={20} strokeWidth={2} />,
+  'battery-charging': <BatteryCharging size={20} strokeWidth={2} />,
+  headphones: <Headphones size={20} strokeWidth={2} />,
+  zap: <Zap size={20} strokeWidth={2} />,
+  bluetooth: <Bluetooth size={20} strokeWidth={2} />,
+  'gamepad-2': <Gamepad2 size={20} strokeWidth={2} />,
+  camera: <Camera size={20} strokeWidth={2} />,
+};
+
+// Pre-rendered large icons for style1
+const largeIconMap: Record<string, React.ReactNode> = {
+  smartphone: <Smartphone size={32} strokeWidth={1.5} />,
+  watch: <Watch size={32} strokeWidth={1.5} />,
+  'battery-charging': <BatteryCharging size={32} strokeWidth={1.5} />,
+  headphones: <Headphones size={32} strokeWidth={1.5} />,
+  zap: <Zap size={32} strokeWidth={1.5} />,
+  bluetooth: <Bluetooth size={32} strokeWidth={1.5} />,
+  'gamepad-2': <Gamepad2 size={32} strokeWidth={1.5} />,
+  camera: <Camera size={32} strokeWidth={1.5} />,
+};
+
 interface CategoriesSectionProps {
   style?: 'style1' | 'style2';
   categories?: Category[];
@@ -24,13 +48,28 @@ interface CategoriesSectionProps {
   sectionRef?: React.RefObject<HTMLDivElement>;
 }
 
-export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
+// Pre-compute rolling categories for style2 to avoid recreation on each render
+const rollingCategories = [...CATEGORIES, ...CATEGORIES, ...CATEGORIES];
+
+export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
   style = 'style1',
   categories,
   onCategoryClick,
   categoryScrollRef,
   sectionRef
 }) => {
+  // Memoize processed categories for style1
+  const processedCategories = useMemo(() => {
+    if (categories && categories.length > 0) {
+      return categories.filter((c) => c.status === 'Active').map((cat) => ({
+        name: cat.name,
+        icon: cat.icon || 'smartphone',
+        image: cat.image
+      }));
+    }
+    return CATEGORIES;
+  }, [categories]);
+
   if (style === 'style2') {
     return (
       <div ref={sectionRef} className="mt-1 -mb-1">
@@ -56,11 +95,11 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
           className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
           style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
         >
-          {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
+          {rollingCategories.map((cat, idx) => (
             <div key={`${cat.name}-${idx}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
               <CategoryPill
                 name={cat.name}
-                icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })}
+                icon={smallIconMap[cat.icon] || smallIconMap['smartphone']}
               />
             </div>
           ))}
@@ -74,27 +113,19 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
     <div ref={sectionRef} className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <SectionHeader title="Categories" />
       <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
-        {(categories && categories.length > 0
-          ? categories.filter((c) => c.status === 'Active').map((cat) => ({
-              name: cat.name,
-              icon: cat.icon || 'smartphone',
-              image: cat.image
-            }))
-          : CATEGORIES
-        ).map((cat, idx) => (
+        {processedCategories.map((cat, idx) => (
           <div key={idx} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
             <CategoryCircle
               name={cat.name}
-              icon={React.cloneElement(
-                (iconMap[cat.icon as keyof typeof iconMap] || iconMap['smartphone']) as React.ReactElement<any>,
-                { size: 32, strokeWidth: 1.5 }
-              )}
+              icon={largeIconMap[cat.icon as keyof typeof largeIconMap] || largeIconMap['smartphone']}
             />
           </div>
         ))}
       </div>
     </div>
   );
-};
+});
+
+CategoriesSection.displayName = 'CategoriesSection';
 
 export default CategoriesSection;

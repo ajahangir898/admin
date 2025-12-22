@@ -8,7 +8,6 @@ import {
   StoreHeaderSkeleton,
   StoreFooterSkeleton,
   HeroSectionSkeleton,
-  CategoriesSectionSkeleton,
   FlashSalesSkeleton,
   ProductGridSkeleton,
   PromoBannerSkeleton,
@@ -28,7 +27,7 @@ const HeroSection = lazy(() => import('../components/store/HeroSection').then(m 
 const FlashSalesSection = lazy(() => import('../components/store/FlashSalesSection').then(m => ({ default: m.FlashSalesSection })));
 const ProductGridSection = lazy(() => import('../components/store/ProductGridSection').then(m => ({ default: m.ProductGridSection })));
 const PromoBanner = lazy(() => import('../components/store/PromoBanner').then(m => ({ default: m.PromoBanner })));
-const CategoriesSection = lazy(() => import('../components/store/CategoriesSection').then(m => ({ default: m.CategoriesSection })));
+import { CategoriesSection } from '../components/store/CategoriesSection';
 const SearchResultsSection = lazy(() => import('../components/store/SearchResultsSection').then(m => ({ default: m.SearchResultsSection })));
 
 const POPUP_CACHE_KEY = 'ds_cache_public::popups';
@@ -155,14 +154,14 @@ const StoreHome = ({
     if (connection?.saveData) return;
 
     const isSlowConnection = Boolean(connection?.effectiveType && /2g|slow-2g/i.test(connection.effectiveType));
-    const warmupDelay = isSlowConnection ? 2000 : 900;
+    const warmupDelay = isSlowConnection ? 800 : 200;
 
     const timer = window.setTimeout(() => {
       Promise.all([
         import('../components/store/FlashSalesSection'),
         import('../components/store/ProductGridSection'),
         import('../components/store/PromoBanner'),
-        import('../components/store/CategoriesSection'),
+        // CategoriesSection is now directly imported
         import('../components/store/SearchResultsSection'),
       ]).catch(() => undefined);
     }, warmupDelay);
@@ -722,18 +721,14 @@ const StoreHome = ({
           </LazySection>
         ) : (
           <>
-            {/* Categories */}
-            <LazySection fallback={<CategoriesSectionSkeleton />} rootMargin="0px 0px 160px">
-              <Suspense fallback={<CategoriesSectionSkeleton />}>
-                <CategoriesSection
-                  style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | undefined}
-                  categories={categories}
-                  onCategoryClick={handleCategoryClick}
-                  categoryScrollRef={categoryScrollRef}
-                  sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
-                />
-              </Suspense>
-            </LazySection>
+            {/* Categories - Loaded immediately for fast initial render */}
+            <CategoriesSection
+              style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | undefined}
+              categories={categories}
+              onCategoryClick={handleCategoryClick}
+              categoryScrollRef={categoryScrollRef}
+              sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
+            />
 
             {/* Flash Deals */}
             <LazySection fallback={<FlashSalesSkeleton />} rootMargin="0px 0px 200px">

@@ -66,7 +66,7 @@ export default {
       animation: {
         'slide-in-right': 'slide-in-right 0.5s ease-out forwards',
         'fade-in': 'fade-in 0.4s ease-in-out forwards',
-        'marquee': 'marquee 20s linear infinite'
+        'marquee': 'marquee 12s linear infinite'
       },
       colors: {
         // Dynamic tenant theme colors - these map to CSS variables

@@ -585,12 +585,13 @@ const App = () => {
             prevLandingPagesRef.current = data.landingPages;
             setLandingPages(data.landingPages);
             
-            // Categories etc - these use adminDataLoadedRef check so they're safe
+            // Categories etc - mark as loaded to enable saves after initial load
             setCategories(data.categories);
             setSubCategories(data.subcategories);
             setChildCategories(data.childcategories);
             setBrands(data.brands);
             setTags(data.tags);
+            catalogLoadedRef.current = true; // Mark catalog as initially loaded
             console.log(`[Perf] Secondary data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
           }).catch(error => console.warn('Failed to load secondary data', error));
         };
@@ -644,11 +645,15 @@ const App = () => {
       setRoles(rolesData);
       setCourierConfig({ apiKey: courierData?.apiKey || '', secretKey: courierData?.secretKey || '', instruction: courierData?.instruction || '' });
       setFacebookPixelConfig(facebookPixelData);
-      setCategories(categoriesData);
-      setSubCategories(subCategoriesData);
-      setChildCategories(childCategoriesData);
-      setBrands(brandsData);
-      setTags(tagsData);
+      // Only update categories if not already loaded from secondary data
+      if (!catalogLoadedRef.current) {
+        setCategories(categoriesData);
+        setSubCategories(subCategoriesData);
+        setChildCategories(childCategoriesData);
+        setBrands(brandsData);
+        setTags(tagsData);
+        catalogLoadedRef.current = true;
+      }
     } catch (error) {
       console.warn('Failed to load admin data', error);
     }
@@ -819,6 +824,7 @@ const App = () => {
   const productsLoadedFromServerRef = useRef(false);
   const prevProductsRef = useRef<Product[]>([]);
   const isFirstProductUpdateRef = useRef(true);
+  const catalogLoadedRef = useRef(false); // Track if catalog data has been initially loaded
   
   useEffect(() => {
     if (!isLoading && activeTenantId) {
@@ -831,6 +837,7 @@ const App = () => {
     productsLoadedFromServerRef.current = false;
     isFirstProductUpdateRef.current = true;
     ordersLoadedRef.current = false;
+    catalogLoadedRef.current = false; // Reset catalog loaded flag on tenant change
     prevProductsRef.current = [];
     prevOrdersRef.current = [];
   }, [activeTenantId]);
@@ -911,12 +918,12 @@ const App = () => {
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, activeTenantId]);
   useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, activeTenantId]);
   
-  // Only save catalog data when it has items
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && categories.length > 0) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && subCategories.length > 0) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && childCategories.length > 0) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && brands.length > 0) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
-  useEffect(() => { if(!isLoading && activeTenantId && adminDataLoadedRef.current && tags.length > 0) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
+  // Only save catalog data when it has items AND after initial load
+  useEffect(() => { if(!isLoading && activeTenantId && catalogLoadedRef.current && categories.length > 0) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && catalogLoadedRef.current && subCategories.length > 0) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && catalogLoadedRef.current && childCategories.length > 0) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && catalogLoadedRef.current && brands.length > 0) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, activeTenantId]);
+  useEffect(() => { if(!isLoading && activeTenantId && catalogLoadedRef.current && tags.length > 0) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, activeTenantId]);
   // Only save landing_pages when actually changed
   useEffect(() => { 
     if(!isLoading && activeTenantId && initialDataLoadedRef.current && landingPages.length > 0) {

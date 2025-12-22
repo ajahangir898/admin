@@ -92,14 +92,14 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
         {/* rolling category pills */}
         <div
           ref={categoryScrollRef}
-          className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
+          className="overflow-x-hidden whitespace-nowrap scrollbar-hide"
           style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
         >
-          {rollingCategories.map((cat, idx) => (
+          {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
             <div key={`${cat.name}-${idx}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
               <CategoryPill
                 name={cat.name}
-                icon={smallIconMap[cat.icon] || smallIconMap['smartphone']}
+                icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })}
               />
             </div>
           ))}
@@ -113,7 +113,14 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
     <div ref={sectionRef} className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <SectionHeader title="Categories" />
       <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
-        {processedCategories.map((cat, idx) => (
+        {(categories && categories.length > 0
+          ? categories.filter((c) => c.status === 'Active').map((cat) => ({
+              name: cat.name,
+              icon: cat.icon || 'smartphone',
+              image: cat.image
+            }))
+          : CATEGORIES
+        ).map((cat, idx) => (
           <div key={idx} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
             <CategoryCircle
               name={cat.name}

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2, FileEdit } from 'lucide-react';
-import { convertFileToWebP } from '../services/imageUtils';
+import { convertFileToWebP, compressProductImage } from '../services/imageUtils';
 import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
 import { formatCurrency } from '../utils/format';
@@ -754,15 +754,24 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         }
 
         try {
-          // Upload to server
-          const imageUrl = await uploadImageToServer(file, activeTenantId || 'default');
-          uploadedUrls.push(imageUrl);
-
-          // Update progress
+          // Compress image to ~30-35KB for faster page loads
+          toast.loading(
+            `Compressing ${i + 1}/${files.length}...`,
+            { id: loadingToast }
+          );
+          const compressedFile = await compressProductImage(file, { 
+            targetSizeKB: 32, 
+            maxDimension: 800 
+          });
+          console.log(`[ProductImage] Compressed: ${(file.size / 1024).toFixed(1)}KB → ${(compressedFile.size / 1024).toFixed(1)}KB`);
+          
+          // Upload compressed image to server
           toast.loading(
             `Uploading ${i + 1}/${files.length}...`,
             { id: loadingToast }
           );
+          const imageUrl = await uploadImageToServer(compressedFile, activeTenantId || 'default');
+          uploadedUrls.push(imageUrl);
         } catch (error) {
           console.error(`Failed to upload ${file.name}`, error);
           toast.error(`Unable to upload "${file.name}". ${error instanceof Error ? error.message : 'Please try again.'}`);

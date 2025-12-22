@@ -9,9 +9,18 @@ export interface CarouselOptions {
   quality?: number;
 }
 
+export interface ProductImageOptions {
+  targetSizeKB?: number; // Target size in KB (default: 30-35KB)
+  maxDimension?: number; // Max width/height (default: 800px)
+  minQuality?: number;   // Minimum quality threshold (default: 0.3)
+}
+
 // Carousel standard dimensions: 1280 x 330 pixels
 export const CAROUSEL_WIDTH = 1280;
 export const CAROUSEL_HEIGHT = 330;
+
+// Product image target size
+export const PRODUCT_IMAGE_TARGET_KB = 32; // Target ~30-35KB
 
 const fileToDataUrl = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -117,4 +126,149 @@ export const convertCarouselImage = async (file: File, options: CarouselOptions 
     console.warn('Carousel image conversion failed, using original.', error);
   }
   return originalDataUrl;
+};
+
+/**
+ * Helper function to get file size from data URL (in bytes)
+ */
+const getDataUrlSize = (dataUrl: string): number => {
+  // Data URL format: data:image/webp;base64,ENCODED_DATA
+  const base64Data = dataUrl.split(',')[1];
+  if (!base64Data) return 0;
+  // Base64 encoded data is ~33% larger than binary
+  return Math.ceil((base64Data.length * 3) / 4);
+};
+
+/**
+ * Helper function to convert data URL to File object
+ */
+export const dataUrlToFile = (dataUrl: string, fileName: string): File => {
+  const arr = dataUrl.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/webp';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], fileName, { type: mime });
+};
+
+/**
+ * Compresses a product image to target size (~30-35KB) for faster page loads.
+ * Uses iterative quality reduction to achieve optimal file size.
+ * Returns a compressed File object ready for upload.
+ */
+export const compressProductImage = async (
+  file: File, 
+  options: ProductImageOptions = {}
+): Promise<File> => {
+  const {
+    targetSizeKB = PRODUCT_IMAGE_TARGET_KB,
+    maxDimension = 800,
+    minQuality = 0.3
+  } = options;
+
+  const targetSizeBytes = targetSizeKB * 1024;
+  const originalDataUrl = await fileToDataUrl(file);
+  
+  try {
+    const img = await loadImage(originalDataUrl);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Canvas context unavailable.');
+    }
+
+    // Calculate dimensions while maintaining aspect ratio
+    let width = img.width;
+    let height = img.height;
+    
+    // Scale down if larger than maxDimension
+    if (width > maxDimension || height > maxDimension) {
+      const scale = maxDimension / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(img, 0, 0, width, height);
+
+    // Binary search for optimal quality to reach target size
+    let minQ = minQuality;
+    let maxQ = 0.9;
+    let bestDataUrl = canvas.toDataURL('image/webp', maxQ);
+    let bestSize = getDataUrlSize(bestDataUrl);
+    
+    // If already under target, just use high quality
+    if (bestSize <= targetSizeBytes) {
+      console.log(`[CompressImage] Image already under target: ${(bestSize / 1024).toFixed(1)}KB`);
+      const newFileName = file.name.replace(/\.[^.]+$/, '.webp');
+      return dataUrlToFile(bestDataUrl, newFileName);
+    }
+
+    // Iterative quality reduction to find optimal size
+    for (let i = 0; i < 10; i++) {
+      const midQ = (minQ + maxQ) / 2;
+      const testDataUrl = canvas.toDataURL('image/webp', midQ);
+      const testSize = getDataUrlSize(testDataUrl);
+      
+      if (testSize <= targetSizeBytes) {
+        bestDataUrl = testDataUrl;
+        bestSize = testSize;
+        minQ = midQ; // Try higher quality
+      } else {
+        maxQ = midQ; // Need lower quality
+      }
+      
+      // Close enough to target (within 5KB tolerance)
+      if (Math.abs(testSize - targetSizeBytes) < 5 * 1024) {
+        if (testSize <= targetSizeBytes) {
+          bestDataUrl = testDataUrl;
+          bestSize = testSize;
+        }
+        break;
+      }
+    }
+
+    // If still too large, try smaller dimensions
+    if (bestSize > targetSizeBytes) {
+      let scaleFactor = 0.8;
+      while (bestSize > targetSizeBytes && scaleFactor > 0.3) {
+        const newWidth = Math.round(width * scaleFactor);
+        const newHeight = Math.round(height * scaleFactor);
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        
+        bestDataUrl = canvas.toDataURL('image/webp', 0.7);
+        bestSize = getDataUrlSize(bestDataUrl);
+        scaleFactor -= 0.1;
+      }
+    }
+
+    console.log(`[CompressImage] Compressed: ${(file.size / 1024).toFixed(1)}KB → ${(bestSize / 1024).toFixed(1)}KB`);
+    
+    const newFileName = file.name.replace(/\.[^.]+$/, '.webp');
+    return dataUrlToFile(bestDataUrl, newFileName);
+    
+  } catch (error) {
+    console.warn('Product image compression failed, returning original.', error);
+    return file;
+  }
+};
+
+/**
+ * Compress multiple product images
+ */
+export const compressProductImages = async (
+  files: File[],
+  options: ProductImageOptions = {}
+): Promise<File[]> => {
+  const compressedFiles = await Promise.all(
+    files.map(file => compressProductImage(file, options))
+  );
+  return compressedFiles;
 };

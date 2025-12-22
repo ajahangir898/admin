@@ -92,14 +92,14 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
         {/* rolling category pills */}
         <div
           ref={categoryScrollRef}
-          className="overflow-x-hidden whitespace-nowrap scrollbar-hide"
+          className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
           style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
         >
-          {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((cat, idx) => (
-            <div key={`${cat.name}-${idx}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
+          {rollingCategories.map((cat, idx) => (
+            <div key={`${cat.name}-${idx}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer inline-block">
               <CategoryPill
                 name={cat.name}
-                icon={React.cloneElement(iconMap[cat.icon] as React.ReactElement<any>, { size: 20, strokeWidth: 2 })}
+                icon={smallIconMap[cat.icon] || smallIconMap['smartphone']}
               />
             </div>
           ))}

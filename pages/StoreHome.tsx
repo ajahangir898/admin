@@ -435,7 +435,7 @@ const StoreHome = ({
 
     let isActive = false;
     let animationId: number | null = null;
-    const speed = 2.4;
+    const speed = 1.0;
 
     const stop = () => {
       if (animationId !== null) {

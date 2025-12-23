@@ -1914,13 +1914,6 @@ fbq('track', 'PageView');`;
     }
   }, [adminSection, user]);
 
-  if (isLoading) {
-    const skeletonVariant: 'store' | 'admin' = currentView.startsWith('admin') || isAdminRole(user?.role)
-      ? 'admin'
-      : 'store';
-    return <SuspenseFallback variant={skeletonVariant} />;
-  }
-
   const suspenseVariant = currentView === 'admin-login' ? 'login' : currentView.startsWith('admin') ? 'admin' : 'store';
 
   return (

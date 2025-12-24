@@ -4,6 +4,12 @@ import App from './App';
 // Import CSS immediately for SSR hydration consistency
 import './styles/tailwind.css';
 
+// Remove initial loading skeleton
+const initialLoader = document.getElementById('initial-loader');
+if (initialLoader) {
+  initialLoader.remove();
+}
+
 const container = document.getElementById('root')!;
 
 // Use hydrateRoot if SSR content exists, otherwise createRoot for dev

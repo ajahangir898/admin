@@ -88,8 +88,26 @@
       .object-cover{object-fit:cover}.object-contain{object-fit:contain}
       
       /* Smooth hydration - prevent flash by using opacity transition */
-      #root{opacity:1;transition:opacity 0.15s ease-out}
-      #root:empty{opacity:0}
+      #root{opacity:1;transition:opacity 0.1s ease-out}
+      
+      /* Initial loading skeleton */
+      .initial-skeleton{position:fixed;inset:0;background:#f9fafb;z-index:9999;display:flex;flex-direction:column}
+      .initial-skeleton.hidden{display:none}
+      .skel-header{height:64px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 1rem;gap:1rem}
+      .skel-logo{width:120px;height:32px;background:#e5e7eb;border-radius:8px;animation:skeleton-pulse 1.5s infinite}
+      .skel-search{flex:1;max-width:400px;height:40px;background:#f3f4f6;border-radius:20px;animation:skeleton-pulse 1.5s infinite}
+      .skel-hero{max-width:80rem;margin:1rem auto;padding:0 1rem}
+      .skel-hero-inner{aspect-ratio:4/1;min-height:180px;background:#e5e7eb;border-radius:12px;animation:skeleton-pulse 1.5s infinite}
+      .skel-cats{max-width:80rem;margin:1rem auto;padding:0 1rem;display:flex;gap:12px;overflow:hidden}
+      .skel-cat{width:80px;height:36px;background:#e5e7eb;border-radius:20px;flex-shrink:0;animation:skeleton-pulse 1.5s infinite}
+      .skel-grid{max-width:80rem;margin:1rem auto;padding:0 1rem;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+      @media(min-width:768px){.skel-grid{grid-template-columns:repeat(4,1fr)}}
+      @media(min-width:1024px){.skel-grid{grid-template-columns:repeat(5,1fr)}}
+      .skel-card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden}
+      .skel-card-img{aspect-ratio:1;background:#f3f4f6;animation:skeleton-pulse 1.5s infinite}
+      .skel-card-body{padding:12px}
+      .skel-card-title{height:14px;background:#e5e7eb;border-radius:4px;margin-bottom:8px;animation:skeleton-pulse 1.5s infinite}
+      .skel-card-price{height:14px;width:60%;background:#e5e7eb;border-radius:4px;animation:skeleton-pulse 1.5s infinite}
       
       /* Product grid fade-in */
       .grid>*{animation:fadeIn 0.2s ease-out}
@@ -97,6 +115,24 @@
     </style>
   </head>
   <body>
+    <!-- Instant loading skeleton - removed by React on hydration -->
+    <div id="initial-loader" class="initial-skeleton">
+      <div class="skel-header">
+        <div class="skel-logo"></div>
+        <div class="skel-search"></div>
+      </div>
+      <div class="skel-hero"><div class="skel-hero-inner"></div></div>
+      <div class="skel-cats">
+        <div class="skel-cat"></div><div class="skel-cat"></div><div class="skel-cat"></div>
+        <div class="skel-cat"></div><div class="skel-cat"></div><div class="skel-cat"></div>
+      </div>
+      <div class="skel-grid">
+        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
+        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
+        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
+        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/entry-client.tsx"></script>
   </body>

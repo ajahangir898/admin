@@ -29,16 +29,16 @@ const smallIconMap: Record<string, React.ReactNode> = {
 };
 
 // Pre-rendered large icons for style1
-const largeIconMap: Record<string, React.ReactNode> = {
-  smartphone: <Smartphone size={32} strokeWidth={1.5} />,
-  watch: <Watch size={32} strokeWidth={1.5} />,
-  'battery-charging': <BatteryCharging size={32} strokeWidth={1.5} />,
-  headphones: <Headphones size={32} strokeWidth={1.5} />,
-  zap: <Zap size={32} strokeWidth={1.5} />,
-  bluetooth: <Bluetooth size={32} strokeWidth={1.5} />,
-  'gamepad-2': <Gamepad2 size={32} strokeWidth={1.5} />,
-  camera: <Camera size={32} strokeWidth={1.5} />,
-};
+// const largeIconMap: Record<string, React.ReactNode> = {
+//   smartphone: <Smartphone size={32} strokeWidth={1.5} />,
+//   watch: <Watch size={32} strokeWidth={1.5} />,
+//   'battery-charging': <BatteryCharging size={32} strokeWidth={1.5} />,
+//   headphones: <Headphones size={32} strokeWidth={1.5} />,
+//   zap: <Zap size={32} strokeWidth={1.5} />,
+//   bluetooth: <Bluetooth size={32} strokeWidth={1.5} />,
+//   'gamepad-2': <Gamepad2 size={32} strokeWidth={1.5} />,
+//   camera: <Camera size={32} strokeWidth={1.5} />,
+// };
 
 interface CategoriesSectionProps {
   style?: 'style1' | 'style2';
@@ -124,7 +124,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
           <div key={idx} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
             <CategoryCircle
               name={cat.name}
-              icon={largeIconMap[cat.icon as keyof typeof largeIconMap] || largeIconMap['smartphone']}
+              // icon={largeIconMap[cat.icon as keyof typeof largeIconMap] || largeIconMap['smartphone']}
             />
           </div>
         ))}

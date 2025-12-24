@@ -120,14 +120,8 @@ const StoreHome = ({
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [popups, setPopups] = useState<Popup[]>([]);
-
-  // Initial loading - short delay for perceived performance
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, []);
   const [activePopup, setActivePopup] = useState<Popup | null>(null);
   const [popupIndex, setPopupIndex] = useState(0);
   const showPopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

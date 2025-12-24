@@ -89,7 +89,8 @@ if (typeof window !== 'undefined') {
 
 const App = () => {
   // === LOADING STATE ===
-  const [isLoading, setIsLoading] = useState(() => !hasCachedData());
+  // Start with false if we have cached data to show content immediately
+  const [isLoading, setIsLoading] = useState(false);
 
   // === TENANT MANAGEMENT (from useTenant hook) ===
   const tenant = useTenant();
@@ -293,7 +294,11 @@ const App = () => {
   useEffect(() => {
     let isMounted = true;
     const loadInitialData = async () => {
-      setIsLoading(true);
+      // Don't block UI - only show loading if no cached data
+      const hasCache = hasCachedData();
+      if (!hasCache) {
+        setIsLoading(true);
+      }
       let loadError: Error | null = null;
       const startTime = performance.now();
       

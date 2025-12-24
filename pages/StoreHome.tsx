@@ -5,6 +5,7 @@ import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
 import { SortOption } from '../components/ProductFilter';
 import { slugify } from '../services/slugify';
+import { DataService } from '../services/DataService';
 
 // Critical above-the-fold components - loaded eagerly
 import { StoreHeader } from '../components/StoreHeader';
@@ -201,9 +202,8 @@ const StoreHome = ({
 
     const loadPopups = async () => {
       try {
-        const module = await import('../services/DataService');
         if (!isMounted) return;
-        const allPopups = await module.DataService.get<Popup[]>('popups', []);
+        const allPopups = await DataService.get<Popup[]>('popups', []);
         const publishedPopups = normalizePopups(allPopups);
         applyPopups(publishedPopups);
       } catch (error) {

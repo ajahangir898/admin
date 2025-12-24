@@ -175,6 +175,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
       // Set base URL for all assets (CDN in production if configured)
       base: baseUrl,
       publicDir: 'public',
+      // Treat manifest.json as static asset to prevent JSON parsing issues
+      assetsInclude: ['**/*.json'],
       server: {
         port: 3000,
         host: '0.0.0.0',
@@ -218,6 +220,11 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         splitVendorChunkPlugin(),
         criticalPreloadPlugin()
       ],
+      // Handle JSON files explicitly
+      json: {
+        namedExports: true,
+        stringify: false
+      },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)

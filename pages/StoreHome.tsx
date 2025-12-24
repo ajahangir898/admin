@@ -20,7 +20,6 @@ const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ de
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
 const ProductQuickViewModal = lazy(() => import('../components/store/ProductQuickViewModal').then(m => ({ default: m.ProductQuickViewModal })));
 const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
-const AIStudioModal = lazy(() => import('../components/store/AIStudioModal').then(m => ({ default: m.AIStudioModal })));
 const StoreCategoryProducts = lazy(() => import('../components/StoreCategoryProducts'));
 const FlashSalesSection = lazy(() => import('../components/store/FlashSalesSection').then(m => ({ default: m.FlashSalesSection })));
 const ProductGridSection = lazy(() => import('../components/store/ProductGridSection').then(m => ({ default: m.ProductGridSection })));
@@ -620,11 +619,7 @@ const StoreHome = ({
           <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
         </Suspense>
       )}
-      {isAIStudioOpen && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
-          <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
-        </Suspense>
-      )}
+     
       {quickViewProduct && (
         <Suspense fallback={null}>
           <ProductQuickViewModal

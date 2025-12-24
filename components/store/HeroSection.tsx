@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CarouselItem, WebsiteConfig } from '../../types';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
+import { OptimizedImage } from '../OptimizedImage';
 
 export interface HeroSectionProps {
     carouselItems?: CarouselItem[];
@@ -25,6 +26,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
         return () => clearInterval(timer);
     }, [items.length]);
 
+    // Preload the first hero image for faster LCP
+    useEffect(() => {
+        if (!items[0]) return;
+        const href = normalizeImageUrl(items[0].image);
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = href;
+        link.fetchPriority = 'high';
+        document.head.appendChild(link);
+        return () => {
+            if (link.parentNode) {
+                document.head.removeChild(link);
+            }
+        };
+    }, [items]);
+
     // Preload next image
     useEffect(() => {
         if (items.length <= 1) return;
@@ -46,10 +64,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
     return (
         <div className="max-w-7xl mx-auto px-4 mt-4">
             {/* Full Width Carousel */}
-            <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gray-100">
+            <div className="relative w-full aspect-[4/1] min-h-[220px] rounded-xl overflow-hidden shadow-lg group bg-gray-100">
                 {items.map((item, index) => {
                     const isActive = index === currentIndex;
                     const shouldLoad = loadedImages.has(index) || isActive;
+                    const normalized = normalizeImageUrl(item.image);
                     return (
                         <a
                             href={item.url || '#'}
@@ -57,12 +76,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
                             className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                         >
                             {shouldLoad && (
-                                <img
-                                    src={normalizeImageUrl(item.image)}
+                                <OptimizedImage
+                                    src={normalized}
                                     alt={item.name}
-                                    className="w-full h-full object-cover"
-                                    loading={index === 0 ? 'eager' : 'lazy'}
-                                    decoding="async"
+                                    width={1600}
+                                    height={400}
+                                    priority={index === 0}
+                                    placeholder="blur"
+                                    className="w-full h-full"
                                     onLoad={() => handleImageLoad(index)}
                                 />
                             )}

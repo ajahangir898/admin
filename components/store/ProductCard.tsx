@@ -2,8 +2,8 @@ import React from 'react';
 import { ShoppingCart, Heart, Sparkles, Star, Truck, Eye } from 'lucide-react';
 import { Product } from '../../types';
 import { formatCurrency } from '../../utils/format';
-import { LazyImage } from '../../utils/performanceOptimization';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
+import { OptimizedImage } from '../OptimizedImage';
 
 export interface ProductCardProps {
     product: Product;
@@ -22,6 +22,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onBuyNow, 
     onAddToCart 
 }) => {
+    const imageSrc = normalizeImageUrl(product.galleryImages?.[0] || product.image);
     const handleBuyNow = (event?: React.MouseEvent) => {
         event?.stopPropagation();
         if (onBuyNow) {
@@ -46,10 +47,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                 {/* Product Image */}
                 <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
-                    <LazyImage 
-                        src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} 
-                        alt={product.name} 
-                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" 
+                    <OptimizedImage
+                        src={imageSrc}
+                        alt={product.name}
+                        width={480}
+                        height={480}
+                        placeholder="blur"
+                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                 </div>
 
@@ -57,14 +61,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <div className="p-4 flex-1 flex flex-col">
                     {/* Product Name */}
                     <h3 
-                        className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 cursor-pointer hover:text-theme-primary transition"
+                        className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 min-h-[40px] cursor-pointer hover:text-theme-primary transition"
                         onClick={() => onClick(product)}
                     >
                         {product.name}
                     </h3>
 
                     {/* Price Section */}
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-3 min-h-[24px]">
                         <span className="text-lg font-bold text-gray-900">৳{product.price}</span>
                         {product.originalPrice && (
                             <span className="text-sm text-gray-400 line-through">৳{product.originalPrice}</span>
@@ -99,7 +103,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         return (
             <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
                 <div className="relative aspect-square p-2 bg-gray-50 cursor-pointer" onClick={() => onClick(product)}>
-                    <LazyImage src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105" />
+                    <OptimizedImage
+                        src={imageSrc}
+                        alt={product.name}
+                        width={420}
+                        height={420}
+                        placeholder="blur"
+                        className="w-full h-full object-contain mix-blend-multiply transition duration-500 group-hover:scale-105"
+                    />
                     {product.discount && (
                         <span className="absolute top-1.5 left-1.5 bg-theme-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                             {product.discount}
@@ -119,7 +130,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </div>
 
                     <h3 
-                        className="font-bold text-gray-800 text-xs leading-tight line-clamp-1 cursor-pointer hover:text-theme-primary transition"
+                        className="font-bold text-gray-800 text-xs leading-tight line-clamp-1 min-h-[32px] cursor-pointer hover:text-theme-primary transition"
                         onClick={() => onClick(product)}
                     >
                         {product.name}
@@ -164,11 +175,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         return (
             <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 group relative overflow-hidden flex flex-col">
                 {/* Product Image */}
-                <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}> 
-                    <LazyImage 
-                        src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} 
-                        alt={product.name} 
-                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" 
+                <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
+                    <OptimizedImage
+                        src={imageSrc}
+                        alt={product.name}
+                        width={420}
+                        height={420}
+                        placeholder="blur"
+                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                 </div>
 
@@ -176,7 +190,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <div className="px-4 pt-2 pb-4 flex-1 flex flex-col">
                     {/* Product Name */}
                     <h3 
-                        className="font-semibold text-gray-800 text-xs mb-2 line-clamp-1 cursor-pointer transition"
+                        className="font-semibold text-gray-800 text-xs mb-2 line-clamp-1 min-h-[28px] cursor-pointer transition"
                         style={{ '--hover-color': 'rgba(var(--color-primary-rgb), 1)' } as React.CSSProperties}
                         onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--color-primary-rgb), 1)')}
                         onMouseLeave={(e) => (e.currentTarget.style.color = '')}
@@ -186,7 +200,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </h3>
 
                     {/* Price Section */}
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 min-h-[22px]">
                         <span 
                             className="text-base font-bold"
                             style={{ color: 'rgba(var(--color-primary-rgb), 1)' }}
@@ -264,8 +278,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                 <div className="relative mt-4">
                     <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition" aria-hidden />
-                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
-                        <LazyImage src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} alt={product.name} className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110" />
+                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
+                        <OptimizedImage
+                            src={imageSrc}
+                            alt={product.name}
+                            width={420}
+                            height={420}
+                            placeholder="blur"
+                            className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110"
+                        />
                     </div>
                     {product.discount && (
                         <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">

@@ -13,6 +13,10 @@ const ONE_YEAR = 31536000; // 1 year in seconds
 const ONE_DAY = 86400; // 1 day in seconds
 const ONE_WEEK = 604800; // 1 week in seconds
 
+// Pre-cache templates in production for instant response
+let cachedTemplate = null;
+let cachedRender = null;
+
 // Set cache headers based on file type and whether it's hashed
 const setCacheHeaders = (res, filePath) => {
   const normalizedPath = filePath.replace(/\\/g, '/');
@@ -48,8 +52,8 @@ const setCacheHeaders = (res, filePath) => {
 async function createServer() {
   const app = express();
 
-  // Use compression for faster responses
-  app.use(compression());
+  // Use aggressive compression for faster responses
+  app.use(compression({ level: 6, threshold: 0 }));
 
   let vite;
   if (!isProduction) {
@@ -61,10 +65,16 @@ async function createServer() {
     });
     app.use(vite.middlewares);
   } else {
+    // Production: pre-cache template and render function at startup
+    cachedTemplate = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8');
+    cachedRender = (await import('./dist/server/entry-server.js')).render;
+    
     // Production: serve static files with optimized caching
     app.use(express.static(path.resolve(__dirname, 'dist/client'), {
       index: false,
-      setHeaders: setCacheHeaders
+      setHeaders: setCacheHeaders,
+      maxAge: ONE_YEAR * 1000, // Express uses ms
+      immutable: true
     }));
   }
 
@@ -82,9 +92,9 @@ async function createServer() {
         template = await vite.transformIndexHtml(url, template);
         render = (await vite.ssrLoadModule('/entry-server.tsx')).render;
       } else {
-        // Production: use pre-built files
-        template = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8');
-        render = (await import('./dist/server/entry-server.js')).render;
+        // Production: use pre-cached template and render (zero I/O)
+        template = cachedTemplate;
+        render = cachedRender;
       }
 
       // Render the app to HTML
@@ -96,11 +106,13 @@ async function createServer() {
         `<div id="root">${appHtml}</div>`
       );
 
-      // Send response with cache headers
+      // Send response with optimized headers
       res.status(200)
         .set({
-          'Content-Type': 'text/html',
-          'Cache-Control': isProduction ? 'public, max-age=0, must-revalidate' : 'no-cache'
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': isProduction ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=86400' : 'no-cache',
+          'X-Content-Type-Options': 'nosniff',
+          'Vary': 'Accept-Encoding'
         })
         .end(finalHtml);
     } catch (e) {

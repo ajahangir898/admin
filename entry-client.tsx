@@ -1,13 +1,21 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { hydrateRoot, createRoot } from 'react-dom/client';
 import App from './App';
-import './styles/tailwind.css';
 
-// Use createRoot instead of hydrateRoot to avoid SSR hydration mismatches
+// Defer CSS loading - only load after hydration for faster TTI
+const loadCSS = () => import('./styles/tailwind.css');
+
 const container = document.getElementById('root')!;
-const root = createRoot(container);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+
+// Use hydrateRoot if SSR content exists, otherwise createRoot for dev
+if (container.hasChildNodes()) {
+  // SSR hydration - fastest path
+  hydrateRoot(container, <App />);
+} else {
+  // Client-only render (dev mode without SSR)
+  const root = createRoot(container);
+  root.render(<App />);
+}
+
+// Load full CSS after hydration completes
+requestIdleCallback(() => loadCSS(), { timeout: 100 });

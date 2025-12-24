@@ -192,17 +192,31 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         ],
         holdUntilCrawlEnd: false,
         esbuildOptions: {
-          target: 'es2020'
+          target: 'esnext',
+          treeShaking: true
         }
       },
       ssr: {
         noExternal: ['react-hot-toast', 'react-loading-skeleton', 'lucide-react']
       },
       esbuild: {
-        target: 'es2020',
-        logOverride: { 'this-is-undefined-in-esm': 'silent' }
+        target: 'esnext',
+        logOverride: { 'this-is-undefined-in-esm': 'silent' },
+        treeShaking: true,
+        legalComments: 'none',
+        drop: mode === 'production' ? ['console', 'debugger'] : []
       },
-      plugins: [react(), splitVendorChunkPlugin(), criticalPreloadPlugin()],
+      plugins: [
+        react({
+          babel: {
+            plugins: mode === 'production' ? [
+              ['transform-react-remove-prop-types', { removeImport: true }]
+            ] : []
+          }
+        }),
+        splitVendorChunkPlugin(),
+        criticalPreloadPlugin()
+      ],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -219,15 +233,19 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         css: true
       },
       build: {
-        target: 'es2020',
-        chunkSizeWarningLimit: 200,
+        target: 'esnext',
+        chunkSizeWarningLimit: 150,
         outDir: isSsrBuild ? 'dist/server' : 'dist/client',
         // Enable CSS code splitting for better caching
         cssCodeSplit: true,
-        // Minify CSS in production builds (Vite disables this in dev mode automatically)
-        cssMinify: mode === 'production',
+        // Minify CSS in production builds
+        cssMinify: mode === 'production' ? 'lightningcss' : false,
         // Minify for better performance
         minify: mode === 'production' ? 'esbuild' : false,
+        // Faster builds
+        sourcemap: false,
+        // Remove unused code
+        reportCompressedSize: false,
         rollupOptions: {
           input: isSsrBuild ? './entry-server.tsx' : './index.html',
           output: {
@@ -235,7 +253,13 @@ export default defineConfig(({ mode, isSsrBuild }) => {
             // Ensure consistent chunk naming for better caching
             chunkFileNames: 'assets/[name]-[hash].js',
             entryFileNames: 'assets/[name]-[hash].js',
-            assetFileNames: 'assets/[name]-[hash].[ext]'
+            assetFileNames: 'assets/[name]-[hash].[ext]',
+            // Compact output
+            compact: true
+          },
+          treeshake: {
+            moduleSideEffects: false,
+            propertyReadSideEffects: false
           }
         }
       }

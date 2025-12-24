@@ -41,15 +41,21 @@ const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: m
 const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
 const StoreChatModal = lazy(() => loadStoreComponents().then(module => ({ default: module.StoreChatModal })));
 
-// Preload critical chunks IMMEDIATELY (not on idle) for faster store load
+// Preload critical chunks during idle time for faster subsequent navigation
 if (typeof window !== 'undefined') {
-  // Start preloading immediately - don't wait for idle
-  const preloadPromise = Promise.all([
-    import('./pages/StoreHome'),
-    import('./components/StoreComponents')
-  ]);
-  // Store promise for potential future use
-  (window as any).__storePreload = preloadPromise;
+  // Use requestIdleCallback for non-blocking preload
+  const preload = () => {
+    Promise.all([
+      import('./pages/StoreHome'),
+      import('./components/StoreComponents')
+    ]).catch(() => {});
+  };
+  
+  if ('requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(preload, { timeout: 2000 });
+  } else {
+    setTimeout(preload, 100);
+  }
 }
 
 type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search' | 'admin-login';

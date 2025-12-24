@@ -2,7 +2,6 @@ import React from 'react';
 import { Product } from '../../types';
 import { ProductCard } from '../StoreProductComponents';
 import { SectionHeader } from '../StoreComponents';
-import { ProductCardSkeleton } from '../SkeletonLoaders';
 
 interface ProductGridSectionProps {
   title: string;
@@ -16,7 +15,6 @@ interface ProductGridSectionProps {
   keyPrefix: string;
   maxProducts?: number;
   reverseOrder?: boolean;
-  isLoading?: boolean;
 }
 
 const accentColors = {
@@ -37,8 +35,7 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
   productCardStyle,
   keyPrefix,
   maxProducts = 10,
-  reverseOrder = false,
-  isLoading = false
+  reverseOrder = false
 }) => {
   const displayProducts = reverseOrder 
     ? products.slice().reverse().slice(0, maxProducts)
@@ -82,21 +79,17 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
         <SectionHeader title={title} className="text-xl text-red-600" />
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-        {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => <ProductCardSkeleton key={`skel-${i}`} />)
-        ) : (
-          productsToRender.map((product) => (
-            <ProductCard
-              key={`${keyPrefix}-${product.id}`}
-              product={product}
-              onClick={onProductClick}
-              onBuyNow={onBuyNow}
-              variant={productCardStyle}
-              onQuickView={onQuickView}
-              onAddToCart={onAddToCart}
-            />
-          ))
-        )}
+        {productsToRender.map((product) => (
+          <ProductCard
+            key={`${keyPrefix}-${product.id}`}
+            product={product}
+            onClick={onProductClick}
+            onBuyNow={onBuyNow}
+            variant={productCardStyle}
+            onQuickView={onQuickView}
+            onAddToCart={onAddToCart}
+          />
+        ))}
       </div>
     </section>
   );

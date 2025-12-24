@@ -29,20 +29,10 @@ const smallIconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={20} strokeWidth={2} />,
 };
 
-// Pre-rendered large icons for style1
-// const largeIconMap: Record<string, React.ReactNode> = {
-//   smartphone: <Smartphone size={32} strokeWidth={1.5} />,
-//   watch: <Watch size={32} strokeWidth={1.5} />,
-//   'battery-charging': <BatteryCharging size={32} strokeWidth={1.5} />,
-//   headphones: <Headphones size={32} strokeWidth={1.5} />,
-//   zap: <Zap size={32} strokeWidth={1.5} />,
-//   bluetooth: <Bluetooth size={32} strokeWidth={1.5} />,
-//   'gamepad-2': <Gamepad2 size={32} strokeWidth={1.5} />,
-//   camera: <Camera size={32} strokeWidth={1.5} />,
-// };
+
 
 interface CategoriesSectionProps {
-  style?: 'style1' | 'style2';
+  style?: 'style2';
   categories?: Category[];
   onCategoryClick: (categoryName: string) => void;
   categoryScrollRef?: React.RefObject<HTMLDivElement>;
@@ -77,7 +67,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
   if (isLoading) {
     return <CategorySkeleton count={8} />;
   }
-
+ // Default style1
   if (style === 'style2') {
     return (
       <div ref={sectionRef} className="mt-1 -mb-1">
@@ -116,29 +106,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
     );
   }
 
-  // Default style1
-  return (
-    <div ref={sectionRef} className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <SectionHeader title="Categories" />
-      <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
-        {(categories && categories.length > 0
-          ? categories.filter((c) => c.status === 'Active').map((cat) => ({
-              name: cat.name,
-              icon: cat.icon || 'smartphone',
-              image: cat.image
-            }))
-          : CATEGORIES
-        ).map((cat, idx) => (
-          <div key={idx} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
-            <CategoryCircle
-              name={cat.name}
-              // icon={largeIconMap[cat.icon as keyof typeof largeIconMap] || largeIconMap['smartphone']}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  
 });
 
 CategoriesSection.displayName = 'CategoriesSection';

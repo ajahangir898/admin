@@ -635,11 +635,11 @@ const App = () => {
         DataService.getRoles(activeTenantId),
         DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }, activeTenantId),
         DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }, activeTenantId),
-        DataService.getCatalog('categories', [{ id: '1', name: 'Phones', icon: '', status: 'Active' }, { id: '2', name: 'Watches', icon: '', status: 'Active' }], activeTenantId),
-        DataService.getCatalog('subcategories', [{ id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' }, { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' }], activeTenantId),
+        DataService.getCatalog('categories', [], activeTenantId),
+        DataService.getCatalog('subcategories', [], activeTenantId),
         DataService.getCatalog('childcategories', [], activeTenantId),
-        DataService.getCatalog('brands', [{ id: '1', name: 'Apple', logo: '', status: 'Active' }, { id: '2', name: 'Samsung', logo: '', status: 'Active' }], activeTenantId),
-        DataService.getCatalog('tags', [{ id: '1', name: 'Flash Deal', status: 'Active' }, { id: '2', name: 'New Arrival', status: 'Active' }], activeTenantId)
+        DataService.getCatalog('brands', [], activeTenantId),
+        DataService.getCatalog('tags', [], activeTenantId)
       ]);
       setUsers(usersData);
       setRoles(rolesData);

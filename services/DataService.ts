@@ -504,24 +504,6 @@ class DataServiceImpl {
     const scope = this.resolveTenantScope(tenantId);
     console.log(`[DataService] Loading secondary data for tenant: ${scope}`);
     
-    // Default catalog data for auto-population
-    const defaultCategories = [
-      { id: '1', name: 'Phones', icon: '', status: 'Active' as const },
-      { id: '2', name: 'Watches', icon: '', status: 'Active' as const }
-    ];
-    const defaultSubCategories = [
-      { id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' as const },
-      { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' as const }
-    ];
-    const defaultBrands = [
-      { id: '1', name: 'Apple', logo: '', status: 'Active' as const },
-      { id: '2', name: 'Samsung', logo: '', status: 'Active' as const }
-    ];
-    const defaultTags = [
-      { id: '1', name: 'Flash Deal', status: 'Active' as const },
-      { id: '2', name: 'New Arrival', status: 'Active' as const }
-    ];
-    
     try {
       const response = await this.requestTenantApi<{
         data: {
@@ -546,26 +528,26 @@ class DataServiceImpl {
         deliveryConfig: data.delivery_config || [],
         chatMessages: data.chat_messages || [],
         landingPages: data.landing_pages || [],
-        categories: (data.categories && data.categories.length > 0) ? data.categories : defaultCategories,
-        subcategories: (data.subcategories && data.subcategories.length > 0) ? data.subcategories : defaultSubCategories,
+        categories: data.categories || [],
+        subcategories: data.subcategories || [],
         childcategories: data.childcategories || [],
-        brands: (data.brands && data.brands.length > 0) ? data.brands : defaultBrands,
-        tags: (data.tags && data.tags.length > 0) ? data.tags : defaultTags
+        brands: data.brands || [],
+        tags: data.tags || []
       };
     } catch (error) {
       console.warn('[DataService] Secondary data fetch failed', error);
-      // Return defaults on error - this ensures categories are always available
+      // Return empty arrays on error - actual data comes from tenant
       return {
         orders: [],
         logo: null,
         deliveryConfig: [],
         chatMessages: [],
         landingPages: [],
-        categories: defaultCategories,
-        subcategories: defaultSubCategories,
+        categories: [],
+        subcategories: [],
         childcategories: [],
-        brands: defaultBrands,
-        tags: defaultTags
+        brands: [],
+        tags: []
       };
     }
   }
@@ -667,10 +649,10 @@ class DataServiceImpl {
     return remote.length ? remote : defaults;
   }
 
-  async getCatalog(type: string, defaults: any[], tenantId?: string): Promise<any[]> {
+  async getCatalog(type: string, _defaults: any[], tenantId?: string): Promise<any[]> {
     const remote = await this.get<any[]>(type, [], tenantId);
-    // Always return defaults if remote is empty - this auto-populates categories for new tenants
-    return remote.length ? remote : defaults;
+    // Return actual remote data - no dummy fallbacks
+    return remote;
   }
 
   async save<T>(key: string, data: T, tenantId?: string): Promise<void> {

@@ -19,6 +19,9 @@ import { normalizeImageUrl } from '../utils/imageUrlHelper';
 // Lazy load heavy modals from individual files
 const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
 
+// Lightweight skeleton loader
+const ProductDetailSkeleton = lazy(() => import('../components/SkeletonLoaders').then(m => ({ default: m.ProductDetailSkeleton })));
+
 // Modal loading fallback
 const ModalLoadingFallback = () => (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -370,6 +373,16 @@ const StoreProductDetail = ({
       console.warn('Share cancelled', error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0">
+        <Suspense fallback={null}>
+          <ProductDetailSkeleton />
+        </Suspense>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0">

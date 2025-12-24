@@ -95,3 +95,53 @@ export const ProductGridSkeleton: React.FC<{ count?: number }> = ({ count = 6 })
     ))}
   </div>
 );
+
+// Category pills skeleton for store
+export const CategorySkeleton: React.FC<{ count?: number }> = ({ count = 8 }) => (
+  <div className="flex gap-3 overflow-hidden py-2">
+    {Array.from({ length: count }).map((_, i) => (
+      <Bone key={i} className="h-10 w-24 rounded-full shrink-0" />
+    ))}
+  </div>
+);
+
+// Product detail page skeleton
+export const ProductDetailSkeleton: React.FC = () => (
+  <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex-1">
+        <div className="bg-white rounded-xl p-6 flex flex-col md:flex-row gap-8">
+          <div className="w-full md:w-1/2 space-y-4">
+            <Bone className="aspect-square rounded-2xl" />
+            <div className="flex gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Bone key={i} className="w-16 h-16 rounded-lg" />
+              ))}
+            </div>
+          </div>
+          <div className="w-full md:w-1/2 space-y-4">
+            <Bone className="h-8 w-3/4" />
+            <Bone className="h-4 w-1/4" />
+            <Bone className="h-10 w-1/3" />
+            <div className="space-y-2 pt-4">
+              <Bone className="h-4 w-full" />
+              <Bone className="h-4 w-full" />
+              <Bone className="h-4 w-2/3" />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Bone className="h-12 flex-1 rounded-lg" />
+              <Bone className="h-12 flex-1 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="w-full lg:w-80 space-y-4">
+        <Bone className="h-48 rounded-xl" />
+        <Bone className="h-32 rounded-xl" />
+      </div>
+    </div>
+  </div>
+);
+
+// Export Bone for custom skeletons
+export { Bone };

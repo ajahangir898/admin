@@ -1,8 +1,9 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useState, useEffect } from 'react';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { CategoryCircle, CategoryPill, SectionHeader } from '../StoreComponents';
 import { CATEGORIES } from '../../constants';
 import { Category } from '../../types';
+import { CategorySkeleton } from '../SkeletonLoaders';
 
 // Pre-rendered icon map for faster access
 const iconMap: Record<string, React.ReactNode> = {
@@ -46,6 +47,7 @@ interface CategoriesSectionProps {
   onCategoryClick: (categoryName: string) => void;
   categoryScrollRef?: React.RefObject<HTMLDivElement>;
   sectionRef?: React.RefObject<HTMLDivElement>;
+  isLoading?: boolean;
 }
 
 // Pre-compute rolling categories for style2 to avoid recreation on each render
@@ -56,7 +58,8 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
   categories,
   onCategoryClick,
   categoryScrollRef,
-  sectionRef
+  sectionRef,
+  isLoading = false
 }) => {
   // Memoize processed categories for style1
   const processedCategories = useMemo(() => {
@@ -69,6 +72,11 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
     }
     return CATEGORIES;
   }, [categories]);
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <CategorySkeleton count={8} />;
+  }
 
   if (style === 'style2') {
     return (

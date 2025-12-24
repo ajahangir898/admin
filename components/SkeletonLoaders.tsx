@@ -30,7 +30,7 @@ export const LoginSkeleton: React.FC = memo(() => (
 ));
 LoginSkeleton.displayName = 'LoginSkeleton';
 
-// Store Skeleton - Optimized for store pages
+// Store Skeleton - Optimized for store pages (Legacy - keep for backwards compatibility)
 export const StoreSkeleton: React.FC = memo(() => (
   <SkeletonWrapper>
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -56,6 +56,243 @@ export const StoreSkeleton: React.FC = memo(() => (
   </SkeletonWrapper>
 ));
 StoreSkeleton.displayName = 'StoreSkeleton';
+
+// StorePageSkeleton - Full page skeleton with actual header and footer structure
+// This matches the real site design during initial load
+export const StorePageSkeleton: React.FC = memo(() => (
+  <div className="min-h-screen bg-gray-50 flex flex-col">
+    {/* ===== HEADER SKELETON - Matches actual StoreHeader structure ===== */}
+    <header className="sticky top-0 z-50 bg-white shadow-sm">
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          {/* Top Row: Logo, Search, Actions */}
+          <div className="flex items-center justify-between gap-6 py-3">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+              <div className="h-6 w-32 rounded bg-gray-200 animate-pulse" />
+            </div>
+            
+            {/* Search Bar */}
+            <div className="flex-1 max-w-2xl">
+              <div className="flex items-center h-11 rounded-full border-2 border-green-500 bg-white overflow-hidden">
+                <div className="flex-1 px-4">
+                  <div className="h-4 w-32 rounded bg-gray-200 animate-pulse" />
+                </div>
+                <div className="flex items-center gap-2 px-3 border-l border-gray-200">
+                  <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+                  <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+                </div>
+                <div className="h-11 w-11 bg-green-500 flex items-center justify-center">
+                  <div className="h-5 w-5 rounded bg-green-400" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Actions: Wishlist, Cart, Login */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+                <div className="h-4 w-14 rounded bg-gray-200 animate-pulse" />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+                <div className="h-4 w-8 rounded bg-gray-200 animate-pulse" />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+                <div className="h-4 w-10 rounded bg-gray-200 animate-pulse" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Navigation Row */}
+          <div className="flex items-center gap-8 py-2 border-t border-gray-100">
+            {['Home', 'Categories', 'Products', 'Track Order'].map((item, i) => (
+              <div key={i} className="h-4 rounded bg-gray-200 animate-pulse" style={{ width: item.length * 8 + 16 }} />
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Header */}
+      <div className="md:hidden px-4 py-3 space-y-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+            <div className="h-5 w-24 rounded bg-gray-200 animate-pulse" />
+          </div>
+          {/* Actions */}
+          <div className="flex items-center gap-4">
+            <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+            <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+            <div className="h-6 w-6 rounded bg-gray-200 animate-pulse" />
+          </div>
+        </div>
+        {/* Mobile Search */}
+        <div className="flex items-center h-10 rounded-full border border-gray-200 bg-white overflow-hidden">
+          <div className="flex-1 px-4">
+            <div className="h-3 w-28 rounded bg-gray-200 animate-pulse" />
+          </div>
+          <div className="h-10 w-10 bg-green-500 rounded-full flex items-center justify-center mr-0.5">
+            <div className="h-4 w-4 rounded bg-green-400" />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    {/* ===== MAIN CONTENT SKELETON ===== */}
+    <main className="flex-1">
+      {/* Hero/Carousel Skeleton */}
+      <div className="relative h-48 md:h-80 lg:h-96 bg-gradient-to-r from-gray-100 to-gray-200 overflow-hidden">
+        <div className="absolute inset-0 flex items-center">
+          <div className="max-w-7xl mx-auto px-4 w-full">
+            <div className="max-w-lg space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gray-300 animate-pulse" />
+                <div className="h-4 w-24 rounded bg-gray-300 animate-pulse" />
+              </div>
+              <div className="h-10 w-64 rounded bg-gray-300 animate-pulse" />
+              <div className="h-5 w-80 rounded bg-gray-300 animate-pulse" />
+              <div className="h-11 w-32 rounded-full bg-green-500 animate-pulse" />
+            </div>
+          </div>
+        </div>
+        {/* Carousel dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {[1, 2, 3].map((_, i) => (
+            <div key={i} className={`h-2 w-2 rounded-full ${i === 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Categories Section */}
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {['Earbuds', 'Gaming', 'Camera', 'Phones', 'Watches', 'Power Bank', 'Audio', 'Charger'].map((cat, i) => (
+            <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-white whitespace-nowrap">
+              <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+              <div className="h-4 rounded bg-gray-200 animate-pulse" style={{ width: cat.length * 7 + 8 }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Flash Sales Section */}
+        <section className="rounded-2xl border border-red-100 bg-white p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="h-6 w-6 rounded bg-red-200 animate-pulse" />
+              <div className="h-6 w-28 rounded bg-gray-200 animate-pulse" />
+            </div>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3].map((_, i) => (
+                <div key={i} className="h-10 w-12 rounded-lg bg-green-100 animate-pulse flex items-center justify-center">
+                  <div className="h-5 w-6 rounded bg-green-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((_, i) => (
+              <div key={i} className="rounded-xl bg-gray-50 p-3 space-y-3">
+                <div className="aspect-square rounded-lg bg-gray-200 animate-pulse" />
+                <div className="h-4 w-full rounded bg-gray-200 animate-pulse" />
+                <div className="h-3 w-2/3 rounded bg-gray-200 animate-pulse" />
+                <div className="flex items-center justify-between">
+                  <div className="h-5 w-16 rounded bg-gray-200 animate-pulse" />
+                  <div className="h-8 w-20 rounded-full bg-green-500 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Best Sale Products */}
+        <section className="rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-6 w-40 rounded bg-gray-200 animate-pulse" />
+            <div className="h-8 w-20 rounded-full bg-gray-200 animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((_, i) => (
+              <div key={i} className="rounded-xl bg-gray-50 p-3 space-y-3">
+                <div className="aspect-square rounded-lg bg-gray-200 animate-pulse" />
+                <div className="h-4 w-full rounded bg-gray-200 animate-pulse" />
+                <div className="h-3 w-2/3 rounded bg-gray-200 animate-pulse" />
+                <div className="flex items-center justify-between">
+                  <div className="h-5 w-16 rounded bg-gray-200 animate-pulse" />
+                  <div className="h-8 w-20 rounded-full bg-green-500 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
+
+    {/* ===== FOOTER SKELETON - Matches Style 3 Footer structure ===== */}
+    <footer className="bg-white border-t border-gray-100 mt-auto">
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr,1fr,1fr] gap-8">
+          {/* Logo & Description */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-gray-200 animate-pulse" />
+              <div className="space-y-1">
+                <div className="h-3 w-24 rounded bg-gray-200 animate-pulse" />
+                <div className="h-4 w-48 rounded bg-gray-200 animate-pulse" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Quick Links */}
+          <div className="space-y-4">
+            <div className="h-5 w-24 rounded bg-green-200 animate-pulse" />
+            <div className="space-y-3">
+              {['About Us', 'Order Tracking', 'Shipping & Delivery', 'Contact'].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="h-4 rounded bg-gray-200 animate-pulse" style={{ width: 80 + i * 20 }} />
+                  <div className="h-4 w-4 rounded bg-gray-200 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Useful Links */}
+          <div className="space-y-4">
+            <div className="h-5 w-24 rounded bg-green-200 animate-pulse" />
+            <div className="space-y-3">
+              {['Return & Refund', 'Privacy Policy', 'FAQ', 'Why Shop With Us'].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="h-4 rounded bg-gray-200 animate-pulse" style={{ width: 100 + i * 15 }} />
+                  <div className="h-4 w-4 rounded bg-gray-200 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Copyright */}
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <div className="h-4 w-64 mx-auto rounded bg-gray-200 animate-pulse" />
+        </div>
+      </div>
+    </footer>
+
+    {/* Mobile Bottom Nav Skeleton */}
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 h-16 flex justify-around items-center md:hidden z-50">
+      {[1, 2, 3, 4, 5].map((_, i) => (
+        <div key={i} className="flex flex-col items-center gap-1">
+          <div className="h-6 w-6 rounded-full bg-gray-200 animate-pulse" />
+          <div className="h-2 w-10 rounded bg-gray-200 animate-pulse" />
+        </div>
+      ))}
+    </div>
+  </div>
+));
+StorePageSkeleton.displayName = 'StorePageSkeleton';
 
 const productCardPlaceholders = Array.from({ length: 8 });
 

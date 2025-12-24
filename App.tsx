@@ -13,6 +13,9 @@ import { toast } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 
 
+// lajdf
+
+
 
 // Lazy load notification service (only needed for orders)
 const getNotificationService = () => import('./backend/src/services/NotificationService').then(m => m.notificationService);

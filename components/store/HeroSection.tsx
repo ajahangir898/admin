@@ -62,8 +62,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
                                     alt={item.name}
                                     className="w-full h-full object-cover"
                                     loading={index === 0 ? 'eager' : 'lazy'}
-                                    // @ts-ignore - fetchpriority is a valid HTML attribute
-                                    fetchpriority={index === 0 ? 'high' : 'auto'}
                                     decoding="async"
                                     onLoad={() => handleImageLoad(index)}
                                 />

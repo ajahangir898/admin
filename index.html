@@ -84,6 +84,14 @@
       /* Aspect ratios */
       .aspect-square{aspect-ratio:1/1}.aspect-\[4\/1\]{aspect-ratio:4/1}
       .object-cover{object-fit:cover}.object-contain{object-fit:contain}
+      
+      /* Smooth hydration - prevent flash by using opacity transition */
+      #root{opacity:1;transition:opacity 0.15s ease-out}
+      #root:empty{opacity:0}
+      
+      /* Product grid fade-in */
+      .grid>*{animation:fadeIn 0.2s ease-out}
+      @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
     </style>
   </head>
   <body>

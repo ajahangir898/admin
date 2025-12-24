@@ -180,8 +180,38 @@ MinimalFallback.displayName = 'MinimalFallback';
 const isAdminRole = (role?: User['role'] | null) => role === 'admin' || role === 'tenant_admin' || role === 'super_admin';
 const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin';
 
+// Hydration-safe cache reader - returns cached data for initial render to prevent flash
+const getInitialCachedData = <T,>(key: string, defaultValue: T): T => {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const stored = localStorage.getItem(`ds_cache_public::${key}`);
+    if (stored) {
+      const { data, timestamp } = JSON.parse(stored);
+      // Use cache if less than 5 minutes old
+      if (Date.now() - timestamp < 5 * 60 * 1000) {
+        return data as T;
+      }
+    }
+  } catch {}
+  return defaultValue;
+};
+
+// Check if we have cached data for faster initial load
+const hasCachedData = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const stored = localStorage.getItem('ds_cache_public::products');
+    if (stored) {
+      const { data, timestamp } = JSON.parse(stored);
+      return Array.isArray(data) && data.length > 0 && Date.now() - timestamp < 5 * 60 * 1000;
+    }
+  } catch {}
+  return false;
+};
+
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  // Start with isLoading=false if we have cached data to prevent flash
+  const [isLoading, setIsLoading] = useState(() => !hasCachedData());
   const [tenants, setTenants] = useState<Tenant[]>([]);
 
   // Capture the tenant slug (if any) once per session
@@ -215,14 +245,15 @@ const App = () => {
   const [hostTenantId, setHostTenantId] = useState<string | null>(null);
 
   // --- STATE ---
+  // Use cached data for initial render to prevent hydration flash
   const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [logo, setLogo] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>(() => getInitialCachedData('products', []));
+  const [logo, setLogo] = useState<string | null>(() => getInitialCachedData('logo', null));
   // Logo save protection ref - tracks previous value to prevent unnecessary saves
   const prevLogoRef = useRef<string | null>(null);
   // Theme config starts as null - will be loaded from server for each tenant
-  const [themeConfig, setThemeConfig] = useState<ThemeConfig | null>(null);
-  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(undefined);
+  const [themeConfig, setThemeConfig] = useState<ThemeConfig | null>(() => getInitialCachedData('theme_config', null));
+  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig | undefined>(() => getInitialCachedData('website_config', undefined));
   const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig[]>([]);
   const [facebookPixelConfig, setFacebookPixelConfig] = useState<FacebookPixelConfig>({
     pixelId: '',
@@ -233,12 +264,12 @@ const App = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   
-  // Catalog State
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [childCategories, setChildCategories] = useState<ChildCategory[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
+  // Catalog State - use cached data for initial render
+  const [categories, setCategories] = useState<Category[]>(() => getInitialCachedData('categories', []));
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(() => getInitialCachedData('subcategories', []));
+  const [childCategories, setChildCategories] = useState<ChildCategory[]>(() => getInitialCachedData('childcategories', []));
+  const [brands, setBrands] = useState<Brand[]>(() => getInitialCachedData('brands', []));
+  const [tags, setTags] = useState<Tag[]>(() => getInitialCachedData('tags', []));
 
   // Courier Config
   const [courierConfig, setCourierConfig] = useState<CourierConfig>({ apiKey: '', secretKey: '', instruction: '' });

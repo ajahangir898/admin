@@ -1,23 +1,21 @@
 import React from 'react';
 import { hydrateRoot, createRoot } from 'react-dom/client';
-import App from './App';
-// Import CSS immediately for SSR hydration consistency
-import './styles/tailwind.css';
 
-// Remove initial loading skeleton
+// Remove initial loading skeleton immediately
 const initialLoader = document.getElementById('initial-loader');
-if (initialLoader) {
-  initialLoader.remove();
-}
+if (initialLoader) initialLoader.remove();
 
+// Start React app immediately - don't wait for CSS
 const container = document.getElementById('root')!;
 
-// Use hydrateRoot if SSR content exists, otherwise createRoot for dev
-if (container.hasChildNodes()) {
-  // SSR hydration - fastest path
-  hydrateRoot(container, <App />);
-} else {
-  // Client-only render (dev mode without SSR)
-  const root = createRoot(container);
-  root.render(<App />);
-}
+// Import app and CSS in parallel
+Promise.all([
+  import('./App'),
+  import('./styles/tailwind.css')
+]).then(([{ default: App }]) => {
+  if (container.hasChildNodes()) {
+    hydrateRoot(container, <App />);
+  } else {
+    createRoot(container).render(<App />);
+  }
+});

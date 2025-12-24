@@ -11,16 +11,18 @@
     <meta name="apple-mobile-web-app-title" content="OPBD">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://systemnextit.com" crossorigin>
+    <link rel="dns-prefetch" href="https://systemnextit.com">
+    <!-- Preload entry script for faster execution -->
+    <link rel="modulepreload" href="/entry-client.tsx">
+    <!-- Defer non-critical preconnects -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://systemnextit.com" crossorigin>
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-    <link rel="dns-prefetch" href="https://systemnextit.com">
     <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <!-- Defer font loading to prevent render blocking -->
+    <!-- Load fonts async - not render blocking -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-    <link rel="preload" as="image" href="/icons/icon-192x192.png">
     <style>
       /* Critical CSS - inlined for instant first paint */
       *,*::before,*::after{box-sizing:border-box}

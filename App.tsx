@@ -20,12 +20,18 @@ import type {
 } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 
-// Core services
+// Core services - defer socket initialization
 import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { DEFAULT_TENANT_ID } from './constants';
-import { toast, Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
+
+// Lazy load toast to reduce initial bundle
+const toast = {
+  success: (msg: string) => import('react-hot-toast').then(m => m.toast.success(msg)),
+  error: (msg: string) => import('react-hot-toast').then(m => m.toast.error(msg)),
+};
 
 // Extracted utilities and hooks
 import {

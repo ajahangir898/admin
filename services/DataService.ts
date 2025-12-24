@@ -476,6 +476,112 @@ class DataServiceImpl {
     }
   }
 
+  // BootstrapAll: Fetch ALL data in ONE API call (eliminates two-stage loading)
+  async bootstrapAll(tenantId?: string): Promise<{
+    products: Product[];
+    themeConfig: ThemeConfig | null;
+    websiteConfig: WebsiteConfig;
+    orders: Order[];
+    logo: string | null;
+    deliveryConfig: DeliveryConfig[];
+    chatMessages: ChatMessage[];
+    landingPages: LandingPage[];
+    categories: Category[];
+    subcategories: SubCategory[];
+    childcategories: ChildCategory[];
+    brands: Brand[];
+    tags: Tag[];
+  }> {
+    const scope = this.resolveTenantScope(tenantId);
+    console.log(`[DataService] Bootstrap-All loading for tenant: ${scope}`);
+    
+    // Default catalog data for auto-population
+    const defaultCategories = [
+      { id: '1', name: 'Phones', icon: '', status: 'Active' as const },
+      { id: '2', name: 'Watches', icon: '', status: 'Active' as const }
+    ];
+    const defaultSubCategories = [
+      { id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' as const },
+      { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' as const }
+    ];
+    const defaultBrands = [
+      { id: '1', name: 'Apple', logo: '', status: 'Active' as const },
+      { id: '2', name: 'Samsung', logo: '', status: 'Active' as const }
+    ];
+    const defaultTags = [
+      { id: '1', name: 'Flash Deal', status: 'Active' as const },
+      { id: '2', name: 'New Arrival', status: 'Active' as const }
+    ];
+    
+    try {
+      const response = await this.requestTenantApi<{
+        data: {
+          products: Product[] | null;
+          theme_config: ThemeConfig | null;
+          website_config: WebsiteConfig | null;
+          orders: Order[] | null;
+          logo: string | null;
+          delivery_config: DeliveryConfig[] | null;
+          chat_messages: ChatMessage[] | null;
+          landing_pages: LandingPage[] | null;
+          categories: Category[] | null;
+          subcategories: SubCategory[] | null;
+          childcategories: ChildCategory[] | null;
+          brands: Brand[] | null;
+          tags: Tag[] | null;
+        };
+      }>(`/api/tenant-data/${scope}/bootstrap-all`);
+      
+      const data = response.data;
+      console.log(`[DataService] Bootstrap-All received data for tenant: ${scope}`);
+      
+      // Cache all the results
+      if (data.products) setCachedData('products', data.products, tenantId);
+      if (data.theme_config) setCachedData('theme_config', data.theme_config, tenantId);
+      if (data.website_config) setCachedData('website_config', data.website_config, tenantId);
+      if (data.orders) setCachedData('orders', data.orders, tenantId);
+      if (data.logo) setCachedData('logo', data.logo, tenantId);
+      if (data.delivery_config) setCachedData('delivery_config', data.delivery_config, tenantId);
+      if (data.chat_messages) setCachedData('chat_messages', data.chat_messages, tenantId);
+      if (data.landing_pages) setCachedData('landing_pages', data.landing_pages, tenantId);
+      if (data.categories) setCachedData('categories', data.categories, tenantId);
+      if (data.subcategories) setCachedData('subcategories', data.subcategories, tenantId);
+      if (data.childcategories) setCachedData('childcategories', data.childcategories, tenantId);
+      if (data.brands) setCachedData('brands', data.brands, tenantId);
+      if (data.tags) setCachedData('tags', data.tags, tenantId);
+      
+      // Return server data AS-IS - only use fallback defaults if server returns nothing
+      const defaultWebsite = this.getDefaultWebsiteConfig();
+      
+      return {
+        products: data.products?.length ? data.products.map((p, i) => ({ ...p, id: p.id ?? i + 1 })) : this.filterByTenant(PRODUCTS, tenantId),
+        themeConfig: data.theme_config || null,
+        websiteConfig: data.website_config ? { ...defaultWebsite, ...data.website_config } : defaultWebsite,
+        orders: data.orders || [],
+        logo: data.logo || null,
+        deliveryConfig: data.delivery_config || [],
+        chatMessages: data.chat_messages || [],
+        landingPages: data.landing_pages || [],
+        categories: (data.categories && data.categories.length > 0) ? data.categories : defaultCategories,
+        subcategories: (data.subcategories && data.subcategories.length > 0) ? data.subcategories : defaultSubCategories,
+        childcategories: data.childcategories || [],
+        brands: (data.brands && data.brands.length > 0) ? data.brands : defaultBrands,
+        tags: (data.tags && data.tags.length > 0) ? data.tags : defaultTags
+      };
+    } catch (error) {
+      console.warn('Bootstrap-All failed, falling back to bootstrap + getSecondaryData', error);
+      // Fallback to two-stage loading
+      const [bootstrapData, secondaryData] = await Promise.all([
+        this.bootstrap(tenantId),
+        this.getSecondaryData(tenantId)
+      ]);
+      return {
+        ...bootstrapData,
+        ...secondaryData
+      };
+    }
+  }
+
   // Default website config - used as fallback for new tenants (minimal defaults, all content is dynamic)
   private getDefaultWebsiteConfig(): WebsiteConfig {
     return {

@@ -33,6 +33,62 @@ const emitDataUpdate = (req: Request, tenantId: string, key: string, data: unkno
   }
 };
 
+// Bootstrap-All endpoint - returns ALL data in ONE database query (eliminates two-stage loading)
+tenantDataRouter.get('/:tenantId/bootstrap-all', async (req, res, next) => {
+  try {
+    const tenantId = req.params.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'tenantId is required' });
+    }
+    
+    // Fetch ALL data in ONE database query (not 13+ parallel queries)
+    const data = await getTenantDataBatch<{
+      products: unknown;
+      theme_config: unknown;
+      website_config: unknown;
+      orders: unknown;
+      logo: unknown;
+      delivery_config: unknown;
+      chat_messages: unknown;
+      landing_pages: unknown;
+      categories: unknown;
+      subcategories: unknown;
+      childcategories: unknown;
+      brands: unknown;
+      tags: unknown;
+    }>(tenantId, [
+      'products', 'theme_config', 'website_config',
+      'orders', 'logo', 'delivery_config', 'chat_messages', 'landing_pages',
+      'categories', 'subcategories', 'childcategories', 'brands', 'tags'
+    ]);
+    
+    // Allow short caching for bootstrap data (30 seconds)
+    res.set({
+      'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+    });
+    
+    res.json({
+      data: {
+        products: data.products || [],
+        theme_config: data.theme_config || null,
+        website_config: data.website_config || null,
+        orders: data.orders || [],
+        logo: data.logo || null,
+        delivery_config: data.delivery_config || [],
+        chat_messages: data.chat_messages || [],
+        landing_pages: data.landing_pages || [],
+        categories: data.categories || [],
+        subcategories: data.subcategories || [],
+        childcategories: data.childcategories || [],
+        brands: data.brands || [],
+        tags: data.tags || []
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Bootstrap endpoint - returns all critical data in ONE database query
 tenantDataRouter.get('/:tenantId/bootstrap', async (req, res, next) => {
   try {

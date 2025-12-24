@@ -528,7 +528,7 @@ const App = () => {
     }
   }, [user, activeTenantId]);
 
-  // --- INITIAL DATA LOADING (OPTIMIZED: Parallel tenant + data loading) ---
+  // --- INITIAL DATA LOADING (OPTIMIZED: Single request loading ALL data) ---
   useEffect(() => {
     let isMounted = true;
     const loadInitialData = async () => {
@@ -559,13 +559,13 @@ const App = () => {
         
         if (!resolvedTenantId) return;
         
-        // Load tenants (if not already loaded) AND bootstrap data in parallel
-        const [tenantList, bootstrapData] = await Promise.all([
+        // Load tenants (if not already loaded) AND ALL data in parallel - SINGLE REQUEST
+        const [tenantList, allData] = await Promise.all([
           tenants.length > 0 ? Promise.resolve(tenants) : DataService.listTenants(),
-          DataService.bootstrap(resolvedTenantId)
+          DataService.bootstrapAll(resolvedTenantId)
         ]);
         
-        console.log(`[Perf] Bootstrap data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
+        console.log(`[Perf] All data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
 
         if (!isMounted) return;
         
@@ -574,60 +574,45 @@ const App = () => {
           applyTenantList(tenantList);
         }
         
-        // Apply critical store data immediately
-        const normalizedProducts = normalizeProductCollection(bootstrapData.products, resolvedTenantId);
+        // Apply ALL data immediately - no deferred loading
+        const normalizedProducts = normalizeProductCollection(allData.products, resolvedTenantId);
         setProducts(normalizedProducts);
-        setThemeConfig(bootstrapData.themeConfig);
-        setWebsiteConfig(bootstrapData.websiteConfig);
-
-        // DEFERRED: Load secondary data in ONE request instead of 10 separate calls
-        const loadSecondaryData = () => {
-          if (!isMounted) return;
-          DataService.getSecondaryData(resolvedTenantId).then((data) => {
-            if (!isMounted) return;
-            
-            // Set orders - mark as loaded from server to skip save
-            ordersLoadedRef.current = false; // Reset so first update is skipped
-            prevOrdersRef.current = data.orders;
-            setOrders(data.orders);
-            
-            // Set logo - prevLogoRef will prevent unnecessary save
-            prevLogoRef.current = data.logo;
-            setLogo(data.logo);
-            
-            // Set delivery config - track previous to skip first save
-            prevDeliveryConfigRef.current = data.deliveryConfig;
-            setDeliveryConfig(data.deliveryConfig);
-            
-            const hydratedMessages = Array.isArray(data.chatMessages) ? data.chatMessages : [];
-            skipNextChatSaveRef.current = true;
-            chatMessagesLoadedRef.current = true;
-            setChatMessages(hydratedMessages);
-            chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
-            setHasUnreadChat(false);
-            setIsAdminChatOpen(false);
-            
-            // Set landing pages with skip flag
-            prevLandingPagesRef.current = data.landingPages;
-            setLandingPages(data.landingPages);
-            
-            // Categories etc - mark as loaded to enable saves after initial load
-            setCategories(data.categories);
-            setSubCategories(data.subcategories);
-            setChildCategories(data.childcategories);
-            setBrands(data.brands);
-            setTags(data.tags);
-            catalogLoadedRef.current = true; // Mark catalog as initially loaded
-            console.log(`[Perf] Secondary data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
-          }).catch(error => console.warn('Failed to load secondary data', error));
-        };
+        setThemeConfig(allData.themeConfig);
+        setWebsiteConfig(allData.websiteConfig);
         
-        // Use requestIdleCallback if available, otherwise use minimal setTimeout
-        if (typeof requestIdleCallback !== 'undefined') {
-          requestIdleCallback(loadSecondaryData, { timeout: 50 });
-        } else {
-          setTimeout(loadSecondaryData, 10);
-        }
+        // Set orders - mark as loaded from server to skip save
+        ordersLoadedRef.current = false; // Reset so first update is skipped
+        prevOrdersRef.current = allData.orders;
+        setOrders(allData.orders);
+        
+        // Set logo - prevLogoRef will prevent unnecessary save
+        prevLogoRef.current = allData.logo;
+        setLogo(allData.logo);
+        
+        // Set delivery config - track previous to skip first save
+        prevDeliveryConfigRef.current = allData.deliveryConfig;
+        setDeliveryConfig(allData.deliveryConfig);
+        
+        // Set chat messages with skip flag
+        const hydratedMessages = Array.isArray(allData.chatMessages) ? allData.chatMessages : [];
+        skipNextChatSaveRef.current = true;
+        chatMessagesLoadedRef.current = true;
+        setChatMessages(hydratedMessages);
+        chatGreetingSeedRef.current = hydratedMessages.length ? (activeTenantId || 'default') : null;
+        setHasUnreadChat(false);
+        setIsAdminChatOpen(false);
+        
+        // Set landing pages with skip flag
+        prevLandingPagesRef.current = allData.landingPages;
+        setLandingPages(allData.landingPages);
+        
+        // Categories etc - mark as loaded to enable saves after initial load
+        setCategories(allData.categories);
+        setSubCategories(allData.subcategories);
+        setChildCategories(allData.childcategories);
+        setBrands(allData.brands);
+        setTags(allData.tags);
+        catalogLoadedRef.current = true; // Mark catalog as initially loaded
       } catch (error) {
         loadError = error as Error;
         console.error('Failed to load data', error);

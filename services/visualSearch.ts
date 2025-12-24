@@ -1,4 +1,11 @@
-import { GoogleGenAI } from '@google/genai';
+// Lazy load Google AI to reduce initial bundle size (~94kB)
+let GoogleGenAIModule: typeof import('@google/genai') | null = null;
+const getGoogleGenAI = async () => {
+  if (!GoogleGenAIModule) {
+    GoogleGenAIModule = await import('@google/genai');
+  }
+  return GoogleGenAIModule;
+};
 
 export interface VisualSearchResult {
   productName: string;
@@ -44,13 +51,14 @@ const resolveApiKey = () => {
   return key?.trim() || '';
 };
 
-const ensureClient = (apiKey: string) => {
+const ensureClient = async (apiKey: string) => {
   if (!apiKey) {
     throw new Error(
       'Gemini API key is missing. Add VITE_GEMINI_API_KEY (or VITE_GOOGLE_AI_API_KEY) to your environment configuration.'
     );
   }
 
+  const { GoogleGenAI } = await getGoogleGenAI();
   return new GoogleGenAI({
     apiKey,
     apiVersion: 'v1alpha',
@@ -87,7 +95,7 @@ const normalizeResult = (raw: Partial<Record<keyof VisualSearchResult, unknown>>
 
 export const identifyProduct = async (base64Image: string): Promise<VisualSearchResult> => {
   const apiKey = resolveApiKey();
-  const client = ensureClient(apiKey);
+  const client = await ensureClient(apiKey);
   const encodedImage = sanitizeBase64(base64Image);
 
   try {

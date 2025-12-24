@@ -249,6 +249,31 @@ const invalidateCache = (key: string, tenantId?: string): void => {
   }
 };
 
+// Request deduplication - prevent multiple concurrent requests for the same data
+const pendingRequests = new Map<string, Promise<unknown>>();
+
+const deduplicateRequest = async <T>(
+  key: string,
+  tenantId: string | undefined,
+  requestFn: () => Promise<T>
+): Promise<T> => {
+  const cacheKey = getCacheKey(key, tenantId);
+  
+  // Check if there's already a pending request for this data
+  const pending = pendingRequests.get(cacheKey);
+  if (pending) {
+    return pending as Promise<T>;
+  }
+  
+  // Create new request and track it
+  const promise = requestFn().finally(() => {
+    pendingRequests.delete(cacheKey);
+  });
+  
+  pendingRequests.set(cacheKey, promise);
+  return promise;
+};
+
 class DataServiceImpl {
   private saveQueue = new Map<string, SaveQueueEntry>();
   private hasLoggedSaveBlock = false;
@@ -628,16 +653,19 @@ class DataServiceImpl {
       if (cached !== null) return cached;
     }
     
-    const remote = await this.fetchTenantDocument<T>(key, tenantId);
-    if (remote === null || remote === undefined) {
-      return defaultValue;
-    }
-    if (Array.isArray(defaultValue) && Array.isArray(remote)) {
+    // Deduplicate concurrent requests for the same data
+    return deduplicateRequest(key, tenantId, async () => {
+      const remote = await this.fetchTenantDocument<T>(key, tenantId);
+      if (remote === null || remote === undefined) {
+        return defaultValue;
+      }
+      if (Array.isArray(defaultValue) && Array.isArray(remote)) {
+        if (!skipCache) setCachedData(key, remote, tenantId);
+        return this.filterByTenant(remote as Array<{ tenantId?: string }> as any, tenantId) as unknown as T;
+      }
       if (!skipCache) setCachedData(key, remote, tenantId);
-      return this.filterByTenant(remote as Array<{ tenantId?: string }> as any, tenantId) as unknown as T;
-    }
-    if (!skipCache) setCachedData(key, remote, tenantId);
-    return remote;
+      return remote;
+    });
   }
 
   // Get chat messages - always fresh, no cache

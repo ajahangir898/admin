@@ -14,14 +14,12 @@ const CRITICAL_JS_CHUNKS = [
   'react-jsx-runtime',
   // App entry chunks
   'index-',
-  'entry-client',
-  // Store page chunks (most users land here)
+  // Store page critical path (only above-the-fold)
   'page-storehome',
-  'cmp-storecomponents',
+  'store-herosection',
   'cmp-storeheader',
   // UI library chunks frequently used
-  'icons-chunk',
-  'pkg-react-hot-toast'
+  'icons-chunk'
 ];
 
 // Critical CSS patterns for preloading (ordered by priority)
@@ -162,20 +160,20 @@ const manualChunkResolver = (id: string): string | undefined => {
     }
   }
 
+  // Store components - split into individual chunks for parallel loading
+  if (normalized.includes('/components/store/')) {
+    const segment = normalized.split('/components/store/')[1];
+    if (segment) {
+      const componentName = segment.split('/')[0].replace(/\.(tsx|ts|jsx|js)$/, '').toLowerCase();
+      return `store-${componentName}`;
+    }
+  }
+
   if (normalized.includes('/components/')) {
     const componentSegment = normalized.split('/components/')[1];
     if (componentSegment) {
       const componentName = componentSegment.split('/')[0].replace(/\W+/g, '-').toLowerCase();
       return `cmp-${componentName}`;
-    }
-  }
-
-  // Separate heavy store modals into their own chunks
-  if (normalized.includes('/components/store/')) {
-    const segment = normalized.split('/components/store/')[1];
-    if (segment) {
-      const componentName = segment.split('/')[0].replace(/\.(tsx|ts|jsx|js)$/, '').toLowerCase();
-      return `store-modal-${componentName}`;
     }
   }
 

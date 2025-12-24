@@ -1,16 +1,20 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
-import { StorePopup } from '../components/StorePopup';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
-import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
-import { SortOption } from '../components/ProductFilter';
-import { slugify } from '../services/slugify';
-import { DataService } from '../services/DataService';
+import type { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
+import type { SortOption } from '../components/ProductFilter';
 
-// Critical above-the-fold components - loaded eagerly
+// Lazy load utilities - only import when needed
+const getSlugify = () => import('../services/slugify').then(m => m.slugify);
+const getDataService = () => import('../services/DataService').then(m => m.DataService);
+
+// Critical above-the-fold component - loaded eagerly (smallest possible)
 import { StoreHeader } from '../components/StoreHeader';
-import { HeroSection } from '../components/store/HeroSection';
-import { CategoriesSection } from '../components/store/CategoriesSection';
+
+// Below-the-fold - lazy loaded
+const HeroSection = lazy(() => import('../components/store/HeroSection').then(m => ({ default: m.HeroSection })));
+const CategoriesSection = lazy(() => import('../components/store/CategoriesSection').then(m => ({ default: m.CategoriesSection })));
+const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
 
 // Below-the-fold components - lazy loaded from individual files for smaller chunks
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
@@ -26,6 +30,7 @@ const SearchResultsSection = lazy(() => import('../components/store/SearchResult
 const POPUP_CACHE_KEY = 'ds_cache_public::popups';
 const LOCAL_CACHE_TTL_MS = 5 * 60 * 1000;
 
+// Deferred utility functions - only called when needed
 const getNextFlashSaleReset = () => {
   const now = new Date();
   const reset = new Date(now);
@@ -41,7 +46,10 @@ const getTimeSegments = (milliseconds: number) => {
   return { hours, minutes, seconds };
 };
 
-const formatSegment = (value: number) => value.toString().padStart(2, '0');
+const formatSegment = (value: number) => String(value).padStart(2, '0');
+
+// Inline slugify for critical path - avoids import
+const slugify = (text: string) => text?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || '';
 
 interface StoreHomeProps {
   products?: Product[];
@@ -139,95 +147,64 @@ const StoreHome = ({
     }
   }, [initialCategoryFilter, categories]);
 
-  const scheduleInitialPopup = useCallback((popupList: Popup[]) => {
-    if (popupList.length === 0 || initialPopupShownRef.current) {
-      return;
-    }
-    if (showPopupTimerRef.current) {
-      clearTimeout(showPopupTimerRef.current);
-    }
-    showPopupTimerRef.current = setTimeout(() => {
-      initialPopupShownRef.current = true;
-      setPopupIndex(0);
-      setActivePopup(popupList[0]);
-      showPopupTimerRef.current = null;
-    }, 1500);
-  }, []);
-
+  // Defer popup loading until after initial render for faster TTI
   useEffect(() => {
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const readCachedPopups = (): Popup[] => {
-      if (typeof window === 'undefined') return [];
+    const loadAndShowPopups = async () => {
+      if (!isMounted) return;
+      
+      // Read from cache first
+      let popupList: Popup[] = [];
       try {
         const cached = localStorage.getItem(POPUP_CACHE_KEY);
-        if (!cached) return [];
-        const parsed = JSON.parse(cached) as { data?: Popup[]; timestamp?: number };
-        if (!parsed?.data || !Array.isArray(parsed.data)) return [];
-        const timestamp = typeof parsed.timestamp === 'number' ? parsed.timestamp : 0;
-        if (Date.now() - timestamp > LOCAL_CACHE_TTL_MS) {
-          return [];
+        if (cached) {
+          const parsed = JSON.parse(cached) as { data?: Popup[]; timestamp?: number };
+          if (parsed?.data?.length && Date.now() - (parsed.timestamp || 0) < LOCAL_CACHE_TTL_MS) {
+            popupList = parsed.data.filter((p: Popup) => p.status?.toLowerCase() === 'publish');
+          }
         }
-        return parsed.data;
-      } catch {
-        return [];
-      }
-    };
+      } catch {}
 
-    const normalizePopups = (list: Popup[]) =>
-      list
-        .filter((p) => p.status?.toLowerCase() === 'publish')
-        .sort((a, b) => (a.priority || 0) - (b.priority || 0));
-
-    const applyPopups = (list: Popup[]) => {
-      if (!isMounted) return;
-      setPopups(list);
-      if (list.length === 0) {
-        initialPopupShownRef.current = false;
-        setActivePopup(null);
-        setPopupIndex(0);
-        if (showPopupTimerRef.current) {
-          clearTimeout(showPopupTimerRef.current);
-          showPopupTimerRef.current = null;
-        }
-        return;
-      }
-      scheduleInitialPopup(list);
-    };
-
-    const cachedPopups = normalizePopups(readCachedPopups());
-    if (cachedPopups.length) {
-      applyPopups(cachedPopups);
-    }
-
-    const loadPopups = async () => {
+      // Fetch fresh data in background
       try {
-        if (!isMounted) return;
+        const DataService = await getDataService();
         const allPopups = await DataService.get<Popup[]>('popups', []);
-        const publishedPopups = normalizePopups(allPopups);
-        applyPopups(publishedPopups);
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn('[StoreHome] Failed to load popups', error);
+        popupList = allPopups.filter(p => p.status?.toLowerCase() === 'publish');
+      } catch {}
+
+      if (!isMounted || popupList.length === 0) return;
+      
+      popupList.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+      setPopups(popupList);
+      
+      // Show first popup after delay
+      timeoutId = setTimeout(() => {
+        if (isMounted && !initialPopupShownRef.current) {
+          initialPopupShownRef.current = true;
+          setActivePopup(popupList[0]);
         }
-      }
+      }, 2000);
     };
 
-    loadPopups();
+    // Defer popup loading to idle time
+    const idleCallback = typeof window !== 'undefined' && 'requestIdleCallback' in window
+      ? (window as any).requestIdleCallback
+      : (fn: () => void) => setTimeout(fn, 100);
+    
+    const idleId = idleCallback(loadAndShowPopups, { timeout: 3000 });
 
     return () => {
       isMounted = false;
-      if (showPopupTimerRef.current) {
-        clearTimeout(showPopupTimerRef.current);
-        showPopupTimerRef.current = null;
+      if (timeoutId) clearTimeout(timeoutId);
+      if (showPopupTimerRef.current) clearTimeout(showPopupTimerRef.current);
+      if (nextPopupTimerRef.current) clearTimeout(nextPopupTimerRef.current);
+      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleId);
       }
-      if (nextPopupTimerRef.current) {
-        clearTimeout(nextPopupTimerRef.current);
-        nextPopupTimerRef.current = null;
-      }
-      initialPopupShownRef.current = false;
     };
-  }, [scheduleInitialPopup]);
+  }, []);
 
   const handleClosePopup = () => {
     setActivePopup(null);
@@ -387,8 +364,9 @@ const StoreHome = ({
 
   // Category Auto Scroll Logic for Style 2
   const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const flashSaleEndRef = useRef<number>(getNextFlashSaleReset());
-  const [flashTimeLeft, setFlashTimeLeft] = useState(() => getTimeSegments(flashSaleEndRef.current - Date.now()));
+  // Defer flash sale calculation - not critical for initial render
+  const flashSaleEndRef = useRef<number>(0);
+  const [flashTimeLeft, setFlashTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     if (websiteConfig?.categorySectionStyle !== 'style2') {
@@ -661,8 +639,10 @@ const StoreHome = ({
         </Suspense>
       )}
       
-      {/* Hero Section - rendered eagerly */}
-      <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
+      {/* Hero Section - lazy loaded but high priority */}
+      <Suspense fallback={<div className="h-48 md:h-64 bg-gradient-to-r from-pink-100 to-purple-100 animate-pulse" />}>
+        <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">
         {hasSearchQuery ? (
@@ -685,14 +665,16 @@ const StoreHome = ({
           </Suspense>
         ) : (
           <>
-            {/* Categories - rendered eagerly */}
-            <CategoriesSection
-              style={websiteConfig?.categorySectionStyle as 'style2'}
-              categories={categories}
-              onCategoryClick={handleCategoryClick}
-              categoryScrollRef={categoryScrollRef}
-              sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
-            />
+            {/* Categories - lazy loaded */}
+            <Suspense fallback={<div className="h-24 bg-gray-100 rounded-lg animate-pulse" />}>
+              <CategoriesSection
+                style={websiteConfig?.categorySectionStyle as 'style2'}
+                categories={categories}
+                onCategoryClick={handleCategoryClick}
+                categoryScrollRef={categoryScrollRef}
+                sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
+              />
+            </Suspense>
 
             {/* Flash Deals */}
             <Suspense fallback={null}>
@@ -756,13 +738,15 @@ const StoreHome = ({
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
       
-      {/* Popup Display */}
+      {/* Popup Display - lazy loaded */}
       {activePopup && (
-        <StorePopup
-          popup={activePopup}
-          onClose={handleClosePopup}
-          onNavigate={handlePopupNavigate}
-        />
+        <Suspense fallback={null}>
+          <StorePopup
+            popup={activePopup}
+            onClose={handleClosePopup}
+            onNavigate={handlePopupNavigate}
+          />
+        </Suspense>
       )}
     </div>
   );

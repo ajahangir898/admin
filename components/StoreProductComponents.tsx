@@ -288,7 +288,7 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
 
   return (
     <div className="max-w-7xl mx-auto px-4 mt-4">
-      <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[3/1] lg:aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+      <div className="relative w-full aspect-[5/2] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
         {items.map((item, index) => {
           const isActive = index === currentIndex;
           return (

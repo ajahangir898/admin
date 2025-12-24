@@ -69,7 +69,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
         <div className="max-w-7xl mx-auto px-4 mt-4">
             {showSkeleton && <HeroSkeleton />}
             {/* Full Width Carousel - responsive aspect ratio for mobile */}
-            <div className={`relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[3/1] lg:aspect-[4/1] min-h-[180px] sm:min-h-[200px] md:min-h-[220px] rounded-xl overflow-hidden shadow-lg group bg-gray-100 ${showSkeleton ? 'hidden' : ''}`}>
+            <div className={`relative w-full aspect-[5/2] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gray-100 ${showSkeleton ? 'hidden' : ''}`}>
                 {items.map((item, index) => {
                     const isActive = index === currentIndex;
                     const shouldLoad = loadedImages.has(index) || isActive;

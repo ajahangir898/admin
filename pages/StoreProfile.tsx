@@ -6,9 +6,7 @@ import { User, Order, WebsiteConfig, Product } from '../types';
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
 
-import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
-
-import { SkeletonMetricCard, SkeletonTable } from '../components/SkeletonLoaders';
+// Skeleton loaders removed for faster initial render
 import { User as UserIcon, Mail, Phone, MapPin, Package, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
 
 interface StoreProfileProps {
@@ -83,7 +81,7 @@ const StoreProfile = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <Suspense fallback={<StoreHeaderSkeleton />}>
+      <Suspense fallback={null}>
         <StoreHeader 
           onHomeClick={onHome}
           onImageSearchClick={onImageSearchClick}
@@ -313,7 +311,7 @@ const StoreProfile = ({
         </div>
       </main>
 
-      <Suspense fallback={<StoreFooterSkeleton />}>
+      <Suspense fallback={null}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
     </div>

@@ -8,13 +8,12 @@ const StoreFooter = lazy(() => import('../components/StoreComponents').then(m =>
 const AddToCartSuccessModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AddToCartSuccessModal })));
 const MobileBottomNav = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.MobileBottomNav })));
 
-import { StoreHeaderSkeleton, StoreFooterSkeleton, MobileBottomNavSkeleton } from '../components/SkeletonLoaders';
+// Skeleton loaders removed for faster initial render
 
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
-import { SkeletonCard } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 // Lazy load heavy modals
@@ -376,7 +375,7 @@ const StoreProductDetail = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0">
-      <Suspense fallback={<StoreHeaderSkeleton />}>
+      <Suspense fallback={null}>
         <StoreHeader 
           onTrackOrder={() => setIsTrackOrderOpen(true)} 
           onOpenAIStudio={() => setIsAIStudioOpen(true)}
@@ -949,7 +948,7 @@ const StoreProductDetail = ({
       </div>
 
       <div className="hidden md:block">
-        <Suspense fallback={<StoreFooterSkeleton />}>
+        <Suspense fallback={null}>
           <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
         </Suspense>
       </div>

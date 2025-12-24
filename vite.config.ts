@@ -173,7 +173,6 @@ export default defineConfig(({ mode, isSsrBuild }) => {
           clientFiles: [
             './App.tsx', 
             './entry-client.tsx', 
-            './components/SkeletonLoaders.tsx', 
             './pages/StoreHome.tsx',
             './components/store/CategoriesSection.tsx',
             './components/store/HeroSection.tsx'
@@ -187,7 +186,6 @@ export default defineConfig(({ mode, isSsrBuild }) => {
           'react-dom/client',
           'lucide-react',
           'react-hot-toast',
-          'react-loading-skeleton',
           'socket.io-client'
         ],
         holdUntilCrawlEnd: false,
@@ -197,7 +195,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         }
       },
       ssr: {
-        noExternal: ['react-hot-toast', 'react-loading-skeleton', 'lucide-react']
+        noExternal: ['react-hot-toast', 'lucide-react']
       },
       esbuild: {
         target: 'esnext',

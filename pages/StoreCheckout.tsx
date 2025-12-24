@@ -6,9 +6,7 @@ import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig }
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
 
-import { StoreHeaderSkeleton, StoreFooterSkeleton } from '../components/SkeletonLoaders';
-
-import { SkeletonForm } from '../components/SkeletonLoaders';
+// Skeleton loaders removed for faster initial render
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import {
   AlertCircle,
@@ -247,7 +245,7 @@ const StoreCheckout = ({
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
-      <Suspense fallback={<StoreHeaderSkeleton />}>
+      <Suspense fallback={null}>
         <StoreHeader 
           onHomeClick={onBack}
           onImageSearchClick={onImageSearchClick}
@@ -320,7 +318,11 @@ const StoreCheckout = ({
           <div className="flex-1 space-y-8">
             {isLoading && (
               <div className="space-y-8">
-                <SkeletonForm fields={6} darkMode={false} />
+                <div className="animate-pulse space-y-4">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-12 bg-gray-200 rounded-lg" />
+                  ))}
+                </div>
               </div>
             )}
             {!isLoading && (
@@ -788,7 +790,7 @@ const StoreCheckout = ({
         </div>
       )}
 
-      <Suspense fallback={<StoreFooterSkeleton />}>
+      <Suspense fallback={null}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
     </div>

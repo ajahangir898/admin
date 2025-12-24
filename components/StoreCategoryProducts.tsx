@@ -5,7 +5,7 @@ import { ProductCard } from './StoreProductComponents';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import { ProductFilter, SortOption } from './ProductFilter';
 import { CATEGORIES } from '../constants';
-import { StoreHeaderSkeleton, StoreFooterSkeleton } from './SkeletonLoaders';
+// Skeleton loaders removed for faster initial render
 
 // Lazy load header and footer
 const StoreHeader = lazy(() => import('./StoreHeader').then(m => ({ default: m.StoreHeader })));
@@ -251,7 +251,7 @@ export const StoreCategoryProducts: React.FC<StoreCategoryProductsProps> = ({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Store Header */}
-      <Suspense fallback={<StoreHeaderSkeleton />}>
+      <Suspense fallback={null}>
         <StoreHeader 
           onTrackOrder={() => {}}
           onOpenAIStudio={() => {}}
@@ -407,7 +407,7 @@ export const StoreCategoryProducts: React.FC<StoreCategoryProductsProps> = ({
       )}
 
       {/* Store Footer */}
-      <Suspense fallback={<StoreFooterSkeleton />}>
+      <Suspense fallback={null}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
     </div>

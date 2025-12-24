@@ -3,7 +3,7 @@ import React, { useState, useEffect, lazy, Suspense, useCallback, useRef, useMem
 import { Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
-import { StoreSkeleton, AdminSkeleton, LoginSkeleton, ProductDetailSkeleton, CheckoutSkeleton, ProfileSkeleton } from './components/SkeletonLoaders';
+// Skeleton loaders removed for faster initial render
 import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
@@ -173,19 +173,9 @@ const normalizeProductCollection = (items: Product[], tenantId?: string): Produc
   return normalized;
 };
 
-const SuspenseFallback = memo(({ variant = 'store' }: { variant?: 'store' | 'admin' | 'login' }) => {
-  if (variant === 'login') return <LoginSkeleton />;
-  if (variant === 'admin') return <AdminSkeleton />;
-  return <StoreSkeleton />;
-});
-SuspenseFallback.displayName = 'SuspenseFallback';
-
-// Simple skeletons for pages without dedicated skeleton components
-const OrderSuccessSkeleton = memo(() => <StoreSkeleton />);
-OrderSuccessSkeleton.displayName = 'OrderSuccessSkeleton';
-
-const LandingPageSkeleton = memo(() => <StoreSkeleton />);
-LandingPageSkeleton.displayName = 'LandingPageSkeleton';
+// Minimal fallback - no skeleton for faster perceived load
+const MinimalFallback = memo(() => null);
+MinimalFallback.displayName = 'MinimalFallback';
 
 const isAdminRole = (role?: User['role'] | null) => role === 'admin' || role === 'tenant_admin' || role === 'super_admin';
 const isPlatformOperator = (role?: User['role'] | null) => role === 'super_admin';
@@ -1924,7 +1914,7 @@ fbq('track', 'PageView');`;
 
   return (
     <ThemeProvider themeConfig={themeConfig || undefined}>
-    <Suspense fallback={<SuspenseFallback variant={suspenseVariant} />}>
+    <Suspense fallback={null}>
       <Suspense fallback={null}>
         <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
       </Suspense>
@@ -1932,7 +1922,7 @@ fbq('track', 'PageView');`;
         {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
 
     {currentView === 'admin-login' ? (
-      <Suspense fallback={<LoginSkeleton />}>
+      <Suspense fallback={null}>
         <AdminLogin onLoginSuccess={(user) => {
           setUser(user);
           setActiveTenantId(user.tenantId || activeTenantId || DEFAULT_TENANT_ID);
@@ -1942,7 +1932,7 @@ fbq('track', 'PageView');`;
         }} />
       </Suspense>
     ) : currentView === 'admin' ? (
-      <Suspense fallback={<AdminSkeleton />}>
+      <Suspense fallback={null}>
   <AdminAppWithAuth
     activeTenantId={activeTenantId}
     tenants={headerTenants}
@@ -1983,7 +1973,7 @@ fbq('track', 'PageView');`;
 ) : (
           <>
             {currentView === 'store' && (
-              <Suspense fallback={<StoreSkeleton />}>
+              <Suspense fallback={null}>
                 <>
                 <StoreHome 
                   products={products} 
@@ -2037,7 +2027,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'detail' && selectedProduct && (
-              <Suspense fallback={<ProductDetailSkeleton />}>
+              <Suspense fallback={null}>
                 <StoreProductDetail 
                 product={selectedProduct} 
                 orders={orders} 
@@ -2066,7 +2056,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'checkout' && selectedProduct && (
-              <Suspense fallback={<CheckoutSkeleton />}>
+              <Suspense fallback={null}>
                 <StoreCheckout 
                 product={selectedProduct}
                 quantity={checkoutQuantity}
@@ -2092,7 +2082,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'success' && (
-              <Suspense fallback={<OrderSuccessSkeleton />}>
+              <Suspense fallback={null}>
                 <StoreOrderSuccess 
                 onHome={() => setCurrentView('store')} 
                 onImageSearchClick={() => setCurrentView('image-search')}
@@ -2113,7 +2103,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'profile' && user && (
-              <Suspense fallback={<ProfileSkeleton />}>
+              <Suspense fallback={null}>
                 <>
                 <StoreProfile 
                   user={user} 
@@ -2148,7 +2138,7 @@ fbq('track', 'PageView');`;
               </Suspense>
             )}
             {currentView === 'landing_preview' && selectedLandingPage && (
-              <Suspense fallback={<LandingPageSkeleton />}>
+              <Suspense fallback={null}>
                 <LandingPagePreview 
                 page={selectedLandingPage}
                 product={selectedLandingPage.productId ? products.find(p => p.id === selectedLandingPage.productId) : undefined}

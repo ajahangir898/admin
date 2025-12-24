@@ -16,6 +16,7 @@ const ONE_WEEK = 604800; // 1 week in seconds
 // Pre-cache templates in production for instant response
 let cachedTemplate = null;
 let cachedRender = null;
+let criticalAssets = []; // Cache critical asset paths for Early Hints
 
 // Set cache headers based on file type and whether it's hashed
 const setCacheHeaders = (res, filePath) => {
@@ -69,6 +70,18 @@ async function createServer() {
     cachedTemplate = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8');
     cachedRender = (await import('./dist/server/entry-server.js')).render;
     
+    // Extract critical asset paths for Early Hints
+    const modulePreloadRegex = /<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"[^>]*>/gi;
+    const cssPreloadRegex = /<link[^>]+rel="preload"[^>]+href="([^"]+)"[^>]+as="style"[^>]*>/gi;
+    let match;
+    while ((match = modulePreloadRegex.exec(cachedTemplate)) !== null) {
+      criticalAssets.push({ path: match[1], type: 'script' });
+    }
+    while ((match = cssPreloadRegex.exec(cachedTemplate)) !== null) {
+      criticalAssets.push({ path: match[1], type: 'style' });
+    }
+    console.log(`📦 Cached ${criticalAssets.length} critical assets for Early Hints`);
+    
     // Production: serve static files with optimized caching
     app.use(express.static(path.resolve(__dirname, 'dist/client'), {
       index: false,
@@ -95,6 +108,18 @@ async function createServer() {
         // Production: use pre-cached template and render (zero I/O)
         template = cachedTemplate;
         render = cachedRender;
+        
+        // Send Early Hints (103) for critical resources - parallel preloading
+        // This tells browser to start fetching before HTML is ready
+        if (criticalAssets.length > 0 && res.writeEarlyHints) {
+          const linkHeaders = criticalAssets.map(({ path, type }) => {
+            if (type === 'script') {
+              return `<${path}>; rel=modulepreload`;
+            }
+            return `<${path}>; rel=preload; as=style`;
+          });
+          res.writeEarlyHints({ link: linkHeaders });
+        }
       }
 
       // Render the app to HTML

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product, WebsiteConfig } from '../../types';
-import { ProductCard, SectionHeader } from '../StoreProductComponents';
+import { ProductCard } from '../StoreProductComponents';
+import { SectionHeader } from '../StoreComponents';
 import { ProductFilter, SortOption } from '../ProductFilter';
 import { EmptySearchState } from '../EmptyStates';
 

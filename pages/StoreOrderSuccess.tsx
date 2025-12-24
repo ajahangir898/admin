@@ -1,9 +1,9 @@
 
 import React, { lazy, Suspense } from 'react';
 
-// Lazy load heavy layout components
+// Lazy load heavy layout components from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
-const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
+const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
 import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import { User, WebsiteConfig, Product } from '../types';
 // Skeleton loaders removed for faster initial render

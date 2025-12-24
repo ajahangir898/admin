@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
 
-// Lazy load heavy layout components
+// Lazy load heavy layout components from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
-const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
+const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
 
 // Skeleton loaders removed for faster initial render
 import { normalizeImageUrl } from '../utils/imageUrlHelper';

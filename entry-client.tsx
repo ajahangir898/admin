@@ -1,9 +1,8 @@
 import React from 'react';
 import { hydrateRoot, createRoot } from 'react-dom/client';
 import App from './App';
-
-// Defer CSS loading - only load after hydration for faster TTI
-const loadCSS = () => import('./styles/tailwind.css');
+// Import CSS immediately for SSR hydration consistency
+import './styles/tailwind.css';
 
 const container = document.getElementById('root')!;
 
@@ -16,6 +15,3 @@ if (container.hasChildNodes()) {
   const root = createRoot(container);
   root.render(<App />);
 }
-
-// Load full CSS after hydration completes
-requestIdleCallback(() => loadCSS(), { timeout: 100 });

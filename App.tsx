@@ -35,11 +35,10 @@ const AdminAppWithAuth = lazy(() => {
   return import('./pages/AdminAppWithAuth');
 });
 
-// Store components - lazy loaded with chunk naming
-const loadStoreComponents = () => import(/* webpackChunkName: "store-components" */ './components/StoreComponents');
-const LoginModal = lazy(() => loadStoreComponents().then(module => ({ default: module.LoginModal })));
-const MobileBottomNav = lazy(() => loadStoreComponents().then(module => ({ default: module.MobileBottomNav })));
-const StoreChatModal = lazy(() => loadStoreComponents().then(module => ({ default: module.StoreChatModal })));
+// Store components - lazy loaded from individual files for smaller chunks
+const LoginModal = lazy(() => import('./components/store/LoginModal').then(m => ({ default: m.LoginModal })));
+const MobileBottomNav = lazy(() => import('./components/store/MobileBottomNav').then(m => ({ default: m.MobileBottomNav })));
+const StoreChatModal = lazy(() => import('./components/store/StoreChatModal').then(m => ({ default: m.StoreChatModal })));
 
 // Preload critical chunks during idle time for faster subsequent navigation
 if (typeof window !== 'undefined') {
@@ -47,7 +46,7 @@ if (typeof window !== 'undefined') {
   const preload = () => {
     Promise.all([
       import('./pages/StoreHome'),
-      import('./components/StoreComponents')
+      import('./components/store/MobileBottomNav')
     ]).catch(() => {});
   };
   

@@ -12,11 +12,11 @@ import { StoreHeader } from '../components/StoreHeader';
 import { HeroSection } from '../components/store/HeroSection';
 import { CategoriesSection } from '../components/store/CategoriesSection';
 
-// Below-the-fold components - lazy loaded
-const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
-const ProductQuickViewModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.ProductQuickViewModal })));
-const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
-const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
+// Below-the-fold components - lazy loaded from individual files for smaller chunks
+const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
+const ProductQuickViewModal = lazy(() => import('../components/store/ProductQuickViewModal').then(m => ({ default: m.ProductQuickViewModal })));
+const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/store/AIStudioModal').then(m => ({ default: m.AIStudioModal })));
 const StoreCategoryProducts = lazy(() => import('../components/StoreCategoryProducts'));
 const FlashSalesSection = lazy(() => import('../components/store/FlashSalesSection').then(m => ({ default: m.FlashSalesSection })));
 const ProductGridSection = lazy(() => import('../components/store/ProductGridSection').then(m => ({ default: m.ProductGridSection })));

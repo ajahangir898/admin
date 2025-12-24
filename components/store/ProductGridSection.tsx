@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product } from '../../types';
-import { ProductCard, SectionHeader } from '../StoreProductComponents';
+import { ProductCard } from '../StoreProductComponents';
+import { SectionHeader } from '../StoreComponents';
 
 interface ProductGridSectionProps {
   title: string;

@@ -2,11 +2,11 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense, memo, useCallback, useRef } from 'react';
 import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
 
-// Lazy load heavy layout components and modals
+// Lazy load heavy layout components and modals from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
-const StoreFooter = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.StoreFooter })));
-const AddToCartSuccessModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AddToCartSuccessModal })));
-const MobileBottomNav = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.MobileBottomNav })));
+const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
+const AddToCartSuccessModal = lazy(() => import('../components/store/AddToCartSuccessModal').then(m => ({ default: m.AddToCartSuccessModal })));
+const MobileBottomNav = lazy(() => import('../components/store/MobileBottomNav').then(m => ({ default: m.MobileBottomNav })));
 
 // Skeleton loaders removed for faster initial render
 
@@ -16,9 +16,9 @@ import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
-// Lazy load heavy modals
-const TrackOrderModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.TrackOrderModal })));
-const AIStudioModal = lazy(() => import('../components/StoreComponents').then(m => ({ default: m.AIStudioModal })));
+// Lazy load heavy modals from individual files
+const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
+const AIStudioModal = lazy(() => import('../components/store/AIStudioModal').then(m => ({ default: m.AIStudioModal })));
 
 // Modal loading fallback
 const ModalLoadingFallback = () => (

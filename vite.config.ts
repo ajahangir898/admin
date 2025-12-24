@@ -4,20 +4,37 @@ import react from '@vitejs/plugin-react';
 
 const toPosixPath = (id: string) => id.split('\\').join('/');
 
-// Critical chunks that should be modulepreloaded (must match vendorChunkMatchers names)
-const CRITICAL_JS_CHUNKS = ['react-dom', 'react-core', 'scheduler', 'index-'];
+// Critical chunks that should be modulepreloaded for parallel loading
+// Priority order matters - these will load in parallel instead of sequentially
+const CRITICAL_JS_CHUNKS = [
+  // Core React chunks - required for any rendering
+  'react-dom',
+  'react-core', 
+  'scheduler',
+  'react-jsx-runtime',
+  // App entry chunks
+  'index-',
+  'entry-client',
+  // Store page chunks (most users land here)
+  'page-storehome',
+  'cmp-storecomponents',
+  'cmp-storeheader',
+  // UI library chunks frequently used
+  'icons-chunk',
+  'pkg-react-hot-toast'
+];
 
 // Critical CSS patterns for preloading (ordered by priority)
 const CRITICAL_CSS_PATTERNS = [
-  { pattern: 'index-', priority: 1 },    // Main CSS bundle - highest priority
-  { pattern: 'skeleton', priority: 2 }   // Skeleton loaders CSS
+  { pattern: 'index-', priority: 1 }    // Main CSS bundle - highest priority
 ];
 
 /**
  * Vite plugin to optimize critical request chains by:
- * 1. Injecting preload hints for CSS and JS
- * 2. Converting main CSS to non-render-blocking using media="print" pattern
- * This reduces unused CSS impact by deferring non-critical CSS loading
+ * 1. Injecting modulepreload hints for parallel JS loading
+ * 2. Preloading CSS for faster styling
+ * 3. Converting non-critical CSS to non-render-blocking
+ * This dramatically reduces sequential loading waterfall
  */
 function criticalPreloadPlugin(): Plugin {
   return {
@@ -30,6 +47,7 @@ function criticalPreloadPlugin(): Plugin {
       // Collect CSS files and JS modulepreloads
       const cssFiles: Array<{ fileName: string; priority: number }> = [];
       const modulepreloadLinks: string[] = [];
+      const allJsChunks: string[] = [];
 
       // Find critical assets from the bundle
       for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
@@ -44,10 +62,12 @@ function criticalPreloadPlugin(): Plugin {
           }
         }
         
-        // Modulepreload critical JS chunks
+        // Modulepreload critical JS chunks for parallel loading
         if (fileName.endsWith('.js') && 'code' in chunk) {
+          allJsChunks.push(fileName);
           if (CRITICAL_JS_CHUNKS.some(name => fileName.includes(name))) {
-            modulepreloadLinks.push(`<link rel="modulepreload" href="/${fileName}" />`);
+            // Add fetchpriority="high" for critical chunks
+            modulepreloadLinks.push(`<link rel="modulepreload" href="/${fileName}" fetchpriority="high" />`);
           }
         }
       }
@@ -57,7 +77,7 @@ function criticalPreloadPlugin(): Plugin {
 
       // Create preload hints for CSS with crossorigin for subdomain support
       const cssPreloads = cssFiles.map(({ fileName }) => 
-        `<link rel="preload" href="/${fileName}" as="style" crossorigin />`
+        `<link rel="preload" href="/${fileName}" as="style" fetchpriority="high" />`
       ).join('\n    ');
 
       const allPreloads = [cssPreloads, ...modulepreloadLinks].filter(Boolean).join('\n    ');
@@ -65,7 +85,7 @@ function criticalPreloadPlugin(): Plugin {
       if (allPreloads) {
         html = html.replace(
           /<head>/i,
-          `<head>\n    <!-- Critical resource preloads to reduce request chain latency -->\n    ${allPreloads}`
+          `<head>\n    <!-- Critical resource preloads for parallel loading -->\n    ${allPreloads}`
         );
       }
 

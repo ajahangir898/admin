@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
-import { CategoryCircle, CategoryPill, SectionHeader } from '../StoreProductComponents';
+import { CategoryCircle, CategoryPill, SectionHeader } from '../StoreComponents';
 import { CATEGORIES } from '../../constants';
 import { Category } from '../../types';
 

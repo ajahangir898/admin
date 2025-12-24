@@ -7,9 +7,9 @@ import { ProductFilter, SortOption } from './ProductFilter';
 import { CATEGORIES } from '../constants';
 // Skeleton loaders removed for faster initial render
 
-// Lazy load header and footer
+// Lazy load header and footer from individual files
 const StoreHeader = lazy(() => import('./StoreHeader').then(m => ({ default: m.StoreHeader })));
-const StoreFooter = lazy(() => import('./StoreComponents').then(m => ({ default: m.StoreFooter })));
+const StoreFooter = lazy(() => import('./store/StoreFooter').then(m => ({ default: m.StoreFooter })));
 
 interface StoreCategoryProductsProps {
   products: Product[];

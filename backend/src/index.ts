@@ -8,7 +8,7 @@ import compression from 'compression';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { env } from './config/env';
-import { disconnectMongo } from './db/mongo';
+import { connectMongo, disconnectMongo } from './db/mongo';
 import { errorHandler } from './middleware/errorHandler';
 import { healthRouter } from './routes/health';
 import { tenantsRouter } from './routes/tenants';
@@ -176,6 +176,14 @@ const seedDefaultAdmin = async () => {
 };
 
 const bootstrap = async () => {
+  // Connect native MongoDB client eagerly for fast initial API calls
+  try {
+    await connectMongo();
+  } catch (err) {
+    console.error('[backend] Native MongoDB connection error:', err);
+    process.exit(1);
+  }
+
   // Connect Mongoose for Entity/Transaction models
   try {
     await mongoose.connect(env.mongoUri, {

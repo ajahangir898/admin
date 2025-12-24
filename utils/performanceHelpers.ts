@@ -4,6 +4,7 @@
  */
 
 import React, { lazy, Suspense, ReactNode } from 'react';
+import { getCDNImageUrl, isCDNEnabled, type ImageTransformOptions } from '../config/cdnConfig';
 
 // Lazy load components for code splitting
 export const lazyLoadComponent = (
@@ -27,31 +28,59 @@ export const lazyLoadComponent = (
     );
 };
 
-// Image optimization utility
+// Image optimization utility with CDN support
 export const getOptimizedImageUrl = (
   imageUrl: string,
   options?: {
     width?: number;
     height?: number;
     quality?: number; // 1-100
-    format?: 'webp' | 'jpg' | 'png';
+    format?: 'webp' | 'jpg' | 'png' | 'avif' | 'jpeg' | 'auto';
+    fit?: 'cover' | 'contain' | 'scale-down' | 'crop';
   }
 ): string => {
   if (!imageUrl) return '';
   
-  // For external URLs, return as-is (implement image CDN integration if needed)
-  if (imageUrl.startsWith('http')) {
-    // Example: Add CDN transformation parameters
+  // Convert options to CDN transform options format
+  const transformOptions: ImageTransformOptions | undefined = options ? {
+    width: options.width,
+    height: options.height,
+    quality: options.quality,
+    format: options.format === 'jpg' ? 'jpeg' : options.format as ImageTransformOptions['format'],
+    fit: options.fit,
+  } : undefined;
+  
+  // Use CDN if enabled
+  if (isCDNEnabled()) {
+    return getCDNImageUrl(imageUrl, transformOptions);
+  }
+  
+  // Fallback: For non-CDN URLs, add query parameters for server-side optimization
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    // Check if URL already has query parameters
+    const hasQueryParams = imageUrl.includes('?');
     const params = new URLSearchParams();
+    
     if (options?.width) params.append('w', options.width.toString());
     if (options?.height) params.append('h', options.height.toString());
     if (options?.quality) params.append('q', options.quality.toString());
-    if (options?.format) params.append('fm', options.format);
+    if (options?.format) params.append('f', options.format);
     
-    return `${imageUrl}${params.toString() ? '?' + params.toString() : ''}`;
+    const queryString = params.toString();
+    if (!queryString) return imageUrl;
+    
+    return `${imageUrl}${hasQueryParams ? '&' : '?'}${queryString}`;
   }
   
-  return imageUrl;
+  // For relative paths, add query params for server-side optimization
+  const params = new URLSearchParams();
+  if (options?.width) params.append('w', options.width.toString());
+  if (options?.height) params.append('h', options.height.toString());
+  if (options?.quality) params.append('q', options.quality.toString());
+  if (options?.format) params.append('f', options.format);
+  
+  const queryString = params.toString();
+  return queryString ? `${imageUrl}?${queryString}` : imageUrl;
 };
 
 // Intersection Observer for lazy loading

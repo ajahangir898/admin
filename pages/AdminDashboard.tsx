@@ -1,6 +1,7 @@
 import React, { useCallback, useId, useMemo, useState, useEffect } from 'react';
 import { DashboardStatCard } from '../components/AdminComponents';
 import { AdminProductManager } from '../components/AdminProductManager';
+import { MetricsSkeleton, TableSkeleton } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import {
   ShoppingBag,
@@ -385,6 +386,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
             <div className="space-y-6">
+              {isLoading ? (
+                <MetricsSkeleton count={3} />
+              ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {(() => {
                   interface HighlightCard {
@@ -419,6 +423,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   ));
                 })()}
               </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-8">
                 <DashboardStatCard title="Today Orders" value={todayOrders} icon={<ShoppingBag />} colorClass="secondary" />

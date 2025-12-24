@@ -3,6 +3,7 @@ import { Search, Filter, Edit3, Printer, ShieldAlert, ShieldCheck, X, Package2, 
 import { toast } from 'react-hot-toast';
 import { Order, CourierConfig } from '../types';
 import { CourierService, FraudCheckResult } from '../services/CourierService';
+import { MetricsSkeleton, TableSkeleton } from '../components/SkeletonLoaders';
 
 interface AdminOrdersProps {
   orders: Order[];
@@ -366,28 +367,32 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1f0b0f] to-[#12080b] p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Total Orders</p>
-          <p className="mt-2 text-3xl font-bold text-white">{metrics.total}</p>
-          <p className="text-xs text-white/40">Across all time</p>
+      {isLoading ? (
+        <MetricsSkeleton count={4} />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1f0b0f] to-[#12080b] p-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Total Orders</p>
+            <p className="mt-2 text-3xl font-bold text-white">{metrics.total}</p>
+            <p className="text-xs text-white/40">Across all time</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#24090c] to-[#12080b] p-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">GMV</p>
+            <p className="mt-2 text-3xl font-bold text-white">{formatCurrency(metrics.revenue)}</p>
+            <p className="text-xs text-white/40">Gross merchandise value</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a0c1c] to-[#0c0a12] p-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Pending</p>
+            <p className="mt-2 text-3xl font-bold text-white">{metrics.pending}</p>
+            <p className="text-xs text-white/40">Need confirmation</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0d1612] to-[#06090c] p-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/50">Avg Order</p>
+            <p className="mt-2 text-3xl font-bold text-white">{formatCurrency(metrics.average)}</p>
+            <p className="text-xs text-white/40">Per customer spend</p>
+          </div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#24090c] to-[#12080b] p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">GMV</p>
-          <p className="mt-2 text-3xl font-bold text-white">{formatCurrency(metrics.revenue)}</p>
-          <p className="text-xs text-white/40">Gross merchandise value</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a0c1c] to-[#0c0a12] p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Pending</p>
-          <p className="mt-2 text-3xl font-bold text-white">{metrics.pending}</p>
-          <p className="text-xs text-white/40">Need confirmation</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0d1612] to-[#06090c] p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Avg Order</p>
-          <p className="mt-2 text-3xl font-bold text-white">{formatCurrency(metrics.average)}</p>
-          <p className="text-xs text-white/40">Per customer spend</p>
-        </div>
-      </div>
+      )}
 
       <div className="rounded-3xl border border-white/10 bg-[#080509]/80 px-4 py-3 text-sm text-white/70">
         <div className="flex flex-wrap items-center gap-4">
@@ -402,23 +407,26 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0609]/80">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-white/5 text-sm">
-            <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-white/50">
-              <tr>
-                <th className="px-6 py-3">Order</th>
-                <th className="px-6 py-3">Customer</th>
-                <th className="px-6 py-3">Destination</th>
-                <th className="px-6 py-3">Amount</th>
-                <th className="px-6 py-3">Courier</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {filteredOrders.length ? (
-                filteredOrders.map((order) => (
+      {isLoading ? (
+        <TableSkeleton rows={6} cols={7} />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0609]/80">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-white/5 text-sm">
+              <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-white/50">
+                <tr>
+                  <th className="px-6 py-3">Order</th>
+                  <th className="px-6 py-3">Customer</th>
+                  <th className="px-6 py-3">Destination</th>
+                  <th className="px-6 py-3">Amount</th>
+                  <th className="px-6 py-3">Courier</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filteredOrders.length ? (
+                  filteredOrders.map((order) => (
                   <tr 
                     key={order.id} 
                     ref={(el) => { if (el) orderRowRefs.current.set(order.id, el); }}
@@ -490,6 +498,7 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
           </table>
         </div>
       </div>
+      )}
 
       {selectedOrder && draftOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">

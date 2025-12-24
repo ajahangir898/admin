@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Boxes, AlertTriangle, Package, TrendingUp, Search, ShieldCheck } from 'lucide-react';
 import { Product } from '../types';
 import { formatCurrency } from '../utils/format';
+import { MetricsSkeleton, TableSkeleton } from '../components/SkeletonLoaders';
 
 interface AdminInventoryProps {
   products: Product[];
@@ -85,6 +86,9 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
         </div>
       </div>
 
+      {isLoading ? (
+        <MetricsSkeleton count={4} />
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between text-sm text-gray-500">
@@ -119,6 +123,7 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
           <p className="text-xs text-gray-400 mt-1">Reserve Price</p>
         </div>
       </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm xl:col-span-2">

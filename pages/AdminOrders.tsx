@@ -3,7 +3,6 @@ import { Search, Filter, Edit3, Printer, ShieldAlert, ShieldCheck, X, Package2, 
 import { toast } from 'react-hot-toast';
 import { Order, CourierConfig } from '../types';
 import { CourierService, FraudCheckResult } from '../services/CourierService';
-import { SkeletonGridMetrics, SkeletonTable } from '../components/SkeletonLoaders';
 
 interface AdminOrdersProps {
   orders: Order[];
@@ -368,10 +367,6 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {isLoading ? (
-          <SkeletonGridMetrics count={4} darkMode={true} />
-        ) : (
-        <>
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1f0b0f] to-[#12080b] p-4">
           <p className="text-xs uppercase tracking-[0.3em] text-white/50">Total Orders</p>
           <p className="mt-2 text-3xl font-bold text-white">{metrics.total}</p>
@@ -392,8 +387,6 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
           <p className="mt-2 text-3xl font-bold text-white">{formatCurrency(metrics.average)}</p>
           <p className="text-xs text-white/40">Per customer spend</p>
         </div>
-        </>
-        )}
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-[#080509]/80 px-4 py-3 text-sm text-white/70">
@@ -411,9 +404,6 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
 
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b0609]/80">
         <div className="overflow-x-auto">
-          {isLoading ? (
-            <SkeletonTable rows={5} columns={6} darkMode={true} />
-          ) : (
           <table className="min-w-full divide-y divide-white/5 text-sm">
             <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-white/50">
               <tr>
@@ -498,7 +488,6 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
               )}
             </tbody>
           </table>
-          )}
         </div>
       </div>
 

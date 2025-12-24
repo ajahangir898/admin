@@ -2,7 +2,6 @@ import React from 'react';
 import { Product, WebsiteConfig } from '../../types';
 import { ProductCard } from '../StoreProductComponents';
 import { SectionHeader } from '../StoreComponents';
-import { SkeletonCard } from '../SkeletonLoaders';
 
 interface FlashSalesSectionProps {
   products: Product[];
@@ -84,21 +83,17 @@ export const FlashSalesSection: React.FC<FlashSalesSectionProps> = ({
         )}
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-        {isLoading ? (
-          [...Array(5)].map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)
-        ) : (
-          productsToRender.map((product) => (
-            <ProductCard
-              key={`flash-${product.id}`}
-              product={product}
-              onClick={onProductClick}
-              onBuyNow={onBuyNow}
-              variant={productCardStyle}
-              onQuickView={onQuickView}
-              onAddToCart={onAddToCart}
-            />
-          ))
-        )}
+        {!isLoading && productsToRender.map((product) => (
+          <ProductCard
+            key={`flash-${product.id}`}
+            product={product}
+            onClick={onProductClick}
+            onBuyNow={onBuyNow}
+            variant={productCardStyle}
+            onQuickView={onQuickView}
+            onAddToCart={onAddToCart}
+          />
+        ))}
       </div>
     </section>
   );

@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { REVENUE_DATA as DEFAULT_REVENUE_DATA, CATEGORY_DATA as DEFAULT_CATEGORY_DATA } from '../constants';
 import { Order, Product } from '../types';
-// import { SkeletonGridMetrics, SkeletonTable } from '../components/SkeletonLoaders';
 
 const COLORS = [
   'rgb(var(--color-primary-rgb))',
@@ -384,13 +383,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-6">
-          {/* <SkeletonGridMetrics count={3} darkMode={true} /> */}
-          {/* <SkeletonTable rows={3} columns={4} darkMode={true} /> */}
-        </div>
-      ) : (
-      <><div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
             <div className="space-y-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {(() => {
@@ -715,8 +708,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onBulkAction={handleBulkAction} />
                 </div>
               </div>
-            </div></>
-      )}
+            </div>
     </div>
   );
 };

@@ -2,7 +2,6 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Boxes, AlertTriangle, Package, TrendingUp, Search, ShieldCheck } from 'lucide-react';
 import { Product } from '../types';
 import { formatCurrency } from '../utils/format';
-import { SkeletonGridMetrics, SkeletonTable } from '../components/SkeletonLoaders';
 
 interface AdminInventoryProps {
   products: Product[];
@@ -87,10 +86,6 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {isLoading ? (
-          <SkeletonGridMetrics count={4} darkMode={false} />
-        ) : (
-        <>
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>Products</span>
@@ -123,8 +118,6 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
           <p className="mt-3 text-3xl font-black text-gray-800">৳ {stats.totalValue.toLocaleString()}</p>
           <p className="text-xs text-gray-400 mt-1">Reserve Price</p>
         </div>
-        </>
-        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -154,9 +147,6 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
           </div>
 
           <div className="mt-5 overflow-x-auto">
-            {isLoading ? (
-              <SkeletonTable rows={5} columns={5} darkMode={false} />
-            ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-gray-400 uppercase tracking-wide">
@@ -191,7 +181,6 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
                 )}
               </tbody>
             </table>
-            )}
           </div>
         </div>
 

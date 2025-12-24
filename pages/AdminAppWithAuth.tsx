@@ -4,7 +4,7 @@ import AdminApp, { preloadAdminChunks } from './AdminApp';
 import AdminLogin from './AdminLogin';
 import * as authService from '../services/authService';
 import { User, Tenant, Order, Product, ThemeConfig, WebsiteConfig, DeliveryConfig, CourierConfig, FacebookPixelConfig, ChatMessage } from '../types';
-import { AdminSkeleton } from '../components/SkeletonLoaders';
+import { Loader2 } from 'lucide-react';
 
 // Permission map type
 type PermissionMap = Record<string, string[]>;
@@ -119,7 +119,11 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
 
   // Show loading state while validating
   if (isValidating) {
-    return <AdminSkeleton />;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+      </div>
+    );
   }
 
   // Show login if not authenticated

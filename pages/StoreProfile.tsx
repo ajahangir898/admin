@@ -104,18 +104,6 @@ const StoreProfile = ({
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-800 mb-8">My Account</h1>
 
-          {isLoading && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map(i => (
-                  <SkeletonMetricCard key={i} darkMode={false} />
-                ))}
-              </div>
-              <SkeletonTable rows={5} columns={4} darkMode={false} />
-            </div>
-          )}
-          {!isLoading && (
-            <>
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar Navigation */}
             <div className="w-full md:w-64 flex-shrink-0">
@@ -306,8 +294,6 @@ const StoreProfile = ({
 
             </div>
           </div>
-            </>
-            )}
         </div>
       </main>
 

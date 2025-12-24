@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, Calendar, Printer, Image as ImageIcon, Edit2, Trash2, ChevronLeft, ChevronRight, X, TrendingUp, DollarSign, RefreshCw, Download } from 'lucide-react';
 import { IncomeService, IncomeDTO } from '../services/IncomeService';
 import { CategoryService } from '../services/CategoryService';
-import { SkeletonTable } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface IncomeItem {
@@ -244,9 +243,7 @@ const AdminIncome: React.FC = () => {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <SkeletonTable rows={5} />
-      ) : error ? (
+      {error ? (
         <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-6 text-center">
           <p className="text-red-400">{error}</p>
           <button

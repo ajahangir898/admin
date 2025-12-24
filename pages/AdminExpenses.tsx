@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, Calendar, Printer, Filter, Image as ImageIcon, Edit2, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { ExpenseService, ExpenseDTO } from '../services/ExpenseService';
 import { CategoryService, CategoryDTO } from '../services/CategoryService';
-import { SkeletonTable } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface ExpenseItem {
@@ -347,9 +346,7 @@ const AdminExpenses: React.FC = () => {
         </div>
 
         <div className="mt-3 overflow-x-auto">
-          {loading ? (
-            <SkeletonTable rows={5} columns={8} darkMode={true} />
-          ) : error ? (
+          {error ? (
             <div className="py-10 text-center text-red-400">{error}</div>
           ) : paged.length === 0 ? (
             <div className="py-16 text-center">

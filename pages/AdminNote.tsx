@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Search, Plus, Calendar, Edit2, Trash2, ChevronLeft, ChevronRight, X, StickyNote, Tag, Pin, PinOff } from 'lucide-react';
-import { SkeletonTable } from '../components/SkeletonLoaders';
 
 interface NoteItem {
   id: string;
@@ -162,9 +161,7 @@ const AdminNote: React.FC = () => {
       </div>
 
       {/* Notes Grid */}
-      {loading ? (
-        <SkeletonTable rows={4} />
-      ) : paged.length === 0 ? (
+      {paged.length === 0 ? (
         <div className="bg-[#12121a] rounded-xl border border-white/5 p-12 text-center">
           <StickyNote className="w-16 h-16 text-slate-600 mx-auto mb-4" />
           <p className="text-slate-400 text-lg">No notes yet</p>

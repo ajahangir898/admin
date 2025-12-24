@@ -10,13 +10,6 @@ import { DataService } from '../services/DataService';
 import * as authService from '../services/authService';
 import { toast } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
-import { 
-  AdminPageSkeleton, 
-  AdminDashboardSkeleton, 
-  AdminOrdersSkeleton, 
-  AdminProductsSkeleton, 
-  AdminSettingsSkeleton 
-} from '../components/SkeletonLoaders';
 
 // Lazy loaded admin pages with webpackChunkName for better caching
 const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin-dashboard" */ './AdminDashboard'));
@@ -65,24 +58,12 @@ export const preloadAdminChunks = () => {
   }
 };
 
-// Get appropriate skeleton based on section
-const getSectionSkeleton = (section: string) => {
-  switch (section) {
-    case 'dashboard':
-      return <AdminDashboardSkeleton />;
-    case 'orders':
-      return <AdminOrdersSkeleton />;
-    case 'products':
-      return <AdminProductsSkeleton />;
-    case 'settings':
-    case 'settings_delivery':
-    case 'settings_courier':
-    case 'settings_facebook_pixel':
-      return <AdminSettingsSkeleton />;
-    default:
-      return <AdminPageSkeleton />;
-  }
-};
+// Simple loading fallback for lazy-loaded sections
+const PageLoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-[200px]">
+    <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+  </div>
+);
 
 // Permission map type
 type PermissionMap = Record<string, string[]>;
@@ -562,7 +543,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
       hasUnreadChat={hasUnreadChat}
       userPermissions={userPermissions}
     >
-      <Suspense fallback={getSectionSkeleton(adminSection)}>
+      <Suspense fallback={<PageLoadingFallback />}>
         {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
          adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={onUpdateOrder} /> :
          adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} onBulkDelete={onBulkDeleteProducts} onBulkUpdate={onBulkUpdateProducts} tenantId={activeTenantId} /> :

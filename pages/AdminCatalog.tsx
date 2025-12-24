@@ -2,8 +2,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Plus, Search, Edit, Trash2, X, Save, Image as ImageIcon, Upload, CheckCircle, Tag as TagIcon, Layers, Folder, FolderTree, Bookmark, Hash } from 'lucide-react';
-import { convertFileToWebP } from '../services/imageUtils';
-import { SkeletonTable } from '../components/SkeletonLoaders';
 
 interface AdminCatalogProps {
   view: string; // 'catalog_categories', 'catalog_subcategories', etc.
@@ -226,9 +224,6 @@ const AdminCatalog: React.FC<AdminCatalogProps> = ({
 
          {/* Data Table */}
          <div className="overflow-x-auto">
-            {isLoading ? (
-              <SkeletonTable rows={5} columns={6} darkMode={false} />
-            ) : (
             <table className="w-full text-sm text-left">
                <thead className="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-xs border-b border-gray-200">
                   <tr>
@@ -292,7 +287,6 @@ const AdminCatalog: React.FC<AdminCatalogProps> = ({
                   )}
                </tbody>
             </table>
-            )}
          </div>
       </div>
 

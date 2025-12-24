@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { MessageCircle, Star, Filter, Flag, CheckCircle, Send, Edit3 } from 'lucide-react';
-import { SkeletonTable } from '../components/SkeletonLoaders';
 
 type ReviewStatus = 'published' | 'pending' | 'flagged';
 
@@ -205,9 +204,6 @@ const AdminReviews: React.FC = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2">
             <div className="overflow-x-auto rounded-xl border border-gray-100">
-              {isLoading ? (
-                <SkeletonTable rows={4} columns={5} darkMode={false} />
-              ) : (
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr className="text-left text-xs uppercase tracking-wide text-gray-500">
@@ -269,7 +265,6 @@ const AdminReviews: React.FC = () => {
                   )}
                 </tbody>
               </table>
-              )}
             </div>
           </div>
 

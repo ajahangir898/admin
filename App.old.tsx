@@ -3,8 +3,6 @@ import React, { useState, useEffect, lazy, Suspense, useCallback, useRef, useMem
 import { Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
-// Import StorePageSkeleton for initial loading state
-// import { StorePageSkeleton } from './components/SkeletonLoaders';
 import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';

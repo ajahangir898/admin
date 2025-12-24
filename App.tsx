@@ -21,7 +21,6 @@ import type {
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 
 // Core services
-// import { StorePageSkeleton } from './components/SkeletonLoaders';
 import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { DEFAULT_TENANT_ID } from './constants';

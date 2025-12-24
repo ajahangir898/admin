@@ -233,7 +233,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         // Enable CSS code splitting for better caching
         cssCodeSplit: true,
         // Minify CSS in production builds
-        cssMinify: mode === 'production' ? 'lightningcss' : false,
+        cssMinify: mode === 'production',
         // Minify for better performance
         minify: mode === 'production' ? 'esbuild' : false,
         // Faster builds

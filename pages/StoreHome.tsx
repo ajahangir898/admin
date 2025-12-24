@@ -16,6 +16,11 @@ const HeroSection = lazy(() => import('../components/store/HeroSection').then(m 
 const CategoriesSection = lazy(() => import('../components/store/CategoriesSection').then(m => ({ default: m.CategoriesSection })));
 const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
 
+// Lightweight skeletons - lazy loaded to not block initial render
+const HeroSkeleton = lazy(() => import('../components/SkeletonLoaders').then(m => ({ default: m.HeroSkeleton })));
+const CategorySkeleton = lazy(() => import('../components/SkeletonLoaders').then(m => ({ default: m.CategorySkeleton })));
+const ProductGridSkeleton = lazy(() => import('../components/SkeletonLoaders').then(m => ({ default: m.ProductGridSkeleton })));
+
 // Below-the-fold components - lazy loaded from individual files for smaller chunks
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
 const ProductQuickViewModal = lazy(() => import('../components/store/ProductQuickViewModal').then(m => ({ default: m.ProductQuickViewModal })));
@@ -115,8 +120,14 @@ const StoreHome = ({
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [popups, setPopups] = useState<Popup[]>([]);
+
+  // Initial loading - short delay for perceived performance
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, []);
   const [activePopup, setActivePopup] = useState<Popup | null>(null);
   const [popupIndex, setPopupIndex] = useState(0);
   const showPopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -633,7 +644,7 @@ const StoreHome = ({
       )}
       
       {/* Hero Section - lazy loaded but high priority */}
-      <Suspense fallback={<div className="h-48 md:h-64 bg-gradient-to-r from-pink-100 to-purple-100 animate-pulse" />}>
+      <Suspense fallback={<HeroSkeleton />}>
         <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
       </Suspense>
 
@@ -659,18 +670,19 @@ const StoreHome = ({
         ) : (
           <>
             {/* Categories - lazy loaded */}
-            <Suspense fallback={<div className="h-24 bg-gray-100 rounded-lg animate-pulse" />}>
+            <Suspense fallback={<CategorySkeleton count={8} />}>
               <CategoriesSection
                 style={websiteConfig?.categorySectionStyle as 'style2'}
                 categories={categories}
                 onCategoryClick={handleCategoryClick}
                 categoryScrollRef={categoryScrollRef}
                 sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
+                isLoading={isLoading}
               />
             </Suspense>
 
             {/* Flash Deals */}
-            <Suspense fallback={null}>
+            <Suspense fallback={<ProductGridSkeleton count={5} />}>
               <FlashSalesSection
                 products={activeProducts}
                 isLoading={isLoading}
@@ -686,7 +698,7 @@ const StoreHome = ({
             </Suspense>
 
             {/* Best Sale Products */}
-            <Suspense fallback={null}>
+            <Suspense fallback={<ProductGridSkeleton count={5} />}>
               <ProductGridSection
                 title="Best Sale Products"
                 products={activeProducts}
@@ -694,6 +706,7 @@ const StoreHome = ({
                 keyPrefix="best"
                 maxProducts={10}
                 reverseOrder={true}
+                isLoading={isLoading}
                 onProductClick={onProductClick}
                 onBuyNow={handleBuyNow}
                 onQuickView={setQuickViewProduct}
@@ -708,7 +721,7 @@ const StoreHome = ({
             </Suspense>
 
             {/* Popular Products */}
-            <Suspense fallback={null}>
+            <Suspense fallback={<ProductGridSkeleton count={5} />}>
               <ProductGridSection
                 title="Popular products"
                 products={activeProducts}
@@ -716,6 +729,7 @@ const StoreHome = ({
                 keyPrefix="pop"
                 maxProducts={10}
                 reverseOrder={false}
+                isLoading={isLoading}
                 onProductClick={onProductClick}
                 onBuyNow={handleBuyNow}
                 onQuickView={setQuickViewProduct}

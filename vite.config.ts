@@ -164,7 +164,16 @@ const manualChunkResolver = (id: string): string | undefined => {
 
 export default defineConfig(({ mode, isSsrBuild }) => {
     const env = loadEnv(mode, '.', '');
+    
+    // CDN configuration for build assets
+    // When VITE_CDN_ENABLED is true and VITE_CDN_STATIC_URL is set, use it as base URL for assets
+    const cdnEnabled = env.VITE_CDN_ENABLED === 'true';
+    const cdnStaticUrl = env.VITE_CDN_STATIC_URL || env.VITE_CDN_BASE_URL || '';
+    const baseUrl = (mode === 'production' && cdnEnabled && cdnStaticUrl) ? cdnStaticUrl : '/';
+    
     return {
+      // Set base URL for all assets (CDN in production if configured)
+      base: baseUrl,
       publicDir: 'public',
       server: {
         port: 3000,

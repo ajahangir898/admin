@@ -1,10 +1,35 @@
 /**
  * Image Upload Service
  * Handles uploading images to the server instead of storing as base64
+ * Supports CDN URL generation for uploaded images
  */
 
-// Production API URL
-const API_BASE_URL = 'https://systemnextit.com';
+import { getCDNImageUrl, isCDNEnabled } from '../config/cdnConfig';
+
+// Production API URL - get from environment or use default
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
+
+export interface UploadResponse {
+  success: boolean;
+  imageUrl: string;
+  imageId?: string;
+  error?: string;
+}
+
+/**
+ * Convert a server image URL to CDN URL if CDN is enabled
+ * @param imageUrl The original image URL from the server
+ * @returns CDN URL if enabled, otherwise original URL
+ */
+export const getImageUrl = (imageUrl: string): string => {
+  if (!imageUrl) return '';
+  
+  if (isCDNEnabled()) {
+    return getCDNImageUrl(imageUrl);
+  }
+  
+  return imageUrl;
+};
 
 export interface UploadResponse {
   success: boolean;

@@ -14,7 +14,6 @@ export {
     StoreFooter,
     ProductQuickViewModal,
     TrackOrderModal,
-    AIStudioModal,
     AddToCartSuccessModal,
     CategoryCircle,
     CategoryPill,
@@ -22,15 +21,15 @@ export {
 } from './store';
 
 // Skeleton loaders for store views
-export {
-    StorePageSkeleton,
-    HeroSectionSkeleton,
-    CategoriesSectionSkeleton,
-    FlashSalesSkeleton,
-    ProductGridSkeleton,
-    PromoBannerSkeleton,
-    SearchResultsSkeleton
-} from './SkeletonLoaders';
+// export {
+//     StorePageSkeleton,
+//     HeroSectionSkeleton,
+//     CategoriesSectionSkeleton,
+//     FlashSalesSkeleton,
+//     ProductGridSkeleton,
+//     PromoBannerSkeleton,
+//     SearchResultsSkeleton
+// } from './SkeletonLoaders';
 
 // Re-export types
 export type {
@@ -42,6 +41,5 @@ export type {
     StoreFooterProps,
     ProductQuickViewModalProps,
     TrackOrderModalProps,
-    AIStudioModalProps,
     AddToCartSuccessModalProps
 } from './store';

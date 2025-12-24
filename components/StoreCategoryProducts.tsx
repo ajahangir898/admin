@@ -254,7 +254,6 @@ export const StoreCategoryProducts: React.FC<StoreCategoryProductsProps> = ({
       <Suspense fallback={null}>
         <StoreHeader 
           onTrackOrder={() => {}}
-          onOpenAIStudio={() => {}}
           onImageSearchClick={onImageSearchClick}
           productCatalog={products}
           wishlistCount={wishlistCount}

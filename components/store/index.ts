@@ -12,7 +12,6 @@ export const HeroSection = lazy(() => import('./HeroSection').then(m => ({ defau
 export const StoreFooter = lazy(() => import('./StoreFooter').then(m => ({ default: m.StoreFooter })));
 export const ProductQuickViewModal = lazy(() => import('./ProductQuickViewModal').then(m => ({ default: m.ProductQuickViewModal })));
 export const TrackOrderModal = lazy(() => import('./TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
-export const AIStudioModal = lazy(() => import('./AIStudioModal').then(m => ({ default: m.AIStudioModal })));
 export const AddToCartSuccessModal = lazy(() => import('./AddToCartSuccessModal').then(m => ({ default: m.AddToCartSuccessModal })));
 
 // Store sections
@@ -34,5 +33,4 @@ export type { HeroSectionProps } from './HeroSection';
 export type { StoreFooterProps } from './StoreFooter';
 export type { ProductQuickViewModalProps } from './ProductQuickViewModal';
 export type { TrackOrderModalProps } from './TrackOrderModal';
-export type { AIStudioModalProps } from './AIStudioModal';
 export type { AddToCartSuccessModalProps } from './AddToCartSuccessModal';

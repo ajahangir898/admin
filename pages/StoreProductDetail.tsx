@@ -18,7 +18,6 @@ import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 // Lazy load heavy modals from individual files
 const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
-const AIStudioModal = lazy(() => import('../components/store/AIStudioModal').then(m => ({ default: m.AIStudioModal })));
 
 // Modal loading fallback
 const ModalLoadingFallback = () => (
@@ -223,7 +222,6 @@ const StoreProductDetail = ({
   productCatalog
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
-  const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
   const [showCartSuccess, setShowCartSuccess] = useState(false);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
@@ -378,7 +376,6 @@ const StoreProductDetail = ({
       <Suspense fallback={null}>
         <StoreHeader 
           onTrackOrder={() => setIsTrackOrderOpen(true)} 
-          onOpenAIStudio={() => setIsAIStudioOpen(true)}
           onHomeClick={onBack}
           onImageSearchClick={onImageSearchClick}
           wishlistCount={wishlistCount}
@@ -401,11 +398,6 @@ const StoreProductDetail = ({
       {isTrackOrderOpen && (
         <Suspense fallback={<ModalLoadingFallback />}>
           <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
-        </Suspense>
-      )}
-      {isAIStudioOpen && (
-        <Suspense fallback={<ModalLoadingFallback />}>
-          <AIStudioModal onClose={() => setIsAIStudioOpen(false)} />
         </Suspense>
       )}
       {showCartSuccess && (

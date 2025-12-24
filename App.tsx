@@ -21,11 +21,11 @@ import type {
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 
 // Core services
-import { StorePageSkeleton } from './components/SkeletonLoaders';
+// import { StorePageSkeleton } from './components/SkeletonLoaders';
 import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { DEFAULT_TENANT_ID } from './constants';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 
 // Extracted utilities and hooks
@@ -51,9 +51,6 @@ import { useTenant } from './hooks/useTenant';
 import { useThemeEffects } from './hooks/useThemeEffects';
 import { useFacebookPixel } from './hooks/useFacebookPixel';
 import { useNavigation, type ViewState } from './hooks/useNavigation';
-
-// Lazy load Toaster for faster initial render
-const Toaster = lazy(() => import('react-hot-toast').then(m => ({ default: m.Toaster })));
 
 // Store pages - lazy loaded
 const StoreHome = lazy(() => import('./pages/StoreHome'));
@@ -834,9 +831,7 @@ const App = () => {
   return (
     <ThemeProvider themeConfig={themeConfig || undefined}>
       <Suspense fallback={null}>
-        <Suspense fallback={null}>
-          <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
-        </Suspense>
+        <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
         <div className={`relative ${themeConfig?.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
           {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
 
@@ -892,7 +887,7 @@ const App = () => {
           ) : (
             <>
               {currentView === 'store' && (
-                <Suspense fallback={<StorePageSkeleton />}>
+                // <Suspense fallback={<StorePageSkeleton />}>
                   <>
                     <StoreHome 
                       products={products} 
@@ -935,7 +930,7 @@ const App = () => {
                       onLogoutClick={handleLogout}
                     />
                   </>
-                </Suspense>
+                // </Suspense>
               )}
               {currentView === 'detail' && selectedProduct && (
                 <Suspense fallback={null}>

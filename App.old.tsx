@@ -4,21 +4,18 @@ import { Store, ShieldCheck } from 'lucide-react';
 import type { Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, Tenant, ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag, CreateTenantPayload } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 // Import StorePageSkeleton for initial loading state
-import { StorePageSkeleton } from './components/SkeletonLoaders';
+// import { StorePageSkeleton } from './components/SkeletonLoaders';
 import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { slugify } from './services/slugify';
 import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from './constants';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 
 
 
 // Lazy load notification service (only needed for orders)
 const getNotificationService = () => import('./backend/src/services/NotificationService').then(m => m.notificationService);
-
-// Lazy load Toaster for faster initial render
-const Toaster = lazy(() => import('react-hot-toast').then(m => ({ default: m.Toaster })));
 
 // Store pages - lazy loaded with preload
 const StoreHome = lazy(() => import('./pages/StoreHome'));
@@ -1946,9 +1943,7 @@ fbq('track', 'PageView');`;
   return (
     <ThemeProvider themeConfig={themeConfig || undefined}>
     <Suspense fallback={null}>
-      <Suspense fallback={null}>
         <Toaster position="top-right" toastOptions={{ duration: 2500 }} />
-      </Suspense>
       <div className={`relative ${themeConfig?.darkMode ? 'dark bg-slate-900' : 'bg-gray-50'}`}>
         {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} />}
 
@@ -2004,7 +1999,7 @@ fbq('track', 'PageView');`;
 ) : (
           <>
             {currentView === 'store' && (
-              <Suspense fallback={<StorePageSkeleton />}>
+              // <Suspense fallback={<StorePageSkeleton />}>
                 <>
                 <StoreHome 
                   products={products} 
@@ -2055,7 +2050,7 @@ fbq('track', 'PageView');`;
                   onLogoutClick={handleLogout}
                 />
                 </>
-              </Suspense>
+              // </Suspense>
             )}
             {currentView === 'detail' && selectedProduct && (
               <Suspense fallback={null}>

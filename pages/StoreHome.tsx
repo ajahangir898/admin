@@ -112,7 +112,6 @@ const StoreHome = ({
   onCategoryFilterChange
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
-  const [isAIStudioOpen, setIsAIStudioOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
@@ -585,7 +584,6 @@ const StoreHome = ({
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900">
       <StoreHeader 
         onTrackOrder={() => setIsTrackOrderOpen(true)} 
-        onOpenAIStudio={() => setIsAIStudioOpen(true)}
         onImageSearchClick={onImageSearchClick}
         productCatalog={activeProducts}
         wishlistCount={wishlistCount}

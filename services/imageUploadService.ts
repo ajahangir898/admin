@@ -5,6 +5,7 @@
  */
 
 import { getCDNImageUrl, isCDNEnabled } from '../config/cdnConfig';
+import { compressProductImage, convertFileToWebP, dataUrlToFile } from './imageUtils';
 
 // Production API URL - get from environment or use default
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
@@ -42,11 +43,16 @@ export const uploadImageToServer = async (
   tenantId: string
 ): Promise<string> => {
   try {
-    console.log(`[ImageUpload] Starting upload for ${file.name} (${file.size} bytes) to tenant: ${tenantId}`);
+    // Compress aggressively before upload to keep payloads small
+    const compressed = await compressProductImage(file, { targetSizeKB: 48, maxDimension: 1200, minQuality: 0.4 });
+    const webpDataUrl = await convertFileToWebP(compressed, { quality: 0.82, maxDimension: 1200 });
+    const finalFile = dataUrlToFile(webpDataUrl, file.name.replace(/\.[^.]+$/, '.webp'));
+
+    console.log(`[ImageUpload] Starting upload for ${finalFile.name} (${finalFile.size} bytes) to tenant: ${tenantId}`);
     console.log(`[ImageUpload] API URL: ${API_BASE_URL}/api/upload`);
     
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', finalFile);
     formData.append('tenantId', tenantId);
 
     const response = await fetch(`${API_BASE_URL}/api/upload`, {

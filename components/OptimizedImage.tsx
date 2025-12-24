@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
+import { getCDNImageUrl, isCDNEnabled } from '../config/cdnConfig';
 
 interface OptimizedImageProps {
   src: string;
@@ -39,6 +40,20 @@ const supportsWebP = (() => {
 // Transform image URL for optimization
 const getOptimizedUrl = (src: string, width?: number): string => {
   if (!src) return PLACEHOLDER_EMPTY;
+  const targetWidth = width || 640;
+
+  const applyCDN = (url: string, requestedWidth?: number) => {
+    if (!url) return url;
+    if (isCDNEnabled()) {
+      return getCDNImageUrl(url, {
+        width: requestedWidth,
+        quality: 80,
+        format: supportsWebP ? 'webp' : 'auto',
+        fit: 'cover'
+      });
+    }
+    return url;
+  };
   
   // Handle Unsplash images
   if (src.includes('unsplash.com')) {
@@ -57,24 +72,16 @@ const getOptimizedUrl = (src: string, width?: number): string => {
     if (!url.includes('q=')) {
       url += `${url.includes('?') ? '&' : '?'}q=80`;
     }
-    return url;
+    return applyCDN(url, width || targetWidth);
   }
   
   // Handle your CDN images
   if (src.includes('systemnextit.com') || src.includes('cdn.')) {
     let url = src;
-    if (width) {
-      const separator = url.includes('?') ? '&' : '?';
-      url += `${separator}w=${width}`;
-    }
-    if (supportsWebP) {
-      const separator = url.includes('?') ? '&' : '?';
-      url += `${separator}format=webp`;
-    }
-    return url;
+    return applyCDN(url, width || targetWidth);
   }
   
-  return src;
+  return applyCDN(src, targetWidth);
 };
 
 // Generate srcset for responsive images

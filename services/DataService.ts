@@ -436,8 +436,37 @@ class DataServiceImpl {
     websiteConfig: WebsiteConfig;
   }> {
     const scope = this.resolveTenantScope(tenantId);
-    console.log(`[DataService] Bootstrap loading for tenant: ${scope}`);
-    
+    const defaultWebsite = this.getDefaultWebsiteConfig();
+
+    // Serve cached data instantly to avoid blocking paint, then revalidate in background
+    const cachedProducts = getCachedData<Product[]>('products', tenantId);
+    const cachedTheme = getCachedData<ThemeConfig | null>('theme_config', tenantId);
+    const cachedWebsite = getCachedData<WebsiteConfig>('website_config', tenantId);
+    const hasCached = Boolean((cachedProducts && cachedProducts.length) || cachedTheme || cachedWebsite);
+
+    if (hasCached) {
+      // Kick off background revalidation without blocking UI
+      this.revalidateBootstrap(scope, tenantId, defaultWebsite).catch(err => {
+        console.warn('[DataService] Bootstrap revalidation failed', err);
+      });
+
+      return {
+        products: (cachedProducts && cachedProducts.length ? cachedProducts : this.filterByTenant(PRODUCTS, tenantId)).map((p, i) => ({ ...p, id: p.id ?? i + 1 })),
+        themeConfig: cachedTheme ?? null,
+        websiteConfig: cachedWebsite ? { ...defaultWebsite, ...cachedWebsite } : defaultWebsite
+      };
+    }
+
+    return this.fetchFreshBootstrap(scope, tenantId, defaultWebsite);
+  }
+
+  private async revalidateBootstrap(scope: string, tenantId: string | undefined, defaultWebsite: WebsiteConfig) {
+    await this.fetchFreshBootstrap(scope, tenantId, defaultWebsite, true);
+  }
+
+  private async fetchFreshBootstrap(scope: string, tenantId: string | undefined, defaultWebsite: WebsiteConfig, isBackground = false) {
+    console.log(`[DataService] Bootstrap loading for tenant: ${scope}${isBackground ? ' (background)' : ''}`);
+
     try {
       const response = await this.requestTenantApi<{
         data: {
@@ -448,31 +477,28 @@ class DataServiceImpl {
       }>(`/api/tenant-data/${scope}/bootstrap`);
       
       const { products, theme_config, website_config } = response.data;
-      console.log(`[DataService] Bootstrap received website_config:`, website_config);
-      console.log(`[DataService] Bootstrap carouselItems:`, website_config?.carouselItems);
-      
-      // Cache the results
+
+      // Cache the results for subsequent fast loads
       if (products) setCachedData('products', products, tenantId);
       if (theme_config) setCachedData('theme_config', theme_config, tenantId);
       if (website_config) setCachedData('website_config', website_config, tenantId);
       
-      // Return server data AS-IS - only use fallback defaults if server returns nothing
-      const defaultWebsite = this.getDefaultWebsiteConfig();
-      
       return {
         products: products?.length ? products.map((p, i) => ({ ...p, id: p.id ?? i + 1 })) : this.filterByTenant(PRODUCTS, tenantId),
-        themeConfig: theme_config || null, // Return null if no theme saved - let admin set it
+        themeConfig: theme_config || null,
         websiteConfig: website_config ? { ...defaultWebsite, ...website_config } : defaultWebsite
       };
     } catch (error) {
-      console.warn('Bootstrap failed, falling back to individual requests', error);
-      // Fallback to individual requests
-      const [products, themeConfig, websiteConfig] = await Promise.all([
-        this.getProducts(tenantId),
-        this.getThemeConfig(tenantId),
-        this.getWebsiteConfig(tenantId)
-      ]);
-      return { products, themeConfig, websiteConfig };
+      if (!isBackground) {
+        console.warn('Bootstrap failed, falling back to individual requests', error);
+        const [products, themeConfig, websiteConfig] = await Promise.all([
+          this.getProducts(tenantId),
+          this.getThemeConfig(tenantId),
+          this.getWebsiteConfig(tenantId)
+        ]);
+        return { products, themeConfig, websiteConfig };
+      }
+      throw error;
     }
   }
 
@@ -546,7 +572,67 @@ class DataServiceImpl {
       { id: '1', name: 'Flash Deal', status: 'Active' as const },
       { id: '2', name: 'New Arrival', status: 'Active' as const }
     ];
+
+    // Serve cached data immediately
+    const cachedOrders = getCachedData<Order[]>('orders', tenantId);
+    const cachedLogo = getCachedData<string | null>('logo', tenantId);
+    const cachedDelivery = getCachedData<DeliveryConfig[]>('delivery_config', tenantId);
+    const cachedChat = getCachedData<ChatMessage[]>('chat_messages', tenantId);
+    const cachedLanding = getCachedData<LandingPage[]>('landing_pages', tenantId);
+    const cachedCategories = getCachedData<Category[]>('categories', tenantId);
+    const cachedSubcategories = getCachedData<SubCategory[]>('subcategories', tenantId);
+    const cachedChildCategories = getCachedData<ChildCategory[]>('childcategories', tenantId);
+    const cachedBrands = getCachedData<Brand[]>('brands', tenantId);
+    const cachedTags = getCachedData<Tag[]>('tags', tenantId);
+
+    const hasCachedSecondary = Boolean(
+      (cachedOrders && cachedOrders.length) || cachedLogo || (cachedDelivery && cachedDelivery.length) ||
+      (cachedChat && cachedChat.length) || (cachedLanding && cachedLanding.length) ||
+      (cachedCategories && cachedCategories.length) || (cachedSubcategories && cachedSubcategories.length) ||
+      (cachedChildCategories && cachedChildCategories.length) || (cachedBrands && cachedBrands.length) ||
+      (cachedTags && cachedTags.length)
+    );
+
+    if (hasCachedSecondary) {
+      this.revalidateSecondary(scope, tenantId, {
+        defaultBrands,
+        defaultCategories,
+        defaultSubCategories,
+        defaultTags
+      }).catch(err => console.warn('[DataService] Secondary revalidation failed', err));
+
+      return {
+        orders: cachedOrders || [],
+        logo: cachedLogo || null,
+        deliveryConfig: cachedDelivery || [],
+        chatMessages: cachedChat || [],
+        landingPages: cachedLanding || [],
+        categories: cachedCategories && cachedCategories.length ? cachedCategories : defaultCategories,
+        subcategories: cachedSubcategories && cachedSubcategories.length ? cachedSubcategories : defaultSubCategories,
+        childcategories: cachedChildCategories || [],
+        brands: cachedBrands && cachedBrands.length ? cachedBrands : defaultBrands,
+        tags: cachedTags && cachedTags.length ? cachedTags : defaultTags
+      };
+    }
     
+    return this.fetchFreshSecondary(scope, tenantId, {
+      defaultBrands,
+      defaultCategories,
+      defaultSubCategories,
+      defaultTags
+    });
+  }
+
+  private async revalidateSecondary(scope: string, tenantId: string | undefined, defaults: { defaultCategories: Category[]; defaultSubCategories: SubCategory[]; defaultBrands: Brand[]; defaultTags: Tag[]; }) {
+    await this.fetchFreshSecondary(scope, tenantId, defaults, true);
+  }
+
+  private async fetchFreshSecondary(
+    scope: string,
+    tenantId: string | undefined,
+    defaults: { defaultCategories: Category[]; defaultSubCategories: SubCategory[]; defaultBrands: Brand[]; defaultTags: Tag[]; },
+    isBackground = false
+  ) {
     try {
       const response = await this.requestTenantApi<{
         data: {
@@ -562,8 +648,20 @@ class DataServiceImpl {
           tags: Tag[] | null;
         };
       }>(`/api/tenant-data/${scope}/secondary`);
-      
+
       const data = response.data;
+
+      // Cache results for quick subsequent loads
+      setCachedData('orders', data.orders || [], tenantId);
+      setCachedData('logo', data.logo || null, tenantId);
+      setCachedData('delivery_config', data.delivery_config || [], tenantId);
+      setCachedData('chat_messages', data.chat_messages || [], tenantId);
+      setCachedData('landing_pages', data.landing_pages || [], tenantId);
+      setCachedData('categories', data.categories || [], tenantId);
+      setCachedData('subcategories', data.subcategories || [], tenantId);
+      setCachedData('childcategories', data.childcategories || [], tenantId);
+      setCachedData('brands', data.brands || [], tenantId);
+      setCachedData('tags', data.tags || [], tenantId);
       
       return {
         orders: data.orders || [],
@@ -571,26 +669,26 @@ class DataServiceImpl {
         deliveryConfig: data.delivery_config || [],
         chatMessages: data.chat_messages || [],
         landingPages: data.landing_pages || [],
-        categories: (data.categories && data.categories.length > 0) ? data.categories : defaultCategories,
-        subcategories: (data.subcategories && data.subcategories.length > 0) ? data.subcategories : defaultSubCategories,
+        categories: (data.categories && data.categories.length > 0) ? data.categories : defaults.defaultCategories,
+        subcategories: (data.subcategories && data.subcategories.length > 0) ? data.subcategories : defaults.defaultSubCategories,
         childcategories: data.childcategories || [],
-        brands: (data.brands && data.brands.length > 0) ? data.brands : defaultBrands,
-        tags: (data.tags && data.tags.length > 0) ? data.tags : defaultTags
+        brands: (data.brands && data.brands.length > 0) ? data.brands : defaults.defaultBrands,
+        tags: (data.tags && data.tags.length > 0) ? data.tags : defaults.defaultTags
       };
     } catch (error) {
+      if (isBackground) throw error;
       console.warn('[DataService] Secondary data fetch failed', error);
-      // Return defaults on error - this ensures categories are always available
       return {
         orders: [],
         logo: null,
         deliveryConfig: [],
         chatMessages: [],
         landingPages: [],
-        categories: defaultCategories,
-        subcategories: defaultSubCategories,
+        categories: defaults.defaultCategories,
+        subcategories: defaults.defaultSubCategories,
         childcategories: [],
-        brands: defaultBrands,
-        tags: defaultTags
+        brands: defaults.defaultBrands,
+        tags: defaults.defaultTags
       };
     }
   }

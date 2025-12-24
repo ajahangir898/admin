@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product, LandingPage } from '../types';
 import { LandingPagePanel } from '../components/LandingPageComponents';
 import { MonitorSmartphone } from 'lucide-react';
-import { SkeletonGridMetrics } from '../components/SkeletonLoaders';
+// import { SkeletonGridMetrics } from '../components/SkeletonLoaders';
 
 interface AdminLandingPageProps {
   products: Product[];
@@ -101,7 +101,7 @@ const AdminLandingPage: React.FC<AdminLandingPageProps> = ({
       
       {isLoading && (
         <div className="space-y-6">
-          <SkeletonGridMetrics count={3} darkMode={false} />
+          {/* <SkeletonGridMetrics count={3} darkMode={false} /> */}
         </div>
       )}
     </div>

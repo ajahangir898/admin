@@ -207,13 +207,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         drop: mode === 'production' ? ['console', 'debugger'] : []
       },
       plugins: [
-        react({
-          babel: {
-            plugins: mode === 'production' ? [
-              ['transform-react-remove-prop-types', { removeImport: true }]
-            ] : []
-          }
-        }),
+        react(),
         splitVendorChunkPlugin(),
         criticalPreloadPlugin()
       ],

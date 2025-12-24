@@ -21,6 +21,17 @@ export {
     SectionHeader
 } from './store';
 
+// Skeleton loaders for store views
+export {
+    StorePageSkeleton,
+    HeroSectionSkeleton,
+    CategoriesSectionSkeleton,
+    FlashSalesSkeleton,
+    ProductGridSkeleton,
+    PromoBannerSkeleton,
+    SearchResultsSkeleton
+} from './SkeletonLoaders';
+
 // Re-export types
 export type {
     StoreChatModalProps,

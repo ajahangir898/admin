@@ -9,6 +9,7 @@ interface OptimizedImageProps {
   height?: number;
   priority?: boolean; // Load immediately (above-the-fold images)
   placeholder?: 'blur' | 'empty';
+  objectFit?: 'cover' | 'contain';
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -107,6 +108,7 @@ const OptimizedImage = memo(({
   height,
   priority = false,
   placeholder = 'empty',
+  objectFit = 'cover',
   onLoad,
   onError
 }: OptimizedImageProps) => {
@@ -193,9 +195,9 @@ const OptimizedImage = memo(({
           decoding={priority ? 'sync' : 'async'}
           onLoad={handleLoad}
           onError={handleError}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`w-full h-full transition-opacity duration-300 ${
+            objectFit === 'contain' ? 'object-contain' : 'object-cover'
+          } ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           {...(priority ? { fetchPriority: 'high' } : {})}
         />
       )}

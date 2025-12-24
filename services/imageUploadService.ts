@@ -31,13 +31,6 @@ export const getImageUrl = (imageUrl: string): string => {
   return imageUrl;
 };
 
-export interface UploadResponse {
-  success: boolean;
-  imageUrl: string;
-  imageId?: string;
-  error?: string;
-}
-
 /**
  * Upload a file to the server
  * @param file The image file to upload

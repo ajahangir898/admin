@@ -323,21 +323,34 @@ const App = () => {
       try {
         let resolvedTenantId = activeTenantId;
         
-        // Fast path: resolve tenant by subdomain with single API call
-        if (!resolvedTenantId && hostTenantSlug) {
+        // For subdomains: ALWAYS verify tenant matches the subdomain
+        // This prevents wrong data being shown when visiting different stores
+        if (hostTenantSlug && !isAdminSubdomain) {
           const sanitizedSlug = sanitizeSubdomainSlug(hostTenantSlug);
           const resolved = await DataService.resolveTenantBySubdomain(sanitizedSlug);
           if (!isMounted) return;
           
           if (resolved?.id) {
+            // If cached tenant ID doesn't match resolved, clear old cache
+            if (resolvedTenantId && resolvedTenantId !== resolved.id) {
+              console.log(`[Tenant] Clearing stale cache. Expected: ${resolved.id}, Cached: ${resolvedTenantId}`);
+              // Clear old tenant's cached data
+              try {
+                const keysToRemove = ['products', 'theme_config', 'website_config', 'categories', 'brands', 'tags'];
+                keysToRemove.forEach(key => {
+                  localStorage.removeItem(`ds_cache_${resolvedTenantId}::${key}`);
+                });
+              } catch {}
+            }
             resolvedTenantId = resolved.id;
-            // Cache tenant ID for this subdomain - enables instant cache hits on next visit!
+            // Cache tenant ID for this subdomain
             setCachedTenantIdForSubdomain(sanitizedSlug, resolved.id);
             setActiveTenantId(resolvedTenantId);
             setHostTenantId(resolved.id);
             console.log(`[Perf] Tenant resolved by subdomain in ${(performance.now() - startTime).toFixed(0)}ms`);
           } else {
-            // Fallback to default tenant
+            // Tenant not found for this subdomain - show error or fallback
+            console.error(`[Tenant] No tenant found for subdomain: ${sanitizedSlug}`);
             resolvedTenantId = DEFAULT_TENANT_ID;
             setActiveTenantId(resolvedTenantId);
           }

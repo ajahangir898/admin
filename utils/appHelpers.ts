@@ -216,7 +216,18 @@ export function getInitialCachedData<T>(key: string, defaultValue: T): T {
   try {
     const tenantScope = getInitialTenantScope();
     // If we can't determine the tenant scope reliably, don't use cached data
+    // This prevents showing wrong tenant's data
     if (!tenantScope) return defaultValue;
+    
+    // Double-check: if we're on a subdomain, verify cache matches that subdomain's tenant
+    const hostSlug = getHostTenantSlug();
+    if (hostSlug && hostSlug !== DEFAULT_TENANT_SLUG) {
+      const cachedTenantId = getCachedTenantIdForSubdomain(hostSlug);
+      // Only use cache if it matches the subdomain's cached tenant ID
+      if (!cachedTenantId || cachedTenantId !== tenantScope) {
+        return defaultValue;
+      }
+    }
     
     const stored = localStorage.getItem(`ds_cache_${tenantScope}::${key}`);
     if (stored) {
@@ -236,6 +247,16 @@ export function hasCachedData(): boolean {
     const tenantScope = getInitialTenantScope();
     // If we can't determine the tenant scope reliably, assume no cache
     if (!tenantScope) return false;
+    
+    // Double-check: if we're on a subdomain, verify cache matches that subdomain's tenant
+    const hostSlug = getHostTenantSlug();
+    if (hostSlug && hostSlug !== DEFAULT_TENANT_SLUG) {
+      const cachedTenantId = getCachedTenantIdForSubdomain(hostSlug);
+      // Only consider cache valid if it matches the subdomain's cached tenant ID
+      if (!cachedTenantId || cachedTenantId !== tenantScope) {
+        return false;
+      }
+    }
     
     const stored = localStorage.getItem(`ds_cache_${tenantScope}::products`);
     if (stored) {

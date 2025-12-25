@@ -1225,15 +1225,16 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       {/* Add/Edit Carousel Modal */}
       {isCarouselModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-              <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-                  <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+                  <div className="p-4 border-b bg-gray-50 flex justify-between items-center sticky top-0">
                       <h3 className="font-bold text-gray-800">{editingCarousel ? 'Edit Carousel' : 'Add New Carousel'}</h3>
                       <button onClick={() => setIsCarouselModalOpen(false)}><X size={20} className="text-gray-500"/></button>
                   </div>
                   <form onSubmit={saveCarouselItem} className="p-6 space-y-4">
+                      {/* Desktop Banner */}
                       <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image*</label>
-                          <p className="text-xs text-gray-500 mb-2">Recommended: {CAROUSEL_WIDTH} × {CAROUSEL_HEIGHT}px. Images will be auto-converted to WebP and resized.</p>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Desktop Banner*</label>
+                          <p className="text-xs text-gray-500 mb-2">Recommended: {CAROUSEL_WIDTH} × {CAROUSEL_HEIGHT}px (4:1 ratio). Auto-converted to WebP.</p>
                           <input type="file" ref={carouselFileRef} onChange={(e) => handleImageUpload(e, 'carousel')} className="hidden" accept="image/*" />
                           <div 
                               onClick={() => carouselFileRef.current?.click()}
@@ -1244,12 +1245,43 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                               ) : (
                                   <div className="text-gray-400 flex flex-col items-center justify-center h-full">
                                       <Upload size={32} className="mb-2"/>
-                                      <p className="text-sm">Click to upload image</p>
+                                      <p className="text-sm">Click to upload desktop banner</p>
                                       <p className="text-xs mt-1">{CAROUSEL_WIDTH} × {CAROUSEL_HEIGHT}px</p>
                                   </div>
                               )}
                           </div>
                       </div>
+                      
+                      {/* Mobile Banner */}
+                      <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Banner (Optional)</label>
+                          <p className="text-xs text-gray-500 mb-2">Recommended: {CAROUSEL_MOBILE_WIDTH} × {CAROUSEL_MOBILE_HEIGHT}px (16:9 ratio). Shows on mobile devices.</p>
+                          <input type="file" ref={carouselMobileFileRef} onChange={(e) => handleImageUpload(e, 'carouselMobile')} className="hidden" accept="image/*" />
+                          <div 
+                              onClick={() => carouselMobileFileRef.current?.click()}
+                              className="border-2 border-dashed border-blue-300 rounded-lg p-2 text-center cursor-pointer hover:bg-blue-50 transition h-28"
+                          >
+                              {carouselFormData.mobileImage ? (
+                                  <div className="relative w-full h-full">
+                                      <img src={normalizeImageUrl(carouselFormData.mobileImage)} alt="Mobile Preview" className="w-full h-full object-cover rounded"/>
+                                      <button 
+                                          type="button"
+                                          onClick={(e) => { e.stopPropagation(); setCarouselFormData(prev => ({ ...prev, mobileImage: '' })); }}
+                                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                      >
+                                          <X size={14} />
+                                      </button>
+                                  </div>
+                              ) : (
+                                  <div className="text-blue-400 flex flex-col items-center justify-center h-full">
+                                      <Upload size={32} className="mb-2"/>
+                                      <p className="text-sm">Click to upload mobile banner</p>
+                                      <p className="text-xs mt-1">{CAROUSEL_MOBILE_WIDTH} × {CAROUSEL_MOBILE_HEIGHT}px</p>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+                      
                       <div className="grid grid-cols-2 gap-4">
                           <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>

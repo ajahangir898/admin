@@ -17,6 +17,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
         .slice(0, MAX_CAROUSEL_ITEMS);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Detect mobile viewport
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Auto-advance carousel
     useEffect(() => {
@@ -30,7 +39,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
     // Preload the first hero image for faster LCP
     useEffect(() => {
         if (!items[0]) return;
-        const href = normalizeImageUrl(items[0].image);
+        const href = normalizeImageUrl(isMobile && items[0].mobileImage ? items[0].mobileImage : items[0].image);
         const link = document.createElement('link');
         link.rel = 'preload';
         link.as = 'image';
@@ -42,7 +51,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
                 document.head.removeChild(link);
             }
         };
-    }, [items]);
+    }, [items, isMobile]);
 
     // Preload next image
     useEffect(() => {
@@ -60,20 +69,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
         setLoadedImages(prev => new Set([...prev, index]));
     }, []);
 
+    // Get the appropriate image for current viewport
+    const getImageSrc = (item: CarouselItem) => {
+        if (isMobile && item.mobileImage) {
+            return normalizeImageUrl(item.mobileImage);
+        }
+        return normalizeImageUrl(item.image);
+    };
+
     if (items.length === 0) return null;
 
     // Show skeleton until first image loads
     const showSkeleton = loadedImages.size === 0;
 
     return (
-        <div className="max-w-7xl mx-auto px-0 mt-4">
+        <div className="max-w-7xl mx-auto px-4 mt-4">
             {showSkeleton && <HeroSkeleton />}
-            {/* Full Width Carousel - responsive aspect ratio for mobile */}
-            <div className={`relative w-full aspect-[3/1] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gray-100 ${showSkeleton ? 'hidden' : ''}`}>
+            {/* Full Width Carousel - different aspect ratio for mobile when mobile image exists */}
+            <div className={`relative w-full ${isMobile && items.some(i => i.mobileImage) ? 'aspect-[16/9]' : 'aspect-[3/1] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1]'} rounded-xl overflow-hidden shadow-lg group bg-gray-100 ${showSkeleton ? 'hidden' : ''}`}>
                 {items.map((item, index) => {
                     const isActive = index === currentIndex;
                     const shouldLoad = loadedImages.has(index) || isActive;
-                    const normalized = normalizeImageUrl(item.image);
+                    const imageSrc = getImageSrc(item);
+                    const hasMobileImage = isMobile && item.mobileImage;
                     return (
                         <a
                             href={item.url || '#'}
@@ -82,13 +100,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
                         >
                             {shouldLoad && (
                                 <OptimizedImage
-                                    src={normalized}
+                                    src={imageSrc}
                                     alt={item.name}
-                                    width={1600}
-                                    height={400}
+                                    width={hasMobileImage ? 800 : 1600}
+                                    height={hasMobileImage ? 450 : 400}
                                     priority={index === 0}
                                     placeholder="blur"
-                                    objectFit="contain"
+                                    objectFit={hasMobileImage ? "cover" : "contain"}
                                     className="w-full h-full"
                                     onLoad={() => handleImageLoad(index)}
                                 />

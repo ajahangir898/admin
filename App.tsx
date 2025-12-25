@@ -50,6 +50,11 @@ import {
   ACTIVE_TENANT_STORAGE_KEY,
   DEFAULT_TENANT_SLUG,
 } from './utils/appHelpers';
+
+// Check if we're on the admin subdomain
+const isAdminSubdomain = typeof window !== 'undefined' && 
+  (window.location.hostname === 'admin.systemnextit.com' || 
+   window.location.hostname.startsWith('admin.'));
 import { useChat } from './hooks/useChat';
 import { useCart } from './hooks/useCart';
 import { useAuth } from './hooks/useAuth';
@@ -95,6 +100,10 @@ if (typeof window !== 'undefined') {
 }
 
 const App = () => {
+  // === ADMIN SUBDOMAIN HANDLING ===
+  // If on admin subdomain, start with admin-login view
+  const initialView = isAdminSubdomain ? 'admin-login' : 'store';
+  
   // === LOADING STATE ===
   // Start with false if we have cached data to show content immediately
   const [isLoading, setIsLoading] = useState(false);
@@ -280,7 +289,8 @@ const App = () => {
   useEffect(() => {
     if (!user) {
       if (currentViewRef.current.startsWith('admin')) {
-        setCurrentView('store');
+        // On admin subdomain, go to login; otherwise go to store
+        setCurrentView(isAdminSubdomain ? 'admin-login' : 'store');
         setAdminSection('dashboard');
       }
       return;
@@ -291,7 +301,8 @@ const App = () => {
       setActiveTenantId(resolvedTenantId);
     }
 
-    if (isAdminRole(user.role) && !currentViewRef.current.startsWith('admin')) {
+    // Only allow admin access on admin subdomain
+    if (isAdminRole(user.role) && !currentViewRef.current.startsWith('admin') && isAdminSubdomain) {
       setCurrentView('admin');
       setAdminSection('dashboard');
     }

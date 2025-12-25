@@ -8,13 +8,19 @@ import { isAdminRole } from '../utils/appHelpers';
 
 export type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search' | 'admin-login';
 
+// Check if we're on the admin subdomain
+const isAdminSubdomain = typeof window !== 'undefined' && 
+  (window.location.hostname === 'admin.systemnextit.com' || 
+   window.location.hostname.startsWith('admin.'));
+
 interface UseNavigationOptions {
   products: Product[];
   user: User | null;
 }
 
 export function useNavigation({ products, user }: UseNavigationOptions) {
-  const [currentView, setCurrentView] = useState<ViewState>('store');
+  // Start with admin-login if on admin subdomain, otherwise store
+  const [currentView, setCurrentView] = useState<ViewState>(isAdminSubdomain ? 'admin-login' : 'store');
   const [adminSection, setAdminSection] = useState('dashboard');
   const [urlCategoryFilter, setUrlCategoryFilter] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -74,6 +80,13 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
 
     if (!trimmedPath) {
       setUrlCategoryFilter(null);
+      // On admin subdomain, stay on admin-login if not logged in
+      if (isAdminSubdomain) {
+        if (!activeView.startsWith('admin') && activeView !== 'admin-login') {
+          setCurrentView('admin-login');
+        }
+        return;
+      }
       if (!activeView.startsWith('admin')) {
         setSelectedProduct(null);
         setCurrentView('store');
@@ -82,11 +95,14 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
     }
 
     if (trimmedPath === 'admin') {
-      if (isAdminRole(activeUser?.role)) {
+      // Only allow admin access on admin subdomain
+      if (isAdminSubdomain && isAdminRole(activeUser?.role)) {
         setCurrentView('admin');
+      } else if (!isAdminSubdomain) {
+        // Redirect to admin subdomain
+        window.location.href = 'https://admin.systemnextit.com';
       } else {
-        window.history.replaceState({}, '', '/');
-        if (!activeView.startsWith('admin')) setCurrentView('store');
+        setCurrentView('admin-login');
       }
       return;
     }

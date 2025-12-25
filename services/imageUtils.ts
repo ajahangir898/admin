@@ -23,8 +23,12 @@ export const CAROUSEL_HEIGHT = 330;
 export const CAROUSEL_MOBILE_WIDTH = 800;
 export const CAROUSEL_MOBILE_HEIGHT = 450;
 
+// Product image fixed dimensions: 800 x 800 pixels (1:1 square)
+export const PRODUCT_IMAGE_WIDTH = 800;
+export const PRODUCT_IMAGE_HEIGHT = 800;
+
 // Product image target size
-export const PRODUCT_IMAGE_TARGET_KB = 32; // Target ~30-35KB
+export const PRODUCT_IMAGE_TARGET_KB = 25; // Target under 25KB
 
 const fileToDataUrl = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -159,7 +163,113 @@ export const dataUrlToFile = (dataUrl: string, fileName: string): File => {
 };
 
 /**
- * Compresses a product image to target size (~30-35KB) for faster page loads.
+ * Converts and resizes image to fixed square dimensions for product images.
+ * Output: 800 x 800 pixels (1:1 square), WebP format, under 25KB.
+ * The image is center-cropped to fit the exact square dimensions.
+ */
+export const convertProductImage = async (file: File): Promise<File> => {
+  const originalDataUrl = await fileToDataUrl(file);
+  const targetSizeBytes = PRODUCT_IMAGE_TARGET_KB * 1024;
+  
+  try {
+    const img = await loadImage(originalDataUrl);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Canvas context unavailable.');
+    }
+
+    // Set exact square dimensions
+    canvas.width = PRODUCT_IMAGE_WIDTH;
+    canvas.height = PRODUCT_IMAGE_HEIGHT;
+
+    // Fill with white background (for transparent images)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, PRODUCT_IMAGE_WIDTH, PRODUCT_IMAGE_HEIGHT);
+
+    // Calculate center crop to make square
+    let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+    
+    if (img.width > img.height) {
+      // Landscape - crop sides
+      srcW = img.height;
+      srcX = (img.width - srcW) / 2;
+    } else if (img.height > img.width) {
+      // Portrait - crop top/bottom
+      srcH = img.width;
+      srcY = (img.height - srcH) / 2;
+    }
+    // Square images - no crop needed
+
+    // Draw the center-cropped image scaled to exact dimensions
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, PRODUCT_IMAGE_WIDTH, PRODUCT_IMAGE_HEIGHT);
+
+    // Binary search for optimal quality to reach target size (under 25KB)
+    let minQ = 0.2;
+    let maxQ = 0.85;
+    let bestDataUrl = canvas.toDataURL('image/webp', maxQ);
+    let bestSize = getDataUrlSize(bestDataUrl);
+    
+    // If already under target, use high quality
+    if (bestSize <= targetSizeBytes) {
+      console.log(`[ProductImage] Already under target: ${(bestSize / 1024).toFixed(1)}KB`);
+      const newFileName = file.name.replace(/\.[^.]+$/, '.webp');
+      return dataUrlToFile(bestDataUrl, newFileName);
+    }
+
+    // Iterative quality reduction to find optimal size under 25KB
+    for (let i = 0; i < 12; i++) {
+      const midQ = (minQ + maxQ) / 2;
+      const testDataUrl = canvas.toDataURL('image/webp', midQ);
+      const testSize = getDataUrlSize(testDataUrl);
+      
+      if (testSize <= targetSizeBytes) {
+        bestDataUrl = testDataUrl;
+        bestSize = testSize;
+        minQ = midQ; // Try higher quality
+      } else {
+        maxQ = midQ; // Need lower quality
+      }
+      
+      // Close enough to target
+      if (testSize <= targetSizeBytes && testSize > targetSizeBytes * 0.8) {
+        bestDataUrl = testDataUrl;
+        bestSize = testSize;
+        break;
+      }
+    }
+
+    // If still too large, reduce dimensions
+    if (bestSize > targetSizeBytes) {
+      let scale = 0.9;
+      while (bestSize > targetSizeBytes && scale > 0.5) {
+        const newSize = Math.round(PRODUCT_IMAGE_WIDTH * scale);
+        canvas.width = newSize;
+        canvas.height = newSize;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, newSize, newSize);
+        ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, newSize, newSize);
+        
+        bestDataUrl = canvas.toDataURL('image/webp', 0.6);
+        bestSize = getDataUrlSize(bestDataUrl);
+        scale -= 0.1;
+      }
+    }
+
+    console.log(`[ProductImage] Fixed size: ${PRODUCT_IMAGE_WIDTH}x${PRODUCT_IMAGE_HEIGHT}, ${(bestSize / 1024).toFixed(1)}KB`);
+    
+    const newFileName = file.name.replace(/\.[^.]+$/, '.webp');
+    return dataUrlToFile(bestDataUrl, newFileName);
+    
+  } catch (error) {
+    console.warn('Product image conversion failed, returning original.', error);
+    return file;
+  }
+};
+
+/**
+ * Compresses a product image to target size (~25KB) for faster page loads.
  * Uses iterative quality reduction to achieve optimal file size.
  * Returns a compressed File object ready for upload.
  */

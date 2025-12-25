@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2, FileEdit } from 'lucide-react';
-import { convertFileToWebP, compressProductImage } from '../services/imageUtils';
+import { convertFileToWebP, compressProductImage, convertProductImage } from '../services/imageUtils';
 import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
 import { formatCurrency } from '../utils/format';
@@ -754,16 +754,13 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         }
 
         try {
-          // Compress image to ~30-35KB for faster page loads
+          // Convert to fixed 800x800 square and compress to under 25KB
           toast.loading(
-            `Compressing ${i + 1}/${files.length}...`,
+            `Processing ${i + 1}/${files.length}...`,
             { id: loadingToast }
           );
-          const compressedFile = await compressProductImage(file, { 
-            targetSizeKB: 32, 
-            maxDimension: 800 
-          });
-          console.log(`[ProductImage] Compressed: ${(file.size / 1024).toFixed(1)}KB → ${(compressedFile.size / 1024).toFixed(1)}KB`);
+          const compressedFile = await convertProductImage(file);
+          console.log(`[ProductImage] Processed: ${(file.size / 1024).toFixed(1)}KB → ${(compressedFile.size / 1024).toFixed(1)}KB (800x800)`);
           
           // Upload compressed image to server
           toast.loading(

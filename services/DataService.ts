@@ -468,15 +468,34 @@ class DataServiceImpl {
     console.log(`[DataService] Bootstrap loading for tenant: ${scope}${isBackground ? ' (background)' : ''}`);
 
     try {
-      const response = await this.requestTenantApi<{
-        data: {
-          products: Product[] | null;
-          theme_config: ThemeConfig | null;
-          website_config: WebsiteConfig | null;
-        };
-      }>(`/api/tenant-data/${scope}/bootstrap`);
+      // Check if we have prefetched data from entry-client.tsx
+      let responseData: { data: { products: Product[] | null; theme_config: ThemeConfig | null; website_config: WebsiteConfig | null } } | null = null;
       
-      const { products, theme_config, website_config } = response.data;
+      if (!isBackground && typeof window !== 'undefined' && (window as any).__PREFETCHED_BOOTSTRAP__) {
+        try {
+          const prefetched = await (window as any).__PREFETCHED_BOOTSTRAP__;
+          if (prefetched?.data) {
+            console.log('[DataService] Using prefetched bootstrap data');
+            responseData = prefetched;
+            // Clear prefetch to avoid reuse
+            delete (window as any).__PREFETCHED_BOOTSTRAP__;
+          }
+        } catch (e) {
+          console.warn('[DataService] Prefetch failed, fetching fresh');
+        }
+      }
+      
+      if (!responseData) {
+        responseData = await this.requestTenantApi<{
+          data: {
+            products: Product[] | null;
+            theme_config: ThemeConfig | null;
+            website_config: WebsiteConfig | null;
+          };
+        }>(`/api/tenant-data/${scope}/bootstrap`);
+      }
+      
+      const { products, theme_config, website_config } = responseData.data;
 
       // Cache the results for subsequent fast loads
       if (products) setCachedData('products', products, tenantId);

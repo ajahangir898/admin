@@ -15,7 +15,6 @@ const ONE_WEEK = 604800; // 1 week in seconds
 
 // Pre-cache templates in production for instant response
 let cachedTemplate = null;
-let cachedRender = null;
 let criticalAssets = []; // Cache critical asset paths for Early Hints
 
 // Set cache headers based on file type and whether it's hashed
@@ -66,9 +65,8 @@ async function createServer() {
     });
     app.use(vite.middlewares);
   } else {
-    // Production: pre-cache template and render function at startup
+    // Production: pre-cache template at startup
     cachedTemplate = fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8');
-    cachedRender = (await import('./dist/server/entry-server.js')).render;
     
     // Extract critical asset paths for Early Hints
     const modulePreloadRegex = /<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"[^>]*>/gi;
@@ -91,26 +89,20 @@ async function createServer() {
     }));
   }
 
-  // Handle all routes with SSR
+  // Handle all routes - serve static HTML (no SSR to avoid hydration issues)
   app.use('*', async (req, res, next) => {
-    const url = req.originalUrl;
-
     try {
       let template;
-      let render;
 
       if (!isProduction) {
         // Development: read and transform HTML on the fly
         template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
-        template = await vite.transformIndexHtml(url, template);
-        render = (await vite.ssrLoadModule('/entry-server.tsx')).render;
+        template = await vite.transformIndexHtml(req.originalUrl, template);
       } else {
-        // Production: use pre-cached template and render (zero I/O)
+        // Production: use pre-cached template (zero I/O)
         template = cachedTemplate;
-        render = cachedRender;
         
         // Send Early Hints (103) for critical resources - parallel preloading
-        // This tells browser to start fetching before HTML is ready
         if (criticalAssets.length > 0 && res.writeEarlyHints) {
           const linkHeaders = criticalAssets.map(({ path, type }) => {
             if (type === 'script') {
@@ -122,16 +114,7 @@ async function createServer() {
         }
       }
 
-      // Render the app to HTML
-      const { html: appHtml } = render();
-
-      // Inject the rendered HTML into the template
-      const finalHtml = template.replace(
-        /<div id="root">[\s\S]*?<\/div>/,
-        `<div id="root">${appHtml}</div>`
-      );
-
-      // Send response with optimized headers
+      // Send static HTML - React will hydrate on client side
       res.status(200)
         .set({
           'Content-Type': 'text/html; charset=utf-8',
@@ -139,22 +122,13 @@ async function createServer() {
           'X-Content-Type-Options': 'nosniff',
           'Vary': 'Accept-Encoding'
         })
-        .end(finalHtml);
+        .end(template);
     } catch (e) {
-      // In development, let Vite fix the stack trace
       if (!isProduction && vite) {
         vite.ssrFixStacktrace(e);
       }
-      console.error('SSR Error:', e.message);
-      console.error(e.stack);
-      // Don't crash the server, return error page
-      res.status(500).send(`
-        <!DOCTYPE html>
-        <html><body>
-          <h1>Server Error</h1>
-          <pre>${e.message}</pre>
-        </body></html>
-      `);
+      console.error('Server Error:', e.message);
+      next(e);
     }
   });
 

@@ -124,8 +124,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
 				) : (
 					<h2 className="text-2xl font-black tracking-widest">
-						<span style={{ color: 'var(--admin-text, white)' }}>GADGET</span>
-						<span style={{ color: 'var(--admin-accent-secondary, #ef4444)' }}>SHOB</span>
+						<span style={{ color: 'var(--admin-text, white, #054f77ff)' }}>YOUR</span>
+						<span style={{ color: 'var(--admin-accent-secondary, #054f77ff)' }}>SHOP</span>
 					</h2>
 				)}
 				<button onClick={onClose} className="lg:hidden p-2 rounded-full transition" style={{ color: 'var(--admin-text-muted, #cbd5e1)' }}>

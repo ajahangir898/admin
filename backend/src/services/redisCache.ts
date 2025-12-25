@@ -11,7 +11,7 @@ const getRedis = (): Redis | null => {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   
   if (!url || !token) {
-    console.warn('[Redis] Upstash credentials not configured, falling back to in-memory cache');
+    console.warn('[Redis] Upstash credentials not configured, using in-memory only');
     return null;
   }
   
@@ -28,31 +28,36 @@ const getRedis = (): Redis | null => {
 // Compression helpers for large data
 const compress = (data: unknown): string => {
   const json = JSON.stringify(data);
-  const compressed = gzipSync(json).toString('base64');
-  return compressed;
+  return gzipSync(json).toString('base64');
 };
 
 const decompress = <T>(data: string): T => {
   const buffer = Buffer.from(data, 'base64');
-  const decompressed = gunzipSync(buffer).toString('utf-8');
-  return JSON.parse(decompressed) as T;
+  return JSON.parse(gunzipSync(buffer).toString('utf-8')) as T;
 };
 
-// Cache TTL in seconds
-const CACHE_TTL_SECONDS = 300; // 5 minutes (longer than in-memory since Redis is persistent)
+// Cache TTL
+const REDIS_TTL_SECONDS = 300; // 5 minutes in Redis
+const MEMORY_TTL_MS = 5 * 60 * 1000; // 5 minutes in-memory (L1 cache)
 
-// In-memory fallback cache
+// L1 In-memory cache (instant, same process)
 type CacheEntry = { data: unknown; timestamp: number };
 const memoryCache = new Map<string, CacheEntry>();
-const MEMORY_CACHE_TTL_MS = 60 * 1000; // 1 minute for in-memory
 
 /**
- * Get cached data from Redis (with in-memory fallback)
- * Uses gzip compression for faster network transfer
+ * Get cached data - L1 memory first (instant), then L2 Redis
  */
 export const getCached = async <T>(key: string): Promise<T | null> => {
+  // L1: Check in-memory cache first (instant - no network)
+  const memEntry = memoryCache.get(key);
+  if (memEntry && Date.now() - memEntry.timestamp <= MEMORY_TTL_MS) {
+    console.log(`[L1] HIT ${key}`);
+    return memEntry.data as T;
+  }
+  if (memEntry) memoryCache.delete(key);
+
+  // L2: Check Redis (network call - slower but persistent)
   const client = getRedis();
-  
   if (client) {
     try {
       const startTime = Date.now();
@@ -60,85 +65,58 @@ export const getCached = async <T>(key: string): Promise<T | null> => {
       const duration = Date.now() - startTime;
       
       if (compressed !== null) {
+        let data: T;
         try {
-          const data = decompress<T>(compressed);
-          console.log(`[Redis] HIT for ${key} (${duration}ms, compressed)`);
-          return data;
+          data = decompress<T>(compressed);
         } catch {
-          // Fallback for uncompressed data (backward compatibility)
-          console.log(`[Redis] HIT for ${key} (${duration}ms, uncompressed)`);
-          return compressed as unknown as T;
+          data = compressed as unknown as T; // backward compatibility
         }
+        
+        // Populate L1 cache for instant next request
+        memoryCache.set(key, { data, timestamp: Date.now() });
+        console.log(`[L2] HIT ${key} (${duration}ms) -> cached in L1`);
+        return data;
       }
-      console.log(`[Redis] MISS for ${key} (${duration}ms)`);
-      return null;
+      console.log(`[L2] MISS ${key} (${duration}ms)`);
     } catch (error) {
       console.error('[Redis] Get error:', error);
-      // Fall through to memory cache
     }
   }
   
-  // Fallback to memory cache
-  const entry = memoryCache.get(key);
-  if (entry && Date.now() - entry.timestamp <= MEMORY_CACHE_TTL_MS) {
-    console.log(`[MemCache] HIT for ${key}`);
-    return entry.data as T;
-  }
-  if (entry) memoryCache.delete(key);
-  console.log(`[MemCache] MISS for ${key}`);
   return null;
 };
 
 /**
- * Set cached data in Redis (with in-memory fallback)
- * Uses gzip compression for faster network transfer
+ * Set cached data in both L1 memory and L2 Redis
  */
 export const setCached = async <T>(key: string, data: T): Promise<void> => {
-  const client = getRedis();
+  // Always set L1 memory cache (instant access)
+  memoryCache.set(key, { data, timestamp: Date.now() });
   
+  // Also set L2 Redis (persistent, shared across restarts)
+  const client = getRedis();
   if (client) {
     try {
       const compressed = compress(data);
       const originalSize = JSON.stringify(data).length;
       const compressedSize = compressed.length;
-      await client.set(key, compressed, { ex: CACHE_TTL_SECONDS });
-      console.log(`[Redis] SET ${key} (TTL: ${CACHE_TTL_SECONDS}s, ${originalSize} -> ${compressedSize} bytes, ${Math.round((1 - compressedSize/originalSize) * 100)}% smaller)`);
-      return;
+      const ratio = Math.round((1 - compressedSize/originalSize) * 100);
+      await client.set(key, compressed, { ex: REDIS_TTL_SECONDS });
+      console.log(`[Cache] SET ${key} (${originalSize}→${compressedSize} bytes, -${ratio}%)`);
     } catch (error) {
       console.error('[Redis] Set error:', error);
-      // Fall through to memory cache
     }
   }
-  
-  // Fallback to memory cache
-  memoryCache.set(key, { data, timestamp: Date.now() });
-  console.log(`[MemCache] SET ${key}`);
 };
 
 /**
  * Invalidate cached data by pattern
  */
 export const invalidateCache = async (pattern: string): Promise<number> => {
-  const client = getRedis();
   let count = 0;
   
-  if (client) {
-    try {
-      // Upstash doesn't support KEYS command well, so we use SCAN
-      // For now, just delete the specific key pattern we know
-      const keys = await client.keys(pattern);
-      if (keys.length > 0) {
-        await client.del(...keys);
-        count = keys.length;
-        console.log(`[Redis] Invalidated ${count} keys matching ${pattern}`);
-      }
-    } catch (error) {
-      console.error('[Redis] Invalidate error:', error);
-    }
-  }
-  
-  // Also clear memory cache entries matching pattern
-  const regex = new RegExp(pattern.replace('*', '.*'));
+  // Clear L1 memory cache
+  const regex = new RegExp(pattern.replace(/\*/g, '.*'));
   for (const key of memoryCache.keys()) {
     if (regex.test(key)) {
       memoryCache.delete(key);
@@ -146,6 +124,21 @@ export const invalidateCache = async (pattern: string): Promise<number> => {
     }
   }
   
+  // Clear L2 Redis cache
+  const client = getRedis();
+  if (client) {
+    try {
+      const keys = await client.keys(pattern);
+      if (keys.length > 0) {
+        await client.del(...keys);
+        count += keys.length;
+      }
+    } catch (error) {
+      console.error('[Redis] Invalidate error:', error);
+    }
+  }
+  
+  console.log(`[Cache] Invalidated ${count} keys for ${pattern}`);
   return count;
 };
 
@@ -153,6 +146,5 @@ export const invalidateCache = async (pattern: string): Promise<number> => {
  * Invalidate all cache for a tenant
  */
 export const invalidateTenantCache = async (tenantId: string): Promise<void> => {
-  const count = await invalidateCache(`bootstrap:${tenantId}*`);
-  console.log(`[Cache] Invalidated ${count} entries for tenant ${tenantId}`);
+  await invalidateCache(`bootstrap:${tenantId}*`);
 };

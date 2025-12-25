@@ -14,6 +14,7 @@ interface AdminBusinessReportProps {
   products?: Product[];
   user?: User | null;
   onLogout?: () => void;
+  tenantId?: string;
 }
 
 const AdminBusinessReport: React.FC<AdminBusinessReportProps> = ({
@@ -22,6 +23,7 @@ const AdminBusinessReport: React.FC<AdminBusinessReportProps> = ({
   products = [],
   user,
   onLogout,
+  tenantId,
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -84,7 +86,7 @@ const AdminBusinessReport: React.FC<AdminBusinessReportProps> = ({
           {activeTab === 'income' && <AdminIncome />}
           {activeTab === 'due_book' && <AdminDueList user={user} onLogout={onLogout} />}
           {activeTab === 'profit_loss' && <AdminProfitLoss orders={orders} products={products} />}
-          {activeTab === 'note' && <AdminNote />}
+          {activeTab === 'note' && <AdminNote tenantId={tenantId} />}
         </Suspense>
       </div>
     </div>

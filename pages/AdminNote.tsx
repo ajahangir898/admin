@@ -11,6 +11,10 @@ interface NoteItem {
   color?: string;
 }
 
+interface AdminNoteProps {
+  tenantId?: string;
+}
+
 const NOTE_COLORS = [
   { name: 'Default', value: '#1e1e2e' },
   { name: 'Yellow', value: '#3d3a1d' },
@@ -22,7 +26,14 @@ const NOTE_COLORS = [
 
 const NOTE_CATEGORIES = ['General', 'Important', 'Reminder', 'Business', 'Personal', 'Todo'];
 
-const AdminNote: React.FC = () => {
+// Get tenant-specific notes storage key
+const getNotesStorageKey = (tenantId?: string) => {
+  if (!tenantId) return 'admin_notes';
+  return `admin_notes_${tenantId}`;
+};
+
+const AdminNote: React.FC<AdminNoteProps> = ({ tenantId }) => {
+  const notesStorageKey = useMemo(() => getNotesStorageKey(tenantId), [tenantId]);
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -33,24 +44,27 @@ const AdminNote: React.FC = () => {
   const [page, setPage] = useState(1);
   const pageSize = 12;
 
-  // Load notes from localStorage
+  // Load notes from localStorage (tenant-specific)
   useEffect(() => {
     setLoading(true);
     try {
-      const saved = localStorage.getItem('admin_notes');
+      const saved = localStorage.getItem(notesStorageKey);
       if (saved) {
         setNotes(JSON.parse(saved));
+      } else {
+        setNotes([]);
       }
     } catch (e) {
       console.error('Failed to load notes:', e);
+      setNotes([]);
     }
     setLoading(false);
-  }, []);
+  }, [notesStorageKey]);
 
-  // Save notes to localStorage
+  // Save notes to localStorage (tenant-specific)
   const saveNotes = (updatedNotes: NoteItem[]) => {
     setNotes(updatedNotes);
-    localStorage.setItem('admin_notes', JSON.stringify(updatedNotes));
+    localStorage.setItem(notesStorageKey, JSON.stringify(updatedNotes));
   };
 
   const filtered = useMemo(() => {

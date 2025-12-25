@@ -191,7 +191,7 @@ const App = () => {
   } = chat;
 
   // === CART (from useCart hook) ===
-  const cart = useCart({ user, products });
+  const cart = useCart({ user, products, tenantId: activeTenantId });
   const { cartItems, handleCartToggle, handleAddProductToCart } = cart;
 
   // === AUTH (from useAuth hook) ===

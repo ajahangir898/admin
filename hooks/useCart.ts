@@ -2,7 +2,7 @@
  * useCart - Cart state and handlers extracted from App.tsx
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Product, User, ProductVariantSelection } from '../types';
 import { DataService } from '../services/DataService';
 import { toast } from 'react-hot-toast';
@@ -11,13 +11,22 @@ import { CART_STORAGE_KEY, ensureVariantSelection } from '../utils/appHelpers';
 interface UseCartOptions {
   user: User | null;
   products: Product[];
+  tenantId?: string;
 }
 
-export function useCart({ user, products }: UseCartOptions) {
+// Get tenant-specific cart storage key
+const getCartStorageKey = (tenantId?: string) => {
+  if (!tenantId) return CART_STORAGE_KEY;
+  return `${CART_STORAGE_KEY}-${tenantId}`;
+};
+
+export function useCart({ user, products, tenantId }: UseCartOptions) {
+  const cartStorageKey = useMemo(() => getCartStorageKey(tenantId), [tenantId]);
+  
   const [cartItems, setCartItems] = useState<number[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
-      const stored = window.localStorage.getItem(CART_STORAGE_KEY);
+      const stored = window.localStorage.getItem(cartStorageKey);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
       console.warn('Unable to parse stored cart', error);
@@ -25,15 +34,27 @@ export function useCart({ user, products }: UseCartOptions) {
     }
   });
 
+  // Re-load cart when tenant changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem(cartStorageKey);
+      setCartItems(stored ? JSON.parse(stored) : []);
+    } catch (error) {
+      console.warn('Unable to parse stored cart', error);
+      setCartItems([]);
+    }
+  }, [cartStorageKey]);
+
   // Persist cart to localStorage
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      window.localStorage.setItem(cartStorageKey, JSON.stringify(cartItems));
     } catch (error) {
       console.warn('Unable to persist cart locally', error);
     }
-  }, [cartItems]);
+  }, [cartItems, cartStorageKey]);
 
   // Load cart from server when user logs in
   useEffect(() => {

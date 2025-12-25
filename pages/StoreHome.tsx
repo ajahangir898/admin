@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMem
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import type { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
 import type { SortOption } from '../components/ProductFilter';
+import { getInitialCachedData } from '../utils/appHelpers';
 
 // Lazy load utilities - only import when needed
 const getSlugify = () => import('../services/slugify').then(m => m.slugify);
@@ -24,7 +25,6 @@ const StoreCategoryProducts = lazy(() => import('../components/StoreCategoryProd
 const PromoBanner = lazy(() => import('../components/store/PromoBanner').then(m => ({ default: m.PromoBanner })));
 const SearchResultsSection = lazy(() => import('../components/store/SearchResultsSection').then(m => ({ default: m.SearchResultsSection })));
 
-const POPUP_CACHE_KEY = 'ds_cache_public::popups';
 const LOCAL_CACHE_TTL_MS = 5 * 60 * 1000;
 
 // Deferred utility functions - only called when needed
@@ -150,15 +150,12 @@ const StoreHome = ({
     const loadAndShowPopups = async () => {
       if (!isMounted) return;
       
-      // Read from cache first
+      // Read from tenant-aware cache first
       let popupList: Popup[] = [];
       try {
-        const cached = localStorage.getItem(POPUP_CACHE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached) as { data?: Popup[]; timestamp?: number };
-          if (parsed?.data?.length && Date.now() - (parsed.timestamp || 0) < LOCAL_CACHE_TTL_MS) {
-            popupList = parsed.data.filter((p: Popup) => p.status?.toLowerCase() === 'publish');
-          }
+        const cachedPopups = getInitialCachedData<Popup[]>('popups', []);
+        if (cachedPopups.length > 0) {
+          popupList = cachedPopups.filter((p: Popup) => p.status?.toLowerCase() === 'publish');
         }
       } catch {}
 

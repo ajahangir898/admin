@@ -572,7 +572,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
              />
            : <AdminDashboard orders={orders} products={products} />) :
          adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} onNavigate={setAdminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
-         adminSection.startsWith('business_report_') ? <AdminBusinessReport initialTab={adminSection} orders={orders} products={products} user={user} onLogout={onLogout} /> :
+         adminSection.startsWith('business_report_') ? <AdminBusinessReport initialTab={adminSection} orders={orders} products={products} user={user} onLogout={onLogout} tenantId={activeTenantId} /> :
          <AdminCustomization logo={logo} onUpdateLogo={onUpdateLogo} themeConfig={themeConfig} onUpdateTheme={onUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={onUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />
         }
       </Suspense>

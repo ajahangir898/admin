@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { gzipSync, gunzipSync } from 'zlib';
 
 // Initialize Redis client (lazy - only when first used)
 let redis: Redis | null = null;
@@ -24,6 +25,19 @@ const getRedis = (): Redis | null => {
   }
 };
 
+// Compression helpers for large data
+const compress = (data: unknown): string => {
+  const json = JSON.stringify(data);
+  const compressed = gzipSync(json).toString('base64');
+  return compressed;
+};
+
+const decompress = <T>(data: string): T => {
+  const buffer = Buffer.from(data, 'base64');
+  const decompressed = gunzipSync(buffer).toString('utf-8');
+  return JSON.parse(decompressed) as T;
+};
+
 // Cache TTL in seconds
 const CACHE_TTL_SECONDS = 300; // 5 minutes (longer than in-memory since Redis is persistent)
 
@@ -34,6 +48,7 @@ const MEMORY_CACHE_TTL_MS = 60 * 1000; // 1 minute for in-memory
 
 /**
  * Get cached data from Redis (with in-memory fallback)
+ * Uses gzip compression for faster network transfer
  */
 export const getCached = async <T>(key: string): Promise<T | null> => {
   const client = getRedis();
@@ -41,12 +56,19 @@ export const getCached = async <T>(key: string): Promise<T | null> => {
   if (client) {
     try {
       const startTime = Date.now();
-      const data = await client.get<T>(key);
+      const compressed = await client.get<string>(key);
       const duration = Date.now() - startTime;
       
-      if (data !== null) {
-        console.log(`[Redis] HIT for ${key} (${duration}ms)`);
-        return data;
+      if (compressed !== null) {
+        try {
+          const data = decompress<T>(compressed);
+          console.log(`[Redis] HIT for ${key} (${duration}ms, compressed)`);
+          return data;
+        } catch {
+          // Fallback for uncompressed data (backward compatibility)
+          console.log(`[Redis] HIT for ${key} (${duration}ms, uncompressed)`);
+          return compressed as unknown as T;
+        }
       }
       console.log(`[Redis] MISS for ${key} (${duration}ms)`);
       return null;
@@ -69,14 +91,18 @@ export const getCached = async <T>(key: string): Promise<T | null> => {
 
 /**
  * Set cached data in Redis (with in-memory fallback)
+ * Uses gzip compression for faster network transfer
  */
 export const setCached = async <T>(key: string, data: T): Promise<void> => {
   const client = getRedis();
   
   if (client) {
     try {
-      await client.set(key, data, { ex: CACHE_TTL_SECONDS });
-      console.log(`[Redis] SET ${key} (TTL: ${CACHE_TTL_SECONDS}s)`);
+      const compressed = compress(data);
+      const originalSize = JSON.stringify(data).length;
+      const compressedSize = compressed.length;
+      await client.set(key, compressed, { ex: CACHE_TTL_SECONDS });
+      console.log(`[Redis] SET ${key} (TTL: ${CACHE_TTL_SECONDS}s, ${originalSize} -> ${compressedSize} bytes, ${Math.round((1 - compressedSize/originalSize) * 100)}% smaller)`);
       return;
     } catch (error) {
       console.error('[Redis] Set error:', error);

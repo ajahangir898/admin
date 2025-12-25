@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import { 
   sanitizeSubdomainSlug, 
   getHostTenantSlug, 
+  getCachedTenantIdForSubdomain,
   SESSION_STORAGE_KEY,
   ACTIVE_TENANT_STORAGE_KEY,
   DEFAULT_TENANT_SLUG 
@@ -26,11 +27,15 @@ export function useTenant() {
   const [hostTenantSlug] = useState<string | null>(initialHostTenantSlug);
   const [hostTenantId, setHostTenantId] = useState<string | null>(null);
   
-  // Initialize activeTenantId
+  // Initialize activeTenantId - try to use cached subdomain tenant ID for instant render
   const [activeTenantId, setActiveTenantId] = useState<string>(() => {
-    // If we have a subdomain, ALWAYS defer to subdomain resolution
-    // Don't use cached tenant ID as it may be from a different subdomain
+    // If we have a subdomain, check if we have a cached tenant ID for it
     if (initialHostTenantSlug && initialHostTenantSlug !== DEFAULT_TENANT_SLUG) {
+      const cachedTenantId = getCachedTenantIdForSubdomain(initialHostTenantSlug);
+      if (cachedTenantId) {
+        // Use cached tenant ID for instant render!
+        return cachedTenantId;
+      }
       return ''; // Defer bootstrap until tenant resolved from slug
     }
     

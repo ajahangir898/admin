@@ -45,6 +45,7 @@ import {
   sanitizeSubdomainSlug,
   getHostTenantSlug,
   hexToRgb,
+  setCachedTenantIdForSubdomain,
   SESSION_STORAGE_KEY,
   ACTIVE_TENANT_STORAGE_KEY,
   DEFAULT_TENANT_SLUG,
@@ -319,6 +320,8 @@ const App = () => {
           
           if (resolved?.id) {
             resolvedTenantId = resolved.id;
+            // Cache tenant ID for this subdomain - enables instant cache hits on next visit!
+            setCachedTenantIdForSubdomain(sanitizedSlug, resolved.id);
             setActiveTenantId(resolvedTenantId);
             setHostTenantId(resolved.id);
             console.log(`[Perf] Tenant resolved by subdomain in ${(performance.now() - startTime).toFixed(0)}ms`);

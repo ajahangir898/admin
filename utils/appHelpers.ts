@@ -138,6 +138,31 @@ export function normalizeProductCollection(items: Product[], tenantId?: string):
 
 // --- Cache utilities ---
 
+// Cache key for subdomain -> tenant ID mapping
+const SUBDOMAIN_TENANT_CACHE_KEY = 'ds_subdomain_tenant_';
+
+/**
+ * Get cached tenant ID for a subdomain - enables instant cache hits on subdomains
+ */
+export function getCachedTenantIdForSubdomain(subdomain: string): string | null {
+  if (typeof window === 'undefined' || !subdomain) return null;
+  try {
+    const cached = localStorage.getItem(SUBDOMAIN_TENANT_CACHE_KEY + subdomain);
+    if (cached) return cached;
+  } catch {}
+  return null;
+}
+
+/**
+ * Cache tenant ID for a subdomain - enables instant cache hits on subsequent visits
+ */
+export function setCachedTenantIdForSubdomain(subdomain: string, tenantId: string): void {
+  if (typeof window === 'undefined' || !subdomain || !tenantId) return;
+  try {
+    localStorage.setItem(SUBDOMAIN_TENANT_CACHE_KEY + subdomain, tenantId);
+  } catch {}
+}
+
 /**
  * Get the tenant scope for cache keys based on hostname/URL.
  * This must match the logic in DataService.getCacheKey to ensure cache hits.
@@ -146,6 +171,17 @@ function getInitialTenantScope(): string | null {
   if (typeof window === 'undefined') return null;
   
   try {
+    // For subdomain-based tenants, check if we have cached tenant ID for this subdomain
+    const hostSlug = getHostTenantSlug();
+    if (hostSlug && hostSlug !== DEFAULT_TENANT_SLUG) {
+      const cachedTenantId = getCachedTenantIdForSubdomain(hostSlug);
+      if (cachedTenantId) {
+        return cachedTenantId; // Use cached tenant ID for instant cache hit!
+      }
+      // No cached tenant ID for this subdomain yet - will be cached after first API call
+      return null;
+    }
+    
     // Check localStorage for persisted active tenant (most reliable)
     const cachedTenantId = window.localStorage.getItem(ACTIVE_TENANT_STORAGE_KEY);
     if (cachedTenantId) {
@@ -167,13 +203,6 @@ function getInitialTenantScope(): string | null {
       // URL param might be a slug, need to resolve to ID later
       // For now return null to avoid cache mismatch
       return null;
-    }
-    
-    // For subdomain-based tenants, we can't know the tenant ID until resolved
-    // Return null to indicate cache should not be used for initial state
-    const hostSlug = getHostTenantSlug();
-    if (hostSlug && hostSlug !== DEFAULT_TENANT_SLUG) {
-      return null; // Don't use stale slug-based cache
     }
     
     return DEFAULT_TENANT_ID || 'public';

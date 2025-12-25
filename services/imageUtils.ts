@@ -19,6 +19,10 @@ export interface ProductImageOptions {
 export const CAROUSEL_WIDTH = 1280;
 export const CAROUSEL_HEIGHT = 330;
 
+// Mobile carousel dimensions: 800 x 450 pixels (16:9 aspect ratio)
+export const CAROUSEL_MOBILE_WIDTH = 800;
+export const CAROUSEL_MOBILE_HEIGHT = 450;
+
 // Product image target size
 export const PRODUCT_IMAGE_TARGET_KB = 32; // Target ~30-35KB
 

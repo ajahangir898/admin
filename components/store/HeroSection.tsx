@@ -66,7 +66,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
     const showSkeleton = loadedImages.size === 0;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="max-w-7xl mx-auto px-0 mt-4">
             {showSkeleton && <HeroSkeleton />}
             {/* Full Width Carousel - responsive aspect ratio for mobile */}
             <div className={`relative w-full aspect-[3/1] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gray-100 ${showSkeleton ? 'hidden' : ''}`}>

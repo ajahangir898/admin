@@ -221,6 +221,7 @@ export interface ChatMessage {
 export interface CarouselItem {
   id: string;
   image: string;
+  mobileImage?: string;
   name: string;
   url: string;
   urlType: 'Internal' | 'External';

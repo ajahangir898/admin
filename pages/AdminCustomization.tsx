@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
-import { convertFileToWebP, convertCarouselImage, CAROUSEL_WIDTH, CAROUSEL_HEIGHT } from '../services/imageUtils';
+import { convertFileToWebP, convertCarouselImage, CAROUSEL_WIDTH, CAROUSEL_HEIGHT, CAROUSEL_MOBILE_WIDTH, CAROUSEL_MOBILE_HEIGHT } from '../services/imageUtils';
 import { DataService } from '../services/DataService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
@@ -133,9 +133,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const [isCarouselModalOpen, setIsCarouselModalOpen] = useState(false);
   const [editingCarousel, setEditingCarousel] = useState<CarouselItem | null>(null);
   const [carouselFormData, setCarouselFormData] = useState<Partial<CarouselItem>>({
-      name: '', image: '', url: '', urlType: 'Internal', serial: 1, status: 'Publish'
+      name: '', image: '', mobileImage: '', url: '', urlType: 'Internal', serial: 1, status: 'Publish'
   });
   const carouselFileRef = useRef<HTMLInputElement>(null);
+  const carouselMobileFileRef = useRef<HTMLInputElement>(null);
 
   // Popup State
   const [popups, setPopups] = useState<Popup[]>([]);
@@ -170,7 +171,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         setColorDrafts(colors);
     }, [colors]);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel' | 'popup' | 'headerLogo' | 'footerLogo') => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon' | 'carousel' | 'carouselMobile' | 'popup' | 'headerLogo' | 'footerLogo') => {
         const input = e.target as HTMLInputElement;
         const file = input.files?.[0];
         if (!file) return;
@@ -188,6 +189,13 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
             if (type === 'carousel') {
                 // Carousel: exact 1280x330 WebP
                 converted = await convertCarouselImage(file, { quality: 0.85 });
+            } else if (type === 'carouselMobile') {
+                // Mobile Carousel: 800x450 WebP (16:9)
+                converted = await convertCarouselImage(file, { 
+                    width: CAROUSEL_MOBILE_WIDTH, 
+                    height: CAROUSEL_MOBILE_HEIGHT, 
+                    quality: 0.85 
+                });
             } else {
                 converted = await convertFileToWebP(file, {
                     quality: type === 'favicon' ? 0.9 : 0.82,
@@ -205,6 +213,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 setConfig(prev => ({ ...prev, footerLogo: converted }));
             } else if (type === 'carousel') {
                 setCarouselFormData(prev => ({ ...prev, image: converted }));
+            } else if (type === 'carouselMobile') {
+                setCarouselFormData(prev => ({ ...prev, mobileImage: converted }));
             } else if (type === 'popup') {
                 setPopupFormData(prev => ({ ...prev, image: converted }));
             }
@@ -364,6 +374,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           setCarouselFormData({
               name: '',
               image: '',
+              mobileImage: '',
               url: '',
               urlType: 'Internal',
               serial: config.carouselItems.length + 1,
@@ -380,6 +391,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           id: editingCarousel ? editingCarousel.id : Date.now().toString(),
           name: carouselFormData.name || 'Untitled',
           image: carouselFormData.image || '',
+          mobileImage: carouselFormData.mobileImage || '',
           url: carouselFormData.url || '#',
           urlType: carouselFormData.urlType as 'Internal' | 'External',
           serial: Number(carouselFormData.serial),

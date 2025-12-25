@@ -1,7 +1,10 @@
 import React from 'react';
 
 export const PromoBanner: React.FC = () => (
-  <section className="relative mt-4 mb-8 overflow-hidden rounded-2xl px-6 py-8 text-white bg-gradient-to-r from-violet-600 to-pink-500">
+  <section 
+    className="relative mt-4 mb-8 overflow-hidden rounded-2xl px-6 py-8 text-white"
+    style={{ background: 'linear-gradient(to right, #7c3aed, #ec4899)' }}
+  >
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <span className="inline-block bg-white/20 px-3 py-1 text-xs font-medium rounded-full mb-3">

@@ -75,8 +75,8 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
   onVisualSearch
 }) => (
   <div ref={containerRef} className="flex-1 relative">
-    <div className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-theme-primary text-white flex items-center justify-center">
-      <Search size={16} />
+    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+      <Search size={18} />
     </div>
     <SearchHintOverlay
       activeSearchValue={activeSearchValue}
@@ -90,7 +90,7 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
       placeholder="Search..."
       value={activeSearchValue}
       onChange={(event) => onInputChange(event.target.value)}
-      className="w-full pl-12 pr-28 py-2.5 border border-theme-primary rounded-lg text-sm focus:outline-none placeholder-transparent"
+      className="w-full pl-10 pr-28 py-2.5 border border-theme-primary rounded-lg text-sm focus:outline-none placeholder-transparent"
     />
     <div className="absolute right-1 top-1 bottom-1 flex items-center gap-2">
       <CameraButton variant="light" onClick={onVisualSearch} />

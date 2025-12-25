@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { Product } from '../../../types';
-import type { VisualSearchResult } from '../../../services/visualSearch';
+import type { VisualSearchResult } from '../../../services/visualSearchTypes';
 import type { CatalogGroup } from './headerTypes';
 
 const CartModal = lazy(() => import('./CartModal'));

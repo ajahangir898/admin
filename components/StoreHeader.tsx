@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Product, User as UserType, WebsiteConfig } from '../types';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
-import type { VisualSearchResult } from '../services/visualSearch';
+import type { VisualSearchResult } from '../services/visualSearchTypes';
 import { AdminNoticeTicker } from './store/header/AdminNoticeTicker';
 import { MobileHeaderBar } from './store/header/MobileHeaderBar';
 import { DesktopHeaderBar } from './store/header/DesktopHeaderBar';
@@ -111,7 +111,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const speechApiRef = useRef<any>(null);
-  const visualSearchModuleRef = useRef<typeof import('../services/visualSearch') | null>(null);
+  const visualSearchModuleRef = useRef<{ identifyProduct: (img: string) => Promise<VisualSearchResult> } | null>(null);
 
   const cartItems = normalizedCart;
   const wishlistItems = normalizedWishlist;

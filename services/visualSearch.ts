@@ -1,5 +1,6 @@
 // Lazy load Google AI to reduce initial bundle size (~94kB)
-let GoogleGenAIModule: typeof import('@google/genai') | null = null;
+// Note: Using 'any' type to avoid TypeScript importing the module at build time
+let GoogleGenAIModule: any = null;
 const getGoogleGenAI = async () => {
   if (!GoogleGenAIModule) {
     GoogleGenAIModule = await import('@google/genai');
@@ -7,13 +8,9 @@ const getGoogleGenAI = async () => {
   return GoogleGenAIModule;
 };
 
-export interface VisualSearchResult {
-  productName: string;
-  brand: string | null;
-  estimatedPrice: string | null;
-  category: string | null;
-  description: string | null;
-}
+// Re-export types from separate file to avoid bundling Google AI
+export type { VisualSearchResult } from './visualSearchTypes';
+import type { VisualSearchResult } from './visualSearchTypes';
 
 const PROMPT = `You are a retail product expert assisting visual product search. Analyze the provided product photo and respond ONLY with valid JSON matching this TypeScript interface:
 {

@@ -3,7 +3,7 @@ import { Loader2, Sparkles, X } from 'lucide-react';
 import { Product } from '../../../types';
 import { normalizeImageUrl } from '../../../utils/imageUrlHelper';
 import CameraCapture from './CameraCapture';
-import type { VisualSearchResult } from '../../../services/visualSearch';
+import type { VisualSearchResult } from '../../../services/visualSearchTypes';
 
 interface VisualSearchModalProps {
   isOpen: boolean;

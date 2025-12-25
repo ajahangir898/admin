@@ -946,6 +946,32 @@ class DataServiceImpl {
     return this.fetchMockTenants();
   }
 
+  // Fast subdomain resolution - single API call instead of loading all tenants
+  async resolveTenantBySubdomain(subdomain: string): Promise<{ id: string; name: string; subdomain: string } | null> {
+    if (!subdomain) return null;
+    
+    // Check cache first for instant resolution
+    const cached = getCachedData<{ id: string; name: string; subdomain: string }>(`tenant_resolve_${subdomain}`, 'global');
+    if (cached) {
+      console.log('[DataService] Using cached tenant resolution for:', subdomain);
+      return cached;
+    }
+    
+    try {
+      const response = await this.requestTenantApi<{ data: { id: string; name: string; subdomain: string; status: string } }>(
+        `/api/tenants/resolve/${encodeURIComponent(subdomain)}`
+      );
+      if (response?.data?.id) {
+        // Cache the resolved tenant for future loads
+        setCachedData(`tenant_resolve_${subdomain}`, response.data, 'global');
+        return response.data;
+      }
+    } catch (error) {
+      console.warn('[DataService] Failed to resolve tenant by subdomain:', subdomain, error);
+    }
+    return null;
+  }
+
   async seedTenant(payload: CreateTenantPayload): Promise<Tenant> {
     if (!payload?.name || !payload?.subdomain || !payload?.contactEmail) {
       throw new Error('name, subdomain and contactEmail are required');

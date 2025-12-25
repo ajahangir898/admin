@@ -310,37 +310,33 @@ const App = () => {
       
       try {
         let resolvedTenantId = activeTenantId;
+        
+        // Fast path: resolve tenant by subdomain with single API call
         if (!resolvedTenantId && hostTenantSlug) {
-          const tenantList = await DataService.listTenants();
-          if (!isMounted) return;
           const sanitizedSlug = sanitizeSubdomainSlug(hostTenantSlug);
-          const matchedTenant = tenantList.find((t) => sanitizeSubdomainSlug(t.subdomain || '') === sanitizedSlug);
-          if (matchedTenant) {
-            resolvedTenantId = matchedTenant.id;
+          const resolved = await DataService.resolveTenantBySubdomain(sanitizedSlug);
+          if (!isMounted) return;
+          
+          if (resolved?.id) {
+            resolvedTenantId = resolved.id;
             setActiveTenantId(resolvedTenantId);
-            setHostTenantId(matchedTenant.id);
-            setTenants(tenantList);
+            setHostTenantId(resolved.id);
+            console.log(`[Perf] Tenant resolved by subdomain in ${(performance.now() - startTime).toFixed(0)}ms`);
           } else {
+            // Fallback to default tenant
             resolvedTenantId = DEFAULT_TENANT_ID;
             setActiveTenantId(resolvedTenantId);
-            setTenants(tenantList);
           }
         }
         
         if (!resolvedTenantId) return;
         
-        const [tenantList, bootstrapData] = await Promise.all([
-          tenants.length > 0 ? Promise.resolve(tenants) : DataService.listTenants(),
-          DataService.bootstrap(resolvedTenantId)
-        ]);
+        // Load bootstrap data - tenant list loaded in background only for admin users
+        const bootstrapData = await DataService.bootstrap(resolvedTenantId);
         
         console.log(`[Perf] Bootstrap data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
 
         if (!isMounted) return;
-        
-        if (tenants.length === 0) {
-          applyTenantList(tenantList);
-        }
         
         const normalizedProducts = normalizeProductCollection(bootstrapData.products, resolvedTenantId);
         setProducts(normalizedProducts);
@@ -396,7 +392,7 @@ const App = () => {
 
     loadInitialData();
     return () => { isMounted = false; };
-  }, [activeTenantId, hostTenantSlug, tenants.length, applyTenantList, loadChatMessages, completeTenantSwitch, setActiveTenantId, setHostTenantId, setTenants]);
+  }, [activeTenantId, hostTenantSlug, loadChatMessages, completeTenantSwitch, setActiveTenantId, setHostTenantId]);
 
   // === ADMIN DATA LOADING ===
   const loadAdminData = useCallback(async () => {
@@ -428,7 +424,7 @@ const App = () => {
     } catch (error) {
       console.warn('Failed to load admin data', error);
     }
-  }, [activeTenantId]);
+  }, [activeTenantId, tenants.length, applyTenantList]);
 
   useEffect(() => {
     if (currentView === 'admin' && !adminDataLoadedRef.current) {

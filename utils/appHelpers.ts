@@ -137,10 +137,53 @@ export function normalizeProductCollection(items: Product[], tenantId?: string):
 }
 
 // --- Cache utilities ---
+
+/**
+ * Get the tenant scope for cache keys based on hostname/URL.
+ * This must match the logic in getHostTenantSlug but returns tenant ID for cache key.
+ */
+function getInitialTenantScope(): string {
+  if (typeof window === 'undefined') return 'public';
+  
+  try {
+    // Check URL param first (for tenant switching/preview)
+    const params = new URLSearchParams(window.location.search);
+    const forcedTenant = params.get('tenant');
+    if (forcedTenant && !isReservedTenantSlug(forcedTenant)) {
+      return sanitizeSubdomainSlug(forcedTenant);
+    }
+    
+    // Check localStorage for persisted active tenant
+    const cachedTenantId = window.localStorage.getItem(ACTIVE_TENANT_STORAGE_KEY);
+    if (cachedTenantId) {
+      return cachedTenantId;
+    }
+    
+    // Try to get from session storage (logged in user)
+    const sessionData = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    if (sessionData) {
+      const parsed = JSON.parse(sessionData);
+      const tenantId = parsed?.tenantId || parsed?.tenant?.id || parsed?.tenant?._id;
+      if (tenantId) return tenantId;
+    }
+  } catch {}
+  
+  // For subdomain-based tenants, we need to resolve via tenant list
+  // Until tenant is resolved, use a placeholder that prevents cross-tenant cache pollution
+  const hostSlug = getHostTenantSlug();
+  if (hostSlug && hostSlug !== DEFAULT_TENANT_SLUG) {
+    // Use the slug itself as cache key prefix to isolate per-subdomain
+    return `slug:${hostSlug}`;
+  }
+  
+  return DEFAULT_TENANT_ID || 'public';
+}
+
 export function getInitialCachedData<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue;
   try {
-    const stored = localStorage.getItem(`ds_cache_public::${key}`);
+    const tenantScope = getInitialTenantScope();
+    const stored = localStorage.getItem(`ds_cache_${tenantScope}::${key}`);
     if (stored) {
       const { data, timestamp } = JSON.parse(stored);
       // Use cache if less than 5 minutes old
@@ -155,7 +198,8 @@ export function getInitialCachedData<T>(key: string, defaultValue: T): T {
 export function hasCachedData(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const stored = localStorage.getItem('ds_cache_public::products');
+    const tenantScope = getInitialTenantScope();
+    const stored = localStorage.getItem(`ds_cache_${tenantScope}::products`);
     if (stored) {
       const { data, timestamp } = JSON.parse(stored);
       return Array.isArray(data) && data.length > 0 && Date.now() - timestamp < 5 * 60 * 1000;

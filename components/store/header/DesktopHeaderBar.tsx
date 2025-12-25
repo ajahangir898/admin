@@ -64,8 +64,8 @@ export const DesktopHeaderBar = memo<DesktopHeaderBarProps>(({
             <img key={logoKey} src={normalizeImageUrl(resolvedHeaderLogo)} alt="Logo" className="h-8 md:h-10 object-contain" />
           ) : (
             <h2 className="text-2xl font-black tracking-widest">
-              <span style={{ color: 'var(--admin-text, #94d400ff)' }}>YOUR</span>
-              <span style={{ color: 'var(--admin-accent-secondary, #8707beff)' }}>SHOP</span>
+              <span style={{ color: 'var(--color-primary-rgb)'}}>YOUR</span>
+              <span style={{ color: 'var(--color-primary-rgb)'}}>SHOP</span>
             </h2>
           )}
         </button>

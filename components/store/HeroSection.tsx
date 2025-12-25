@@ -88,7 +88,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
                                     height={400}
                                     priority={index === 0}
                                     placeholder="blur"
-                                    objectFit="contain"
+                                    objectFit="cover"
                                     className="w-full h-full"
                                     onLoad={() => handleImageLoad(index)}
                                 />

@@ -12,9 +12,10 @@ interface UseChatOptions {
   isLoading: boolean;
   user: User | null;
   websiteConfig?: WebsiteConfig;
+  isTenantSwitching?: boolean;
 }
 
-export function useChat({ activeTenantId, isLoading, user, websiteConfig }: UseChatOptions) {
+export function useChat({ activeTenantId, isLoading, user, websiteConfig, isTenantSwitching = false }: UseChatOptions) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAdminChatOpen, setIsAdminChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -54,7 +55,7 @@ export function useChat({ activeTenantId, isLoading, user, websiteConfig }: UseC
 
   // Chat persistence
   useEffect(() => {
-    if (isLoading || !activeTenantId || !chatMessagesLoadedRef.current) return;
+    if (isLoading || !activeTenantId || !chatMessagesLoadedRef.current || isTenantSwitching) return;
     if (skipNextChatSaveRef.current) {
       skipNextChatSaveRef.current = false;
       return;
@@ -72,7 +73,7 @@ export function useChat({ activeTenantId, isLoading, user, websiteConfig }: UseC
     };
 
     persistChats();
-  }, [chatMessages, isLoading, activeTenantId]);
+  }, [chatMessages, isLoading, activeTenantId, isTenantSwitching]);
 
   // Chat polling
   useEffect(() => {

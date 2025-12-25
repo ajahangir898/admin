@@ -13,6 +13,7 @@ interface UseThemeEffectsOptions {
   activeTenantId: string;
   isLoading: boolean;
   currentView: string;
+  isTenantSwitching?: boolean;
 }
 
 export function useThemeEffects({
@@ -21,6 +22,7 @@ export function useThemeEffects({
   activeTenantId,
   isLoading,
   currentView,
+  isTenantSwitching = false,
 }: UseThemeEffectsOptions) {
   const themeLoadedRef = useRef(false);
   const lastSavedThemeRef = useRef<string>('');
@@ -30,6 +32,9 @@ export function useThemeEffects({
   // Reset on tenant change
   useEffect(() => {
     websiteConfigLoadedRef.current = false;
+    themeLoadedRef.current = false;
+    lastSavedThemeRef.current = '';
+    lastSavedWebsiteConfigRef.current = '';
   }, [activeTenantId]);
 
   // Apply theme colors to CSS variables
@@ -69,8 +74,8 @@ export function useThemeEffects({
       else root.classList.remove('dark');
     }
     
-    // Only save to server AFTER initial data has loaded
-    if(!isLoading && themeLoadedRef.current) {
+    // Only save to server AFTER initial data has loaded and NOT during tenant switch
+    if(!isLoading && !isTenantSwitching && themeLoadedRef.current) {
       if (isKeyFromSocket('theme_config', activeTenantId)) {
         clearSocketFlag('theme_config', activeTenantId);
         lastSavedThemeRef.current = JSON.stringify(themeConfig);
@@ -84,15 +89,15 @@ export function useThemeEffects({
       }
     }
     
-    if(!isLoading && !themeLoadedRef.current) {
+    if(!isLoading && !isTenantSwitching && !themeLoadedRef.current) {
       themeLoadedRef.current = true;
       lastSavedThemeRef.current = JSON.stringify(themeConfig);
     }
-  }, [themeConfig, isLoading, activeTenantId, currentView]);
+  }, [themeConfig, isLoading, isTenantSwitching, activeTenantId, currentView]);
 
   // Website config persistence & favicon
   useEffect(() => { 
-    if(!isLoading && websiteConfig && activeTenantId) {
+    if(!isLoading && !isTenantSwitching && websiteConfig && activeTenantId) {
       if (websiteConfigLoadedRef.current) {
         if (isKeyFromSocket('website_config', activeTenantId)) {
           clearSocketFlag('website_config', activeTenantId);
@@ -121,7 +126,7 @@ export function useThemeEffects({
         link.href = websiteConfig.favicon;
       }
     }
-  }, [websiteConfig, isLoading, activeTenantId]);
+  }, [websiteConfig, isLoading, isTenantSwitching, activeTenantId]);
 
   return {
     websiteConfigLoadedRef,

@@ -140,20 +140,13 @@ export function normalizeProductCollection(items: Product[], tenantId?: string):
 
 /**
  * Get the tenant scope for cache keys based on hostname/URL.
- * This must match the logic in getHostTenantSlug but returns tenant ID for cache key.
+ * This must match the logic in DataService.getCacheKey to ensure cache hits.
  */
-function getInitialTenantScope(): string {
-  if (typeof window === 'undefined') return 'public';
+function getInitialTenantScope(): string | null {
+  if (typeof window === 'undefined') return null;
   
   try {
-    // Check URL param first (for tenant switching/preview)
-    const params = new URLSearchParams(window.location.search);
-    const forcedTenant = params.get('tenant');
-    if (forcedTenant && !isReservedTenantSlug(forcedTenant)) {
-      return sanitizeSubdomainSlug(forcedTenant);
-    }
-    
-    // Check localStorage for persisted active tenant
+    // Check localStorage for persisted active tenant (most reliable)
     const cachedTenantId = window.localStorage.getItem(ACTIVE_TENANT_STORAGE_KEY);
     if (cachedTenantId) {
       return cachedTenantId;
@@ -166,23 +159,36 @@ function getInitialTenantScope(): string {
       const tenantId = parsed?.tenantId || parsed?.tenant?.id || parsed?.tenant?._id;
       if (tenantId) return tenantId;
     }
+    
+    // Check URL param (for tenant switching/preview)
+    const params = new URLSearchParams(window.location.search);
+    const forcedTenant = params.get('tenant');
+    if (forcedTenant && !isReservedTenantSlug(forcedTenant)) {
+      // URL param might be a slug, need to resolve to ID later
+      // For now return null to avoid cache mismatch
+      return null;
+    }
+    
+    // For subdomain-based tenants, we can't know the tenant ID until resolved
+    // Return null to indicate cache should not be used for initial state
+    const hostSlug = getHostTenantSlug();
+    if (hostSlug && hostSlug !== DEFAULT_TENANT_SLUG) {
+      return null; // Don't use stale slug-based cache
+    }
+    
+    return DEFAULT_TENANT_ID || 'public';
   } catch {}
   
-  // For subdomain-based tenants, we need to resolve via tenant list
-  // Until tenant is resolved, use a placeholder that prevents cross-tenant cache pollution
-  const hostSlug = getHostTenantSlug();
-  if (hostSlug && hostSlug !== DEFAULT_TENANT_SLUG) {
-    // Use the slug itself as cache key prefix to isolate per-subdomain
-    return `slug:${hostSlug}`;
-  }
-  
-  return DEFAULT_TENANT_ID || 'public';
+  return null;
 }
 
 export function getInitialCachedData<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue;
   try {
     const tenantScope = getInitialTenantScope();
+    // If we can't determine the tenant scope reliably, don't use cached data
+    if (!tenantScope) return defaultValue;
+    
     const stored = localStorage.getItem(`ds_cache_${tenantScope}::${key}`);
     if (stored) {
       const { data, timestamp } = JSON.parse(stored);
@@ -199,6 +205,9 @@ export function hasCachedData(): boolean {
   if (typeof window === 'undefined') return false;
   try {
     const tenantScope = getInitialTenantScope();
+    // If we can't determine the tenant scope reliably, assume no cache
+    if (!tenantScope) return false;
+    
     const stored = localStorage.getItem(`ds_cache_${tenantScope}::products`);
     if (stored) {
       const { data, timestamp } = JSON.parse(stored);

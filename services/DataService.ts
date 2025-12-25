@@ -442,26 +442,46 @@ class DataServiceImpl {
     const cachedProducts = getCachedData<Product[]>('products', tenantId);
     const cachedTheme = getCachedData<ThemeConfig | null>('theme_config', tenantId);
     const cachedWebsite = getCachedData<WebsiteConfig>('website_config', tenantId);
-    const hasCached = Boolean((cachedProducts && cachedProducts.length) || cachedTheme || cachedWebsite);
+    
+    // Only use cache if we have actual products (not empty array)
+    const hasValidProductCache = cachedProducts && cachedProducts.length > 0;
+    const hasOtherCache = Boolean(cachedTheme || cachedWebsite);
 
-    if (hasCached) {
+    if (hasValidProductCache) {
       // Kick off background revalidation without blocking UI
-      this.revalidateBootstrap(scope, tenantId, defaultWebsite).catch(err => {
+      this.revalidateBootstrap(scope, tenantId, defaultWebsite, cachedProducts).catch(err => {
         console.warn('[DataService] Bootstrap revalidation failed', err);
       });
 
       return {
-        products: (cachedProducts && cachedProducts.length ? cachedProducts : this.filterByTenant(PRODUCTS, tenantId)).map((p, i) => ({ ...p, id: p.id ?? i + 1 })),
+        products: cachedProducts.map((p, i) => ({ ...p, id: p.id ?? i + 1 })),
         themeConfig: cachedTheme ?? null,
         websiteConfig: cachedWebsite ? { ...defaultWebsite, ...cachedWebsite } : defaultWebsite
+      };
+    }
+    
+    // If no product cache but have other cached data, still fetch fresh but use other caches
+    if (hasOtherCache) {
+      const freshData = await this.fetchFreshBootstrap(scope, tenantId, defaultWebsite);
+      return {
+        products: freshData.products,
+        themeConfig: freshData.themeConfig ?? cachedTheme ?? null,
+        websiteConfig: freshData.websiteConfig ?? (cachedWebsite ? { ...defaultWebsite, ...cachedWebsite } : defaultWebsite)
       };
     }
 
     return this.fetchFreshBootstrap(scope, tenantId, defaultWebsite);
   }
 
-  private async revalidateBootstrap(scope: string, tenantId: string | undefined, defaultWebsite: WebsiteConfig) {
-    await this.fetchFreshBootstrap(scope, tenantId, defaultWebsite, true);
+  private async revalidateBootstrap(scope: string, tenantId: string | undefined, defaultWebsite: WebsiteConfig, cachedProducts?: Product[]) {
+    const freshData = await this.fetchFreshBootstrap(scope, tenantId, defaultWebsite, true);
+    
+    // If fresh data has different products than cached, notify UI to refresh
+    if (freshData.products.length !== (cachedProducts?.length || 0) ||
+        JSON.stringify(freshData.products.map(p => p.id).sort()) !== JSON.stringify((cachedProducts || []).map(p => p.id).sort())) {
+      console.log('[DataService] Background revalidation found new products, notifying UI');
+      notifyDataRefresh('products', tenantId, false);
+    }
   }
 
   private async fetchFreshBootstrap(scope: string, tenantId: string | undefined, defaultWebsite: WebsiteConfig, isBackground = false) {

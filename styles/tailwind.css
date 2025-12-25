@@ -348,20 +348,31 @@
   }
 }
 
-/* Admin dashboard theming overrides */
+/* Admin dashboard theming overrides - Light Theme */
 .admin-theme {
-  --admin-bg: #030407;
-  --admin-surface: #070b12;
-  --admin-surface-elevated: #0c1019;
-  --admin-surface-soft: #05060a;
-  --admin-border-weak: rgba(255,255,255,0.05);
-  --admin-border: rgba(255,255,255,0.1);
-  --admin-border-strong: rgba(255,255,255,0.2);
-  --admin-text-strong: #f8fafc;
-  --admin-text-muted: #cbd5f5;
-  --admin-text-soft: #94a3b8;
-  --admin-red: #ef4444;
-  --admin-emerald: #10b981;
+  --admin-bg: #ffffff;
+  --admin-surface: #f8fafc;
+  --admin-surface-elevated: #f1f5f9;
+  --admin-surface-soft: #ffffff;
+  --admin-border-weak: rgba(0,0,0,0.05);
+  --admin-border: rgba(0,0,0,0.1);
+  --admin-border-strong: rgba(0,0,0,0.15);
+  --admin-text-strong: #1e293b;
+  --admin-text-muted: #475569;
+  --admin-text-soft: #64748b;
+  --admin-text: #1e293b;
+  --admin-red: #dc2626;
+  --admin-emerald: #16a34a;
+  --admin-input-bg: #f0fdf4;
+  --admin-input-border: #22c55e;
+  --admin-hover: #dc2626;
+  --admin-accent: #16a34a;
+  --admin-accent-light: #166534;
+  --admin-accent-secondary: #dc2626;
+  --admin-accent-bg: rgba(22,163,74,0.1);
+  --admin-sidebar-header: linear-gradient(to right, #f8fafc, #f0fdf4, #fef2f2);
+  --admin-menu-active-bg: linear-gradient(to right, rgba(220,38,38,0.1), rgba(239,68,68,0.05), rgba(22,163,74,0.1));
+  --admin-menu-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   background-color: var(--admin-bg);
   color: var(--admin-text-strong);
 }
@@ -404,56 +415,55 @@
 }
 
 .admin-theme :is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl) {
-  box-shadow: 0 20px 45px rgba(0,0,0,0.45);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
 }
 
 .admin-theme .bg-orange-50 {
-  background-color: rgba(239,68,68,0.15);
-  color: #fecaca;
-  border-color: rgba(239,68,68,0.4);
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
 }
 
 .admin-theme .bg-green-50 {
-  background-color: rgba(16,185,129,0.15);
-  color: #bbf7d0;
-  border-color: rgba(16,185,129,0.35);
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
 }
 
 .admin-theme .text-orange-600 {
-  color: #fb923c;
+  color: #dc2626;
 }
 
 .admin-theme .text-green-600 {
-  color: #34d399;
+  color: #16a34a;
 }
 
 .admin-theme .bg-white\/5 {
-  background-color: rgba(255,255,255,0.05);
+  background-color: rgba(0,0,0,0.02);
 }
 
 .admin-theme .hover\:bg-gray-50:hover,
 .admin-theme .hover\:bg-gray-100:hover {
-  background-color: rgba(255,255,255,0.05);
+  background-color: #fee2e2;
 }
 
 .admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea) {
-  background-color: rgba(15,23,42,0.82);
-  border: 1px solid rgba(255,255,255,0.08);
+  background-color: var(--admin-input-bg);
+  border: 1px solid var(--admin-input-border);
   color: var(--admin-text-strong);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 16px rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea)::placeholder {
-  color: rgba(226,232,240,0.55);
+  color: #9ca3af;
 }
 
 .admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea):focus {
-  border-color: rgba(248,113,113,0.7);
-  box-shadow: 0 0 0 2px rgba(248,113,113,0.25), 0 10px 24px rgba(0,0,0,0.45);
-  background-color: rgba(15,23,42,0.95);
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+  background-color: #ffffff;
   outline: none;
 }
 
@@ -463,8 +473,8 @@
 }
 
 .admin-theme :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea)::selection {
-  background-color: rgba(248,113,113,0.35);
-  color: #fff;
+  background-color: rgba(34,197,94,0.3);
+  color: #000;
 }
 
 .scrollbar-hide::-webkit-scrollbar {

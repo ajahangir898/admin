@@ -145,7 +145,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="admin-theme flex h-screen font-sans text-slate-100 bg-gradient-to-br from-black via-[#0b1a12] to-[#1b0b0f]">
+    <div className="admin-theme flex h-screen font-sans text-gray-900 bg-white">
       <AdminSidebar 
         activePage={highlightPage} 
         onNavigate={onNavigate} 
@@ -155,7 +155,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
         userRole={user?.role}
         permissions={userPermissions}
       />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-[#050407]/80 via-[#07110b]/75 to-[#0e0609]/80 backdrop-blur">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50">
         <AdminHeader 
           onSwitchView={onSwitchView} 
           user={user} 
@@ -169,7 +169,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           hasUnreadChat={hasUnreadChat}
           onMenuClick={() => setIsSidebarOpen(true)} 
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-0 md:p-0 bg-gradient-to-b from-[#08080f]/80 via-[#0c1a12]/70 to-[#1a0b0f]/60">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-0 md:p-0 bg-gray-100">
           {children}
         </main>
       </div>

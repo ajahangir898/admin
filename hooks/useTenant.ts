@@ -28,6 +28,12 @@ export function useTenant() {
   
   // Initialize activeTenantId
   const [activeTenantId, setActiveTenantId] = useState<string>(() => {
+    // If we have a subdomain, ALWAYS defer to subdomain resolution
+    // Don't use cached tenant ID as it may be from a different subdomain
+    if (initialHostTenantSlug && initialHostTenantSlug !== DEFAULT_TENANT_SLUG) {
+      return ''; // Defer bootstrap until tenant resolved from slug
+    }
+    
     if (typeof window !== 'undefined') {
       try {
         const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
@@ -44,10 +50,6 @@ export function useTenant() {
       } catch {}
     }
 
-    if (initialHostTenantSlug && initialHostTenantSlug !== DEFAULT_TENANT_SLUG) {
-      return ''; // Defer bootstrap until tenant resolved from slug
-    }
-
     return DEFAULT_TENANT_ID;
   });
 
@@ -62,9 +64,14 @@ export function useTenant() {
   useEffect(() => { activeTenantIdRef.current = activeTenantId; }, [activeTenantId]);
   useEffect(() => { hostTenantSlugRef.current = hostTenantSlug; }, [hostTenantSlug]);
 
-  // Persist active tenant
+  // Persist active tenant - but NOT for subdomain-locked stores
+  // Subdomains should always use their own tenant, not cached value
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Don't persist tenant ID when on a subdomain - each subdomain has its own tenant
+    if (hostTenantSlug && hostTenantSlug !== DEFAULT_TENANT_SLUG) {
+      return;
+    }
     try {
       if (activeTenantId) {
         window.localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, activeTenantId);
@@ -72,7 +79,7 @@ export function useTenant() {
         window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
       }
     } catch {}
-  }, [activeTenantId]);
+  }, [activeTenantId, hostTenantSlug]);
 
   const applyTenantList = useCallback((tenantList: Tenant[]) => {
     setTenants(tenantList);

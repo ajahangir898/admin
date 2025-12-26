@@ -172,6 +172,7 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
   useEffect(() => {
     const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
     if (path === 'admin/login') return;
+    if (path === 'visual-search' || path === 'search') return;
     
     if (currentView === 'store' && window.location.pathname !== '/' && !window.location.pathname.includes('checkout') && !window.location.pathname.includes('success-order')) {
       window.history.replaceState({}, '', '/');

@@ -53,7 +53,7 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
 
     // Initialize Gemini
     const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // Create the prompt for product identification
     const prompt = `You are a product identification expert for an e-commerce platform. Analyze this image and identify the main product shown.
@@ -148,7 +148,7 @@ router.get('/health', async (req: Request, res: Response) => {
     
     res.json({
       status: apiKey ? 'configured' : 'not_configured',
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash-exp',
       maxFileSize: '10MB',
       supportedFormats: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     });

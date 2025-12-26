@@ -207,7 +207,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
-        allowedHosts: ['systemnextit.com', 'www.systemnextit.com', 'localhost', '.localhost'],
+        allowedHosts: ['.systemnextit.com', 'systemnextit.com', 'localhost', '.localhost'],
         warmup: {
           clientFiles: [
             './App.tsx', 

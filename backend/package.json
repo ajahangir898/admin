@@ -9,6 +9,7 @@
     "seed": "ts-node src/scripts/seed.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@tensorflow-models/mobilenet": "^2.1.1",
     "@tensorflow/tfjs": "^4.14.0",
     "@upstash/redis": "^1.35.8",

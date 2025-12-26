@@ -99,8 +99,8 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                                     <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-16 md:h-20 object-contain" />
                                 ) : (
                                     <>
-                                        <span className="text-xl md:text-2xl font-black text-theme-primary tracking-tight">OPBD</span>
-                                        <span className="text-lg md:text-xl font-bold text-theme-secondary tracking-widest -mt-1 block"></span>
+                                        <span className="text-xl md:text-2xl font-black text-theme-primary tracking-tight">Your</span>
+                                        <span className="text-lg md:text-xl font-bold text-theme-secondary tracking-widest -mt-1 block">Store</span>
                                     </>
                                 )}
                             </div>

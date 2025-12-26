@@ -48,7 +48,7 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
       </button>
       <div className="flex items-center gap-3">
         <button type="button" className="relative text-gray-800" onClick={onWishlistOpen}>
-          <Heart size={24} />
+          <Heart size={18} />
           {wishlistBadgeCount > 0 && (
             <span className="absolute -top-1.5 -right-1 bg-theme-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
               {wishlistBadgeCount}
@@ -56,7 +56,7 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
           )}
         </button>
         <button type="button" className="relative text-gray-800" onClick={onCartOpen}>
-          <ShoppingCart size={26} />
+          <ShoppingCart size={18} />
           {cartBadgeCount > 0 && (
             <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
               {cartBadgeCount}
@@ -64,7 +64,7 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
           )}
         </button>
         <div className="relative text-gray-800">
-          <Bell size={24} />
+          <Bell size={18} />
           {notificationBadgeCount > 0 && (
             <span className="absolute -top-1.5 -right-1 bg-blue-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
               {notificationBadgeCount}

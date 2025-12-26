@@ -8,10 +8,10 @@ import {
 } from './SearchBar';
 import type { HeaderSearchProps } from './headerTypes';
 
-// Camera button that navigates to /imagesearch
+// Camera button that navigates to visual search
 const CameraButton: React.FC = () => {
   const handleClick = () => {
-    window.history.pushState({}, '', '/imagesearch');
+    window.history.pushState({}, '', '/');
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
   
@@ -93,7 +93,7 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
 }) => (
   <div ref={containerRef} className="flex-1 relative">
     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-      <Search size={18} />
+      {/* <Search size={18} /> */}
     </div>
     <SearchHintOverlay
       activeSearchValue={activeSearchValue}
@@ -117,7 +117,7 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
         isListening={isListening}
         onVoiceSearch={onVoiceSearch}
       />
-      <button className="btn-search text-xs font-bold px-4 h-full rounded-md">Search</button>
+      <button className="btn-search text-xs font-bold px-2 h-full rounded-md">Search</button>
     </div>
     <VoiceStreamOverlay
       isListening={isListening}

@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { Search, Camera, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Camera } from 'lucide-react';
 import {
   VoiceButton,
   SearchSuggestions,
@@ -9,43 +9,19 @@ import {
 import type { HeaderSearchProps } from './headerTypes';
 import toast from 'react-hot-toast';
 
-// Camera button that opens file picker for image search
-interface CameraButtonProps {
-  onSearching?: (isSearching: boolean) => void;
-}
-
-const CameraButton: React.FC<CameraButtonProps> = ({ onSearching }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
+// Camera button for AI-powered image search
+const CameraButton: React.FC = () => {
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Please select a valid image (JPEG, PNG, WebP, or GIF)');
-      return;
-    }
+    const formData = new FormData();
+    formData.append('image', file);
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image is too large. Maximum size is 10MB.');
-      return;
-    }
-
-    setIsLoading(true);
-    onSearching?.(true);
-
+    setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-
       const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
       const response = await fetch(`${apiBase}/api/gemini-image-search`, {
         method: 'POST',
@@ -59,50 +35,36 @@ const CameraButton: React.FC<CameraButtonProps> = ({ onSearching }) => {
       }
 
       if (data.keyword) {
-        // Navigate to search results
-        const searchUrl = `/search?q=${encodeURIComponent(data.keyword)}`;
-        window.history.pushState({}, '', searchUrl);
-        window.dispatchEvent(new PopStateEvent('popstate'));
         toast.success(`Searching for "${data.keyword}"`);
+        window.location.href = `/search?q=${encodeURIComponent(data.keyword)}`;
       } else {
         toast.error('Could not identify product in image');
       }
     } catch (error: any) {
       console.error('Image search error:', error);
-      toast.error(error.message || 'Failed to search by image');
+      toast.error(error.message || 'Something went wrong!');
     } finally {
-      setIsLoading(false);
-      onSearching?.(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setLoading(false);
+      // Reset input
+      e.target.value = '';
     }
   };
 
   return (
-    <>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        onChange={handleFileChange}
-        className="hidden"
-        capture="environment"
+    <label className="cursor-pointer p-2 text-gray-500 hover:text-theme-primary transition-colors">
+      {loading ? (
+        <div className="w-5 h-5 border-2 border-theme-primary border-t-transparent rounded-full animate-spin"></div>
+      ) : (
+        <Camera size={20} />
+      )}
+      <input 
+        type="file" 
+        className="hidden" 
+        accept="image/*" 
+        onChange={handleFileChange} 
+        disabled={loading} 
       />
-      <button
-        onClick={handleClick}
-        disabled={isLoading}
-        className="p-2 text-gray-500 hover:text-theme-primary transition-colors disabled:opacity-50"
-        title="Search by Image"
-      >
-        {isLoading ? (
-          <Loader2 size={20} className="animate-spin" />
-        ) : (
-          <Camera size={20} />
-        )}
-      </button>
-    </>
+    </label>
   );
 };
 

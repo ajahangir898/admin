@@ -921,12 +921,14 @@ class DataServiceImpl {
     }
   }
 
-  async listTenants(): Promise<Tenant[]> {
-    // Check cache first for instant load
-    const cached = getCachedData<Tenant[]>('tenants', 'global');
-    if (cached && cached.length) {
-      console.log('[DataService] Using cached tenant list');
-      return cached;
+  async listTenants(forceRefresh = false): Promise<Tenant[]> {
+    // Check cache first for instant load (skip if force refresh)
+    if (!forceRefresh) {
+      const cached = getCachedData<Tenant[]>('tenants', 'global');
+      if (cached && cached.length) {
+        console.log('[DataService] Using cached tenant list');
+        return cached;
+      }
     }
     
     try {
@@ -934,11 +936,10 @@ class DataServiceImpl {
       const tenants = Array.isArray(response?.data)
         ? response.data.map(doc => this.normalizeTenantDocument(doc))
         : [];
-      if (tenants.length) {
-        const sorted = tenants.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-        setCachedData('tenants', sorted, 'global');
-        return sorted;
-      }
+      // Always cache the result (even empty) and return it
+      const sorted = tenants.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      setCachedData('tenants', sorted, 'global');
+      return sorted;
     } catch (error) {
       console.warn('Unable to load tenants from backend API', error);
     }

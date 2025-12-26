@@ -61,15 +61,19 @@ import { useAuth } from './hooks/useAuth';
 import { useTenant } from './hooks/useTenant';
 import { useThemeEffects } from './hooks/useThemeEffects';
 import { useFacebookPixel } from './hooks/useFacebookPixel';
-import { useNavigation, type ViewState } from './hooks/useNavigation';
+import { useNavigation, type ViewState, getOrderIdFromUrl } from './hooks/useNavigation';
 
-// Store pages - lazy loaded
+// Store pages - lazy loaded with preload functions
 const StoreHome = lazy(() => import('./pages/StoreHome'));
 const StoreProductDetail = lazy(() => import('./pages/StoreProductDetail'));
 const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
 const StoreOrderSuccess = lazy(() => import('./pages/StoreOrderSuccess'));
 const StoreProfile = lazy(() => import('./pages/StoreProfile'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
+
+// Preload checkout page when user is browsing products
+export const preloadCheckout = () => import('./pages/StoreCheckout');
+export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
 
 // Admin pages - lazy loaded
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
@@ -88,7 +92,8 @@ if (typeof window !== 'undefined') {
   const preload = () => {
     Promise.all([
       import('./pages/StoreHome'),
-      import('./components/store/MobileBottomNav')
+      import('./components/store/MobileBottomNav'),
+      import('./pages/StoreCheckout'), // Preload checkout
     ]).catch(() => {});
   };
   
@@ -425,6 +430,12 @@ const App = () => {
   const loadAdminData = useCallback(async () => {
     if (!activeTenantId) return;
     try {
+      // Load tenant list for admin users (platform operators need this for tenant management)
+      if (tenants.length === 0) {
+        const tenantList = await DataService.listTenants(true); // Force refresh
+        applyTenantList(tenantList);
+      }
+      
       const [usersData, rolesData, courierData, facebookPixelData, categoriesData, subCategoriesData, childCategoriesData, brandsData, tagsData] = await Promise.all([
         DataService.getUsers(activeTenantId),
         DataService.getRoles(activeTenantId),
@@ -689,9 +700,9 @@ const App = () => {
     setCheckoutQuantity(quantity);
     setSelectedVariant(ensureVariantSelection(product, variant));
     setCurrentView('checkout');
-    if (product.slug) {
-      window.history.pushState({ slug: product.slug }, '', `/${product.slug}`);
-    }
+    window.history.pushState({}, '', '/checkout');
+    // Preload success page while user is filling checkout form
+    import('./pages/StoreOrderSuccess').catch(() => {});
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -746,6 +757,7 @@ const App = () => {
     }
 
     setCurrentView('success');
+    window.history.pushState({}, '', `/success-order?orderId=${encodeURIComponent(orderId)}`);
     window.scrollTo(0, 0);
   };
 
@@ -927,7 +939,6 @@ const App = () => {
                       orders={orders} 
                       onProductClick={handleProductClick} 
                       onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} 
-                      onImageSearchClick={() => setCurrentView('image-search')}
                       wishlistCount={wishlist.length} 
                       wishlist={wishlist} 
                       onToggleWishlist={(id) => isInWishlist(id) ? removeFromWishlist(id) : addToWishlist(id)} 
@@ -980,7 +991,6 @@ const App = () => {
                     onLoginClick={() => setIsLoginOpen(true)} 
                     onLogoutClick={handleLogout} 
                     onProfileClick={() => setCurrentView('profile')} 
-                    onImageSearchClick={() => setCurrentView('image-search')}
                     logo={logo} 
                     websiteConfig={websiteConfig} 
                     searchValue={storeSearchQuery} 
@@ -1006,7 +1016,6 @@ const App = () => {
                     onLoginClick={() => setIsLoginOpen(true)}
                     onLogoutClick={handleLogout}
                     onProfileClick={() => setCurrentView('profile')}
-                    onImageSearchClick={() => setCurrentView('image-search')}
                     logo={logo}
                     websiteConfig={websiteConfig}
                     deliveryConfigs={deliveryConfig}
@@ -1024,7 +1033,6 @@ const App = () => {
                 <Suspense fallback={null}>
                   <StoreOrderSuccess 
                     onHome={() => setCurrentView('store')} 
-                    onImageSearchClick={() => setCurrentView('image-search')}
                     user={user} 
                     onLoginClick={() => setIsLoginOpen(true)} 
                     onLogoutClick={handleLogout} 
@@ -1051,7 +1059,6 @@ const App = () => {
                       onHome={() => setCurrentView('store')} 
                       onLoginClick={() => setIsLoginOpen(true)} 
                       onLogoutClick={handleLogout} 
-                      onImageSearchClick={() => setCurrentView('image-search')}
                       logo={logo} 
                       websiteConfig={websiteConfig} 
                       searchValue={storeSearchQuery} 

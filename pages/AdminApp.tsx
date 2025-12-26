@@ -183,7 +183,7 @@ const canAccessPage = (page: string, user?: User | null, permissions?: Permissio
   
   const role = user.role;
   
-  // Super admin can access everything
+  // Super admin can access everything 
   if (role === 'super_admin') return true;
   
   // Admin can access everything except tenants

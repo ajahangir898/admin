@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Product, User as UserType, WebsiteConfig } from '../types';
 import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
-import type { VisualSearchResult } from '../services/visualSearchTypes';
 import { AdminNoticeTicker } from './store/header/AdminNoticeTicker';
 import { MobileHeaderBar } from './store/header/MobileHeaderBar';
 import { DesktopHeaderBar } from './store/header/DesktopHeaderBar';
@@ -95,11 +94,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
   const [isWishlistDrawerOpen, setIsWishlistDrawerOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(0);
-  const [isVisualSearchOpen, setIsVisualSearchOpen] = useState(false);
-  const [isVisualSearchProcessing, setIsVisualSearchProcessing] = useState(false);
-  const [visualSearchResult, setVisualSearchResult] = useState<VisualSearchResult | null>(null);
-  const [visualSearchImage, setVisualSearchImage] = useState<string | null>(null);
-  const [visualSearchError, setVisualSearchError] = useState<string | null>(null);
 
   const [supportsVoiceSearch, setSupportsVoiceSearch] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -111,7 +105,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const speechApiRef = useRef<any>(null);
-  const visualSearchModuleRef = useRef<{ identifyProduct: (img: string) => Promise<VisualSearchResult> } | null>(null);
 
   const cartItems = normalizedCart;
   const wishlistItems = normalizedWishlist;
@@ -170,54 +163,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
       })
       .slice(0, 6);
   }, [activeSearchValue, catalogSource]);
-
-  const visualSearchMatches = useMemo(() => {
-    if (!visualSearchResult) return [];
-    const nameQuery = visualSearchResult.productName?.toLowerCase().trim() || '';
-    const brandQuery = visualSearchResult.brand?.toLowerCase().trim() || '';
-    const categoryQuery = visualSearchResult.category?.toLowerCase().trim() || '';
-    if (!nameQuery && !brandQuery && !categoryQuery) return [];
-
-    return catalogSource
-      .map((product) => {
-        let score = 0;
-        const productName = product.name?.toLowerCase() || '';
-        const productBrand = product.brand?.toLowerCase() || '';
-        const productCategory = product.category?.toLowerCase() || '';
-
-        if (nameQuery) {
-          if (productName === nameQuery) score += 8;
-          else if (productName.includes(nameQuery)) score += 5;
-          const nameTokens = nameQuery.split(/\s+/).filter(Boolean);
-          const matchedTokens = nameTokens.filter((token) => productName.includes(token));
-          score += matchedTokens.length * 1.2;
-        }
-
-        if (brandQuery) {
-          if (productBrand === brandQuery) score += 4;
-          else if (productBrand.includes(brandQuery)) score += 3;
-        }
-
-        if (categoryQuery) {
-          if (productCategory === categoryQuery) score += 2.4;
-          else if (productCategory.includes(categoryQuery)) score += 1.4;
-        }
-
-        if (nameQuery) {
-          const tagsList = Array.isArray(product.searchTags) ? product.searchTags : [];
-          if (tagsList.some((tag) => tag.toLowerCase().includes(nameQuery))) score += 1.6;
-          const description = product.description?.toLowerCase() || '';
-          if (description.includes(nameQuery)) score += 1.1;
-        }
-
-        if (!score) return null;
-        return { product, score };
-      })
-      .filter((entry): entry is { product: Product; score: number } => Boolean(entry))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4)
-      .map((entry) => entry.product);
-  }, [visualSearchResult, catalogSource]);
 
   const emitSearchValue = useCallback(
     (value: string) => {
@@ -363,71 +308,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     }
   }, [supportsVoiceSearch, buildRecognition, notifyVoiceSearchIssue]);
 
-  const handleVisualSearchOpen = useCallback(() => {
-    setIsVisualSearchOpen(true);
-    setVisualSearchError(null);
-    if (!visualSearchModuleRef.current) {
-      import('../services/visualSearch')
-        .then((module) => {
-          visualSearchModuleRef.current = module;
-        })
-        .catch((error) => {
-          console.error('Preloading visual search failed', error);
-        });
-    }
-  }, []);
-
-  const handleVisualSearchClose = useCallback(() => {
-    setIsVisualSearchOpen(false);
-    setIsVisualSearchProcessing(false);
-  }, []);
-
-  const handleVisualSearchCapture = useCallback(
-    async (imageData: string) => {
-      if (!imageData) return;
-
-      setVisualSearchImage(imageData);
-      setVisualSearchError(null);
-      setIsVisualSearchProcessing(true);
-      setVisualSearchResult(null);
-
-      try {
-        if (!visualSearchModuleRef.current) {
-          visualSearchModuleRef.current = await import('../services/visualSearch');
-        }
-
-        const identifyProductFn = visualSearchModuleRef.current?.identifyProduct;
-        if (!identifyProductFn) {
-          throw new Error('Visual search module failed to load correctly.');
-        }
-
-        const aiResult = await identifyProductFn(imageData);
-        setVisualSearchResult(aiResult);
-
-        const normalizedName = aiResult.productName?.trim();
-        if (normalizedName && normalizedName.toLowerCase() !== 'unknown product') {
-          handleSearchInput(normalizedName);
-          setIsSearchSuggestionsOpen(true);
-        }
-      } catch (error: any) {
-        const message = error?.message || 'Visual search failed. Please try again.';
-        setVisualSearchError(message);
-        toast.error(message);
-      } finally {
-        setIsVisualSearchProcessing(false);
-      }
-    },
-    [handleSearchInput]
-  );
-
-  const handleVisualSearchProductView = useCallback(
-    (product: Product) => {
-      onProductClick?.(product);
-      handleVisualSearchClose();
-    },
-    [onProductClick, handleVisualSearchClose]
-  );
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const SpeechRecognitionConstructor =
@@ -485,8 +365,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
       isListening,
       liveTranscript,
       supportsVoiceSearch,
-      onVoiceSearch: handleVoiceSearch,
-      onVisualSearch: handleVisualSearchOpen
+      onVoiceSearch: handleVoiceSearch
     }),
     [
       activeSearchValue,
@@ -499,8 +378,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
       isListening,
       liveTranscript,
       supportsVoiceSearch,
-      handleVoiceSearch,
-      handleVisualSearchOpen
+      handleVoiceSearch
     ]
   );
 
@@ -573,15 +451,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
       </header>
 
       <StoreHeaderModals
-        isVisualSearchOpen={isVisualSearchOpen}
-        isVisualSearchProcessing={isVisualSearchProcessing}
-        visualSearchImage={visualSearchImage}
-        visualSearchResult={visualSearchResult}
-        visualSearchMatches={visualSearchMatches}
-        visualSearchError={visualSearchError}
-        onVisualSearchClose={handleVisualSearchClose}
-        onVisualSearchCapture={handleVisualSearchCapture}
-        onVisualSearchProductView={handleVisualSearchProductView}
         onCartToggle={handleCartItemToggle}
         onWishlistToggle={handleWishlistItemToggle}
         catalogSource={catalogSource}

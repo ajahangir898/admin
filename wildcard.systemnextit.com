@@ -1,0 +1,90 @@
+# HTTP - Redirect all to HTTPS
+server {
+    listen 80;
+    server_name systemnextit.com *.systemnextit.com cartnget.shop *.cartnget.shop;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS - Main server block with wildcard SSL
+server {
+    listen 443 ssl;
+    server_name systemnextit.com *.systemnextit.com;
+
+    ssl_certificate /etc/letsencrypt/live/systemnextit.com-0001/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/systemnextit.com-0001/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    client_max_body_size 10M;
+
+    location /uploads/ {
+        alias /var/www/admin/backend/uploads/;
+        expires 30d;
+        add_header Cache-Control public;
+        add_header Access-Control-Allow-Origin $http_origin always;
+        add_header Access-Control-Allow-Credentials true always;
+        try_files $uri =404;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Origin $http_origin;
+        proxy_request_buffering off;
+        proxy_read_timeout 300s;
+
+        # CORS preflight
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin $http_origin always;
+            add_header Access-Control-Allow-Methods 'GET, POST, PUT, PATCH, DELETE, OPTIONS' always;
+            add_header Access-Control-Allow-Headers 'Content-Type, Authorization' always;
+            add_header Access-Control-Allow-Credentials true always;
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
+    }
+
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /health {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+    }
+
+    location /assets/ {
+        alias /var/www/admin/dist/client/assets/;
+        expires 1y;
+        add_header Cache-Control public;
+        add_header Access-Control-Allow-Origin * always;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml image/svg+xml;
+}

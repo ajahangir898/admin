@@ -116,7 +116,8 @@ export function useTenant() {
   }, []);
 
   const refreshTenants = useCallback(async () => {
-    const tenantList = await DataService.listTenants();
+    // Force refresh - bypass cache to get latest from server
+    const tenantList = await DataService.listTenants(true);
     applyTenantList(tenantList);
     return tenantList;
   }, [applyTenantList]);
@@ -256,6 +257,7 @@ export function useTenant() {
       tenantSwitchTargetRef.current = null;
     }
   }, [activeTenantId]);
+
 
   return {
     // State

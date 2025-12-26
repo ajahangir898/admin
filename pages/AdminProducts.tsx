@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2, FileEdit } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2, FileEdit, Copy } from 'lucide-react';
 import { convertFileToWebP, compressProductImage, convertProductImage } from '../services/imageUtils';
 import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
@@ -617,6 +617,51 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
         onDeleteProduct(id);
       }
     }
+  };
+
+  const handleCloneProduct = (product: Product) => {
+    // Generate unique name for cloned product
+    const clonedName = `${product.name} (Copy)`;
+    
+    // Generate unique slug
+    let baseSlug = slugify(clonedName);
+    let counter = 1;
+    while (products.some(p => p.slug === baseSlug)) {
+      baseSlug = `${slugify(product.name)}-copy-${counter++}`;
+    }
+    
+    // Create cloned product data
+    const clonedProduct: Partial<Product> = {
+      ...product,
+      id: Date.now(), // Temporary ID, will be replaced by backend
+      name: clonedName,
+      slug: baseSlug,
+      sku: product.sku ? `${product.sku}-COPY` : '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    // Remove _id if exists (MongoDB)
+    delete (clonedProduct as any)._id;
+    
+    // Open modal with cloned data
+    setEditingProduct(null);
+    setEditingDraft(null);
+    setCurrentDraftId(generateDraftId());
+    setFormData(clonedProduct);
+    setInitialFormData(clonedProduct);
+    setPricingData({
+      regularPrice: product.price || 0,
+      salesPrice: product.originalPrice || 0,
+      costPrice: product.costPrice || 0,
+      stockValue: product.stock || 0,
+      sku: product.sku ? `${product.sku}-COPY` : '',
+      isWholesale: product.isWholesale || false,
+    });
+    setIsSlugTouched(true);
+    setHasUnsavedChanges(true);
+    setIsModalOpen(true);
+    toast.success('Product cloned! Make changes and save.');
   };
 
   const addTag = () => {
@@ -1339,6 +1384,14 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                       title="Edit"
                     >
                       <Edit size={18} />
+                    </button>
+                    <button 
+                      onClick={() => !isDraftProduct && handleCloneProduct(product)}
+                      className={`bg-white text-gray-800 p-2 rounded-full transition shadow-lg ${isDraftProduct ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 hover:text-green-600'}`}
+                      title={isDraftProduct ? "Can't clone drafts" : "Clone Product"}
+                      disabled={isDraftProduct}
+                    >
+                      <Copy size={18} />
                     </button>
                     <button 
                       onClick={() => handleDelete(product.id, isDraftProduct, draftId)}

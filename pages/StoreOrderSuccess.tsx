@@ -1,12 +1,11 @@
 
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useMemo } from 'react';
 
 // Lazy load heavy layout components from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
-import { CheckCircle, ArrowRight, ShoppingBag } from 'lucide-react';
+import { CheckCircle, Copy, Check } from 'lucide-react';
 import { User, WebsiteConfig, Product } from '../types';
-// Skeleton loaders removed for faster initial render
 
 interface SuccessProps {
   onHome: () => void;
@@ -24,9 +23,30 @@ interface SuccessProps {
   onToggleCart?: (id: number) => void;
   onCheckoutFromCart?: (productId: number) => void;
   productCatalog?: Product[];
+  orderId?: string;
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onImageSearchClick, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onImageSearchClick, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog, orderId: propsOrderId }: SuccessProps) => {
+  const [copied, setCopied] = React.useState(false);
+  
+  // Get orderId from URL or props
+  const orderId = useMemo(() => {
+    if (propsOrderId) return propsOrderId;
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('orderId') || '';
+    }
+    return '';
+  }, [propsOrderId]);
+
+  const handleCopyOrderId = () => {
+    if (orderId) {
+      navigator.clipboard.writeText(orderId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50 font-sans text-slate-900 flex flex-col">
       <Suspense fallback={null}>
@@ -56,6 +76,24 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
            
            <h1 className="text-3xl font-bold text-gray-800 mb-2">Order Confirmed!</h1>
            <p className="text-gray-500 mb-8">Thank you for your purchase. Your order has been placed successfully and is being processed.</p>
+           
+           {orderId && (
+             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mb-6 border border-green-200">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <span className="text-sm text-gray-500 block">Order ID</span>
+                   <span className="text-xl font-bold text-green-700">{orderId}</span>
+                 </div>
+                 <button
+                   onClick={handleCopyOrderId}
+                   className="p-2 hover:bg-green-100 rounded-lg transition-colors"
+                   title="Copy Order ID"
+                 >
+                   {copied ? <Check size={20} className="text-green-600" /> : <Copy size={20} className="text-gray-500" />}
+                 </button>
+               </div>
+             </div>
+           )}
            
            <div className="bg-white/70 rounded-lg p-4 mb-8 text-left border border-white/60 shadow-inner">
              <div className="flex justify-between items-center mb-2">

@@ -156,8 +156,17 @@ const manualChunkResolver = (id: string): string | undefined => {
     const segment = normalized.split('/pages/')[1];
     if (segment) {
       const pageName = segment.split('/')[0].replace(/\W+/g, '-').toLowerCase();
+      // Force ImageSearch into its own chunk with explicit name
+      if (pageName === 'imagesearch-tsx' || pageName === 'imagesearch') {
+        return 'page-visual-search';
+      }
       return `page-${pageName}`;
     }
+  }
+
+  // Visual search service should be in the same chunk as ImageSearch
+  if (normalized.includes('/services/visualSearchService')) {
+    return 'page-visual-search';
   }
 
   // Store components - split into individual chunks for parallel loading

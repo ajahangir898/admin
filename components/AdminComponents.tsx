@@ -119,22 +119,24 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 
 	const SidebarContent = () => (
 		<>
-			<div className="p-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--admin-border, rgba(255,255,255,0.1))', background: 'var(--admin-sidebar-header, linear-gradient(to right, #0f0f1a, #061410, #1a0b0f))' }}>
+			{/* Sidebar Header - Clean White with Red accent */}
+			<div className="p-5 border-b flex items-center justify-between bg-white" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
 				{logo ? (
 					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
 				) : (
-					<h2 className="text-2xl font-black tracking-widest">
-						<span style={{ color: 'var(--admin-text, white, #054f77ff)' }}>YOUR</span>
-						<span style={{ color: 'var(--admin-accent-secondary, #054f77ff)' }}>SHOP</span>
+					<h2 className="text-xl font-bold tracking-tight">
+						<span className="text-gray-900">Your</span>
+						<span className="text-red-600">Shop</span>
 					</h2>
 				)}
-				<button onClick={onClose} className="lg:hidden p-2 rounded-full transition" style={{ color: 'var(--admin-text-muted, #cbd5e1)' }}>
+				<button onClick={onClose} className="lg:hidden p-2 rounded-lg transition hover:bg-gray-100 text-gray-500">
 					<X size={20} />
 				</button>
 			</div>
 
-			<div className="p-4 space-y-1 flex-1 overflow-y-auto scrollbar-hide" style={{ background: 'var(--admin-bg, #050509)', color: 'var(--admin-text, #e2e8f0)' }}>
-				<div className="text-[10px] font-semibold uppercase tracking-[0.4em] mb-3 px-3 mt-2" style={{ color: 'var(--admin-accent, #34d399)' }}>Main Menu</div>
+			{/* Sidebar Menu - White background */}
+			<div className="p-3 space-y-1 flex-1 overflow-y-auto scrollbar-hide bg-white">
+				<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-2 text-gray-400">Main Menu</div>
 				{filteredMenuItems.map((item) => (
 					<div
 						key={item.id}
@@ -143,12 +145,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 							activePage === item.id ? 'font-semibold' : ''
 						}`}
 						style={activePage === item.id ? {
-							background: 'var(--admin-menu-active-bg, linear-gradient(to right, rgba(220,38,38,0.2), rgba(239,68,68,0.1), rgba(16,185,129,0.2)))',
-							color: 'var(--admin-text, white)',
-							border: '1px solid var(--admin-accent, rgba(16,185,129,0.4))',
-							boxShadow: 'var(--admin-menu-shadow, 0 10px 15px -3px rgba(6,78,59,0.3))'
+							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
+							color: 'white',
+							boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
 						} : {
-							color: 'var(--admin-text-muted, #94a3b8)'
+							color: '#4b5563'
 						}}
 					>
 						{item.icon}
@@ -164,12 +165,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 							activePage?.startsWith('business_report_') ? 'font-semibold' : ''
 						}`}
 						style={activePage?.startsWith('business_report_') ? {
-							background: 'var(--admin-menu-active-bg, linear-gradient(to right, rgba(220,38,38,0.2), rgba(239,68,68,0.1), rgba(16,185,129,0.2)))',
-							color: 'var(--admin-text, white)',
-							border: '1px solid var(--admin-accent, rgba(16,185,129,0.4))',
-							boxShadow: 'var(--admin-menu-shadow, 0 10px 15px -3px rgba(6,78,59,0.3))'
+							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
+							color: 'white',
+							boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
 						} : {
-							color: 'var(--admin-text-muted, #94a3b8)'
+							color: '#4b5563'
 						}}
 					>
 						<FileText size={18} />
@@ -185,12 +185,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 							activePage?.startsWith('catalog_') ? 'font-semibold' : ''
 						}`}
 						style={activePage?.startsWith('catalog_') ? {
-							background: 'var(--admin-menu-active-bg, linear-gradient(to right, rgba(220,38,38,0.2), rgba(239,68,68,0.1), rgba(16,185,129,0.2)))',
-							color: 'var(--admin-text, white)',
-							border: '1px solid var(--admin-accent, rgba(16,185,129,0.4))',
-							boxShadow: 'var(--admin-menu-shadow, 0 10px 15px -3px rgba(6,78,59,0.3))'
+							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
+							color: 'white',
+							boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
 						} : {
-							color: 'var(--admin-text-muted, #94a3b8)'
+							color: '#4b5563'
 						}}
 					>
 						<Layers size={18} />
@@ -203,8 +202,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					<div>
 						<div
 							onClick={() => setIsCustomizationOpen(!isCustomizationOpen)}
-							className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm"
-							style={{ color: 'var(--admin-text-muted, #94a3b8)', border: '1px solid var(--admin-border, rgba(255,255,255,0.05))' }}
+							className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm hover:bg-gray-50"
+							style={{ color: '#4b5563' }}
 						>
 							<div className="flex items-center gap-3">
 								<Sliders size={18} />
@@ -221,15 +220,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 										onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
 										className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${activePage === item.id ? 'font-semibold' : ''}`}
 										style={activePage === item.id ? {
-											color: 'var(--admin-accent-light, #a7f3d0)',
-											background: 'var(--admin-accent-bg, rgba(16,185,129,0.05))',
-											border: '1px solid var(--admin-accent, rgba(16,185,129,0.3))'
+											color: '#16a34a',
+											background: 'rgba(22, 163, 74, 0.08)',
+											borderLeft: '2px solid #16a34a'
 										} : {
-											color: 'var(--admin-text-muted, #64748b)'
+											color: '#6b7280'
 										}}
 									>
 										<div className="flex items-center gap-2">
-											<div className="w-1.5 h-1.5 rounded-full" style={{ background: activePage === item.id ? 'var(--admin-accent, #34d399)' : 'var(--admin-border, rgba(255,255,255,0.3))' }}></div>
+											<div className="w-1.5 h-1.5 rounded-full" style={{ background: activePage === item.id ? '#16a34a' : '#d1d5db' }}></div>
 											{item.label}
 										</div>
 									</div>
@@ -239,20 +238,20 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					</div>
 				)}
 
-				{/* System Section - Only show if user has access to settings or admin control */}
+				{/* System Section */}
 				{(canSeeSettings || canSeeAdminControl) && (
 					<>
-						<div className="text-[10px] font-semibold uppercase tracking-[0.4em] mb-3 px-3 mt-6" style={{ color: 'var(--admin-accent, #34d399)' }}>System</div>
+						<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-6 text-gray-400">System</div>
 						{canSeeSettings && (
 							<div
 								onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
 								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'settings' ? 'font-semibold' : ''}`}
 								style={activePage === 'settings' ? {
-									background: 'var(--admin-menu-active-bg, linear-gradient(to right, rgba(220,38,38,0.2), rgba(239,68,68,0.1), rgba(16,185,129,0.2)))',
-									color: 'var(--admin-text, white)',
-									border: '1px solid var(--admin-accent, rgba(16,185,129,0.4))'
+									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
+									color: 'white',
+									boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
 								} : {
-									color: 'var(--admin-text-muted, #94a3b8)'
+									color: '#4b5563'
 								}}
 							>
 								<Settings size={18} />
@@ -264,11 +263,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 								onClick={() => { onNavigate && onNavigate('admin'); onClose && onClose(); }}
 								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'admin' ? 'font-semibold' : ''}`}
 								style={activePage === 'admin' ? {
-									background: 'var(--admin-menu-active-bg, linear-gradient(to right, rgba(220,38,38,0.2), rgba(239,68,68,0.1), rgba(16,185,129,0.2)))',
-									color: 'var(--admin-text, white)',
-									border: '1px solid var(--admin-accent, rgba(16,185,129,0.4))'
+									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
+									color: 'white',
+									boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
 								} : {
-									color: 'var(--admin-text-muted, #94a3b8)'
+									color: '#4b5563'
 								}}
 							>
 								<Shield size={18} />
@@ -278,8 +277,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					</>
 				)}
 
-				<div className="mt-8 pt-4" style={{ borderTop: '1px solid var(--admin-border, rgba(255,255,255,0.1))' }}> 
-					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition text-sm" style={{ color: 'var(--admin-accent-light, #a7f3d0)' }}>
+				<div className="mt-8 pt-4 border-t border-gray-100"> 
+					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition text-sm text-gray-400 hover:text-gray-600">
 						<LogOut size={18} />
 						<span>More Options (Coming Soon)</span>
 					</div>
@@ -290,18 +289,21 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 
 	return (
 		<>
-			<div className="hidden lg:flex w-64 h-screen flex-col sticky top-0 scrollbar-hide" style={{ background: 'var(--admin-bg, #050509)', borderRight: '1px solid var(--admin-border, rgba(16,185,129,0.1))' }}>
+			{/* Desktop Sidebar */}
+			<div className="hidden lg:flex w-64 h-screen flex-col sticky top-0 scrollbar-hide bg-white shadow-sm" style={{ borderRight: '1px solid rgba(0,0,0,0.06)' }}>
 				<SidebarContent />
 			</div>
 
+			{/* Mobile Overlay */}
 			{isOpen && (
 				<div
-					className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+					className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
 					onClick={onClose}
 				></div>
 			)}
 
-			<div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col p-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{ background: 'var(--admin-bg, #050509)', boxShadow: 'var(--admin-shadow, 0 25px 50px -12px rgba(6,78,59,0.3))', borderRight: '1px solid var(--admin-border, rgba(16,185,129,0.2))' }}>
+			{/* Mobile Sidebar */}
+			<div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col p-0 bg-white shadow-2xl ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 				<SidebarContent />
 			</div>
 		</>
@@ -486,26 +488,26 @@ export const AdminHeader: React.FC<{
 	const getStatusClasses = (status?: Tenant['status']) => {
 		switch (status) {
 			case 'active':
-				return 'bg-emerald-500/15 text-emerald-200 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]';
+				return 'bg-green-100 text-green-700 border border-green-200';
 			case 'trialing':
-				return 'bg-amber-500/20 text-amber-200 border border-amber-400/40';
+				return 'bg-amber-100 text-amber-700 border border-amber-200';
 			case 'suspended':
-				return 'bg-yellow-500/10 text-yellow-200 border border-yellow-500/30';
+				return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
 			case 'inactive':
 			default:
-				return 'bg-white/10 text-slate-300 border border-white/10';
+				return 'bg-gray-100 text-gray-600 border border-gray-200';
 		}
 	};
 
 	const getPlanClasses = (plan?: Tenant['plan']) => {
 		switch (plan) {
 			case 'growth':
-				return 'bg-fuchsia-500/20 text-fuchsia-200 border border-fuchsia-500/40';
+				return 'bg-purple-100 text-purple-700 border border-purple-200';
 			case 'enterprise':
-				return 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40';
+				return 'bg-blue-100 text-blue-700 border border-blue-200';
 			case 'starter':
 			default:
-				return 'bg-white/10 text-slate-200 border border-white/10';
+				return 'bg-gray-100 text-gray-600 border border-gray-200';
 		}
 	};
 
@@ -518,8 +520,8 @@ export const AdminHeader: React.FC<{
 
 	const renderTenantSummary = () => (
 		<div className="text-left">
-			<p className="text-[10px] uppercase tracking-[0.4em] font-semibold" style={{ color: 'var(--admin-accent-light, #6ee7b7)' }}>Tenant</p>
-			<p className="text-sm font-semibold truncate max-w-[200px]" style={{ color: 'var(--admin-text, white)' }}>
+			<p className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Tenant</p>
+			<p className="text-sm font-semibold truncate max-w-[200px] text-gray-900">
 				{selectedTenant?.name || 'Select tenant'}
 			</p>
 			{selectedTenant && (
@@ -536,14 +538,13 @@ export const AdminHeader: React.FC<{
 	);
 
 	return (
-		<header className="h-16 flex items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30" style={{ background: 'var(--admin-header-bg, linear-gradient(to right, rgba(9,8,15,0.95), rgba(7,19,13,0.95), rgba(8,12,10,0.95)))', borderBottom: '1px solid var(--admin-border, rgba(255,255,255,0.05))', boxShadow: 'var(--admin-header-shadow, 0 10px 40px rgba(0,0,0,0.45))', color: 'var(--admin-text, white)' }}>
+		<header className="h-16 flex items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30 bg-white shadow-sm" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
 			<div className="flex items-center gap-3 md:gap-4">
 				{/* Mobile Menu Button */}
 				<button
 					onClick={onMenuClick}
-					className="md:hidden p-2 -ml-2 rounded-lg transition flex-shrink-0"
+					className="md:hidden p-2 -ml-2 rounded-lg transition flex-shrink-0 text-gray-600 hover:bg-gray-100"
 					aria-label="Open menu"
-					style={{ color: 'var(--admin-accent-light, #a7f3d0)' }}
 				>
 					<Menu size={20} />
 				</button>
@@ -559,8 +560,8 @@ export const AdminHeader: React.FC<{
         href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="hidden md:flex items-center gap-2 text-xs font-semibold px-4 py-1.5 rounded-full transition flex-shrink-0"
-        style={{ color: 'var(--admin-text, white)', background: 'var(--admin-button-gradient, linear-gradient(to right, #dc2626, #ef4444, #10b981))', border: '1px solid var(--admin-accent, rgba(52,211,153,0.4))', boxShadow: 'var(--admin-button-shadow, 0 10px 15px -3px rgba(6,78,59,0.3))' }}
+        className="hidden md:flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition flex-shrink-0 text-white hover:opacity-90"
+        style={{ background: 'linear-gradient(135deg, #dc2626 0%, #16a34a 100%)', boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)' }}
     >
         <Globe size={14} />
         Go to Website
@@ -569,54 +570,46 @@ export const AdminHeader: React.FC<{
 ) : (
     <button 
         onClick={onSwitchView} 
-        className="hidden md:flex items-center gap-2 text-xs font-semibold px-4 py-1.5 rounded-full transition flex-shrink-0"
-        style={{ color: 'var(--admin-text, white)', background: 'var(--admin-button-gradient, linear-gradient(to right, #dc2626, #ef4444, #10b981))', border: '1px solid var(--admin-accent, rgba(52,211,153,0.4))', boxShadow: 'var(--admin-button-shadow, 0 10px 15px -3px rgba(6,78,59,0.3))' }}
+        className="hidden md:flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition flex-shrink-0 text-white hover:opacity-90"
+        style={{ background: 'linear-gradient(135deg, #dc2626 0%, #16a34a 100%)', boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)' }}
     >
         <Globe size={14} />
         Go to Website
     </button>
 )}
 
-				<h2 className="text-xl font-black tracking-wide hidden md:block flex-shrink-0" style={{ color: 'var(--admin-accent-light, #a7f3d0)' }}>Dashboard</h2>
+				<h2 className="text-lg font-bold tracking-tight hidden md:block flex-shrink-0 text-gray-800">Dashboard</h2>
 				{canSwitchTenant && (
 					<div className="relative hidden sm:block flex-shrink-0" ref={tenantMenuRef}>
 						<button
 							type="button"
 							onClick={() => setIsTenantMenuOpen((prev) => !prev)}
 							disabled={isTenantSwitching}
-							className="group flex items-center justify-between gap-4 rounded-2xl px-4 py-2 shadow-lg transition w-72"
+							className="group flex items-center justify-between gap-4 rounded-xl px-4 py-2 transition w-72 bg-gray-50 border border-gray-200 hover:border-gray-300"
 							style={{ 
-								background: isTenantSwitching ? 'var(--admin-input-bg-disabled, rgba(255,255,255,0.05))' : 'var(--admin-input-bg, linear-gradient(to right, #120f1f, #07140e, #1a1427))', 
-								border: '1px solid var(--admin-border, rgba(255,255,255,0.1))',
 								cursor: isTenantSwitching ? 'wait' : 'pointer'
 							}}
 							aria-haspopup="listbox"
 							aria-expanded={isTenantMenuOpen}
 						>
 							{renderTenantSummary()}
-							<div className="flex items-center gap-2" style={{ color: 'var(--admin-accent-light, #a7f3d0)' }}>
-								{isTenantSwitching && <Loader2 size={18} className="animate-spin" style={{ color: 'var(--admin-accent, #34d399)' }} />}
+							<div className="flex items-center gap-2 text-gray-500">
+								{isTenantSwitching && <Loader2 size={18} className="animate-spin text-green-600" />}
 								<ChevronDown size={16} className="transition" />
 							</div>
 						</button>
 						{isTenantMenuOpen && (
-							<div className="absolute right-0 top-full mt-2 w-[20rem] rounded-2xl z-40 p-2" style={{ background: 'var(--admin-dropdown-bg, linear-gradient(to bottom right, #140f1f, #07130c, #1b0f12))', border: '1px solid var(--admin-border, rgba(16,185,129,0.2))', boxShadow: 'var(--admin-dropdown-shadow, 0 25px 50px -12px rgba(6,78,59,0.4))' }}>
+							<div className="absolute right-0 top-full mt-2 w-[20rem] rounded-xl z-40 p-2 bg-white border border-gray-200 shadow-xl">
 								{tenantOptions.map((tenant) => (
 									<button
 										key={tenant.id}
 										type="button"
 										onClick={() => handleTenantSelect(tenant.id)}
 										disabled={isTenantSwitching}
-										className="w-full text-left rounded-xl px-3 py-2.5 transition flex items-start justify-between gap-3"
-										style={tenant.id === activeTenantId ? {
-											background: 'var(--admin-menu-active-bg, linear-gradient(to right, rgba(220,38,38,0.2), rgba(239,68,68,0.1), rgba(16,185,129,0.2)))',
-											border: '1px solid var(--admin-accent, rgba(16,185,129,0.4))'
-										} : {
-											border: '1px solid transparent'
-										}}
+										className={`w-full text-left rounded-lg px-3 py-2.5 transition flex items-start justify-between gap-3 ${tenant.id === activeTenantId ? 'bg-green-50 border border-green-200' : 'hover:bg-gray-50 border border-transparent'}`}
 									>
 										<div>
-											<p className="text-sm font-semibold" style={{ color: 'var(--admin-text, white)' }}>{tenant.name}</p>
+											<p className="text-sm font-semibold text-gray-900">{tenant.name}</p>
 											<div className="flex items-center gap-2 mt-1">
 												<span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${getPlanClasses(tenant.plan)}`}>
 													{formatLabel(tenant.plan)}
@@ -625,13 +618,13 @@ export const AdminHeader: React.FC<{
 													{formatLabel(tenant.status)}
 												</span>
 											</div>
-											<p className="text-xs mt-1" style={{ color: 'var(--admin-text-muted, #94a3b8)' }}>{tenant.subdomain}</p>
+											<p className="text-xs mt-1 text-gray-500">{tenant?.subdomain || 'N/A'}</p>
 										</div>
-										{tenant.id === activeTenantId && <Check size={16} style={{ color: 'var(--admin-accent, #34d399)' }} />}
+										{tenant.id === activeTenantId && <Check size={16} className="text-green-600" />}
 									</button>
 								))}
 								{!tenantOptions.length && (
-									<p className="text-sm px-3 py-2" style={{ color: 'var(--admin-text-muted, #6b7280)' }}>No tenants available</p>
+									<p className="text-sm px-3 py-2 text-gray-500">No tenants available</p>
 								)}
 							</div>
 						)}
@@ -649,8 +642,7 @@ export const AdminHeader: React.FC<{
 								value={selectedTenant?.id || ''}
 								onChange={(event) => handleTenantSelect(event.target.value)}
 								disabled={isTenantSwitching}
-								className="appearance-none rounded-lg text-[10px] font-semibold px-2 py-1 shadow-sm focus:outline-none w-full pr-6"
-								style={{ background: 'var(--admin-input-bg, white)', border: '1px solid var(--admin-border, #e5e7eb)', color: 'var(--admin-input-text, #374151)' }}
+								className="appearance-none rounded-lg text-[10px] font-semibold px-2 py-1 shadow-sm focus:outline-none w-full pr-6 bg-white border border-gray-200 text-gray-700"
 							>
 								<option value="" disabled>Select tenant</option>
 								{tenantOptions.map((tenant) => (
@@ -660,14 +652,14 @@ export const AdminHeader: React.FC<{
 								))}
 							</select>
 							{isTenantSwitching ? (
-								<Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin" style={{ color: 'var(--admin-accent, #10b981)' }} />
+								<Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-green-600" />
 							) : (
-								<ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--admin-text-muted, #9ca3af)' }} />
+								<ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
 							)}
 						</div>
 					</div>
 				)}
-				<div className="text-[10px] font-bold px-2 py-0.5 rounded hidden lg:block animate-pulse flex-shrink-0" style={{ background: 'var(--admin-badge-bg, linear-gradient(to right, rgba(220,38,38,0.2), rgba(16,185,129,0.2)))', border: '1px solid var(--admin-accent, rgba(52,211,153,0.3))', color: 'var(--admin-accent-light, #d1fae5)' }}>
+				<div className="text-[10px] font-bold px-2.5 py-1 rounded-full hidden lg:block flex-shrink-0 bg-gradient-to-r from-red-500 to-green-500 text-white shadow-sm">
 					Admin
 				</div>
 				<div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
@@ -675,13 +667,12 @@ export const AdminHeader: React.FC<{
 						<button
 							onClick={onOpenChatCenter}
 							type="button"
-							className="relative p-1.5 md:p-2 rounded-full transition flex-shrink-0"
-							style={hasUnreadChat ? { color: 'var(--admin-notification-unread, #f9a8d4)', background: 'var(--admin-notification-unread-bg, rgba(236,72,153,0.1))', boxShadow: '0 10px 15px -3px rgba(236,72,153,0.3)' } : { color: 'var(--admin-accent-light, #a7f3d0)' }}
+							className={`relative p-2 rounded-lg transition flex-shrink-0 ${hasUnreadChat ? 'bg-pink-50 text-pink-600' : 'text-gray-500 hover:bg-gray-100'}`}
 							aria-label="Open customer chat"
 						>
 							<MessageCircle size={18} className="md:w-5 md:h-5" />
 							{hasUnreadChat && (
-								<span className="absolute -top-1 -right-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full shadow" style={{ background: 'var(--admin-notification-badge, #ec4899)', color: 'white' }}>
+								<span className="absolute -top-1 -right-1 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full shadow bg-pink-500 text-white">
 									New
 								</span>
 							)}
@@ -691,13 +682,12 @@ export const AdminHeader: React.FC<{
 					<div className="relative flex-shrink-0" ref={notificationRef}>
 						<button 
 							onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-							className="relative p-1.5 md:p-2 rounded-full transition"
-							style={isNotificationOpen ? { background: 'var(--admin-accent-bg, rgba(16,185,129,0.2))', color: 'var(--admin-accent-light, #6ee7b7)' } : { color: 'var(--admin-accent-light, #a7f3d0)' }}
+							className={`relative p-2 rounded-lg transition ${isNotificationOpen ? 'bg-green-50 text-green-600' : 'text-gray-500 hover:bg-gray-100'}`}
 							aria-label="Notifications"
 						>
 							<Bell size={18} className="md:w-5 md:h-5" />
 							{unreadCount > 0 && (
-								<span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full px-1" style={{ background: 'var(--admin-danger, #ef4444)', color: 'white', border: '2px solid var(--admin-header-bg, #09080f)' }}>
+								<span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full px-1 bg-red-500 text-white border-2 border-white">
 									{unreadCount > 99 ? '99+' : unreadCount}
 								</span>
 							)}
@@ -705,14 +695,14 @@ export const AdminHeader: React.FC<{
 
 						{/* Notification Dropdown */}
 						{isNotificationOpen && (
-							<div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl z-50 overflow-hidden" style={{ background: 'var(--admin-dropdown-bg, linear-gradient(to bottom right, #140f1f, #07130c, #1b0f12))', border: '1px solid var(--admin-border, rgba(16,185,129,0.2))', boxShadow: 'var(--admin-dropdown-shadow, 0 25px 50px -12px rgba(6,78,59,0.4))' }}>
+							<div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-xl z-50 overflow-hidden bg-white border border-gray-200 shadow-xl">
 								{/* Header */}
-								<div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--admin-border, rgba(255,255,255,0.1))', background: 'rgba(0,0,0,0.2)' }}>
+								<div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
 									<div className="flex items-center gap-2">
-										<Bell size={18} style={{ color: 'var(--admin-accent, #34d399)' }} />
-										<span className="font-semibold" style={{ color: 'var(--admin-text, white)' }}>Notifications</span>
+										<Bell size={18} className="text-green-600" />
+										<span className="font-semibold text-gray-900">Notifications</span>
 										{unreadCount > 0 && (
-											<span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--admin-danger-bg, rgba(239,68,68,0.2))', color: 'var(--admin-danger-light, #fca5a5)' }}>
+											<span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
 												{unreadCount} new
 											</span>
 										)}
@@ -720,8 +710,7 @@ export const AdminHeader: React.FC<{
 									{unreadCount > 0 && (
 										<button
 											onClick={handleMarkAllAsRead}
-											className="flex items-center gap-1 text-xs transition"
-											style={{ color: 'var(--admin-accent, #34d399)' }}
+											className="flex items-center gap-1 text-xs transition text-green-600 hover:text-green-700"
 										>
 											<CheckCheck size={14} />
 											Mark all read
@@ -730,44 +719,43 @@ export const AdminHeader: React.FC<{
 								</div>
 
 								{/* Notification List */}
-								<div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-track-transparent" style={{ scrollbarColor: 'var(--admin-accent, rgba(16,185,129,0.2)) transparent' }}>
+								<div className="max-h-[400px] overflow-y-auto">
 									{notificationsLoading ? (
 										<div className="flex items-center justify-center py-8">
-											<Loader2 size={24} className="animate-spin" style={{ color: 'var(--admin-accent, #34d399)' }} />
+											<Loader2 size={24} className="animate-spin text-green-600" />
 										</div>
 									) : notifications.length === 0 ? (
 										<div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-											<div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ background: 'var(--admin-accent-bg, rgba(16,185,129,0.1))' }}>
-												<Bell size={28} style={{ color: 'var(--admin-accent, rgba(16,185,129,0.5))' }} />
+											<div className="w-16 h-16 rounded-full flex items-center justify-center mb-3 bg-gray-100">
+												<Bell size={28} className="text-gray-400" />
 											</div>
-											<p className="text-sm" style={{ color: 'var(--admin-text-muted, #94a3b8)' }}>No notifications yet</p>
-											<p className="text-xs mt-1" style={{ color: 'var(--admin-text-muted, #64748b)' }}>We'll notify you when something arrives</p>
+											<p className="text-sm text-gray-600">No notifications yet</p>
+											<p className="text-xs mt-1 text-gray-400">We'll notify you when something arrives</p>
 										</div>
 									) : (
-										<div style={{ borderColor: 'var(--admin-border, rgba(255,255,255,0.05))' }}>
+										<div>
 											{notifications.map((notification) => (
 												<div
 													key={notification._id}
 													onClick={() => handleNotificationClick(notification)}
-													className="flex items-start gap-3 px-4 py-3 cursor-pointer transition"
-													style={!notification.isRead ? { background: 'var(--admin-accent-bg, rgba(16,185,129,0.05))', borderLeft: '2px solid var(--admin-accent, #34d399)' } : {}}
+													className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition hover:bg-gray-50 ${!notification.isRead ? 'bg-green-50 border-l-2 border-green-500' : ''}`}
 												>
-													<div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5" style={{ background: 'var(--admin-input-bg, rgba(255,255,255,0.05))' }}>
+													<div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 bg-gray-100">
 														{getNotificationIcon(notification.type)}
 													</div>
 													<div className="flex-1 min-w-0">
 														<div className="flex items-start justify-between gap-2">
-															<p className="text-sm font-medium truncate" style={{ color: !notification.isRead ? 'var(--admin-text, white)' : 'var(--admin-text-muted, #cbd5e1)' }}>
+															<p className={`text-sm font-medium truncate ${!notification.isRead ? 'text-gray-900' : 'text-gray-500'}`}>
 																{notification.title}
 															</p>
 															{!notification.isRead && (
-																<span className="flex-shrink-0 w-2 h-2 rounded-full mt-1.5" style={{ background: 'var(--admin-accent, #34d399)' }}></span>
+																<span className="flex-shrink-0 w-2 h-2 rounded-full mt-1.5 bg-green-500"></span>
 															)}
 														</div>
-														<p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--admin-text-muted, #94a3b8)' }}>
+														<p className="text-xs mt-0.5 line-clamp-2 text-gray-500">
 															{notification.message}
 														</p>
-														<div className="flex items-center gap-1 mt-1.5 text-[10px]" style={{ color: 'var(--admin-text-muted, #64748b)' }}>
+														<div className="flex items-center gap-1 mt-1.5 text-[10px] text-gray-400">
 															<Clock size={10} />
 															{formatTimeAgo(notification.createdAt)}
 														</div>
@@ -780,11 +768,10 @@ export const AdminHeader: React.FC<{
 
 								{/* Footer */}
 								{notifications.length > 0 && (
-									<div className="px-4 py-3" style={{ borderTop: '1px solid var(--admin-border, rgba(255,255,255,0.1))', background: 'rgba(0,0,0,0.2)' }}>
+									<div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
 										<button 
 											onClick={refreshNotifications}
-											className="w-full text-center text-xs font-medium transition"
-											style={{ color: 'var(--admin-accent, #34d399)' }}
+											className="w-full text-center text-xs font-medium transition text-green-600 hover:text-green-700"
 										>
 											Refresh notifications
 										</button>
@@ -799,28 +786,27 @@ export const AdminHeader: React.FC<{
 							className="flex items-center gap-2 cursor-pointer"
 							onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 						>
-							<div className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-emerald-400/70 flex-shrink-0">
+							<div className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0 shadow-sm">
 								<img src={user?.image || ''} alt="User Avatar" className="w-full h-full object-cover" />	
 							</div>
 						</div>
 
 						{isDropdownOpen && (
-							<div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-								<div className="p-4 border-b border-gray-50">
-									<button className="flex items-center gap-3 text-sm text-gray-700 hover:text-green-600 w-full p-2 rounded hover:bg-gray-50 transition mb-1">
-								
-	    <a 
-        href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 text-sm text-gray-700 hover:text-orange-600 w-full p-2 rounded hover:bg-gray-50 transition"
-    >
-      <ExternalLink size={14} />  Go to Website
-    </a>
-									</button>
+							<div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+								<div className="p-4 border-b border-gray-100">
+									{selectedTenant?.subdomain && (
+										<a 
+											href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-3 text-sm text-gray-700 hover:text-green-600 w-full p-2 rounded-lg hover:bg-gray-50 transition mb-1"
+										>
+											<ExternalLink size={14} /> Go to Website
+										</a>
+									)}
 									<button
 										onClick={onLogout}
-										className="flex items-center gap-3 text-sm text-gray-700 hover:text-orange-600 w-full p-2 rounded hover:bg-gray-50 transition"
+										className="flex items-center gap-3 text-sm text-gray-700 hover:text-red-600 w-full p-2 rounded-lg hover:bg-gray-50 transition"
 									>
 										<LogOutIcon size={18} /> Logout
 									</button>
@@ -847,23 +833,26 @@ export const AdminHeader: React.FC<{
 
 export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon, colorClass }) => {
 	const getCardStyle = (color: string) => {
-		if (['green', 'blue', 'teal', 'primary'].includes(color)) {
-			return { background: 'var(--admin-card-primary, linear-gradient(to bottom right, #062017, #05160f, #0c1411))', color: 'var(--admin-accent-light, #d1fae5)', border: '1px solid var(--admin-accent, rgba(16,185,129,0.3))' };
+		if (['green', 'teal', 'primary'].includes(color)) {
+			return 'bg-gradient-to-br from-green-50 to-green-100 text-green-700 border border-green-200';
 		}
-		if (['purple', 'primary-strong'].includes(color)) {
-			return { background: 'var(--admin-card-primary-strong, linear-gradient(to bottom right, #0f2e22, #041911, #130c11))', color: 'var(--admin-accent-light, #d1fae5)', border: '1px solid var(--admin-accent, rgba(52,211,153,0.4))' };
+		if (['blue', 'primary-strong'].includes(color)) {
+			return 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 border border-blue-200';
 		}
-		if (['orange', 'pink', 'red', 'cyan', 'secondary'].includes(color)) {
-			return { background: 'var(--admin-card-secondary, linear-gradient(to bottom right, #2b0a0d, #1a0507, #120508))', color: 'var(--admin-danger-light, #fecaca)', border: '1px solid var(--admin-danger, rgba(239,68,68,0.3))' };
+		if (['orange', 'pink', 'red', 'secondary'].includes(color)) {
+			return 'bg-gradient-to-br from-red-50 to-red-100 text-red-700 border border-red-200';
 		}
-		if (color === 'secondary-strong') {
-			return { background: 'var(--admin-card-secondary-strong, linear-gradient(to bottom right, #360f12, #200608, #150407))', color: 'var(--admin-danger-light, #fecaca)', border: '1px solid var(--admin-danger, rgba(239,68,68,0.4))' };
+		if (['purple', 'secondary-strong'].includes(color)) {
+			return 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-700 border border-purple-200';
 		}
-		return { background: 'var(--admin-card-neutral, #0b0f12)', color: 'var(--admin-text, #e2e8f0)', border: '1px solid var(--admin-border, rgba(255,255,255,0.05))' };
+		if (color === 'cyan') {
+			return 'bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-700 border border-cyan-200';
+		}
+		return 'bg-white text-gray-700 border border-gray-200';
 	};
 
 	return (
-		<div className="p-4 rounded-xl transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-32 relative overflow-hidden group" style={getCardStyle(colorClass)}>
+		<div className={`p-4 rounded-xl transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-32 relative overflow-hidden group ${getCardStyle(colorClass)}`}>
 			<div className="z-10 relative">
 				<p className="text-xs font-semibold opacity-70 mb-1 uppercase tracking-wide">{title}</p>
 				<h3 className="text-2xl font-extrabold">{value}</h3>

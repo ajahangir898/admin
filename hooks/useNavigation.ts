@@ -6,7 +6,14 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Product, User } from '../types';
 import { isAdminRole } from '../utils/appHelpers';
 
-export type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'image-search' | 'admin-login';
+export type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'admin-login';
+
+// Parse order ID from URL for success page
+export function getOrderIdFromUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('orderId');
+}
 
 // Check if we're on the admin subdomain
 const isAdminSubdomain = typeof window !== 'undefined' && 
@@ -52,6 +59,22 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
     if (trimmedPath === 'admin/login') {
       if (activeView !== 'admin-login') {
         setCurrentView('admin-login');
+      }
+      return;
+    }
+
+    // Handle checkout route
+    if (trimmedPath === 'checkout') {
+      if (activeView !== 'checkout') {
+        setCurrentView('checkout');
+      }
+      return;
+    }
+
+    // Handle success-order route
+    if (trimmedPath === 'success-order') {
+      if (activeView !== 'success') {
+        setCurrentView('success');
       }
       return;
     }
@@ -142,7 +165,7 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
     const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
     if (path === 'admin/login') return;
     
-    if (currentView === 'store' && window.location.pathname !== '/') {
+    if (currentView === 'store' && window.location.pathname !== '/' && !window.location.pathname.includes('checkout') && !window.location.pathname.includes('success-order')) {
       window.history.replaceState({}, '', '/');
     }
   }, [currentView]);

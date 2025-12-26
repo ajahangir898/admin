@@ -268,39 +268,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       .join(', ');
   }, [categoryData]);
 
-  const highlightCards = useMemo(
-    () => [
-      {
-        id: 'revenue',
-        label: 'Gross Revenue',
-        value: formatCurrency(totalRevenue),
-        delta: '+12.4%',
-        description: 'vs last 7 days',
-        icon: <Wallet size={22} className="text-orange-100" />,
-        accent: 'from-[#361116]'
-      },
-      {
-        id: 'average-order',
-        label: 'Average Order',
-        value: formatCurrency(averageOrderValue),
-        delta: '+4.6%',
-        description: 'per checkout',
-        icon: <BarChart3 size={22} className="text-emerald-100" />,
-        accent: 'from-[#0d1f1a]'
-      },
-      {
-        id: 'retention',
-        label: 'Fulfillment Rate',
-        value: `${Math.min(100, retentionRate)}%`,
-        delta: '+2.1%',
-        description: 'orders delivered',
-        icon: <TrendingUp size={22} className="text-red-100" />,
-        accent: 'from-[#2a120a]'
-      }
-    ],
-    [averageOrderValue, retentionRate, totalRevenue]
-  );
-
   const smartSpendingLimits = useMemo(
     () => [
       { label: 'Marketing', percent: Math.min(92, dailyLimitPercent + 18), gradient: 'from-orange-500 to-red-500' },
@@ -386,44 +353,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2.3fr)_minmax(0,1fr)]">
             <div className="space-y-6">
-              {isLoading ? (
-                <MetricsSkeleton count={3} />
-              ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {(() => {
-                  interface HighlightCard {
-                    id: string;
-                    label: string;
-                    value: string | number;
-                    delta: string;
-                    description: string;
-                    icon: React.ReactNode;
-                    accent: string;
-                  }
-
-                  return highlightCards.map((card: HighlightCard) => (
-                    <div key={card.id} className={`rounded-3xl border border-white/10 bg-gradient-to-br ${card.accent} via-transparent to-[#050507] p-6 shadow-[0_20px_45px_rgba(0,0,0,0.45)]`}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.35em] text-slate-400">{card.label}</p>
-                          <p className="mt-2 text-3xl font-black text-white">{card.value}</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                          {card.icon}
-                        </div>
-                      </div>
-                      <div className="mt-6 flex items-center gap-2 text-xs text-slate-400">
-                        <span className="text-emerald-300 font-semibold flex items-center gap-1">
-                          <ArrowUpRight size={12} />
-                          {card.delta}
-                        </span>
-                        <span>{card.description}</span>
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </div>
-              )}
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-8">
                 <DashboardStatCard title="Today Orders" value={todayOrders} icon={<ShoppingBag />} colorClass="secondary" />

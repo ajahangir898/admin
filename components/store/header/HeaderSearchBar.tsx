@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Search, Camera } from 'lucide-react';
 import {
   VoiceButton,
@@ -7,66 +7,24 @@ import {
   SearchHintOverlay
 } from './SearchBar';
 import type { HeaderSearchProps } from './headerTypes';
-import toast from 'react-hot-toast';
 
-// Camera button for AI-powered image search
+// Camera button - simply redirects to AI Product Scanner page
 const CameraButton: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    setLoading(true);
-    try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
-      const response = await fetch(`${apiBase}/api/gemini-image-search`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to analyze image');
-      }
-
-      if (data.keyword) {
-        toast.success(`Searching for "${data.keyword}"`);
-        window.location.href = `/search?q=${encodeURIComponent(data.keyword)}`;
-      } else {
-        toast.error('Could not identify product in image');
-      }
-    } catch (error: any) {
-      console.error('Image search error:', error);
-      toast.error(error.message || 'Something went wrong!');
-    } finally {
-      setLoading(false);
-      // Reset input
-      e.target.value = '';
-    }
+  const handleClick = () => {
+    window.location.href = '/search';
   };
 
   return (
-    <label className="cursor-pointer p-2 text-gray-500 hover:text-theme-primary transition-colors">
-      {loading ? (
-        <div className="w-5 h-5 border-2 border-theme-primary border-t-transparent rounded-full animate-spin"></div>
-      ) : (
-        <Camera size={20} />
-      )}
-      <input 
-        type="file" 
-        className="hidden" 
-        accept="image/*" 
-        onChange={handleFileChange} 
-        disabled={loading} 
-      />
-    </label>
+    <button 
+      onClick={handleClick}
+      className="p-2 text-gray-500 hover:text-theme-primary transition-colors"
+      title="AI Product Scanner"
+    >
+      <Camera size={20} />
+    </button>
   );
 };
+
 
 export const DesktopSearchBar: React.FC<HeaderSearchProps> = ({
   containerRef,

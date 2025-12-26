@@ -25,6 +25,7 @@ import { notificationsRouter } from './routes/notifications';
 import { courierRouter } from './routes/courier';
 import { User } from './models/User';
 import imageOptimizeRouter from './routes/imageOptimize';
+import geminiImageSearchRouter from './routes/geminiImageSearch';
 
 const app = express();
 const httpServer = createServer(app);
@@ -144,6 +145,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/courier', courierRouter);
 
 app.use('/api', dueListRoutes);
+app.use('/api/gemini-image-search', geminiImageSearchRouter);
 app.use('/', uploadRouter);
 
 app.use(errorHandler);

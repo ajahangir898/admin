@@ -1,366 +1,469 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { LayoutGrid, Code, Camera, Search, X, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-import IntegrationGuide from '../components/IntegrationGuid';
+import React, { useState, useCallback, useRef } from 'react';
+import { Camera, Search, X, Loader2, ArrowLeft, Tag, DollarSign, Package, Palette, Box, Target, Sparkles, Copy, Check, Plus } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
 // Types
-interface Product {
-  id: string;
+interface PriceEstimate {
+  min: number;
+  max: number;
+  suggested: number;
+}
+
+interface ProductDetails {
   name: string;
-  price: number;
-  image: string;
-  category?: string;
-  tags?: string[];
+  category: string;
+  subcategory?: string;
+  description: string;
+  estimatedPrice: PriceEstimate;
+  brand: string;
+  color: string;
+  material: string;
+  size?: string;
+  condition: string;
+  tags: string[];
+  specifications?: Record<string, string>;
+  searchKeywords?: string;
+  targetAudience?: string;
+  sellingPoints?: string[];
 }
 
-interface SearchState {
-  query: string;
+interface AnalysisState {
+  isAnalyzing: boolean;
   imagePreview: string | null;
-  results: Product[];
-  isSearching: boolean;
+  productDetails: ProductDetails | null;
+  error: string | null;
 }
 
-// Gemini Service - calls backend API
-const analyzeImage = async (file: File): Promise<string[]> => {
+// API call to analyze image
+const analyzeProductImage = async (file: File): Promise<ProductDetails | null> => {
   const formData = new FormData();
   formData.append('image', file);
 
-  try {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
-    const response = await fetch(`${apiBase}/api/gemini-image-search`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message);
-
-    // Return keyword as array of tags
-    return data.keyword ? data.keyword.toLowerCase().split(' ') : [];
-  } catch (error) {
-    console.error('Image analysis error:', error);
-    return [];
-  }
-};
-
-// Search Bar Component
-const VisualSearchBar: React.FC<{
-  onSearch: (query: string) => void;
-  onImageUpload: (file: File) => void;
-  onClear: () => void;
-  isLoading: boolean;
-  imagePreview: string | null;
-}> = ({ onSearch, onImageUpload, onClear, isLoading, imagePreview }) => {
-  const [query, setQuery] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(query);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onImageUpload(file);
-    }
-    e.target.value = '';
-  };
-
-  return (
-    <div className="max-w-2xl mx-auto px-4">
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="flex items-center bg-white border-2 border-theme-primary rounded-full shadow-lg overflow-hidden">
-          {imagePreview ? (
-            <div className="relative ml-2">
-              <img src={imagePreview} alt="Preview" className="w-10 h-10 rounded-lg object-cover" />
-              <button
-                type="button"
-                onClick={onClear}
-                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          ) : null}
-          
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={imagePreview ? "Searching by image..." : "Search products..."}
-            className="flex-1 px-4 py-3 outline-none text-gray-700"
-            disabled={isLoading}
-          />
-
-          <div className="flex items-center gap-2 pr-2">
-            <label className="cursor-pointer p-2 text-gray-500 hover:text-theme-primary transition-colors">
-              {isLoading ? (
-                <Loader2 size={20} className="animate-spin text-theme-primary" />
-              ) : (
-                <Camera size={20} />
-              )}
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={isLoading}
-              />
-            </label>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="bg-theme-primary text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              <Search size={18} />
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-// Product Grid Component
-const ProductGrid: React.FC<{ products: Product[]; isLoading: boolean }> = ({ products, isLoading }) => {
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="bg-gray-200 rounded-2xl aspect-square mb-3"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (products.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <div className="text-6xl mb-4">🔍</div>
-        <h3 className="text-xl font-semibold text-gray-700 mb-2">No products found</h3>
-        <p className="text-gray-500">Try a different search or upload an image</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {products.map((product) => (
-        <a
-          key={product.id}
-          href={`/product/${product.id}`}
-          className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-        >
-          <div className="aspect-square overflow-hidden bg-gray-100">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-            />
-          </div>
-          <div className="p-4">
-            <h3 className="font-semibold text-gray-800 line-clamp-2 mb-1">{product.name}</h3>
-            <p className="text-theme-primary font-bold">৳{product.price.toLocaleString()}</p>
-            {product.category && (
-              <span className="text-xs text-gray-500 mt-1 block">{product.category}</span>
-            )}
-          </div>
-        </a>
-      ))}
-    </div>
-  );
-};
-
-// Main Visual Search Page
-const ImageSearchPage: React.FC = () => {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [showGuide, setShowGuide] = useState(false);
-  const [state, setState] = useState<SearchState>({
-    query: '',
-    imagePreview: null,
-    results: [],
-    isSearching: true,
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
+  const response = await fetch(`${apiBase}/api/gemini-image-search`, {
+    method: 'POST',
+    body: formData,
   });
 
-  // Fetch products on mount
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
-        // Get tenant from URL or use default
-        const hostname = window.location.hostname;
-        const subdomain = hostname.split('.')[0];
-        const tenantId = subdomain !== 'www' && subdomain !== 'systemnextit' ? subdomain : 'tenant-demo';
-        
-        const response = await fetch(`${apiBase}/api/tenant-data/${tenantId}/products`);
-        const data = await response.json();
-        
-        const products = (data.data || []).map((p: any) => ({
-          id: p.id || p._id,
-          name: p.name,
-          price: p.price,
-          image: p.image || p.images?.[0] || '/placeholder.png',
-          category: p.category,
-          tags: p.tags || p.searchTags || [],
-        }));
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Analysis failed');
+  
+  return data.productDetails;
+};
 
-        setAllProducts(products);
-        setState(prev => ({ ...prev, results: products, isSearching: false }));
-      } catch (error) {
-        console.error('Failed to load products:', error);
-        setState(prev => ({ ...prev, isSearching: false }));
-      }
-    };
-
-    loadProducts();
-  }, []);
-
-  const performSearch = useCallback((query: string, imageTags: string[] = []) => {
-    setState(prev => ({ ...prev, isSearching: true }));
-
-    setTimeout(() => {
-      let filtered = allProducts;
-
-      if (imageTags.length > 0) {
-        filtered = allProducts.filter(product =>
-          imageTags.some(tag =>
-            product.tags?.some(t => t.toLowerCase().includes(tag)) ||
-            product.name.toLowerCase().includes(tag) ||
-            product.category?.toLowerCase().includes(tag)
-          )
-        );
-      } else if (query.trim()) {
-        const lowerQuery = query.toLowerCase();
-        filtered = allProducts.filter(product =>
-          product.name.toLowerCase().includes(lowerQuery) ||
-          product.category?.toLowerCase().includes(lowerQuery) ||
-          product.tags?.some(t => t.toLowerCase().includes(lowerQuery))
-        );
-      }
-
-      setState(prev => ({
-        ...prev,
-        results: filtered.length > 0 ? filtered : allProducts,
-        isSearching: false,
-      }));
-
-      if (filtered.length === 0) {
-        toast('No exact matches found, showing all products', { icon: 'ℹ️' });
-      }
-    }, 300);
-  }, [allProducts]);
-
-  const handleTextSearch = (query: string) => {
-    setState(prev => ({ ...prev, query, imagePreview: null }));
-    performSearch(query);
+// Copy button component
+const CopyButton: React.FC<{ text: string; label?: string }> = ({ text, label }) => {
+  const [copied, setCopied] = useState(false);
+  
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('Copied!');
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleImageUpload = async (file: File) => {
+  return (
+    <button
+      onClick={handleCopy}
+      className="p-1.5 text-gray-400 hover:text-theme-primary hover:bg-theme-primary/10 rounded-lg transition-all"
+      title={label || 'Copy'}
+    >
+      {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+    </button>
+  );
+};
+
+// Detail Card Component
+const DetailCard: React.FC<{ 
+  icon: React.ReactNode; 
+  label: string; 
+  value: string;
+  copyable?: boolean;
+  className?: string;
+}> = ({ icon, label, value, copyable = true, className = '' }) => (
+  <div className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 ${className}`}>
+    <div className="flex items-start justify-between">
+      <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
+        {icon}
+        <span>{label}</span>
+      </div>
+      {copyable && <CopyButton text={value} />}
+    </div>
+    <p className="text-gray-900 font-medium">{value}</p>
+  </div>
+);
+
+// Price Card Component
+const PriceCard: React.FC<{ price: PriceEstimate }> = ({ price }) => (
+  <div className="bg-gradient-to-br from-theme-primary/10 to-theme-primary/5 rounded-xl p-5 border border-theme-primary/20">
+    <div className="flex items-center gap-2 text-theme-primary mb-3">
+      <DollarSign size={18} />
+      <span className="font-semibold">Estimated Price (BDT)</span>
+    </div>
+    <div className="grid grid-cols-3 gap-4">
+      <div className="text-center">
+        <p className="text-xs text-gray-500 mb-1">Minimum</p>
+        <p className="text-lg font-bold text-gray-700">৳{price.min.toLocaleString()}</p>
+      </div>
+      <div className="text-center border-x border-gray-200">
+        <p className="text-xs text-theme-primary mb-1">Suggested</p>
+        <p className="text-2xl font-bold text-theme-primary">৳{price.suggested.toLocaleString()}</p>
+      </div>
+      <div className="text-center">
+        <p className="text-xs text-gray-500 mb-1">Maximum</p>
+        <p className="text-lg font-bold text-gray-700">৳{price.max.toLocaleString()}</p>
+      </div>
+    </div>
+  </div>
+);
+
+// Tags Component
+const TagsSection: React.FC<{ tags: string[] }> = ({ tags }) => (
+  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2 text-gray-500 text-sm">
+        <Tag size={16} />
+        <span>Tags</span>
+      </div>
+      <CopyButton text={tags.join(', ')} />
+    </div>
+    <div className="flex flex-wrap gap-2">
+      {tags.map((tag, index) => (
+        <span
+          key={index}
+          className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-theme-primary/10 hover:text-theme-primary transition-colors cursor-pointer"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  </div>
+);
+
+// Selling Points Component
+const SellingPointsSection: React.FC<{ points: string[] }> = ({ points }) => (
+  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
+      <Sparkles size={16} />
+      <span>Selling Points</span>
+    </div>
+    <ul className="space-y-2">
+      {points.map((point, index) => (
+        <li key={index} className="flex items-start gap-2">
+          <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">✓</span>
+          <span className="text-gray-700 text-sm">{point}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+// Specifications Component
+const SpecificationsSection: React.FC<{ specs: Record<string, string> }> = ({ specs }) => (
+  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
+      <Box size={16} />
+      <span>Specifications</span>
+    </div>
+    <div className="space-y-2">
+      {Object.entries(specs).map(([key, value]) => (
+        <div key={key} className="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
+          <span className="text-gray-500 text-sm capitalize">{key.replace(/_/g, ' ')}</span>
+          <span className="text-gray-900 text-sm font-medium">{value}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// Main Component
+const ImageSearchPage: React.FC = () => {
+  const [state, setState] = useState<AnalysisState>({
+    isAnalyzing: false,
+    imagePreview: null,
+    productDetails: null,
+    error: null,
+  });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = useCallback(async (file: File) => {
     // Create preview
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result as string;
-      setState(prev => ({
-        ...prev,
+      setState({
+        isAnalyzing: true,
         imagePreview: base64,
-        isSearching: true,
-        query: '',
-      }));
+        productDetails: null,
+        error: null,
+      });
 
-      toast.loading('Analyzing image with AI...', { id: 'image-search' });
-      const tags = await analyzeImage(file);
-      toast.dismiss('image-search');
-
-      if (tags.length > 0) {
-        toast.success(`Found: ${tags.join(', ')}`);
-        performSearch('', tags);
-      } else {
-        toast.error('Could not identify product');
-        setState(prev => ({ ...prev, isSearching: false }));
+      try {
+        toast.loading('AI is analyzing your product...', { id: 'analyze' });
+        const details = await analyzeProductImage(file);
+        toast.dismiss('analyze');
+        
+        if (details) {
+          toast.success('Product analyzed successfully!');
+          setState(prev => ({
+            ...prev,
+            isAnalyzing: false,
+            productDetails: details,
+          }));
+        } else {
+          throw new Error('No details returned');
+        }
+      } catch (error: any) {
+        toast.dismiss('analyze');
+        toast.error(error.message || 'Failed to analyze image');
+        setState(prev => ({
+          ...prev,
+          isAnalyzing: false,
+          error: error.message,
+        }));
       }
     };
     reader.readAsDataURL(file);
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+    e.target.value = '';
   };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      handleImageUpload(file);
+    }
+  }, [handleImageUpload]);
 
   const handleClear = () => {
     setState({
-      query: '',
+      isAnalyzing: false,
       imagePreview: null,
-      results: allProducts,
-      isSearching: false,
+      productDetails: null,
+      error: null,
     });
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-theme-primary rounded-lg flex items-center justify-center text-white font-bold">
-              VS
-            </div>
-            <span className="text-xl font-bold text-gray-900">Visual Search</span>
-          </a>
+  const handleUseForProduct = () => {
+    if (state.productDetails) {
+      // Store in sessionStorage for admin product page
+      sessionStorage.setItem('ai_product_data', JSON.stringify(state.productDetails));
+      sessionStorage.setItem('ai_product_image', state.imagePreview || '');
+      toast.success('Product data ready! Redirecting to add product...');
+      // Redirect to admin products page
+      setTimeout(() => {
+        window.location.href = '/admin';
+      }, 1000);
+    }
+  };
 
-          <button
-            onClick={() => setShowGuide(!showGuide)}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
-              showGuide ? 'bg-theme-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <Code size={16} />
-            Integration Guide
-          </button>
+  const { isAnalyzing, imagePreview, productDetails } = state;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Toaster position="top-center" />
+      
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-2 text-gray-600 hover:text-theme-primary transition-colors">
+            <ArrowLeft size={20} />
+            <span className="font-medium">Back</span>
+          </a>
+          <h1 className="text-lg font-bold text-gray-900">AI Product Scanner</h1>
+          <div className="w-20"></div>
         </div>
       </header>
 
-      {/* Integration Guide */}
-      {showGuide && <IntegrationGuide />}
-
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-theme-primary/5 to-transparent pt-12 pb-8">
-        <div className="max-w-7xl mx-auto px-6 text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">
-            Search with <span className="text-theme-primary italic">Vision AI</span>
-          </h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Upload an image to find similar products instantly using AI-powered visual search
-          </p>
-        </div>
-
-        <VisualSearchBar
-          onSearch={handleTextSearch}
-          onImageUpload={handleImageUpload}
-          onClear={handleClear}
-          isLoading={state.isSearching}
-          imagePreview={state.imagePreview}
-        />
-      </section>
-
-      {/* Results */}
-      <main className="max-w-7xl mx-auto px-6 mt-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <LayoutGrid size={24} className="text-theme-primary" />
-            <h2 className="text-2xl font-bold text-gray-900">
-              {state.imagePreview
-                ? 'Visual Matches'
-                : state.query
-                ? `Results for "${state.query}"`
-                : 'All Products'}
-            </h2>
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        {/* Upload Section */}
+        {!imagePreview && (
+          <div
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            className="bg-white rounded-2xl border-2 border-dashed border-gray-200 hover:border-theme-primary/50 transition-all cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <div className="py-16 px-8 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-theme-primary/10 rounded-2xl flex items-center justify-center">
+                <Camera size={40} className="text-theme-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Upload Product Image
+              </h2>
+              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                AI will automatically detect product name, category, description, price estimate and more!
+              </p>
+              <button className="bg-theme-primary text-white px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity inline-flex items-center gap-2">
+                <Camera size={20} />
+                Choose Image
+              </button>
+              <p className="text-xs text-gray-400 mt-4">
+                Supports JPG, PNG, WebP • Max 10MB
+              </p>
+            </div>
           </div>
-          <span className="text-gray-500">{state.results.length} products</span>
-        </div>
+        )}
 
-        <ProductGrid products={state.results} isLoading={state.isSearching} />
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+        />
+
+        {/* Results Section */}
+        {imagePreview && (
+          <div className="space-y-6">
+            {/* Image Preview */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm relative">
+              <button
+                onClick={handleClear}
+                className="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-red-50 hover:text-red-500 transition-all"
+              >
+                <X size={20} />
+              </button>
+              <div className="relative rounded-xl overflow-hidden bg-gray-100 max-h-80 flex items-center justify-center">
+                <img
+                  src={imagePreview}
+                  alt="Product"
+                  className="max-h-80 w-auto object-contain"
+                />
+                {isAnalyzing && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <Loader2 size={40} className="animate-spin mx-auto mb-3" />
+                      <p className="font-medium">Analyzing product...</p>
+                      <p className="text-sm text-white/70">This may take a few seconds</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Re-upload button */}
+              {!isAnalyzing && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-4 w-full py-2.5 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-theme-primary hover:text-theme-primary transition-all flex items-center justify-center gap-2"
+                >
+                  <Camera size={18} />
+                  Upload Different Image
+                </button>
+              )}
+            </div>
+
+            {/* Product Details */}
+            {productDetails && (
+              <>
+                {/* Product Name & Category */}
+                <div className="bg-white rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <p className="text-xs text-theme-primary font-semibold uppercase tracking-wide mb-1">
+                        {productDetails.category} {productDetails.subcategory && `› ${productDetails.subcategory}`}
+                      </p>
+                      <h2 className="text-2xl font-bold text-gray-900">{productDetails.name}</h2>
+                    </div>
+                    <CopyButton text={productDetails.name} label="Copy name" />
+                  </div>
+                  <p className="text-gray-600 leading-relaxed">{productDetails.description}</p>
+                  <div className="flex items-center justify-end mt-2">
+                    <CopyButton text={productDetails.description} label="Copy description" />
+                  </div>
+                </div>
+
+                {/* Price Estimate */}
+                {productDetails.estimatedPrice && (
+                  <PriceCard price={productDetails.estimatedPrice} />
+                )}
+
+                {/* Quick Details Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <DetailCard icon={<Package size={16} />} label="Brand" value={productDetails.brand} />
+                  <DetailCard icon={<Palette size={16} />} label="Color" value={productDetails.color} />
+                  <DetailCard icon={<Box size={16} />} label="Material" value={productDetails.material} />
+                  <DetailCard icon={<Target size={16} />} label="Condition" value={productDetails.condition} />
+                </div>
+
+                {/* Tags */}
+                {productDetails.tags?.length > 0 && (
+                  <TagsSection tags={productDetails.tags} />
+                )}
+
+                {/* Selling Points */}
+                {productDetails.sellingPoints?.length > 0 && (
+                  <SellingPointsSection points={productDetails.sellingPoints} />
+                )}
+
+                {/* Specifications */}
+                {productDetails.specifications && Object.keys(productDetails.specifications).length > 0 && (
+                  <SpecificationsSection specs={productDetails.specifications} />
+                )}
+
+                {/* Target Audience */}
+                {productDetails.targetAudience && (
+                  <DetailCard 
+                    icon={<Target size={16} />} 
+                    label="Target Audience" 
+                    value={productDetails.targetAudience}
+                    className="bg-blue-50/50"
+                  />
+                )}
+
+                {/* Search Keywords */}
+                {productDetails.searchKeywords && (
+                  <DetailCard 
+                    icon={<Search size={16} />} 
+                    label="SEO Keywords" 
+                    value={productDetails.searchKeywords}
+                    className="bg-green-50/50"
+                  />
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={handleUseForProduct}
+                    className="flex-1 bg-theme-primary text-white py-4 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                  >
+                    <Plus size={20} />
+                    Use for New Product
+                  </button>
+                  <button
+                    onClick={() => {
+                      const allText = `
+Product Name: ${productDetails.name}
+Category: ${productDetails.category}
+Description: ${productDetails.description}
+Price Range: ৳${productDetails.estimatedPrice?.min} - ৳${productDetails.estimatedPrice?.max}
+Suggested Price: ৳${productDetails.estimatedPrice?.suggested}
+Brand: ${productDetails.brand}
+Color: ${productDetails.color}
+Material: ${productDetails.material}
+Tags: ${productDetails.tags?.join(', ')}
+                      `.trim();
+                      navigator.clipboard.writeText(allText);
+                      toast.success('All details copied!');
+                    }}
+                    className="px-6 bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Copy size={20} />
+                    Copy All
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

@@ -41,7 +41,7 @@ export const AddToCartSuccessModal: React.FC<AddToCartSuccessModalProps> = ({
                     </button>
                     <button 
                         onClick={onCheckout} 
-                        className="flex-1 bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition"
+                        className="flex-1 bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition flex-1 bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition btn-order"
                     >
                         Checkout
                     </button>

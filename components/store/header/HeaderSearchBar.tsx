@@ -90,7 +90,7 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
   supportsVoiceSearch,
   onVoiceSearch,
   onVisualSearch
-) => (
+}) => (
   <div ref={containerRef} className="flex-1 relative">
     <SearchHintOverlay
       activeSearchValue={activeSearchValue}

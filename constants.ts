@@ -9,6 +9,8 @@ export const DEFAULT_TENANT_ID = 'tenant-demo';
 export const RESERVED_TENANT_SLUGS = [
   'www',
   'admin',
+  'adminlogin',
+  'login',
   'app',
   'api',
   'dashboard',

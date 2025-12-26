@@ -6,7 +6,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Product, User } from '../types';
 import { isAdminRole } from '../utils/appHelpers';
 
-export type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'admin-login';
+export type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'admin-login' | 'visual-search';
 
 // Parse order ID from URL for success page
 export function getOrderIdFromUrl(): string | null {
@@ -67,6 +67,14 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
     if (trimmedPath === 'checkout') {
       if (activeView !== 'checkout') {
         setCurrentView('checkout');
+      }
+      return;
+    }
+
+    // Handle visual-search route
+    if (trimmedPath === 'visual-search' || trimmedPath === 'search') {
+      if (activeView !== 'visual-search') {
+        setCurrentView('visual-search');
       }
       return;
     }

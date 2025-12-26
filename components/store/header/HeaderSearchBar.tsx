@@ -100,21 +100,18 @@ export const DesktopSearchBar: React.FC<HeaderSearchProps> = ({
     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
       <CameraButton />
       <VoiceButton
-        variant="light"
-        supportsVoiceSearch={supportsVoiceSearch}
         isListening={isListening}
+        supportsVoiceSearch={supportsVoiceSearch}
         onVoiceSearch={onVoiceSearch}
       />
-      <button className="btn-search px-6 py-2 rounded-full flex items-center justify-center">
-        <Search size={20} />
+      <button className="bg-theme-primary text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-opacity">
+        <Search size={18} />
       </button>
     </div>
-    <VoiceStreamOverlay isListening={isListening} transcript={liveTranscript} />
-    <SearchSuggestions
-      isOpen={isSuggestionsOpen}
-      suggestions={suggestions}
-      onSuggestionClick={onSuggestionClick}
-    />
+    {isSuggestionsOpen && suggestions.length > 0 && (
+      <SearchSuggestions suggestions={suggestions} onSuggestionClick={onSuggestionClick} />
+    )}
+    <VoiceStreamOverlay isListening={isListening} liveTranscript={liveTranscript} />
   </div>
 );
 
@@ -133,40 +130,36 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
   onVoiceSearch,
   onVisualSearch
 }) => (
-  <div ref={containerRef} className="flex-1 relative">
-    <SearchHintOverlay
-      activeSearchValue={activeSearchValue}
-      activeHint={activeHint}
-      activeHintIndex={activeHintIndex}
-      offsetClass="left-3"
-      textSizeClass="text-xs"
-    />
-    <input
-      type="text"
-      placeholder="Search..."
-      value={activeSearchValue}
-      onChange={(event) => onInputChange(event.target.value)}
-      className="w-full pl-3 pr-28 py-2.5 border border-theme-primary rounded-lg text-sm focus:outline-none placeholder-transparent"
-    />
-    <div className="absolute right-1 top-1 bottom-1 flex items-center gap-2">
-      <CameraButton />
-      <VoiceButton
-        variant="light"
-        supportsVoiceSearch={supportsVoiceSearch}
-        isListening={isListening}
-        onVoiceSearch={onVoiceSearch}
+  <div ref={containerRef} className="md:hidden fixed left-0 right-0 top-[60px] bg-white shadow-lg z-30 p-3 flex gap-2 animate-slideIn">
+    <div className="relative flex-1">
+      <SearchHintOverlay
+        activeSearchValue={activeSearchValue}
+        activeHint={activeHint}
+        activeHintIndex={activeHintIndex}
+        offsetClass="left-4"
       />
-      <button className="btn-search text-xs font-bold px-2 h-full rounded-md">Search</button>
+      <input
+        type="text"
+        placeholder="Search product..."
+        value={activeSearchValue}
+        onChange={(event) => onInputChange(event.target.value)}
+        className="w-full border-2 border-theme-primary rounded-full py-2 pl-4 pr-24 text-sm focus:outline-none placeholder-transparent"
+      />
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+        <CameraButton />
+        <VoiceButton
+          isListening={isListening}
+          supportsVoiceSearch={supportsVoiceSearch}
+          onVoiceSearch={onVoiceSearch}
+        />
+        <button className="bg-theme-primary text-white p-1.5 rounded-full">
+          <Search size={16} />
+        </button>
+      </div>
+      {isSuggestionsOpen && suggestions.length > 0 && (
+        <SearchSuggestions suggestions={suggestions} onSuggestionClick={onSuggestionClick} />
+      )}
+      <VoiceStreamOverlay isListening={isListening} liveTranscript={liveTranscript} />
     </div>
-    <VoiceStreamOverlay
-      isListening={isListening}
-      transcript={liveTranscript}
-      positionClass="absolute -bottom-10 left-0 right-0"
-    />
-    <SearchSuggestions
-      isOpen={isSuggestionsOpen}
-      suggestions={suggestions}
-      onSuggestionClick={onSuggestionClick}
-    />
   </div>
 );

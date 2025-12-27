@@ -51,6 +51,11 @@ import {
 const isAdminSubdomain = typeof window !== 'undefined' && 
   (window.location.hostname === 'admin.systemnextit.com' || 
    window.location.hostname.startsWith('admin.'));
+
+// Check if we're on the superadmin subdomain
+const isSuperAdminSubdomain = typeof window !== 'undefined' && 
+  (window.location.hostname === 'superadmin.systemnextit.com' || 
+   window.location.hostname.startsWith('superadmin.'));
 import { useChat } from './hooks/useChat';
 import { useCart } from './hooks/useCart';
 import { useAuth } from './hooks/useAuth';
@@ -106,7 +111,8 @@ if (typeof window !== 'undefined') {
 const App = () => {
   // === ADMIN SUBDOMAIN HANDLING ===
   // If on admin subdomain, start with admin-login view
-  const initialView = isAdminSubdomain ? 'admin-login' : 'store';
+  // If on superadmin subdomain, start with admin-login (requires super_admin login)
+  const initialView = isSuperAdminSubdomain ? 'admin-login' : (isAdminSubdomain ? 'admin-login' : 'store');
   
   // === LOADING STATE ===
   // Start with false if we have cached data to show content immediately

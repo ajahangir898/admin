@@ -4,6 +4,11 @@ import toast from 'react-hot-toast';
 import * as authService from '../services/authService';
 import { User } from '../types';
 
+// Check if we're on the superadmin subdomain
+const isSuperAdminSubdomain = typeof window !== 'undefined' && 
+  (window.location.hostname === 'superadmin.systemnextit.com' || 
+   window.location.hostname.startsWith('superadmin.'));
+
 interface AdminLoginProps {
   onLoginSuccess?: (user: User) => void;
 }
@@ -31,12 +36,23 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
       
       // Check if user has admin/staff privileges
       const user = result.user;
-      if (!user || (user.role !== 'admin' && user.role !== 'super_admin' && user.role !== 'tenant_admin' && user.role !== 'staff')) {
-        setError('Access denied. This login is for admin and staff users only.');
-        // Logout to clear stored data
-        authService.logout();
-        setIsLoading(false);
-        return;
+      
+      // On superadmin subdomain, only allow super_admin login
+      if (isSuperAdminSubdomain) {
+        if (!user || user.role !== 'super_admin') {
+          setError('Access denied. Only Super Admin can login here.');
+          authService.logout();
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // On regular admin subdomain, allow admin/staff/tenant_admin
+        if (!user || (user.role !== 'admin' && user.role !== 'super_admin' && user.role !== 'tenant_admin' && user.role !== 'staff')) {
+          setError('Access denied. This login is for admin and staff users only.');
+          authService.logout();
+          setIsLoading(false);
+          return;
+        }
       }
 
       toast.success('Login successful!');
@@ -66,11 +82,21 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         <div className="bg-gradient-to-br from-[#0f0f1a]/90 to-[#0a1410]/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 overflow-hidden">
           {/* Header */}
           <div className="p-8 pb-0 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-900/50 mb-6">
+            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-lg mb-6 ${
+              isSuperAdminSubdomain 
+                ? 'bg-gradient-to-br from-purple-500 to-indigo-500 shadow-purple-900/50' 
+                : 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-900/50'
+            }`}>
               <Shield className="text-white" size={28} />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Admin Portal</h1>
-            <p className="text-slate-400 text-sm">Sign in to access the admin dashboard</p>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              {isSuperAdminSubdomain ? 'Super Admin Portal' : 'Admin Portal'}
+            </h1>
+            <p className="text-slate-400 text-sm">
+              {isSuperAdminSubdomain 
+                ? 'Sign in with super admin credentials' 
+                : 'Sign in to access the admin dashboard'}
+            </p>
           </div>
 
           {/* Form */}

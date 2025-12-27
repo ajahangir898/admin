@@ -20,10 +20,32 @@ const isAdminSubdomain = typeof window !== 'undefined' &&
   (window.location.hostname === 'admin.systemnextit.com' || 
    window.location.hostname.startsWith('admin.'));
 
+// Check if we're on the superadmin subdomain
+const isSuperAdminSubdomain = typeof window !== 'undefined' && 
+  (window.location.hostname === 'superadmin.systemnextit.com' || 
+   window.location.hostname.startsWith('superadmin.'));
+
 // Get initial view based on stored session
 function getInitialView(): ViewState {
   if (typeof window === 'undefined') return 'store';
   
+  // Super admin subdomain - always show super-admin dashboard (requires login)
+  if (isSuperAdminSubdomain) {
+    try {
+      const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
+      if (stored) {
+        const user = JSON.parse(stored);
+        if (user && user.role === 'super_admin') {
+          return 'super-admin';
+        }
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+    return 'admin-login'; // Show login for super admin
+  }
+  
+  // Admin subdomain - show admin login/dashboard
   if (isAdminSubdomain) {
     // Check for stored user session
     try {
@@ -46,6 +68,8 @@ function getInitialView(): ViewState {
   
   return 'store';
 }
+
+export { isAdminSubdomain, isSuperAdminSubdomain };
 
 interface UseNavigationOptions {
   products: Product[];

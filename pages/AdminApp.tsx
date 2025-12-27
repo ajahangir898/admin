@@ -553,7 +553,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'reviews' ? <AdminReviews /> :
          adminSection === 'daily_target' ? <AdminDailyTarget /> :
          adminSection === 'gallery' ? <AdminGallery /> :
-         adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={onUpdateCourierConfig} onNavigate={setAdminSection} user={user} onUpdateProfile={onUpdateProfile} activeTenant={selectedTenantRecord} logo={logo} onUpdateLogo={onLogoChange} /> :
+         adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={onUpdateCourierConfig} onNavigate={setAdminSection} user={user} onUpdateProfile={onUpdateProfile} activeTenant={selectedTenantRecord} logo={logo} onUpdateLogo={onUpdateLogo} /> :
          adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={onUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={onUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={(cfg) => onUpdateCourierConfig(cfg)} onBack={() => setAdminSection('settings')} /> :

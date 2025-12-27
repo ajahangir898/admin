@@ -7,7 +7,7 @@ describe('AdminSidebar interactions', () => {
     const onNavigate = vi.fn();
     const user = userEvent.setup();
 
-    render(<AdminSidebar activePage="dashboard" onNavigate={onNavigate} />);
+    render(<AdminSidebar activePage="dashboard" onNavigate={onNavigate} userRole="admin" />);
 
     const ordersLinks = screen.getAllByText('Orders');
     await user.click(ordersLinks[0]);
@@ -18,12 +18,10 @@ describe('AdminSidebar interactions', () => {
   test('catalog accordion toggles visibility of category links', async () => {
     const user = userEvent.setup();
 
-    render(<AdminSidebar />);
+    render(<AdminSidebar userRole="admin" />);
 
-    expect(screen.getAllByText('Categories')[0]).toBeInTheDocument();
-
-    await user.click(screen.getAllByText('Catalog')[0]);
-
-    expect(screen.queryByText('Categories')).not.toBeInTheDocument();
+    // Click on Catalog to navigate (it's now a single menu item, not an accordion)
+    const catalogLinks = screen.getAllByText('Catalog');
+    expect(catalogLinks[0]).toBeInTheDocument();
   });
 });

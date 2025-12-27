@@ -119,38 +119,33 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 
 	const SidebarContent = () => (
 		<>
-			{/* Sidebar Header - Clean White with Red accent */}
-			<div className="p-5 border-b flex items-center justify-between bg-white" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+			{/* Sidebar Header - Modern Dark */}
+			<div className="p-5 border-b border-slate-700/50 flex items-center justify-between">
 				{logo ? (
-					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
+					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain brightness-0 invert" />
 				) : (
 					<h2 className="text-xl font-bold tracking-tight">
-						<span className="text-gray-900">Your</span>
-						<span className="text-red-600">Shop</span>
+						<span className="text-white">Admin</span>
+						<span className="text-indigo-400">Panel</span>
 					</h2>
 				)}
-				<button onClick={onClose} className="lg:hidden p-2 rounded-lg transition hover:bg-gray-100 text-gray-500">
+				<button onClick={onClose} className="lg:hidden p-2 rounded-lg transition hover:bg-slate-700 text-slate-400 hover:text-white">
 					<X size={20} />
 				</button>
 			</div>
 
-			{/* Sidebar Menu - White background */}
-			<div className="p-3 space-y-1 flex-1 overflow-y-auto scrollbar-hide bg-white">
-				<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-2 text-gray-400">Main Menu</div>
+			{/* Sidebar Menu - Dark Modern */}
+			<div className="p-3 space-y-1 flex-1 overflow-y-auto scrollbar-hide">
+				<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-2 text-slate-500">Main Menu</div>
 				{filteredMenuItems.map((item) => (
 					<div
 						key={item.id}
 						onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
-						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-							activePage === item.id ? 'font-semibold' : ''
+						className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+							activePage === item.id 
+								? 'bg-indigo-600 text-white font-medium shadow-lg shadow-indigo-600/30' 
+								: 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
 						}`}
-						style={activePage === item.id ? {
-							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
-							color: 'white',
-							boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
-						} : {
-							color: '#4b5563'
-						}}
 					>
 						{item.icon}
 						<span>{item.label}</span>
@@ -161,16 +156,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				{canSeeBusinessReport && (
 					<div
 						onClick={() => { onNavigate && onNavigate('business_report_expense'); onClose && onClose(); }}
-						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-							activePage?.startsWith('business_report_') ? 'font-semibold' : ''
+						className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+							activePage?.startsWith('business_report_') 
+								? 'bg-indigo-600 text-white font-medium shadow-lg shadow-indigo-600/30' 
+								: 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
 						}`}
-						style={activePage?.startsWith('business_report_') ? {
-							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
-							color: 'white',
-							boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
-						} : {
-							color: '#4b5563'
-						}}
 					>
 						<FileText size={18} />
 						<span>Business Report</span>
@@ -181,16 +171,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				{canSeeCatalog && (
 					<div
 						onClick={() => { onNavigate && onNavigate('catalog_categories'); onClose && onClose(); }}
-						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-							activePage?.startsWith('catalog_') ? 'font-semibold' : ''
+						className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+							activePage?.startsWith('catalog_') 
+								? 'bg-indigo-600 text-white font-medium shadow-lg shadow-indigo-600/30' 
+								: 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
 						}`}
-						style={activePage?.startsWith('catalog_') ? {
-							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
-							color: 'white',
-							boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
-						} : {
-							color: '#4b5563'
-						}}
 					>
 						<Layers size={18} />
 						<span>Catalog</span>
@@ -202,8 +187,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					<div>
 						<div
 							onClick={() => setIsCustomizationOpen(!isCustomizationOpen)}
-							className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm hover:bg-gray-50"
-							style={{ color: '#4b5563' }}
+							className="flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white"
 						>
 							<div className="flex items-center gap-3">
 								<Sliders size={18} />
@@ -213,22 +197,19 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 						</div>
 
 						{isCustomizationOpen && (
-							<div className="pl-9 pr-2 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-200">
+							<div className="pl-9 pr-2 space-y-1 mt-1">
 								{customizationItems.map(item => (
 									<div
 										key={item.id}
 										onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
-										className={`py-2 px-3 rounded-lg text-xs cursor-pointer transition ${activePage === item.id ? 'font-semibold' : ''}`}
-										style={activePage === item.id ? {
-											color: '#16a34a',
-											background: 'rgba(22, 163, 74, 0.08)',
-											borderLeft: '2px solid #16a34a'
-										} : {
-											color: '#6b7280'
-										}}
+										className={`py-2 px-3 rounded-md text-xs cursor-pointer transition ${
+											activePage === item.id 
+												? 'text-indigo-400 bg-indigo-500/10 border-l-2 border-indigo-400 font-medium' 
+												: 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/30'
+										}`}
 									>
 										<div className="flex items-center gap-2">
-											<div className="w-1.5 h-1.5 rounded-full" style={{ background: activePage === item.id ? '#16a34a' : '#d1d5db' }}></div>
+											<div className={`w-1.5 h-1.5 rounded-full ${activePage === item.id ? 'bg-indigo-400' : 'bg-slate-600'}`}></div>
 											{item.label}
 										</div>
 									</div>
@@ -241,18 +222,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				{/* System Section */}
 				{(canSeeSettings || canSeeAdminControl) && (
 					<>
-						<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-6 text-gray-400">System</div>
+						<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-6 text-slate-500">System</div>
 						{canSeeSettings && (
 							<div
 								onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
-								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'settings' ? 'font-semibold' : ''}`}
-								style={activePage === 'settings' ? {
-									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
-									color: 'white',
-									boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
-								} : {
-									color: '#4b5563'
-								}}
+								className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+									activePage === 'settings' 
+										? 'bg-indigo-600 text-white font-medium shadow-lg shadow-indigo-600/30' 
+										: 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+								}`}
 							>
 								<Settings size={18} />
 								<span>Settings</span>
@@ -261,14 +239,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 						{canSeeAdminControl && (
 							<div
 								onClick={() => { onNavigate && onNavigate('admin'); onClose && onClose(); }}
-								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'admin' ? 'font-semibold' : ''}`}
-								style={activePage === 'admin' ? {
-									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
-									color: 'white',
-									boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
-								} : {
-									color: '#4b5563'
-								}}
+								className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
+									activePage === 'admin' 
+										? 'bg-indigo-600 text-white font-medium shadow-lg shadow-indigo-600/30' 
+										: 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+								}`}
 							>
 								<Shield size={18} />
 								<span>Admin Control</span>
@@ -277,8 +252,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					</>
 				)}
 
-				<div className="mt-8 pt-4 border-t border-gray-100"> 
-					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition text-sm text-gray-400 hover:text-gray-600">
+				<div className="mt-8 pt-4 border-t border-slate-700/50"> 
+					<div className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition text-sm text-slate-500 hover:text-slate-300">
 						<LogOut size={18} />
 						<span>More Options (Coming Soon)</span>
 					</div>
@@ -289,21 +264,21 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 
 	return (
 		<>
-			{/* Desktop Sidebar */}
-			<div className="hidden lg:flex w-64 h-screen flex-col sticky top-0 scrollbar-hide bg-white shadow-sm" style={{ borderRight: '1px solid rgba(0,0,0,0.06)' }}>
+			{/* Desktop Sidebar - Modern Dark */}
+			<div className="hidden lg:flex w-64 h-screen flex-col sticky top-0 scrollbar-hide" style={{ background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)' }}>
 				<SidebarContent />
 			</div>
 
 			{/* Mobile Overlay */}
 			{isOpen && (
 				<div
-					className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+					className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity"
 					onClick={onClose}
 				></div>
 			)}
 
-			{/* Mobile Sidebar */}
-			<div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col p-0 bg-white shadow-2xl ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+			{/* Mobile Sidebar - Modern Dark */}
+			<div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col p-0 shadow-2xl ${isOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{ background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)' }}>
 				<SidebarContent />
 			</div>
 		</>
@@ -321,8 +296,9 @@ export const AdminHeader: React.FC<{
 	onTenantChange?: (tenantId: string) => void,
 	isTenantSwitching?: boolean,
 	onOpenChatCenter?: () => void,
-	hasUnreadChat?: boolean
-}> = ({ onSwitchView, user, onLogout, logo, onMenuClick, tenants, activeTenantId, onTenantChange, isTenantSwitching, onOpenChatCenter, hasUnreadChat }) => {
+	hasUnreadChat?: boolean,
+	onNotificationClick?: (notification: AppNotification) => void
+}> = ({ onSwitchView, user, onLogout, logo, onMenuClick, tenants, activeTenantId, onTenantChange, isTenantSwitching, onOpenChatCenter, hasUnreadChat, onNotificationClick }) => {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isTenantMenuOpen, setIsTenantMenuOpen] = useState(false);
 	const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -427,15 +403,15 @@ export const AdminHeader: React.FC<{
 	const getNotificationIcon = (type: AppNotification['type']) => {
 		switch (type) {
 			case 'order':
-				return <ShoppingBag size={16} className="text-emerald-400" />;
+				return <ShoppingBag size={16} className="text-indigo-500" />;
 			case 'review':
-				return <Star size={16} className="text-amber-400" />;
+				return <Star size={16} className="text-amber-500" />;
 			case 'customer':
-				return <Users size={16} className="text-blue-400" />;
+				return <Users size={16} className="text-blue-500" />;
 			case 'inventory':
-				return <Package size={16} className="text-orange-400" />;
+				return <Package size={16} className="text-orange-500" />;
 			case 'system':
-				return <AlertCircle size={16} className="text-red-400" />;
+				return <AlertCircle size={16} className="text-red-500" />;
 			default:
 				return <Bell size={16} className="text-slate-400" />;
 		}
@@ -463,6 +439,11 @@ export const AdminHeader: React.FC<{
 			await markAsRead([notification._id]);
 		}
 		
+		// Call optional callback
+		if (onNotificationClick) {
+			onNotificationClick(notification);
+		}
+		
 		// Navigate based on notification type
 		if (notification.type === 'order' && notification.data?.orderId) {
 			// Close notification dropdown
@@ -488,26 +469,26 @@ export const AdminHeader: React.FC<{
 	const getStatusClasses = (status?: Tenant['status']) => {
 		switch (status) {
 			case 'active':
-				return 'bg-green-100 text-green-700 border border-green-200';
+				return 'bg-emerald-100 text-emerald-700';
 			case 'trialing':
-				return 'bg-amber-100 text-amber-700 border border-amber-200';
+				return 'bg-amber-100 text-amber-700';
 			case 'suspended':
-				return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+				return 'bg-yellow-100 text-yellow-700';
 			case 'inactive':
 			default:
-				return 'bg-gray-100 text-gray-600 border border-gray-200';
+				return 'bg-slate-100 text-slate-600';
 		}
 	};
 
 	const getPlanClasses = (plan?: Tenant['plan']) => {
 		switch (plan) {
 			case 'growth':
-				return 'bg-purple-100 text-purple-700 border border-purple-200';
+				return 'bg-violet-100 text-violet-700';
 			case 'enterprise':
-				return 'bg-blue-100 text-blue-700 border border-blue-200';
+				return 'bg-indigo-100 text-indigo-700';
 			case 'starter':
 			default:
-				return 'bg-gray-100 text-gray-600 border border-gray-200';
+				return 'bg-slate-100 text-slate-600';
 		}
 	};
 
@@ -520,16 +501,16 @@ export const AdminHeader: React.FC<{
 
 	const renderTenantSummary = () => (
 		<div className="text-left">
-			<p className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Tenant</p>
-			<p className="text-sm font-semibold truncate max-w-[200px] text-gray-900">
+			<p className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Tenant</p>
+			<p className="text-sm font-semibold truncate max-w-[200px] text-slate-900">
 				{selectedTenant?.name || 'Select tenant'}
 			</p>
 			{selectedTenant && (
 				<div className="flex items-center gap-2 mt-1">
-					<span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${getPlanClasses(selectedTenant.plan)}`}>
+					<span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getPlanClasses(selectedTenant.plan)}`}>
 						{formatLabel(selectedTenant.plan)}
 					</span>
-					<span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${getStatusClasses(selectedTenant.status)}`}>
+					<span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getStatusClasses(selectedTenant.status)}`}>
 						{formatLabel(selectedTenant.status)}
 					</span>
 				</div>
@@ -538,12 +519,12 @@ export const AdminHeader: React.FC<{
 	);
 
 	return (
-		<header className="h-16 flex items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30 bg-white shadow-sm" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+		<header className="h-16 flex items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
 			<div className="flex items-center gap-3 md:gap-4">
 				{/* Mobile Menu Button */}
 				<button
 					onClick={onMenuClick}
-					className="md:hidden p-2 -ml-2 rounded-lg transition flex-shrink-0 text-gray-600 hover:bg-gray-100"
+					className="md:hidden p-2 -ml-2 rounded-lg transition flex-shrink-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
 					aria-label="Open menu"
 				>
 					<Menu size={20} />
@@ -556,36 +537,34 @@ export const AdminHeader: React.FC<{
 
 				{/* Desktop Elements */}
 				{selectedTenant?.subdomain ? (
-    <a 
-        href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hidden md:flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition flex-shrink-0 text-white hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #dc2626 0%, #16a34a 100%)', boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)' }}
-    >
-        <Globe size={14} />
-        Go to Website
-        <ExternalLink size={12} />
-    </a>
-) : (
-    <button 
-        onClick={onSwitchView} 
-        className="hidden md:flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition flex-shrink-0 text-white hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #dc2626 0%, #16a34a 100%)', boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)' }}
-    >
-        <Globe size={14} />
-        Go to Website
-    </button>
-)}
+					<a 
+						href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="hidden md:flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-lg transition flex-shrink-0 bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
+					>
+						<Globe size={14} />
+						Go to Website
+						<ExternalLink size={12} />
+					</a>
+				) : (
+					<button 
+						onClick={onSwitchView} 
+						className="hidden md:flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-lg transition flex-shrink-0 bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm"
+					>
+						<Globe size={14} />
+						Go to Website
+					</button>
+				)}
 
-				<h2 className="text-lg font-bold tracking-tight hidden md:block flex-shrink-0 text-gray-800">Dashboard</h2>
+				<h2 className="text-lg font-bold tracking-tight hidden md:block flex-shrink-0 text-slate-800">Dashboard</h2>
 				{canSwitchTenant && (
 					<div className="relative hidden sm:block flex-shrink-0" ref={tenantMenuRef}>
 						<button
 							type="button"
 							onClick={() => setIsTenantMenuOpen((prev) => !prev)}
 							disabled={isTenantSwitching}
-							className="group flex items-center justify-between gap-4 rounded-xl px-4 py-2 transition w-72 bg-gray-50 border border-gray-200 hover:border-gray-300"
+							className="group flex items-center justify-between gap-4 rounded-lg px-4 py-2 transition w-72 bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-white"
 							style={{ 
 								cursor: isTenantSwitching ? 'wait' : 'pointer'
 							}}
@@ -593,38 +572,38 @@ export const AdminHeader: React.FC<{
 							aria-expanded={isTenantMenuOpen}
 						>
 							{renderTenantSummary()}
-							<div className="flex items-center gap-2 text-gray-500">
-								{isTenantSwitching && <Loader2 size={18} className="animate-spin text-green-600" />}
+							<div className="flex items-center gap-2 text-slate-400">
+								{isTenantSwitching && <Loader2 size={18} className="animate-spin text-indigo-600" />}
 								<ChevronDown size={16} className="transition" />
 							</div>
 						</button>
 						{isTenantMenuOpen && (
-							<div className="absolute right-0 top-full mt-2 w-[20rem] rounded-xl z-40 p-2 bg-white border border-gray-200 shadow-xl">
+							<div className="absolute right-0 top-full mt-2 w-[20rem] rounded-xl z-40 p-2 bg-white border border-slate-200 shadow-xl">
 								{tenantOptions.map((tenant) => (
 									<button
 										key={tenant.id}
 										type="button"
 										onClick={() => handleTenantSelect(tenant.id)}
 										disabled={isTenantSwitching}
-										className={`w-full text-left rounded-lg px-3 py-2.5 transition flex items-start justify-between gap-3 ${tenant.id === activeTenantId ? 'bg-green-50 border border-green-200' : 'hover:bg-gray-50 border border-transparent'}`}
+										className={`w-full text-left rounded-lg px-3 py-2.5 transition flex items-start justify-between gap-3 ${tenant.id === activeTenantId ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-slate-50 border border-transparent'}`}
 									>
 										<div>
-											<p className="text-sm font-semibold text-gray-900">{tenant.name}</p>
+											<p className="text-sm font-semibold text-slate-900">{tenant.name}</p>
 											<div className="flex items-center gap-2 mt-1">
-												<span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${getPlanClasses(tenant.plan)}`}>
+												<span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getPlanClasses(tenant.plan)}`}>
 													{formatLabel(tenant.plan)}
 												</span>
-												<span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${getStatusClasses(tenant.status)}`}>
+												<span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getStatusClasses(tenant.status)}`}>
 													{formatLabel(tenant.status)}
 												</span>
 											</div>
-											<p className="text-xs mt-1 text-gray-500">{tenant?.subdomain || 'N/A'}</p>
+											<p className="text-xs mt-1 text-slate-500">{tenant?.subdomain || 'N/A'}</p>
 										</div>
-										{tenant.id === activeTenantId && <Check size={16} className="text-green-600" />}
+										{tenant.id === activeTenantId && <Check size={16} className="text-indigo-600" />}
 									</button>
 								))}
 								{!tenantOptions.length && (
-									<p className="text-sm px-3 py-2 text-gray-500">No tenants available</p>
+									<p className="text-sm px-3 py-2 text-slate-500">No tenants available</p>
 								)}
 							</div>
 						)}
@@ -632,17 +611,17 @@ export const AdminHeader: React.FC<{
 				)}
 			</div>
 
-			<div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+			<div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
 				{canSwitchTenant && (
 					<div className="sm:hidden w-full max-w-[140px]">
-						<label htmlFor={mobileSelectId} className="text-[9px] uppercase font-semibold tracking-wider block mb-1" style={{ color: 'var(--admin-accent-light, #6ee7b7)' }}>Tenant</label>
+						<label htmlFor={mobileSelectId} className="text-[9px] uppercase font-semibold tracking-wider block mb-1 text-slate-500">Tenant</label>
 						<div className="relative">
 							<select
 								id={mobileSelectId}
 								value={selectedTenant?.id || ''}
 								onChange={(event) => handleTenantSelect(event.target.value)}
 								disabled={isTenantSwitching}
-								className="appearance-none rounded-lg text-[10px] font-semibold px-2 py-1 shadow-sm focus:outline-none w-full pr-6 bg-white border border-gray-200 text-gray-700"
+								className="appearance-none rounded-lg text-[10px] font-semibold px-2 py-1 shadow-sm focus:outline-none w-full pr-6 bg-white border border-slate-200 text-slate-700"
 							>
 								<option value="" disabled>Select tenant</option>
 								{tenantOptions.map((tenant) => (
@@ -652,14 +631,14 @@ export const AdminHeader: React.FC<{
 								))}
 							</select>
 							{isTenantSwitching ? (
-								<Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-green-600" />
+								<Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-indigo-600" />
 							) : (
-								<ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
+								<ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
 							)}
 						</div>
 					</div>
 				)}
-				<div className="text-[10px] font-bold px-2.5 py-1 rounded-full hidden lg:block flex-shrink-0 bg-gradient-to-r from-red-500 to-green-500 text-white shadow-sm">
+				<div className="text-[10px] font-semibold px-2.5 py-1 rounded-full hidden lg:block flex-shrink-0 bg-indigo-100 text-indigo-700">
 					Admin
 				</div>
 				<div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
@@ -667,7 +646,7 @@ export const AdminHeader: React.FC<{
 						<button
 							onClick={onOpenChatCenter}
 							type="button"
-							className={`relative p-2 rounded-lg transition flex-shrink-0 ${hasUnreadChat ? 'bg-pink-50 text-pink-600' : 'text-gray-500 hover:bg-gray-100'}`}
+							className={`relative p-2 rounded-lg transition flex-shrink-0 ${hasUnreadChat ? 'bg-pink-50 text-pink-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
 							aria-label="Open customer chat"
 						>
 							<MessageCircle size={18} className="md:w-5 md:h-5" />
@@ -682,7 +661,7 @@ export const AdminHeader: React.FC<{
 					<div className="relative flex-shrink-0" ref={notificationRef}>
 						<button 
 							onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-							className={`relative p-2 rounded-lg transition ${isNotificationOpen ? 'bg-green-50 text-green-600' : 'text-gray-500 hover:bg-gray-100'}`}
+							className={`relative p-2 rounded-lg transition ${isNotificationOpen ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}
 							aria-label="Notifications"
 						>
 							<Bell size={18} className="md:w-5 md:h-5" />
@@ -695,12 +674,12 @@ export const AdminHeader: React.FC<{
 
 						{/* Notification Dropdown */}
 						{isNotificationOpen && (
-							<div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-xl z-50 overflow-hidden bg-white border border-gray-200 shadow-xl">
+							<div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-xl z-50 overflow-hidden bg-white border border-slate-200 shadow-xl">
 								{/* Header */}
-								<div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+								<div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
 									<div className="flex items-center gap-2">
-										<Bell size={18} className="text-green-600" />
-										<span className="font-semibold text-gray-900">Notifications</span>
+										<Bell size={18} className="text-indigo-600" />
+										<span className="font-semibold text-slate-900">Notifications</span>
 										{unreadCount > 0 && (
 											<span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
 												{unreadCount} new
@@ -710,10 +689,10 @@ export const AdminHeader: React.FC<{
 									{unreadCount > 0 && (
 										<button
 											onClick={handleMarkAllAsRead}
-											className="flex items-center gap-1 text-xs transition text-green-600 hover:text-green-700"
+											className="flex items-center gap-1 text-xs transition text-indigo-600 hover:text-indigo-700"
 										>
 											<CheckCheck size={14} />
-											Mark all read
+											Mark all as read
 										</button>
 									)}
 								</div>
@@ -722,15 +701,15 @@ export const AdminHeader: React.FC<{
 								<div className="max-h-[400px] overflow-y-auto">
 									{notificationsLoading ? (
 										<div className="flex items-center justify-center py-8">
-											<Loader2 size={24} className="animate-spin text-green-600" />
+											<Loader2 size={24} className="animate-spin text-indigo-600" />
 										</div>
 									) : notifications.length === 0 ? (
 										<div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-											<div className="w-16 h-16 rounded-full flex items-center justify-center mb-3 bg-gray-100">
-												<Bell size={28} className="text-gray-400" />
+											<div className="w-16 h-16 rounded-full flex items-center justify-center mb-3 bg-slate-100">
+												<Bell size={28} className="text-slate-400" />
 											</div>
-											<p className="text-sm text-gray-600">No notifications yet</p>
-											<p className="text-xs mt-1 text-gray-400">We'll notify you when something arrives</p>
+											<p className="text-sm text-slate-600">No notifications yet</p>
+											<p className="text-xs mt-1 text-slate-400">We'll notify you when something arrives</p>
 										</div>
 									) : (
 										<div>
@@ -738,24 +717,24 @@ export const AdminHeader: React.FC<{
 												<div
 													key={notification._id}
 													onClick={() => handleNotificationClick(notification)}
-													className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition hover:bg-gray-50 ${!notification.isRead ? 'bg-green-50 border-l-2 border-green-500' : ''}`}
+													className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition hover:bg-slate-50 ${!notification.isRead ? 'bg-indigo-50 border-l-2 border-indigo-500' : ''}`}
 												>
-													<div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 bg-gray-100">
+													<div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 bg-slate-100">
 														{getNotificationIcon(notification.type)}
 													</div>
 													<div className="flex-1 min-w-0">
 														<div className="flex items-start justify-between gap-2">
-															<p className={`text-sm font-medium truncate ${!notification.isRead ? 'text-gray-900' : 'text-gray-500'}`}>
+															<p className={`text-sm font-medium truncate ${!notification.isRead ? 'text-slate-900' : 'text-slate-500'}`}>
 																{notification.title}
 															</p>
 															{!notification.isRead && (
-																<span className="flex-shrink-0 w-2 h-2 rounded-full mt-1.5 bg-green-500"></span>
+																<span className="flex-shrink-0 w-2 h-2 rounded-full mt-1.5 bg-indigo-500"></span>
 															)}
 														</div>
-														<p className="text-xs mt-0.5 line-clamp-2 text-gray-500">
+														<p className="text-xs mt-0.5 line-clamp-2 text-slate-500">
 															{notification.message}
 														</p>
-														<div className="flex items-center gap-1 mt-1.5 text-[10px] text-gray-400">
+														<div className="flex items-center gap-1 mt-1.5 text-[10px] text-slate-400">
 															<Clock size={10} />
 															{formatTimeAgo(notification.createdAt)}
 														</div>
@@ -768,10 +747,10 @@ export const AdminHeader: React.FC<{
 
 								{/* Footer */}
 								{notifications.length > 0 && (
-									<div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+									<div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
 										<button 
 											onClick={refreshNotifications}
-											className="w-full text-center text-xs font-medium transition text-green-600 hover:text-green-700"
+											className="w-full text-center text-xs font-medium transition text-indigo-600 hover:text-indigo-700"
 										>
 											Refresh notifications
 										</button>
@@ -786,39 +765,39 @@ export const AdminHeader: React.FC<{
 							className="flex items-center gap-2 cursor-pointer"
 							onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 						>
-							<div className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0 shadow-sm">
+							<div className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-indigo-200 flex-shrink-0 shadow-sm">
 								<img src={user?.image || ''} alt="User Avatar" className="w-full h-full object-cover" />	
 							</div>
 						</div>
 
 						{isDropdownOpen && (
-							<div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-								<div className="p-4 border-b border-gray-100">
+							<div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+								<div className="p-4 border-b border-slate-100">
 									{selectedTenant?.subdomain && (
 										<a 
 											href={`${window.location.protocol}//${selectedTenant.subdomain}.${import.meta.env.VITE_PRIMARY_DOMAIN || window.location.hostname.split('.').slice(-2).join('.')}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-3 text-sm text-gray-700 hover:text-green-600 w-full p-2 rounded-lg hover:bg-gray-50 transition mb-1"
+											className="flex items-center gap-3 text-sm text-slate-700 hover:text-indigo-600 w-full p-2 rounded-lg hover:bg-slate-50 transition mb-1"
 										>
 											<ExternalLink size={14} /> Go to Website
 										</a>
 									)}
 									<button
 										onClick={onLogout}
-										className="flex items-center gap-3 text-sm text-gray-700 hover:text-red-600 w-full p-2 rounded-lg hover:bg-gray-50 transition"
+										className="flex items-center gap-3 text-sm text-slate-700 hover:text-red-600 w-full p-2 rounded-lg hover:bg-slate-50 transition"
 									>
 										<LogOutIcon size={18} /> Logout
 									</button>
 								</div>
-								<div className="bg-gray-50 p-4 text-center">
-									<p className="text-xs text-gray-500 mb-1">(Login as {user?.username || 'admin'})</p>
+								<div className="bg-slate-50 p-4 text-center">
+									<p className="text-xs text-slate-500 mb-1">(Login as {user?.username || 'admin'})</p>
 									{logo ? (
 										<img src={normalizeImageUrl(logo)} alt="Brand" className="h-6 mx-auto object-contain opacity-70" />
 									) : (
 										<div className="flex items-center justify-center gap-1 opacity-70">
-											<div className="w-4 h-4 rounded-full border-2 border-green-500"></div>
-											<span className="text-[10px] font-bold text-gray-600 tracking-widest uppercase">Overseas Products</span>
+											<div className="w-4 h-4 rounded-full border-2 border-indigo-500"></div>
+											<span className="text-[10px] font-bold text-slate-600 tracking-widest uppercase">Admin Panel</span>
 										</div>
 									)}
 								</div>
@@ -835,54 +814,54 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 	const getCardStyle = (color: string) => {
 		switch(color) {
 			case 'pink':
-				return 'bg-gradient-to-r from-pink-200 via-pink-100 to-pink-50';
+				return 'bg-white border border-slate-200 hover:border-pink-300';
 			case 'orange':
-				return 'bg-gradient-to-r from-orange-200 via-orange-100 to-orange-50';
+				return 'bg-white border border-slate-200 hover:border-orange-300';
 			case 'green':
-				return 'bg-gradient-to-r from-green-200 via-green-100 to-green-50';
+				return 'bg-white border border-slate-200 hover:border-emerald-300';
 			case 'purple':
-				return 'bg-gradient-to-r from-purple-200 via-purple-100 to-purple-50';
+				return 'bg-white border border-slate-200 hover:border-violet-300';
 			case 'lavender':
-				return 'bg-gradient-to-r from-violet-200 via-violet-100 to-violet-50';
+				return 'bg-white border border-slate-200 hover:border-violet-300';
 			case 'cyan':
-				return 'bg-gradient-to-r from-cyan-200 via-cyan-100 to-cyan-50';
+				return 'bg-white border border-slate-200 hover:border-cyan-300';
 			case 'red':
-				return 'bg-gradient-to-r from-red-200 via-red-100 to-red-50';
+				return 'bg-white border border-slate-200 hover:border-red-300';
 			case 'blue':
-				return 'bg-gradient-to-r from-blue-200 via-blue-100 to-blue-50';
+				return 'bg-white border border-slate-200 hover:border-blue-300';
 			case 'beige':
-				return 'bg-gradient-to-r from-amber-100 via-orange-50 to-yellow-50';
+				return 'bg-white border border-slate-200 hover:border-amber-300';
 			case 'gray':
-				return 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-50';
+				return 'bg-white border border-slate-200 hover:border-slate-300';
 			default:
-				return 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-50';
+				return 'bg-white border border-slate-200 hover:border-indigo-300';
 		}
 	};
 
 	const getIconStyle = (color: string) => {
 		switch(color) {
 			case 'pink':
-				return 'border-pink-500 text-pink-500 bg-white';
+				return 'bg-pink-100 text-pink-600';
 			case 'orange':
-				return 'border-orange-500 text-orange-500 bg-white';
+				return 'bg-orange-100 text-orange-600';
 			case 'green':
-				return 'border-green-500 text-green-500 bg-white';
+				return 'bg-emerald-100 text-emerald-600';
 			case 'purple':
-				return 'border-purple-500 text-purple-500 bg-white';
+				return 'bg-violet-100 text-violet-600';
 			case 'lavender':
-				return 'border-violet-500 text-violet-500 bg-white';
+				return 'bg-violet-100 text-violet-600';
 			case 'cyan':
-				return 'border-cyan-500 text-cyan-500 bg-white';
+				return 'bg-cyan-100 text-cyan-600';
 			case 'red':
-				return 'border-red-500 text-red-500 bg-white';
+				return 'bg-red-100 text-red-600';
 			case 'blue':
-				return 'border-blue-500 text-blue-500 bg-white';
+				return 'bg-blue-100 text-blue-600';
 			case 'beige':
-				return 'border-amber-600 text-amber-600 bg-white';
+				return 'bg-amber-100 text-amber-600';
 			case 'gray':
-				return 'border-gray-500 text-gray-500 bg-white';
+				return 'bg-slate-100 text-slate-600';
 			default:
-				return 'border-gray-500 text-gray-500 bg-white';
+				return 'bg-indigo-100 text-indigo-600';
 		}
 	};
 
@@ -890,13 +869,13 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 		switch(color) {
 			case 'pink':
 			case 'red':
-				return 'text-red-500';
+				return 'text-red-600';
 			case 'orange':
-				return 'text-orange-500';
+				return 'text-orange-600';
 			case 'green':
-				return 'text-green-600';
+				return 'text-emerald-600';
 			case 'purple':
-				return 'text-purple-600';
+				return 'text-violet-600';
 			case 'lavender':
 				return 'text-violet-600';
 			case 'cyan':
@@ -905,7 +884,7 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 			case 'beige':
 				return 'text-amber-700';
 			default:
-				return 'text-gray-700';
+				return 'text-slate-800';
 		}
 	};
 
@@ -914,27 +893,26 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 	const displayValue = isCurrency ? value : (typeof value === 'number' ? value : value);
 
 	return (
-		<div className={`p-4 rounded-2xl ${getCardStyle(colorClass)} relative overflow-hidden min-h-[120px]`}>
+		<div className={`p-5 rounded-xl ${getCardStyle(colorClass)} relative overflow-hidden min-h-[120px] transition-all duration-200 hover:shadow-lg cursor-default`}>
 			{/* Icon */}
-			<div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${getIconStyle(colorClass)} shadow-sm`}>
+			<div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getIconStyle(colorClass)}`}>
 				<div className="[&>svg]:w-5 [&>svg]:h-5">
 					{icon}
 				</div>
 			</div>
 			
 			{/* Content */}
-			<div className="mt-3">
-				<p className="text-xs text-gray-600 font-medium">{title}</p>
+			<div className="mt-4">
+				<p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{title}</p>
 				<div className="flex items-center gap-2 mt-1">
 					<span className={`text-2xl font-bold ${getValueColor(colorClass)}`}>
 						{isCurrency ? displayValue : `৳${displayValue}`}
 					</span>
-					{/* Trend line */}
-					<svg width="40" height="16" viewBox="0 0 40 16" className={getValueColor(colorClass)}>
-						<path d="M0 12 L8 8 L16 10 L24 4 L32 6 L40 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-					</svg>
 				</div>
 			</div>
+
+			{/* Decorative element */}
+			<div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-5 ${getIconStyle(colorClass).split(' ')[0]}`}></div>
 		</div>
 	);
 };

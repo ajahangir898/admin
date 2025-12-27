@@ -1,7 +1,7 @@
 // AdminAppWithAuth.tsx - Wrapper component that integrates authentication with AdminApp
 import React, { useState, useEffect, useCallback } from 'react';
 import AdminApp, { preloadAdminChunks } from './AdminApp';
-import AdminLogin from './AdminLogin';
+
 import * as authService from '../services/authService';
 import { User, Tenant, Order, Product, ThemeConfig, WebsiteConfig, DeliveryConfig, CourierConfig, FacebookPixelConfig, ChatMessage } from '../types';
 import { Loader2 } from 'lucide-react';

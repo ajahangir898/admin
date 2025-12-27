@@ -11,12 +11,11 @@
  * - hooks/useFacebookPixel.ts - Facebook Pixel
  * - hooks/useNavigation.ts - URL routing and navigation
  */
-
-import React, { useState, useEffect, lazy, Suspense, useCallback, useRef, useMemo, memo } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import type { 
   Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, 
   ProductVariantSelection, LandingPage, FacebookPixelConfig, CourierConfig, 
-  ChatMessage, Role, Category, SubCategory, ChildCategory, Brand, Tag 
+  Role, Category, SubCategory, ChildCategory, Brand, Tag 
 } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 
@@ -43,12 +42,9 @@ import {
   getInitialCachedData,
   hasCachedData,
   sanitizeSubdomainSlug,
-  getHostTenantSlug,
-  hexToRgb,
   setCachedTenantIdForSubdomain,
   SESSION_STORAGE_KEY,
   ACTIVE_TENANT_STORAGE_KEY,
-  DEFAULT_TENANT_SLUG,
 } from './utils/appHelpers';
 
 // Check if we're on the admin subdomain
@@ -61,7 +57,7 @@ import { useAuth } from './hooks/useAuth';
 import { useTenant } from './hooks/useTenant';
 import { useThemeEffects } from './hooks/useThemeEffects';
 import { useFacebookPixel } from './hooks/useFacebookPixel';
-import { useNavigation, type ViewState, getOrderIdFromUrl } from './hooks/useNavigation';
+import { useNavigation } from './hooks/useNavigation';
 
 // Store pages - lazy loaded with preload functions
 const StoreHome = lazy(() => import('./pages/StoreHome'));
@@ -77,7 +73,7 @@ export const preloadCheckout = () => import('./pages/StoreCheckout');
 export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
 
 // Admin pages - lazy loaded
-const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+
 const AdminAppWithAuth = lazy(() => {
   import('./pages/AdminApp').then(m => m.preloadAdminChunks?.());
   return import('./pages/AdminAppWithAuth');
@@ -884,13 +880,7 @@ const App = () => {
 
           {currentView === 'admin-login' ? (
             <Suspense fallback={null}>
-              <AdminLogin onLoginSuccess={(user) => {
-                setUser(user);
-                setActiveTenantId(user.tenantId || activeTenantId || DEFAULT_TENANT_ID);
-                setCurrentView('admin');
-                setAdminSection('dashboard');
-                window.history.pushState({}, '', '/admin');
-              }} />
+            
             </Suspense>
           ) : currentView === 'admin' ? (
             <Suspense fallback={null}>

@@ -24,7 +24,7 @@ const StoreProfile = lazy(() => import('./pages/StoreProfile'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 
 // Admin pages - lazy loaded (only load when needed)
-const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+
 const AdminAppWithAuth = lazy(() => {
   // Preload admin chunks when admin is accessed
   import('./pages/AdminApp').then(m => m.preloadAdminChunks?.());
@@ -1947,13 +1947,7 @@ fbq('track', 'PageView');`;
 
     {currentView === 'admin-login' ? (
       <Suspense fallback={null}>
-        <AdminLogin onLoginSuccess={(user) => {
-          setUser(user);
-          setActiveTenantId(user.tenantId || activeTenantId || DEFAULT_TENANT_ID);
-          setCurrentView('admin');
-          setAdminSection('dashboard');
-          window.history.pushState({}, '', '/admin');
-        }} />
+        
       </Suspense>
     ) : currentView === 'admin' ? (
       <Suspense fallback={null}>

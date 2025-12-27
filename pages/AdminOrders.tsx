@@ -495,7 +495,7 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
             <p className="mt-2 text-3xl font-bold text-white">{metrics.total}</p>
             <p className="text-xs text-white/40">Across all time</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#24090c] to-[#12080b] p-4">
+          <div className="rounded-2xl border border-white/10 from-[#24090c] to-[#12080b] p-4">
             <p className="text-xs uppercase tracking-[0.3em] text-white/50">GMV</p>
             <p className="mt-2 text-3xl font-bold text-white">{formatCurrency(metrics.revenue)}</p>
             <p className="text-xs text-white/40">Gross merchandise value</p>

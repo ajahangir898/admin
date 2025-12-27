@@ -53,9 +53,7 @@ function getInitialView(): ViewState {
       if (stored) {
         const user = JSON.parse(stored);
         if (user && user.role) {
-          if (user.role === 'super_admin') {
-            return 'super-admin';
-          } else if (['admin', 'tenant_admin', 'staff'].includes(user.role)) {
+          if (['super_admin', 'admin', 'tenant_admin', 'staff'].includes(user.role)) {
             return 'admin';
           }
         }

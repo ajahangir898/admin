@@ -302,13 +302,9 @@ const App = () => {
         if (parsedTenantId) {
           setActiveTenantId(parsedTenantId);
         }
-        // On admin subdomain, restore admin view for admin users
+        // On admin subdomain, restore admin view for admin users (super admins included)
         if (isAdminSubdomain && parsed.role && ['super_admin', 'admin', 'tenant_admin', 'staff'].includes(parsed.role)) {
-          if (parsed.role === 'super_admin') {
-            setCurrentView('super-admin');
-          } else {
-            setCurrentView('admin');
-          }
+          setCurrentView('admin');
         }
       }
     } catch (error) {
@@ -928,8 +924,8 @@ const App = () => {
             <Suspense fallback={null}>
               <AdminLogin onLoginSuccess={(loggedUser) => {
                 setUser(loggedUser);
-                // Check if super admin - go to super admin dashboard
-                if (loggedUser.role === 'super_admin') {
+                // Route based on subdomain + role
+                if (loggedUser.role === 'super_admin' && isSuperAdminSubdomain) {
                   setCurrentView('super-admin');
                 } else {
                   setCurrentView('admin');

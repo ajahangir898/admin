@@ -192,6 +192,19 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
 
     if (!trimmedPath) {
       setUrlCategoryFilter(null);
+
+      if (isSuperAdminSubdomain) {
+        // Super admin subdomain should never show store content
+        if (activeUser?.role === 'super_admin') {
+          if (activeView !== 'super-admin') {
+            setCurrentView('super-admin');
+          }
+        } else if (activeView !== 'admin-login') {
+          setCurrentView('admin-login');
+        }
+        return;
+      }
+
       // On admin subdomain, stay on admin-login if not logged in
       if (isAdminSubdomain) {
         if (!activeView.startsWith('admin') && activeView !== 'admin-login') {
@@ -199,6 +212,7 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
         }
         return;
       }
+
       if (!activeView.startsWith('admin')) {
         setSelectedProduct(null);
         setCurrentView('store');
@@ -227,6 +241,18 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
     }
 
     if (activeView === 'admin-login') {
+      return;
+    }
+
+    if (isSuperAdminSubdomain) {
+      // Keep super admin context even if URL is unexpected
+      if (activeUser?.role === 'super_admin') {
+        if (activeView !== 'super-admin') {
+          setCurrentView('super-admin');
+        }
+      } else if (activeView !== 'admin-login') {
+        setCurrentView('admin-login');
+      }
       return;
     }
 

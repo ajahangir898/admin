@@ -99,10 +99,25 @@ const SuperAdminDashboard: React.FC = () => {
     return styles[status as keyof typeof styles] || styles.active;
   };
 
+  // Pie Chart Data
+  const pieChartData = [
+    { label: 'Enterprise', value: 35, color: '#8b5cf6' },
+    { label: 'Growth', value: 45, color: '#3b82f6' },
+    { label: 'Starter', value: 20, color: '#10b981' },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-72' : 'w-20'} bg-slate-900 text-white transition-all duration-300 flex flex-col fixed h-full z-40`}>
+      <aside className={`${sidebarOpen ? 'w-72 translate-x-0' : 'w-20 -translate-x-full lg:translate-x-0'} bg-slate-900 text-white transition-all duration-300 flex flex-col fixed h-full z-40`}>
         {/* Logo */}
         <div className="h-16 flex items-center px-4 border-b border-slate-800">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
@@ -145,31 +160,31 @@ const SuperAdminDashboard: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className={`flex-1 ${sidebarOpen ? 'ml-72' : 'ml-20'} transition-all duration-300`}>
+      <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-72' : 'lg:ml-20'} ml-0`}>
         {/* Top Bar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 hover:bg-slate-100 rounded-lg">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-20">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-slate-100 rounded-lg">
               <Menu className="w-5 h-5 text-slate-600" />
             </button>
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <Search className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search tenants, users, orders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-80 pl-10 pr-4 py-2 bg-slate-100 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-48 md:w-64 lg:w-80 pl-10 pr-4 py-2 bg-slate-100 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Period Selector */}
             <select 
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 bg-slate-100 border-0 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="hidden sm:block px-3 sm:px-4 py-2 bg-slate-100 border-0 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
             >
               <option value="24h">Last 24 Hours</option>
               <option value="7d">Last 7 Days</option>
@@ -182,11 +197,11 @@ const SuperAdminDashboard: React.FC = () => {
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
 
-            <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+            <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-slate-200">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
                 SA
               </div>
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <p className="text-sm font-semibold text-slate-900">Super Admin</p>
                 <p className="text-xs text-slate-500">admin@systemnextit.com</p>
               </div>
@@ -195,9 +210,9 @@ const SuperAdminDashboard: React.FC = () => {
         </header>
 
         {/* Dashboard Content */}
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
             <StatsCard
               title="Total Tenants"
               value={systemStats.totalTenants}
@@ -240,61 +255,141 @@ const SuperAdminDashboard: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Server Status */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-slate-900">Server Status</h3>
-                <span className="flex items-center gap-2 text-sm text-emerald-600">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                  All Systems Operational
-                </span>
+          {/* Pie Chart & Server Status Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
+            {/* Subscription Distribution Pie Chart */}
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Subscription Distribution</h3>
+                <PieChart className="w-5 h-5 text-slate-400" />
               </div>
               
-              <div className="space-y-4">
-                <ServerMetric label="CPU Usage" value={systemStats.serverLoad} color="violet" />
-                <ServerMetric label="Memory" value={systemStats.memoryUsage} color="blue" />
-                <ServerMetric label="Disk Space" value={systemStats.diskUsage} color="emerald" />
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <span className="text-sm text-slate-600">Uptime</span>
-                  <span className="text-sm font-semibold text-slate-900">{systemStats.uptime}</span>
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                {/* SVG Pie Chart */}
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0">
+                  <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                    {/* Enterprise - 35% */}
+                    <circle
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      stroke="#8b5cf6"
+                      strokeWidth="20"
+                      strokeDasharray="87.96 251.33"
+                      strokeDashoffset="0"
+                      className="transition-all duration-500"
+                    />
+                    {/* Growth - 45% */}
+                    <circle
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      stroke="#3b82f6"
+                      strokeWidth="20"
+                      strokeDasharray="113.1 251.33"
+                      strokeDashoffset="-87.96"
+                      className="transition-all duration-500"
+                    />
+                    {/* Starter - 20% */}
+                    <circle
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      stroke="#10b981"
+                      strokeWidth="20"
+                      strokeDasharray="50.27 251.33"
+                      strokeDashoffset="-201.06"
+                      className="transition-all duration-500"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-xl sm:text-2xl font-bold text-slate-900">{systemStats.totalTenants}</span>
+                    <span className="text-xs text-slate-500">Total</span>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex flex-row sm:flex-col gap-3 sm:gap-4 flex-wrap justify-center">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-violet-500"></span>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-slate-700">Enterprise</p>
+                      <p className="text-xs text-slate-500">35% (55)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-slate-700">Growth</p>
+                      <p className="text-xs text-slate-500">45% (70)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-slate-700">Starter</p>
+                      <p className="text-xs text-slate-500">20% (31)</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Server Status */}
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Server Status</h3>
+                <span className="flex items-center gap-2 text-xs sm:text-sm text-emerald-600">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                  <span className="hidden sm:inline">All Systems Operational</span>
+                  <span className="sm:hidden">Online</span>
+                </span>
+              </div>
+              
+              <div className="space-y-3 sm:space-y-4">
+                <ServerMetric label="CPU Usage" value={systemStats.serverLoad} color="violet" />
+                <ServerMetric label="Memory" value={systemStats.memoryUsage} color="blue" />
+                <ServerMetric label="Disk Space" value={systemStats.diskUsage} color="emerald" />
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <span className="text-xs sm:text-sm text-slate-600">Uptime</span>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-900">{systemStats.uptime}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions & Recent Activity */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
             {/* Quick Actions */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <h3 className="font-semibold text-slate-900 mb-6">Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+              <h3 className="font-semibold text-slate-900 mb-4 sm:mb-6 text-sm sm:text-base">Quick Actions</h3>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <QuickActionButton icon={Plus} label="Add Tenant" color="violet" />
                 <QuickActionButton icon={UserPlus} label="Add User" color="blue" />
-                <QuickActionButton icon={Download} label="Export Data" color="emerald" />
-                <QuickActionButton icon={RefreshCw} label="Clear Cache" color="amber" />
-                <QuickActionButton icon={Mail} label="Send Broadcast" color="pink" />
-                <QuickActionButton icon={Shield} label="Security Scan" color="red" />
+                <QuickActionButton icon={Download} label="Export" color="emerald" />
+                <QuickActionButton icon={RefreshCw} label="Cache" color="amber" />
+                <QuickActionButton icon={Mail} label="Broadcast" color="pink" />
+                <QuickActionButton icon={Shield} label="Security" color="red" />
               </div>
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-slate-900">Recent Activity</h3>
-                <button className="text-sm text-violet-600 hover:text-violet-700 font-medium">View All</button>
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Recent Activity</h3>
+                <button className="text-xs sm:text-sm text-violet-600 hover:text-violet-700 font-medium">View All</button>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4 max-h-64 overflow-y-auto">
                 {recentActivities.slice(0, 5).map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  <div key={activity.id} className="flex items-start gap-2 sm:gap-3">
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       activity.type === 'alert' ? 'bg-amber-100 text-amber-600' :
                       activity.type === 'payment' ? 'bg-emerald-100 text-emerald-600' :
                       activity.type === 'upgrade' ? 'bg-violet-100 text-violet-600' :
                       'bg-blue-100 text-blue-600'
                     }`}>
-                      <activity.icon className="w-4 h-4" />
+                      <activity.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700 truncate">{activity.message}</p>
-                      <p className="text-xs text-slate-400">{activity.time}</p>
+                      <p className="text-xs sm:text-sm text-slate-700 truncate">{activity.message}</p>
+                      <p className="text-[10px] sm:text-xs text-slate-400">{activity.time}</p>
                     </div>
                   </div>
                 ))}
@@ -304,20 +399,21 @@ const SuperAdminDashboard: React.FC = () => {
 
           {/* Top Tenants Table */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
+            <div className="p-4 sm:p-6 border-b border-slate-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="font-semibold text-slate-900">Top Performing Tenants</h3>
-                  <p className="text-sm text-slate-500 mt-1">Based on revenue and orders in the selected period</p>
+                  <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Top Performing Tenants</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">Based on revenue and orders</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex items-center gap-1.5 sm:gap-2">
+                    <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     Filter
                   </button>
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-xl flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Add Tenant
+                  <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-xl flex items-center gap-1.5 sm:gap-2">
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Add Tenant</span>
+                    <span className="sm:hidden">Add</span>
                   </button>
                 </div>
               </div>
@@ -398,9 +494,9 @@ const SuperAdminDashboard: React.FC = () => {
               </table>
             </div>
 
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-              <p className="text-sm text-slate-500">Showing 5 of {systemStats.totalTenants} tenants</p>
-              <button className="text-sm font-medium text-violet-600 hover:text-violet-700">View All Tenants →</button>
+            <div className="p-3 sm:p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p className="text-xs sm:text-sm text-slate-500">Showing 5 of {systemStats.totalTenants} tenants</p>
+              <button className="text-xs sm:text-sm font-medium text-violet-600 hover:text-violet-700">View All Tenants →</button>
             </div>
           </div>
         </div>
@@ -450,21 +546,21 @@ const StatsCard: React.FC<{
   iconColor: string;
   subtitle: string;
 }> = ({ title, value, change, changeType, icon: Icon, iconBg, iconColor, subtitle }) => (
-  <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-sm font-medium text-slate-500">{title}</p>
-        <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
-        <div className="flex items-center gap-2 mt-2">
-          <span className={`flex items-center gap-1 text-xs font-medium ${changeType === 'increase' ? 'text-emerald-600' : 'text-red-500'}`}>
-            {changeType === 'increase' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-500 truncate">{title}</p>
+        <p className="text-base sm:text-xl lg:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1 truncate">{value}</p>
+        <div className="flex items-center gap-1 sm:gap-2 mt-1 sm:mt-2 flex-wrap">
+          <span className={`flex items-center gap-0.5 text-[10px] sm:text-xs font-medium ${changeType === 'increase' ? 'text-emerald-600' : 'text-red-500'}`}>
+            {changeType === 'increase' ? <ArrowUpRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : <ArrowDownRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
             {Math.abs(change)}%
           </span>
-          <span className="text-xs text-slate-400">{subtitle}</span>
+          <span className="text-[10px] sm:text-xs text-slate-400 hidden sm:inline">{subtitle}</span>
         </div>
       </div>
-      <div className={`w-12 h-12 ${iconBg} rounded-xl flex items-center justify-center`}>
-        <Icon className={`w-6 h-6 ${iconColor}`} />
+      <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 ${iconBg} rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${iconColor}`} />
       </div>
     </div>
   </div>
@@ -483,11 +579,11 @@ const ServerMetric: React.FC<{
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-slate-600">{label}</span>
-        <span className="text-sm font-semibold text-slate-900">{value}%</span>
+      <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+        <span className="text-xs sm:text-sm text-slate-600">{label}</span>
+        <span className="text-xs sm:text-sm font-semibold text-slate-900">{value}%</span>
       </div>
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
         <div className={`h-full ${colors[color]} rounded-full transition-all duration-500`} style={{ width: `${value}%` }} />
       </div>
     </div>
@@ -509,9 +605,9 @@ const QuickActionButton: React.FC<{
   };
 
   return (
-    <button className={`p-4 rounded-xl ${colors[color]} transition-colors flex flex-col items-center gap-2`}>
-      <Icon className="w-5 h-5" />
-      <span className="text-xs font-medium">{label}</span>
+    <button className={`p-2 sm:p-3 lg:p-4 rounded-lg sm:rounded-xl ${colors[color]} transition-colors flex flex-col items-center gap-1 sm:gap-2`}>
+      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+      <span className="text-[10px] sm:text-xs font-medium text-center leading-tight">{label}</span>
     </button>
   );
 };

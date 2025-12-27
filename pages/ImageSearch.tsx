@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Camera, Search, X, Loader2, ArrowLeft, Tag, DollarSign, Package, Palette, Box, Target, Sparkles, Copy, Check, Plus, Wifi, WifiOff } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast'; // Remove ", { Toaster }" from here
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_YOLO_API_URL || 'http://localhost:8001';
@@ -391,7 +391,7 @@ const ImageSearchPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-center" />
+      {/* <Toaster position="top-center" /> */}
       
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">

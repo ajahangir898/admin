@@ -35,9 +35,8 @@ const AdminFacebookPixel = lazy(() => import(/* webpackChunkName: "admin-pixel" 
 const AdminLandingPage = lazy(() => import(/* webpackChunkName: "admin-landing" */ './AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import(/* webpackChunkName: "admin-tenant" */ './AdminTenantManagement'));
 const AdminDueList = lazy(() => import(/* webpackChunkName: "admin-duelist" */ './AdminDueList'));
-const loadAdminComponents = () => import(/* webpackChunkName: "admin-components" */ '../components/AdminComponents');
-const AdminSidebar = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminSidebar })));
-const AdminHeader = lazy(() => loadAdminComponents().then(module => ({ default: module.AdminHeader })));
+// Admin Components - directly imported for instant layout render
+import { AdminSidebar, AdminHeader } from '../components/AdminComponents';
 
 // Preload critical admin chunks on idle - only when admin view is triggered
 let adminChunksPreloaded = false;
@@ -47,13 +46,11 @@ export const preloadAdminChunks = () => {
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
     (window as any).requestIdleCallback(() => {
       import('./AdminDashboard');
-      import('../components/AdminComponents');
     }, { timeout: 3000 });
   } else {
     // Fallback for browsers without requestIdleCallback
     setTimeout(() => {
       import('./AdminDashboard');
-      import('../components/AdminComponents');
     }, 100);
   }
 };

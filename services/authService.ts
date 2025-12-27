@@ -56,12 +56,13 @@ export const getAuthHeader = (): HeadersInit => {
 };
 
 // Helper to handle API responses
-const handleResponse = async (response: Response) => {
+const handleResponse = async (response: Response, clearAuthOn401 = false) => {
   const data = await response.json().catch(() => ({}));
   
   if (!response.ok) {
-    // Handle 401 Unauthorized - clear auth state
-    if (response.status === 401) {
+    // Handle 401 Unauthorized - only clear auth if explicitly requested
+    // This prevents automatic logout on page reload when token validation fails
+    if (response.status === 401 && clearAuthOn401) {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(PERMISSIONS_KEY);

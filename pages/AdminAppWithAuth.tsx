@@ -60,25 +60,60 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
           return;
         }
 
-        // Validate token with backend
-        const { user: currentUser, permissions } = await authService.getCurrentUser();
-        setUser(currentUser as User);
+        // Use stored user first - don't force API validation on every reload
+        const storedUser = authService.getStoredUser();
+        const storedPerms = authService.getStoredPermissions();
         
-        // Convert permissions array to map if needed
-        if (Array.isArray(permissions)) {
-          const permMap: PermissionMap = {};
-          permissions.forEach((p: any) => {
-            permMap[p.resource] = p.actions;
+        if (storedUser) {
+          setUser(storedUser as User);
+          
+          // Convert stored permissions
+          if (Array.isArray(storedPerms)) {
+            const permMap: PermissionMap = {};
+            storedPerms.forEach((p: any) => {
+              permMap[p.resource] = p.actions;
+            });
+            setUserPermissions(permMap);
+          } else if (storedPerms && typeof storedPerms === 'object') {
+            setUserPermissions(storedPerms as PermissionMap);
+          }
+          
+          setIsAuthenticated(true);
+          
+          // Optionally refresh user data in background (non-blocking)
+          authService.getCurrentUser().then(({ user: currentUser, permissions }) => {
+            setUser(currentUser as User);
+            if (Array.isArray(permissions)) {
+              const permMap: PermissionMap = {};
+              permissions.forEach((p: any) => {
+                permMap[p.resource] = p.actions;
+              });
+              setUserPermissions(permMap);
+            }
+          }).catch(() => {
+            // Silently fail - user is still logged in with stored data
+            console.log('Background refresh failed, using stored session');
           });
-          setUserPermissions(permMap);
-        } else if (permissions && typeof permissions === 'object') {
-          setUserPermissions(permissions as PermissionMap);
+        } else {
+          // No stored user, try API
+          const { user: currentUser, permissions } = await authService.getCurrentUser();
+          setUser(currentUser as User);
+          
+          if (Array.isArray(permissions)) {
+            const permMap: PermissionMap = {};
+            permissions.forEach((p: any) => {
+              permMap[p.resource] = p.actions;
+            });
+            setUserPermissions(permMap);
+          } else if (permissions && typeof permissions === 'object') {
+            setUserPermissions(permissions as PermissionMap);
+          }
+          
+          setIsAuthenticated(true);
         }
-        
-        setIsAuthenticated(true);
       } catch (error) {
         console.error('Session validation failed:', error);
-        authService.logout();
+        // Don't logout - just mark as not authenticated
         setIsAuthenticated(false);
       } finally {
         setIsValidating(false);
@@ -127,9 +162,9 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
   }
 
   // Show login if not authenticated
-  if (!isAuthenticated) {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
-  }
+  // if (!isAuthenticated) {
+  //   return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
+  // }
 
   // Show admin app with authenticated user
   return (

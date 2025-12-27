@@ -1,305 +1,447 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SystemNext IT - আধুনিক ই-কমার্স সলিউশন</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Hind Siliguri', 'Inter', sans-serif; }
-    .hero-gradient { background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f5f3ff 100%); position: relative; }
-    .decor-shape { position: absolute; opacity: 0.1; pointer-events: none; }
-    .btn-gradient { background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%); }
-    .card-shadow { box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1); }
-    .demo-card:hover { transform: translateY(-8px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .offer-box { border: 3px solid #8b5cf6; background: white; border-radius: 1.5rem; }
-    .chat-bubble { animation: slideIn 0.3s ease-out; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
-</head>
-<body class="bg-white text-slate-800 selection:bg-indigo-100 overflow-x-hidden">
-  
-  <!-- Main Content -->
-  <div class="min-h-screen hero-gradient">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="সেলইকম - বাংলাদেশের সেরা ই-কমার্স প্ল্যাটফর্ম। সুপার-ফাস্ট লোড টাইম, মোবাইল ফ্রেন্ডলি UI, ফেসবুক পিক্সেল ইন্টিগ্রেশন।">
+    <meta name="keywords" content="ই-কমার্স, অনলাইন স্টোর, বাংলাদেশ, সেলইকম">
+    <title>সেলইকম - আপনার ব্যবসার সঠিক সল্যুশন</title>
     
+    <!-- Preconnect for faster font loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Critical CSS inline for faster first paint -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Hind Siliguri', sans-serif; background: #fff; }
+        .navbar { position: fixed; top: 0; width: 100%; z-index: 100; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e2e8f0; }
+        .navbar-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 70px; padding: 0 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #7c3aed, #a78bfa); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .logo-text { font-size: 1.5rem; font-weight: 900; color: #1e293b; }
+    </style>
+    
+    <!-- Fonts - loaded async -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
+    
+    <!-- Main Styles - deferred -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="chat.css" media="print" onload="this.media='all'">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%237c3aed' rx='20' width='100' height='100'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
+</head>
+<body>
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-lg border-b border-slate-100">
-      <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
-            <svg class="text-white w-7 h-7" fill="white" viewBox="0 0 24 24"><path d="M21 16.05V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14.93a.6.6 0 00.41-1.04l-.98-.98a.6.6 0 01-.18-.43V16.5a.5.5 0 01.5-.5h2.27a.6.6 0 00.05.05z"/></svg>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-2xl font-black tracking-tighter text-slate-900 leading-none">SystemNext IT</span>
-            <span class="text-[10px] text-indigo-500 font-bold uppercase tracking-[0.2em] mt-1">Digital Solutions</span>
-          </div>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <span class="logo-text">সেলইকম</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">ফিচার</a>
+                <a href="#stats">পরিসংখ্যান</a>
+                <a href="#faq">জিজ্ঞাসা</a>
+                <a href="#contact">যোগাযোগ</a>
+                <button class="btn-primary">ফ্রি ট্রায়াল</button>
+            </div>
+            <button class="mobile-nav-toggle" id="mobile-nav-toggle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e293b" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+            </button>
         </div>
-        <div class="hidden lg:flex items-center gap-10 text-sm font-semibold text-slate-600">
-          <a href="#" class="hover:text-indigo-600 transition-colors">হোম</a>
-          <a href="#services" class="hover:text-indigo-600 transition-colors">সার্ভিস</a>
-          <a href="#demo" class="hover:text-indigo-600 transition-colors">ডেমো</a>
-          <a href="#contact" class="hover:text-indigo-600 transition-colors">যোগাযোগ</a>
-          <a href="https://wa.me/8801XXXXXXXXX" class="bg-indigo-600 text-white px-7 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 hover:scale-105 active:scale-95">সফটওয়্যার তৈরি করুন</a>
-        </div>
-      </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="pt-44 pb-24 px-4 text-center">
-      <div class="max-w-5xl mx-auto">
-        <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-bold mb-8">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          পেশাদার ই-কমার্স সলিউশন - SystemNext IT
-        </div>
-        <h1 class="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tight">
-          সফল ই-কমার্স ব্যবসার জন্য <br/> 
-          আজই <span class="text-indigo-600">সিস্টেমনেক্সট</span> এ আসুন!
-        </h1>
-        <p class="text-xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
-          উন্নত প্রযুক্তি এবং অসাধারণ ইউজার এক্সপেরিয়েন্সের মাধ্যমে আপনার অনলাইন ব্যবসাকে নিয়ে যান এক অনন্য উচ্চতায়। আমাদের সলিউশন মানেই গ্যারান্টিড সাকসেস।
-        </p>
-        <div class="flex flex-col items-center gap-5">
-          <a href="https://wa.me/8801XXXXXXXXX" class="btn-gradient text-white px-10 py-5 rounded-2xl font-black text-xl flex items-center gap-3 hover:scale-105 transition-all shadow-2xl shadow-indigo-200 uppercase tracking-wide">
-            আপনার প্ল্যাটফর্ম তৈরি করুন 
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-          </a>
-          <div class="flex items-center gap-6 mt-4">
-            <div class="flex items-center gap-2 text-slate-500 font-bold text-sm">
-              <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              No Hidden Costs
+    <section class="hero">
+        <div class="container">
+            <h1 class="animate">সঠিক সলিউশনে <span class="text-purple">ব্যবসা বাড়বে</span> কয়েকগুণ!</h1>
+            <p class="animate delay-1">আধুনিক ই-কমার্স প্ল্যাটফর্ম দিয়ে আপনার ব্যবসাকে নিয়ে যান নতুন উচ্চতায়। সুপার-ফাস্ট, সিকিউর এবং স্কেলেবল।</p>
+            <div class="hero-cta animate delay-2">
+                <button class="btn-primary">এখনই শুরু করুন</button>
+                <button class="btn-outline">ডেমো দেখুন</button>
             </div>
-            <div class="flex items-center gap-2 text-slate-500 font-bold text-sm">
-              <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              24/7 Support
-            </div>
-          </div>
         </div>
-      </div>
     </section>
 
-    <!-- Demo Section -->
-    <section id="demo" class="py-20 px-4 bg-slate-50/50">
-      <div class="max-w-7xl mx-auto text-center mb-16">
-        <h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-4">
-          <span class="text-indigo-600">লাইভ ডেমো</span> — পার্থক্যটি দেখুন
-        </h2>
-        <p class="text-slate-500 font-medium">আমাদের ডিজাইন করা কিছু প্রিমিয়াম ই-কমার্স থিম</p>
-      </div>
+    <!-- Stats Section -->
+    <section class="stats-section" id="stats">
+        <div class="container">
+            <h2 class="section-title text-center animate"><span class="text-green">সঠিক সলিউশনে</span> ব্যবসা বাড়বে কয়েকগুণ!</h2>
+            <div class="stats-grid">
+                <!-- Orders Card -->
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h3>Orders</h3>
+                        <div class="stat-tabs">
+                            <button class="stat-tab">Today</button>
+                            <button class="stat-tab active">This Week</button>
+                        </div>
+                    </div>
+                    <div class="stat-number">10,000</div>
+                    <div class="stat-label">Weekly Orders</div>
+                    <div class="stat-chart">
+                        <div class="chart-bar" style="height: 15%"></div>
+                        <div class="chart-bar" style="height: 20%"></div>
+                        <div class="chart-bar" style="height: 25%"></div>
+                        <div class="chart-bar" style="height: 30%"></div>
+                        <div class="chart-bar" style="height: 35%"></div>
+                        <div class="chart-bar" style="height: 60%"></div>
+                        <div class="chart-bar" style="height: 85%"></div>
+                    </div>
+                    <div class="chart-labels">
+                        <span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span>
+                    </div>
+                </div>
 
-      <!-- Themes Grid -->
-      <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        
-        <!-- Theme Card 1 -->
-        <div class="demo-card group bg-white rounded-3xl border border-slate-100 card-shadow overflow-hidden flex flex-col h-full p-2">
-          <div class="p-4 flex-1">
-            <div class="text-center mb-6">
-              <h3 class="text-base font-black text-slate-900">Tech Pro Store</h3>
-              <p class="text-[11px] text-indigo-500 font-bold uppercase tracking-wider mt-1">High-End Technology</p>
+                <!-- Today's Sell Card -->
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h3>Today's Sell</h3>
+                    </div>
+                    <div class="donut-container">
+                        <div class="donut-chart">
+                            <svg width="120" height="120" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+                                <circle id="donut1" cx="50" cy="50" r="45" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round"/>
+                            </svg>
+                            <div class="donut-center">
+                                <div class="donut-value">৳150.0K</div>
+                            </div>
+                        </div>
+                        <div class="donut-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot blue"></span>
+                                <span>Online Payment</span>
+                                <span style="margin-left: auto; font-weight: 600;">৳20.0K</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot green"></span>
+                                <span>Cash on Delivery</span>
+                                <span style="margin-left: auto; font-weight: 600;">৳130.0K</span>
+                            </div>
+                            <div style="margin-top: 1rem;">
+                                <div class="stat-label">Sales Growth</div>
+                                <svg width="100%" height="40" viewBox="0 0 200 40">
+                                    <path d="M0,35 Q50,30 100,20 T200,10" fill="none" stroke="#10b981" stroke-width="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Orders Card -->
+                <div class="stat-card">
+                    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1rem; font-size: 0.75rem;">
+                        <span><span class="legend-dot blue" style="display: inline-block;"></span> Online Payment <strong>৳12.0K - 5%</strong></span>
+                        <span><span class="legend-dot green" style="display: inline-block;"></span> Cash on Delivery <strong>৳150.0K - 95%</strong></span>
+                    </div>
+                    <div class="ring-container">
+                        <div class="ring-chart">
+                            <svg width="150" height="150" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" stroke-width="8"/>
+                                <circle id="ring1" cx="50" cy="50" r="45" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round"/>
+                            </svg>
+                            <div class="ring-center">
+                                <div class="ring-value">৳4.0M</div>
+                                <div class="ring-label">Total Order<br>Amount</div>
+                            </div>
+                        </div>
+                        <div class="stat-label">Our Active client</div>
+                        <div class="client-count">1,500+</div>
+                    </div>
+                </div>
             </div>
-            <div class="relative rounded-2xl overflow-hidden border border-slate-100 mb-4 bg-slate-50 group-hover:shadow-2xl transition-all duration-500">
-              <img src="https://i.postimg.cc/G2PSZ70V/Gemini_Generated_Image_45zoxl45zoxl45zo.png" alt="Tech Store" class="w-full aspect-[4/5] object-cover group-hover:scale-110 transition-transform duration-700"/>
-              <div class="absolute inset-0 bg-gradient-to-t from-indigo-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-          </div>
-          <div class="px-4 pb-4">
-            <div class="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest text-center group-hover:border-indigo-600 group-hover:text-indigo-600 transition-colors">
-              View Demo
-            </div>
-          </div>
         </div>
-
-        <!-- Theme Card 2 -->
-        <div class="demo-card group bg-white rounded-3xl border border-slate-100 card-shadow overflow-hidden flex flex-col h-full p-2">
-          <div class="p-4 flex-1">
-            <div class="text-center mb-6">
-              <h3 class="text-base font-black text-slate-900">Furniture Haven</h3>
-              <p class="text-[11px] text-indigo-500 font-bold uppercase tracking-wider mt-1">Modern Living</p>
-            </div>
-            <div class="relative rounded-2xl overflow-hidden border border-slate-100 mb-4 bg-slate-50 group-hover:shadow-2xl transition-all duration-500">
-              <img src="https://i.postimg.cc/g0rpb6GF/Gemini-Generated-Image-vggxo4vggxo4vggx.png" alt="Furniture Store" class="w-full aspect-[4/5] object-cover group-hover:scale-110 transition-transform duration-700"/>
-              <div class="absolute inset-0 bg-gradient-to-t from-indigo-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-          </div>
-          <div class="px-4 pb-4">
-            <div class="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest text-center group-hover:border-indigo-600 group-hover:text-indigo-600 transition-colors">
-              View Demo
-            </div>
-          </div>
-        </div>
-
-        <!-- Theme Card 3 -->
-        <div class="demo-card group bg-white rounded-3xl border border-slate-100 card-shadow overflow-hidden flex flex-col h-full p-2">
-          <div class="p-4 flex-1">
-            <div class="text-center mb-6">
-              <h3 class="text-base font-black text-slate-900">Fashion Hub</h3>
-              <p class="text-[11px] text-indigo-500 font-bold uppercase tracking-wider mt-1">Premium Style</p>
-            </div>
-            <div class="relative rounded-2xl overflow-hidden border border-slate-100 mb-4 bg-slate-50 group-hover:shadow-2xl transition-all duration-500">
-              <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80" alt="Fashion Store" class="w-full aspect-[4/5] object-cover group-hover:scale-110 transition-transform duration-700"/>
-              <div class="absolute inset-0 bg-gradient-to-t from-indigo-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-          </div>
-          <div class="px-4 pb-4">
-            <div class="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest text-center group-hover:border-indigo-600 group-hover:text-indigo-600 transition-colors">
-              View Demo
-            </div>
-          </div>
-        </div>
-
-        <!-- Theme Card 4 -->
-        <div class="demo-card group bg-white rounded-3xl border border-slate-100 card-shadow overflow-hidden flex flex-col h-full p-2">
-          <div class="p-4 flex-1">
-            <div class="text-center mb-6">
-              <h3 class="text-base font-black text-slate-900">Watch Galaxy</h3>
-              <p class="text-[11px] text-indigo-500 font-bold uppercase tracking-wider mt-1">Smart Wearables</p>
-            </div>
-            <div class="relative rounded-2xl overflow-hidden border border-slate-100 mb-4 bg-slate-50 group-hover:shadow-2xl transition-all duration-500">
-              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80" alt="Watch Store" class="w-full aspect-[4/5] object-cover group-hover:scale-110 transition-transform duration-700"/>
-              <div class="absolute inset-0 bg-gradient-to-t from-indigo-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-          </div>
-          <div class="px-4 pb-4">
-            <div class="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest text-center group-hover:border-indigo-600 group-hover:text-indigo-600 transition-colors">
-              View Demo
-            </div>
-          </div>
-        </div>
-
-      </div>
     </section>
 
-    <!-- Offer Section -->
-    <section class="py-24 px-4 bg-white relative overflow-hidden">
-      <div class="max-w-4xl mx-auto offer-box p-12 md:p-16 text-center card-shadow relative z-10">
-        <h2 class="text-4xl md:text-6xl font-black text-slate-900 mb-10 tracking-tight">Limited-Time Offer!</h2>
-        <a href="https://wa.me/8801XXXXXXXXX" class="inline-block bg-indigo-600 text-white px-14 py-5 rounded-2xl font-black text-2xl uppercase tracking-wide hover:bg-indigo-700 hover:scale-105 transition-all shadow-2xl shadow-indigo-100 active:scale-95">
-          অর্ডার করুন
-        </a>
-      </div>
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <h2 class="section-title text-center animate">
+                <span class="text-purple">ই-কমার্সের সব গুরুত্বপূর্ণ ফিচার</span> —<br>এক প্ল্যাটফর্মে!
+            </h2>
+            
+            <div class="features-tabs">
+                <button class="feature-tab active" data-category="all">সব ফিচার</button>
+                <button class="feature-tab" data-category="advanced">আডভান্সড ফিচার</button>
+                <button class="feature-tab" data-category="tech">টেকনোলজি</button>
+            </div>
+
+            <div class="features-grid" id="features-container">
+                <!-- Features loaded dynamically -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    </div>
+                    <h4>মোবাইল ফ্রেন্ডলি UI/UX</h4>
+                    <p>দ্রুত, সুন্দর ও কাস্টমাইজযোগ্য ডিজাইন নিশ্চিত করে অসাধারন মোবাইল-ফ্রেন্ডলি অভিজ্ঞতা প্রদান করে।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </div>
+                    <h4>সুপার-ফাস্ট 0.5s লোড টাইম</h4>
+                    <p>মাত্র ০.৫ সেকেন্ডে লোড হয়ে সেরা ইউজার অভিজ্ঞতা নিশ্চিত করবে।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    </div>
+                    <h4>আনলিমিটেড ল্যান্ডিং পেজ</h4>
+                    <p>আকর্ষণীয় ও সহজে কাস্টমাইজযোগ্য ল্যান্ডিং পেজ তৈরি করুন যা গ্রাহক এনগেজমেন্ট বাড়াবে।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    </div>
+                    <h4>ফেসবুক পিক্সেল এবং সার্ভার ট্র্যাকিং</h4>
+                    <p>Conversion API ব্যবহার করে Stape.io-এর মতো বিনামূল্যে সার্ভার সাইড ট্র্যাক করুন এবং সর্বোচ্চ কনভার্সন রেট নিশ্চিত করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                    </div>
+                    <h4>নেক্সট-জেন JavaScript টেকনোলজি</h4>
+                    <p>Google এর তৈরি একটি JavaScript ফ্রেমওয়ার্ক, যা যেকোনো প্ল্যাটফর্মের তুলনায় অনেক দ্রুত এবং Single Page Web Application!</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    </div>
+                    <h4>1-ক্লিক Easy Checkout</h4>
+                    <p>লগইন করার দরকার নেই! সহজ, ব্যবহারকারী-বান্ধব অর্ডার প্লেসমেন্ট ও ট্র্যাকিং সিস্টেম উপভোগ করুন।</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                    </div>
+                    <h4>আউটডেটেড ডেলিভারি চার্জ পেমেন্ট</h4>
+                    <p>নির্বিঘ্ন ও দ্রুত চেকআউটের জন্য অগ্রিম ডেলিভারি ফি সংগ্রহ করুন!</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    </div>
+                    <h4>হাই সিকিউর এবং স্কেলেবল</h4>
+                    <p>নির্ভরতা বৃদ্ধির জন্য একটি স্কেলেবল সিস্টেম সহ শীর্ষ-মানের সুরক্ষা নিশ্চিত করুন এবং নির্ভরযোগ্যতা লাভ করুন!</p>
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- Features Bar -->
-    <div id="services" class="bg-slate-950 py-16 text-white">
-      <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-        <div class="flex flex-col items-center gap-4">
-          <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
-            <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          </div>
-          <h4 class="font-black uppercase tracking-widest text-xs">High Performance</h4>
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <h2 class="section-title text-center"><span class="text-purple">সাধারন জিজ্ঞাসা</span></h2>
+            
+            <div class="faq-container">
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>সেলইকম কী?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>সেলইকম হলো বাংলাদেশের সবচেয়ে আধুনিক ই-কমার্স প্ল্যাটফর্ম যা আপনাকে সহজেই অনলাইন স্টোর তৈরি ও পরিচালনা করতে সাহায্য করে।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>সেলইকম দিয়ে ই-কমার্স স্টোর খুলতে কি সফটওয়্যার ডেভেলপারের সাহায্য প্রয়োজন হয়?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>না, সেলইকম সম্পূর্ণ নো-কোড প্ল্যাটফর্ম। আপনি কোনো কোডিং জ্ঞান ছাড়াই মিনিটের মধ্যে আপনার স্টোর তৈরি করতে পারবেন।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>আমি কি আমার নিজস্ব ডোমেইন ব্যবহার করতে পারি?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>হ্যাঁ, আপনি আপনার নিজস্ব কাস্টম ডোমেইন সংযুক্ত করতে পারবেন। আমরা SSL সার্টিফিকেট বিনামূল্যে প্রদান করি।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>আমাকে কি আলাদা করে হোস্টিং সার্ভিস কিনতে হবে?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>না, সেলইকম প্যাকেজের সাথে হোস্টিং অন্তর্ভুক্ত। আপনাকে আলাদা কোনো হোস্টিং কিনতে হবে না।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>আমি কি আমার অনলাইন স্টোরের টেমপ্লেট বা থিম কাস্টমাইজ করতে পারবো?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>অবশ্যই! আমাদের থিম এডিটর দিয়ে আপনি রং, ফন্ট, লেআউট সব কিছু কাস্টমাইজ করতে পারবেন।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>আমার অনলাইন স্টোরে পেমেন্ট আমি কীভাবে পাবো?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>আমরা বিকাশ, নগদ, রকেট সহ সকল জনপ্রিয় পেমেন্ট গেটওয়ে সাপোর্ট করি। পেমেন্ট সরাসরি আপনার অ্যাকাউন্টে যাবে।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>প্যাকেজ আপগ্রেড/ডাউনগ্রেড বা পরিবর্তন করা সম্ভব কি?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>হ্যাঁ, আপনি যেকোনো সময় প্যাকেজ আপগ্রেড বা ডাউনগ্রেড করতে পারবেন। পার্থক্য মূল্য প্রো-রেটা হিসাবে অ্যাডজাস্ট হবে।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>আমার কাস্টমার এবং লেনদেনের ডেটা কি আপনারা অন্যের সাথে শেয়ার করবেন?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>না, আমরা আপনার ডেটা সম্পূর্ণ গোপনীয় রাখি। আমরা কখনো তৃতীয় পক্ষের সাথে আপনার ডেটা শেয়ার করি না।</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>আমি কি আমার সাবস্ক্রিপশন বাতিল করতে এবং অ্যাকাউন্ট মুছে ফেলতে পারবো?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>হ্যাঁ, আপনি যেকোনো সময় সাবস্ক্রিপশন বাতিল করতে পারবেন। বাতিলের আগে আপনার ডেটা এক্সপোর্ট করে নিতে পারবেন।</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-image">
+                    <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="200" cy="200" r="150" fill="#e9d5ff" opacity="0.3"/>
+                        <circle cx="200" cy="200" r="100" fill="#c4b5fd" opacity="0.3"/>
+                        <rect x="120" y="100" width="160" height="200" rx="20" fill="#a78bfa"/>
+                        <rect x="140" y="120" width="120" height="30" rx="5" fill="#fff"/>
+                        <rect x="140" y="160" width="80" height="15" rx="3" fill="#f3e8ff"/>
+                        <rect x="140" y="185" width="100" height="15" rx="3" fill="#f3e8ff"/>
+                        <rect x="140" y="210" width="60" height="15" rx="3" fill="#f3e8ff"/>
+                        <circle cx="200" cy="270" r="20" fill="#10b981"/>
+                        <path d="M192 270l6 6 12-12" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="100" cy="320" r="25" fill="#fcd34d"/>
+                        <rect x="75" y="345" width="50" height="55" rx="10" fill="#3b82f6"/>
+                        <circle cx="300" cy="280" r="25" fill="#f472b6"/>
+                        <rect x="275" y="305" width="50" height="55" rx="10" fill="#10b981"/>
+                        <circle cx="320" cy="150" r="20" fill="#60a5fa"/>
+                        <rect x="300" y="170" width="40" height="50" rx="8" fill="#fbbf24"/>
+                    </svg>
+                </div>
+            </div>
         </div>
-        <div class="flex flex-col items-center gap-4">
-          <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
-            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-          </div>
-          <h4 class="font-black uppercase tracking-widest text-xs">Mobile First</h4>
-        </div>
-        <div class="flex flex-col items-center gap-4">
-          <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
-            <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-          <h4 class="font-black uppercase tracking-widest text-xs">SEO Optimized</h4>
-        </div>
-        <div class="flex flex-col items-center gap-4">
-          <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
-            <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          </div>
-          <h4 class="font-black uppercase tracking-widest text-xs">Secure Payment</h4>
-        </div>
-      </div>
-    </div>
+    </section>
 
     <!-- Footer -->
-    <footer id="contact" class="bg-white py-16 px-4 border-t border-slate-100">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <svg class="text-white w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M21 16.05V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14.93"/></svg>
-          </div>
-          <span class="text-2xl font-black tracking-tighter uppercase">SystemNext IT</span>
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-links">
+                    <a href="#">গোপনীয়তা নীতি</a>
+                    <a href="#">শর্তাবলী</a>
+                    <a href="#">রিটার্ন এন্ড রিফান্ড</a>
+                    <a href="mailto:saleecom.info@gmail.com" class="footer-email">saleecom.info@gmail.com</a>
+                </div>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <a href="#" aria-label="YouTube">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                    <a href="#" aria-label="Telegram">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    </a>
+                    <a href="#" aria-label="Twitter">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="text-center">
-          <p class="text-slate-500 text-xs font-bold uppercase tracking-wide mb-2">
-            © 2025 SystemNext IT Bangladesh
-          </p>
-          <p class="text-[10px] text-slate-400 font-medium">
-            World Class E-Commerce & Software Infrastructure
-          </p>
-        </div>
-        <div class="flex gap-8 text-[11px] font-black uppercase tracking-widest text-slate-500">
-          <a href="#" class="hover:text-indigo-600 transition-colors">Privacy</a>
-          <a href="#" class="hover:text-indigo-600 transition-colors">Support</a>
-          <a href="#" class="hover:text-indigo-600 transition-colors">Career</a>
-        </div>
-      </div>
     </footer>
 
-  </div>
-
-  <!-- Floating Chat Button -->
-  <div class="fixed bottom-8 right-8 z-50">
-    <button onclick="toggleChat()" id="chatBtn" class="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all">
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+    <!-- Chat Widget -->
+    <button class="chat-btn" id="chat-btn" aria-label="Chat with us">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
     </button>
-    
-    <!-- Chat Modal -->
-    <div id="chatModal" class="hidden absolute bottom-20 right-0 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-      <div class="bg-indigo-600 p-4 text-white">
-        <h3 class="font-bold">SystemNext Bot</h3>
-        <p class="text-xs opacity-80">আমরা সবসময় আপনার পাশে</p>
-      </div>
-      <div id="chatMessages" class="h-64 overflow-y-auto p-4 space-y-3 no-scrollbar">
-        <div class="chat-bubble bg-slate-100 p-3 rounded-lg rounded-bl-none max-w-[85%]">
-          <p class="text-sm">আসসালামু আলাইকুম! আমি SystemNext IT এর অ্যাসিস্ট্যান্ট। কিভাবে সাহায্য করতে পারি?</p>
+
+    <div class="chat-widget hidden" id="chat-widget">
+        <div class="chat-header">
+            <h4><span class="online-dot"></span> সেলইকম সাপোর্ট</h4>
+            <button class="chat-close" id="chat-close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
-      </div>
-      <div class="p-4 border-t">
-        <div class="flex gap-2">
-          <input type="text" id="chatInput" placeholder="আপনার প্রশ্ন লিখুন..." class="flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" onkeypress="if(event.key==='Enter')sendMessage()">
-          <button onclick="sendMessage()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-          </button>
+        <div class="chat-messages" id="chat-messages">
+            <div class="welcome-message">
+                <h5>👋 স্বাগতম!</h5>
+                <p>আমরা আপনাকে সাহায্য করতে এখানে আছি। কিছু জিজ্ঞাসা করুন!</p>
+                <div class="quick-actions">
+                    <button class="quick-action" onclick="document.getElementById('chat-input').value='দাম কত?'; document.getElementById('chat-form').dispatchEvent(new Event('submit'));">💰 দাম জানুন</button>
+                    <button class="quick-action" onclick="document.getElementById('chat-input').value='ডেমো দেখতে চাই'; document.getElementById('chat-form').dispatchEvent(new Event('submit'));">🎯 ডেমো</button>
+                    <button class="quick-action" onclick="document.getElementById('chat-input').value='ফিচার কি কি?'; document.getElementById('chat-form').dispatchEvent(new Event('submit'));">✨ ফিচার</button>
+                </div>
+            </div>
         </div>
-      </div>
+        <form class="chat-form" id="chat-form">
+            <input type="text" class="chat-input" id="chat-input" placeholder="আপনার প্রশ্ন লিখুন..." autocomplete="off">
+            <button type="submit" class="chat-send">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+            </button>
+        </form>
     </div>
-  </div>
 
-  <script>
-    function toggleChat() {
-      const modal = document.getElementById('chatModal');
-      modal.classList.toggle('hidden');
-    }
+    <!-- Mobile Navigation -->
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="#features">ফিচার</a>
+        <a href="#stats">পরিসংখ্যান</a>
+        <a href="#faq">জিজ্ঞাসা</a>
+        <a href="#contact">যোগাযোগ</a>
+        <button class="btn-primary">ফ্রি ট্রায়াল</button>
+    </div>
 
-    function sendMessage() {
-      const input = document.getElementById('chatInput');
-      const messages = document.getElementById('chatMessages');
-      const msg = input.value.trim();
-      if (!msg) return;
-
-      // Add user message
-      messages.innerHTML += '<div class="chat-bubble bg-indigo-600 text-white p-3 rounded-lg rounded-br-none max-w-[85%] ml-auto">' + msg + '</div>';
-      input.value = '';
-
-      // Simple responses
-      setTimeout(function() {
-        var response = 'ধন্যবাদ আপনার মেসেজের জন্য! আমাদের টিম শীঘ্রই যোগাযোগ করবে।';
-        var lower = msg.toLowerCase();
-        if (lower.includes('price') || lower.includes('দাম') || lower.includes('খরচ')) {
-          response = 'আমাদের প্যাকেজ শুরু হয় ৫,০০০ টাকা থেকে। বিস্তারিত জানতে WhatsApp করুন।';
-        } else if (lower.includes('theme') || lower.includes('থিম')) {
-          response = 'আমাদের কাছে ৫০+ প্রিমিয়াম থিম আছে - Technology, Fashion, Furniture সব ক্যাটেগরিতে!';
-        } else if (lower.includes('support') || lower.includes('সাপোর্ট')) {
-          response = 'আমরা ২৪/৭ সাপোর্ট দিই। যেকোনো সমস্যায় WhatsApp করুন।';
+    <style>
+        /* Mobile Nav Toggle */
+        .mobile-nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+        @media (max-width: 1023px) { .mobile-nav-toggle { display: block; } }
+        
+        .mobile-menu { 
+            position: fixed; top: 70px; left: 0; right: 0; background: #fff; 
+            padding: 1rem; display: none; flex-direction: column; gap: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); z-index: 99;
         }
-        messages.innerHTML += '<div class="chat-bubble bg-slate-100 p-3 rounded-lg rounded-bl-none max-w-[85%]">' + response + '</div>';
-        messages.scrollTop = messages.scrollHeight;
-      }, 800);
-    }
-  </script>
+        .mobile-menu.active { display: flex; }
+        .mobile-menu a { color: #1e293b; text-decoration: none; font-weight: 600; padding: 0.75rem; border-radius: 8px; }
+        .mobile-menu a:hover { background: #f3e8ff; color: #7c3aed; }
+    </style>
 
+    <!-- Script - Deferred for better performance -->
+    <script src="script.js" defer></script>
 </body>
 </html>

@@ -1,9 +1,28 @@
-import React, { memo, useMemo, useState, useEffect } from 'react';
+import React, { memo, useMemo } from 'react';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
-import { CategoryCircle, CategoryPill, SectionHeader } from '../StoreComponents';
-import { CATEGORIES } from '../../constants';
 import { Category } from '../../types';
-import { CategorySkeleton } from '../SkeletonLoaders';
+// Categories are loaded from tenant data, not from constants
+
+// Local component definitions
+const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+  <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">{title}</h2>
+);
+
+const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+  <div className="flex flex-col items-center gap-2">
+    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300">
+      {icon}
+    </div>
+    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{name}</span>
+  </div>
+);
+
+const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+  <div className="flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-gray-700 dark:bg-slate-700 dark:text-gray-300">
+    {icon}
+    <span className="text-sm font-medium">{name}</span>
+  </div>
+);
 
 // Pre-rendered icon map for faster access
 const iconMap: Record<string, React.ReactNode> = {
@@ -29,27 +48,38 @@ const smallIconMap: Record<string, React.ReactNode> = {
   camera: <Camera size={20} strokeWidth={2} />,
 };
 
-
+// Pre-rendered large icons for style1
+const largeIconMap: Record<string, React.ReactNode> = {
+  smartphone: <Smartphone size={32} strokeWidth={1.5} />,
+  watch: <Watch size={32} strokeWidth={1.5} />,
+  'battery-charging': <BatteryCharging size={32} strokeWidth={1.5} />,
+  headphones: <Headphones size={32} strokeWidth={1.5} />,
+  zap: <Zap size={32} strokeWidth={1.5} />,
+  bluetooth: <Bluetooth size={32} strokeWidth={1.5} />,
+  'gamepad-2': <Gamepad2 size={32} strokeWidth={1.5} />,
+  camera: <Camera size={32} strokeWidth={1.5} />,
+};
 
 interface CategoriesSectionProps {
-  style?: 'style2';
+  style?: 'style1' | 'style2';
   categories?: Category[];
   onCategoryClick: (categoryName: string) => void;
   categoryScrollRef?: React.RefObject<HTMLDivElement>;
   sectionRef?: React.RefObject<HTMLDivElement>;
-  isLoading?: boolean;
 }
 
-// Pre-compute rolling categories for style2 to avoid recreation on each render
-const rollingCategories = [...CATEGORIES, ...CATEGORIES, ...CATEGORIES];
+// Rolling categories will be computed from actual data
+const createRollingCategories = (cats: { name: string; icon: string }[]) => {
+  if (!cats.length) return [];
+  return [...cats, ...cats, ...cats];
+};
 
 export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
   style = 'style1',
   categories,
   onCategoryClick,
   categoryScrollRef,
-  sectionRef,
-  isLoading = false
+  sectionRef
 }) => {
   // Memoize processed categories for style1
   const processedCategories = useMemo(() => {
@@ -60,15 +90,16 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
         image: cat.image
       }));
     }
-    return CATEGORIES;
+    return []; // Return empty array - no dummy data
   }, [categories]);
 
-  // Show skeleton during loading
-  if (isLoading) {
-    return <CategorySkeleton count={8} />;
-  }
- // Default style1
+  // Compute rolling categories from actual data
+  const rollingCategories = useMemo(() => createRollingCategories(processedCategories), [processedCategories]);
+
   if (style === 'style2') {
+    // Hide section if no categories
+    if (processedCategories.length === 0) return null;
+    
     return (
       <div ref={sectionRef} className="mt-1 -mb-1">
         <div className="flex items-end justify-between border-b border-gray-100 pb-0 md:pb-1">
@@ -106,7 +137,24 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
     );
   }
 
+  // Default style1 - hide when no categories
+  if (processedCategories.length === 0) return null;
   
+  return (
+    <div ref={sectionRef} className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <SectionHeader title="Categories" />
+      <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
+        {processedCategories.map((cat, idx) => (
+          <div key={idx} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
+            <CategoryCircle
+              name={cat.name}
+              icon={largeIconMap[cat.icon as keyof typeof largeIconMap] || largeIconMap['smartphone']}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 });
 
 CategoriesSection.displayName = 'CategoriesSection';

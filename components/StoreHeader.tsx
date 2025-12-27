@@ -38,6 +38,7 @@ export interface StoreHeaderProps {
   tags?: any[];
   productCatalog?: Product[];
   onProductClick?: (product: Product) => void;
+  onMobileMenuOpenRef?: (openFn: () => void) => void;
 }
 
 export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
@@ -69,7 +70,8 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     brands = [],
     tags = [],
     productCatalog,
-    onProductClick
+    onProductClick,
+    onMobileMenuOpenRef
   } = props;
 
   const normalizedCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
@@ -94,6 +96,13 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
   const [isWishlistDrawerOpen, setIsWishlistDrawerOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [activeHintIndex, setActiveHintIndex] = useState(0);
+
+  // Expose mobile menu open function to parent
+  useEffect(() => {
+    if (onMobileMenuOpenRef) {
+      onMobileMenuOpenRef(() => setIsMobileMenuOpen(true));
+    }
+  }, [onMobileMenuOpenRef]);
 
   const [supportsVoiceSearch, setSupportsVoiceSearch] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -414,10 +423,9 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
           onHomeClick={onHomeClick}
           wishlistBadgeCount={wishlistBadgeCount}
           cartBadgeCount={cartBadgeCount}
-          notificationBadgeCount={notificationBadgeCount}
           onWishlistOpen={() => setIsWishlistDrawerOpen(true)}
           onCartOpen={() => setIsCartDrawerOpen(true)}
-          onMobileMenuOpen={() => setIsMobileMenuOpen(true)}
+          onAccountClick={user ? onProfileClick : onLoginClick}
           searchProps={searchBarProps}
         />
 

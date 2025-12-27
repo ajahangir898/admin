@@ -87,7 +87,37 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
       return;
     }
 
-    // Handle /products route with optional category filter
+    // Handle /all-products route
+    if (trimmedPath === 'all-products') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const categorySlug = searchParams.get('category');
+      const brandSlug = searchParams.get('brand');
+      if (categorySlug) {
+        setUrlCategoryFilter(categorySlug);
+      } else if (brandSlug) {
+        setUrlCategoryFilter(`brand:${brandSlug}`);
+      } else {
+        setUrlCategoryFilter('all');
+      }
+      if (!activeView.startsWith('admin')) {
+        setSelectedProduct(null);
+        setCurrentView('store');
+      }
+      return;
+    }
+
+    // Handle /product-details/slug route
+    if (trimmedPath.startsWith('product-details/')) {
+      const slug = trimmedPath.replace('product-details/', '');
+      const matchedProduct = products.find(p => p.slug === slug);
+      if (matchedProduct) {
+        setSelectedProduct(matchedProduct);
+        setCurrentView('detail');
+        return;
+      }
+    }
+
+    // Handle /products route with optional category filter (legacy)
     if (trimmedPath === 'products') {
       const searchParams = new URLSearchParams(window.location.search);
       const categorySlug = searchParams.get('categories');
@@ -199,7 +229,7 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
     setSelectedProduct(product);
     setCurrentView('detail');
     if (product.slug) {
-      window.history.pushState({ slug: product.slug }, '', `/${product.slug}`);
+      window.history.pushState({ slug: product.slug }, '', `/product-details/${product.slug}`);
     }
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -208,7 +238,13 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
 
   const handleCategoryFilterChange = useCallback((categorySlug: string | null) => {
     if (categorySlug) {
-      window.history.pushState({}, '', `/products?categories=${categorySlug}`);
+      if (categorySlug === 'all') {
+        window.history.pushState({}, '', '/all-products');
+      } else if (categorySlug.startsWith('brand:')) {
+        window.history.pushState({}, '', `/all-products?brand=${categorySlug.replace('brand:', '')}`);
+      } else {
+        window.history.pushState({}, '', `/all-products?category=${categorySlug}`);
+      }
       setUrlCategoryFilter(categorySlug);
     } else {
       window.history.pushState({}, '', '/');

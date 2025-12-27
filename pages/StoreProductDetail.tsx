@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, lazy, Suspense, memo, useCallback, useRef } from 'react';
-import { Product, User, WebsiteConfig, Order, ProductVariantSelection } from '../types';
+import { Product, User, WebsiteConfig, Order, ProductVariantSelection, Category } from '../types';
 
 // Lazy load heavy layout components and modals from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
@@ -197,6 +197,8 @@ interface StoreProductDetailProps {
   onToggleCart?: (id: number) => void;
   onCheckoutFromCart?: (productId: number) => void;
   productCatalog?: Product[];
+  categories?: Category[];
+  onCategoryClick?: (categoryName: string) => void;
 }
 
 const StoreProductDetail = ({ 
@@ -222,7 +224,9 @@ const StoreProductDetail = ({
   cart,
   onToggleCart,
   onCheckoutFromCart,
-  productCatalog
+  productCatalog,
+  categories,
+  onCategoryClick
 }: StoreProductDetailProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [showCartSuccess, setShowCartSuccess] = useState(false);
@@ -467,19 +471,19 @@ const StoreProductDetail = ({
       )}
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8 shadow-lg">
           
           {/* Main Content: Product Details */}
           <div className="flex-1">
             {/* Product Hero Block */}
-            <div className="store-card rounded-xl p-6 flex flex-col md:flex-row gap-8">
+            <div className="store-card rounded-xl p-6 flex flex-col md:flex-row gap-8  shadow-lg border border-gray-200">
               
               {/* Image Section - Enhanced Gallery */}
               <div className="w-full md:w-1/2 flex flex-col gap-4">
                 {/* Main Product Image with Zoom */}
                 <div className="relative">
                   <div
-                    className="aspect-square bg-white rounded-2xl overflow-hidden relative group border border-gray-200 shadow-sm cursor-crosshair"
+                    className="aspect-square bg-white rounded-2xl overflow-hidden relative group border border-gray-200 shadow-lg cursor-crosshair"
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
                     onMouseMove={(e) => {
@@ -494,7 +498,7 @@ const StoreProductDetail = ({
                     <LazyImage
                       src={selectedImage}
                       alt={product.name}
-                      className="w-full h-full object-contain p-6"
+                      className="w-full h-full object-contain"
                     />
                     
                     {/* Hover Zoom Lens Effect */}
@@ -779,7 +783,7 @@ const StoreProductDetail = ({
             </div>
 
             {/* Tabs Section */}
-            <div className="mt-8 store-card rounded-xl overflow-hidden border border-gray-100">
+            <div className="mt-8 store-card rounded-xl overflow-hidden border border-gray-200 shadow-lg">
               <div className="flex border-b border-gray-100 bg-gray-50/50">
                   <button 
                     onClick={() => setActiveTab('description')}
@@ -854,10 +858,10 @@ const StoreProductDetail = ({
           </div>
 
           {/* Right Sidebar */}
-          <aside className="w-full lg:w-80 space-y-8">
+          <aside className="w-full lg:w-80 space-y-8 shadow-lg">
             
             {/* Related Products Widget */}
-            <div className="store-card rounded-xl p-5">
+            <div className="store-card rounded-xl p-5 shadow-lg border border-gray-200">
                <h3 className="font-bold text-lg text-gray-800 mb-4 pb-2 border-b border-gray-100">Related Products</h3>
                <div className="space-y-4">
                   {isLoading ? (
@@ -896,13 +900,27 @@ const StoreProductDetail = ({
             </div>
 
             {/* Category Widget */}
-            <div className="store-card rounded-xl p-5">
+            <div className="store-card rounded-xl p-5 shadow-lg border border-gray-200">
                <h3 className="font-bold text-lg text-gray-800 mb-4 pb-2 border-b border-gray-100">Category</h3>
                <div className="space-y-2">
-                 {CATEGORIES.slice(0, 6).map((cat, idx) => (
-                   <div key={idx} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded transition cursor-pointer group">
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-theme-primary/15 group-hover:text-theme-primary transition">
-                        {iconMap[cat.icon]}
+                 {(categories && categories.length > 0 ? categories.filter(c => c.status === 'Active').slice(0, 6) : CATEGORIES.slice(0, 6)).map((cat, idx) => (
+                   <div 
+                     key={idx} 
+                     onClick={() => onCategoryClick?.(cat.name)}
+                     className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition cursor-pointer group"
+                   >
+                      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 group-hover:border-theme-primary/30 transition">
+                        {cat.image ? (
+                          <img 
+                            src={normalizeImageUrl(cat.image)} 
+                            alt={cat.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-400 group-hover:text-theme-primary transition">
+                            {iconMap[cat.icon || 'smartphone']}
+                          </span>
+                        )}
                       </div>
                       <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900">{cat.name}</span>
                    </div>

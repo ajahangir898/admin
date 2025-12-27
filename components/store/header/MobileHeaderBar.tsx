@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Heart, Bell, Menu } from 'lucide-react';
+import { ShoppingCart, Heart, User } from 'lucide-react';
 import { normalizeImageUrl } from '../../../utils/imageUrlHelper';
 import type { HeaderSearchProps } from './headerTypes';
 import { MobileSearchBar } from './HeaderSearchBar';
@@ -10,10 +10,9 @@ interface MobileHeaderBarProps {
   onHomeClick?: () => void;
   wishlistBadgeCount: number;
   cartBadgeCount: number;
-  notificationBadgeCount: number;
   onWishlistOpen: () => void;
   onCartOpen: () => void;
-  onMobileMenuOpen: () => void;
+  onAccountClick?: () => void;
   searchProps: HeaderSearchProps;
 }
 
@@ -23,21 +22,57 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
   onHomeClick,
   wishlistBadgeCount,
   cartBadgeCount,
-  notificationBadgeCount,
   onWishlistOpen,
   onCartOpen,
-  onMobileMenuOpen,
+  onAccountClick,
   searchProps
 }) => (
-  <div className="md:hidden bg-white pb-1 pt-0 px-3 border-b border-gray-100 shadow-sm">
-    <div className="flex justify-between items-center mb-3 h-8 gap-3">
+  <div className="md:hidden bg-white px-3 py-2.5 border-b border-gray-100 shadow-sm sticky top-0 z-40">
+    {/* Top Row: Actions Left, Logo Right */}
+    <div className="flex items-center justify-between gap-2 mb-2.5">
+      {/* Left: Action Icons */}
+      <div className="flex items-center gap-0.5">
+        <button 
+          type="button" 
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 transition-colors" 
+          onClick={onWishlistOpen}
+        >
+          <Heart size={20} />
+          {wishlistBadgeCount > 0 && (
+            <span className="absolute top-0.5 right-0.5 bg-theme-primary text-white text-[9px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center">
+              {wishlistBadgeCount}
+            </span>
+          )}
+        </button>
+        <button 
+          type="button" 
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 transition-colors" 
+          onClick={onCartOpen}
+        >
+          <ShoppingCart size={20} />
+          {cartBadgeCount > 0 && (
+            <span className="absolute top-0.5 right-0.5 bg-theme-primary text-white text-[9px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center">
+              {cartBadgeCount}
+            </span>
+          )}
+        </button>
+        <button 
+          type="button" 
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 transition-colors" 
+          onClick={onAccountClick}
+        >
+          <User size={20} />
+        </button>
+      </div>
+
+      {/* Right: Logo */}
       <button type="button" className="flex items-center" onClick={onHomeClick}>
         {resolvedHeaderLogo ? (
           <img
             key={logoKey}
             src={normalizeImageUrl(resolvedHeaderLogo)}
             alt="Store logo"
-            className="h-8 object-contain"
+            className="h-8 max-w-[120px] object-contain"
           />
         ) : (
           <h1 className="text-lg font-bold tracking-tight">
@@ -46,38 +81,9 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
           </h1>
         )}
       </button>
-      <div className="flex items-center gap-3">
-        <button type="button" className="relative text-gray-800" onClick={onWishlistOpen}>
-          <Heart size={18} />
-          {wishlistBadgeCount > 0 && (
-            <span className="absolute -top-1.5 -right-1 bg-theme-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-              {wishlistBadgeCount}
-            </span>
-          )}
-        </button>
-        <button type="button" className="relative text-gray-800" onClick={onCartOpen}>
-          <ShoppingCart size={18} />
-          {cartBadgeCount > 0 && (
-            <span className="absolute -top-1.5 -right-1 bg-black text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-              {cartBadgeCount}
-            </span>
-          )}
-        </button>
-        <div className="relative text-gray-800">
-          <Bell size={18} />
-          {notificationBadgeCount > 0 && (
-            <span className="absolute -top-1.5 -right-1 bg-blue-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-              {notificationBadgeCount}
-            </span>
-          )}
-        </div>
-      </div>
     </div>
-    <div className="flex items-center gap-3">
-      <button type="button" className="text-gray-800" onClick={onMobileMenuOpen}>
-        <Menu size={28} />
-      </button>
-      <MobileSearchBar {...searchProps} />
-    </div>
+
+    {/* Bottom Row: Search Bar */}
+    <MobileSearchBar {...searchProps} />
   </div>
 );

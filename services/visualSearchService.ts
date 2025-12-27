@@ -1,5 +1,5 @@
 /**
- * Visual Search Service using Google Gemini AI
+ * Visual Search Service using YOLO API
  * Lazy-loaded to avoid affecting initial page load
  */
 
@@ -11,127 +11,46 @@ export interface VisualSearchResult {
   confidence: number;
 }
 
-// Lazy-load the API key only when needed
-const getApiKey = (): string => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_GEMINI_API_KEY is not configured');
-  }
-  return apiKey;
+// Get the YOLO API URL
+const getApiUrl = (): string => {
+  return import.meta.env.VITE_YOLO_API_URL || 'https://systemnextit.com/yolo-api';
 };
 
 /**
- * Convert file to base64 for Gemini API
- */
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-};
-
-/**
- * Analyze image using Gemini Vision API
+ * Analyze image using YOLO API
  * Returns search terms and product attributes
  */
 export const analyzeImage = async (imageFile: File): Promise<VisualSearchResult> => {
-  const apiKey = getApiKey();
-  const base64Image = await fileToBase64(imageFile);
+  const apiUrl = getApiUrl();
   
-  const prompt = `Analyze this product image and provide:
-1. Search terms (5-8 keywords that would help find similar products)
-2. A brief product description (1-2 sentences)
-3. Product categories it might belong to (e.g., electronics, clothing, accessories)
-4. Main colors visible in the product
-5. Confidence score (0-100) for your analysis
-
-Respond in JSON format:
-{
-  "searchTerms": ["term1", "term2", ...],
-  "description": "brief description",
-  "categories": ["category1", "category2"],
-  "colors": ["color1", "color2"],
-  "confidence": 85
-}`;
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: imageFile.type,
-                  data: base64Image,
-                },
-              },
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.4,
-          topK: 32,
-          topP: 1,
-          maxOutputTokens: 1024,
-        },
-      }),
-    }
-  );
+  const formData = new FormData();
+  formData.append('file', imageFile);
+  
+  const response = await fetch(`${apiUrl}/api/analyze`, {
+    method: 'POST',
+    body: formData,
+  });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error?.message || `Gemini API error: ${response.status}`);
+    throw new Error(error.detail || `YOLO API error: ${response.status}`);
   }
 
   const data = await response.json();
-  const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!textContent) {
-    throw new Error('No response from Gemini API');
+  
+  if (!data.success || !data.data) {
+    throw new Error('No response from YOLO API');
   }
 
-  // Parse JSON from response (handle markdown code blocks)
-  const jsonMatch = textContent.match(/```json\s*([\s\S]*?)\s*```/) || 
-                    textContent.match(/```\s*([\s\S]*?)\s*```/) ||
-                    [null, textContent];
+  const result = data.data;
   
-  const jsonStr = jsonMatch[1] || textContent;
-  
-  try {
-    const result = JSON.parse(jsonStr.trim());
-    return {
-      searchTerms: result.searchTerms || [],
-      description: result.description || '',
-      categories: result.categories || [],
-      colors: result.colors || [],
-      confidence: result.confidence || 0,
-    };
-  } catch {
-    // If JSON parsing fails, extract what we can
-    return {
-      searchTerms: textContent.split(/[,\n]/).slice(0, 5).map((s: string) => s.trim()).filter(Boolean),
-      description: textContent.slice(0, 200),
-      categories: [],
-      colors: [],
-      confidence: 50,
-    };
-  }
+  return {
+    searchTerms: result.tags || [],
+    description: result.description || '',
+    categories: result.category ? [result.category, result.subcategory].filter(Boolean) : [],
+    colors: result.color ? [result.color] : [],
+    confidence: 85,
+  };
 };
 
 /**

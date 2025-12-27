@@ -117,67 +117,63 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
         <p className="text-sm text-gray-500">Manage your profile and system preferences</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Profile Card */}
-        <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white rounded-2xl p-6 shadow-xl">
-          <div className="flex items-start gap-4">
-            <div className="relative">
-              <img src={avatar} alt="Avatar" className="w-24 h-24 rounded-2xl object-cover border-4 border-white/40" />
-              <button onClick={() => fileRef.current?.click()} className="absolute -bottom-2 -right-2 bg-white text-purple-600 rounded-full p-2 shadow hover:scale-105 transition">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+        {/* Profile Card - Left side */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <div className="flex flex-col items-center text-center">
+            <div className="relative mb-4">
+              <img src={avatar} alt="Avatar" className="w-24 h-24 rounded-2xl object-cover border-2 border-gray-100 bg-gray-50" />
+              <button onClick={() => fileRef.current?.click()} className="absolute -bottom-2 -right-2 bg-white border border-gray-200 text-gray-600 rounded-full p-2 shadow-sm hover:scale-105 transition">
                 {avatarLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
               </button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs uppercase tracking-widest text-white/70">{formatRole(user?.role)}</p>
-              <h3 className="text-xl font-bold truncate">{form.name || 'Admin'}</h3>
-              <p className="text-white/80 text-sm truncate">{form.email}</p>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="bg-white/15 px-2 py-1 rounded-full flex items-center gap-1"><Shield size={12} /> {user?.roleId ? 'Custom' : 'Full'}</span>
-                <span className="bg-white/15 px-2 py-1 rounded-full flex items-center gap-1"><Clock3 size={12} /> {formatDate(user?.updatedAt)}</span>
-              </div>
+            <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{formatRole(user?.role)}</p>
+            <h3 className="text-xl font-bold text-gray-900">{form.name || 'Admin'}</h3>
+            <p className="text-gray-500 text-sm">{form.email}</p>
+            <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
+              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full flex items-center gap-1"><Shield size={12} /> {user?.roleId ? 'Custom' : 'Full'}</span>
+              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full flex items-center gap-1"><Clock3 size={12} /> {formatDate(user?.updatedAt)}</span>
             </div>
           </div>
-          <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-            <div><p className="text-white/60 text-xs">Username</p><p className="font-medium">{form.username ? `@${form.username}` : 'Not set'}</p></div>
-            <div><p className="text-white/60 text-xs">Phone</p><p className="font-medium">{form.phone || 'Not set'}</p></div>
+          <div className="mt-6 grid grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-5">
+            <div><p className="text-gray-400 text-xs mb-1">Username</p><p className="font-medium text-gray-800">{form.username ? `@${form.username}` : 'Not set'}</p></div>
+            <div><p className="text-gray-400 text-xs mb-1">Phone</p><p className="font-medium text-gray-800">{form.phone || 'Not set'}</p></div>
           </div>
-          <button onClick={() => setPwModal(true)} className="mt-5 w-full flex items-center justify-between bg-white/15 rounded-xl px-4 py-3 hover:bg-white/20 transition text-sm font-medium">
+          <button onClick={() => setPwModal(true)} className="mt-5 w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
             <span className="flex items-center gap-2"><Lock size={14} /> Change Password</span>
             <ArrowRight size={14} />
           </button>
         </div>
 
-        {/* Profile Form */}
-        <div className="xl:col-span-2">
-          <form onSubmit={handleSave} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-5">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-bold text-gray-800">Profile Details</h3>
-                <p className="text-sm text-gray-500">Update your personal information</p>
-              </div>
+        {/* Profile Form - Right side */}
+        <form onSubmit={handleSave} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-5">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">Profile Details</h3>
+              <p className="text-sm text-gray-500">Update your personal information</p>
             </div>
+          </div>
 
-            {status && <Banner type={status.type} message={status.msg} />}
+          {status && <Banner type={status.type} message={status.msg} />}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Full Name" icon={<UserCircle size={16} />} value={form.name} onChange={v => setForm({ ...form, name: v })} />
-              <Field label="Username" icon={<AtSign size={16} />} value={form.username} onChange={v => setForm({ ...form, username: v.toLowerCase().replace(/\s/g, '') })} placeholder="john.doe" />
-              <Field label="Email" icon={<Mail size={16} />} value={form.email} readOnly />
-              <Field label="Phone" icon={<Phone size={16} />} value={form.phone} onChange={v => setForm({ ...form, phone: v })} placeholder="+880 1XXX-XXXXXX" />
-              <div className="md:col-span-2">
-                <Field label="Address" icon={<MapPin size={16} />} value={form.address} onChange={v => setForm({ ...form, address: v })} textarea placeholder="Street, City, Postal Code" />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Full Name" icon={<UserCircle size={16} />} value={form.name} onChange={v => setForm({ ...form, name: v })} />
+            <Field label="Username" icon={<AtSign size={16} />} value={form.username} onChange={v => setForm({ ...form, username: v.toLowerCase().replace(/\s/g, '') })} placeholder="john.doe" />
+            <Field label="Email" icon={<Mail size={16} />} value={form.email} readOnly />
+            <Field label="Phone" icon={<Phone size={16} />} value={form.phone} onChange={v => setForm({ ...form, phone: v })} placeholder="+880 1XXX-XXXXXX" />
+            <div className="md:col-span-2">
+              <Field label="Address" icon={<MapPin size={16} />} value={form.address} onChange={v => setForm({ ...form, address: v })} textarea placeholder="Street, City, Postal Code" />
             </div>
+          </div>
 
-            <div className="flex justify-end gap-3">
-              <button type="button" onClick={() => { if (user) { setForm({ name: user.name || '', username: user.username || '', email: user.email || '', phone: user.phone || '', address: user.address || '' }); setAvatar(user.image || DEFAULT_AVATAR); } }} className="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50">Reset</button>
-              <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 shadow-lg shadow-purple-200 flex items-center gap-2">
-                {saving ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : 'Save Changes'}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+            <button type="button" onClick={() => { if (user) { setForm({ name: user.name || '', username: user.username || '', email: user.email || '', phone: user.phone || '', address: user.address || '' }); setAvatar(user.image || DEFAULT_AVATAR); } }} className="px-5 py-2 rounded-lg border text-gray-600 hover:bg-gray-50">Reset</button>
+            <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 shadow-lg shadow-purple-200 flex items-center gap-2">
+              {saving ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : 'Save Changes'}
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* System Settings */}

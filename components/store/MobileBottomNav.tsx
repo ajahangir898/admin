@@ -13,6 +13,7 @@ export interface MobileBottomNavProps {
     onCartClick: () => void;
     onAccountClick: () => void;
     onChatClick?: () => void;
+    onMenuClick?: () => void;
     cartCount?: number;
     websiteConfig?: WebsiteConfig;
     activeTab?: string;
@@ -24,7 +25,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     onHomeClick, 
     onCartClick, 
     onAccountClick, 
-    onChatClick, 
+    onChatClick,
+    onMenuClick, 
     cartCount, 
     websiteConfig, 
     activeTab = 'home', 
@@ -171,136 +173,83 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         );
     }
 
-    // Style 1 (Default): 5 Columns (Messenger, Call, Home, Page, Account)
+    // Style 1 (Default): 5 Columns - Clean Modern Design
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-br from-blue-300/30 via-cyan-200/25 to-blue-200/30 backdrop-blur-xl border-t border-cyan-300/40 py-2 px-2 flex justify-between items-center md:hidden z-50 shadow-[0_-8px_32px_rgba(0,150,200,0.15),inset_0_1px_0_rgba(255,255,255,0.5)] pb-safe h-[60px]">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-1 flex justify-around items-end md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
+            {/* Chat */}
             {chatEnabled && onChatClick ? (
-                <button onClick={onChatClick} className="flex flex-col items-center gap-1.5 transition w-1/5 group">
-                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 group-hover:text-cyan-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                <button onClick={onChatClick} className="flex flex-col items-center gap-0.5 transition w-1/5 group">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                        <MessageSquare size={20} className="text-gray-600" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Chat</span>
+                    <span className="text-[10px] font-medium text-gray-500">Chat</span>
                 </button>
             ) : chatFallbackLink ? (
-                <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1.5 transition w-1/5 group">
-                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 group-hover:text-cyan-600"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-0.5 transition w-1/5 group">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                        <MessageSquare size={20} className="text-gray-600" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Chat</span>
+                    <span className="text-[10px] font-medium text-gray-500">Chat</span>
                 </a>
             ) : (
-                <button className="flex flex-col items-center gap-1.5 transition w-1/5 group" type="button" disabled title="Live chat unavailable">
-                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
+                <button className="flex flex-col items-center gap-0.5 transition w-1/5" type="button" disabled>
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+                        <MessageSquare size={20} className="text-gray-300" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-500">Chat</span>
+                    <span className="text-[10px] font-medium text-gray-300">Chat</span>
                 </button>
             )}
-      
+
+            {/* Call */}
             {whatsappLink ? (
-                <a
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex flex-col items-center gap-1.5 transition w-1/5 group"
-                    aria-label="Chat on WhatsApp"
-                >
-                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
-                        <Phone size={20} strokeWidth={2} className="text-gray-600 group-hover:text-cyan-600" />
+                <a href={whatsappLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-0.5 transition w-1/5 group">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                        <Phone size={20} className="text-gray-600" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Call</span>
+                    <span className="text-[10px] font-medium text-gray-500">Call</span>
                 </a>
             ) : (
-                <button className="flex flex-col items-center gap-1.5 transition w-1/5 group" title="WhatsApp number not configured" type="button" disabled>
-                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
-                        <Phone size={20} strokeWidth={2} className="text-gray-400" />
+                <button className="flex flex-col items-center gap-0.5 transition w-1/5" type="button" disabled>
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+                        <Phone size={20} className="text-gray-300" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-500">Call</span>
+                    <span className="text-[10px] font-medium text-gray-300">Call</span>
                 </button>
             )}
-      
-            <button onClick={onHomeClick} className="flex flex-col items-center gap-1.5 transition w-1/5 group">
-                <div className="relative w-20 h-7 flex items-center justify-center">
-                    <div className="relative z-10 flex items-center justify-center">
-                        <img 
-                            src="https://images.vexels.com/media/users/3/139729/isolated/svg/082dce112041515d39a27e2c124c3070.svg" 
-                            alt="Home" 
-                            className="w-12 h-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
-                        />
-                    </div>
+
+            {/* Home - Center Elevated */}
+            <button onClick={onHomeClick} className="flex flex-col items-center transition w-1/5 group -mt-5">
+                <div className="w-14 h-14 rounded-full bg-theme-primary flex items-center justify-center shadow-lg shadow-theme-primary/30 group-hover:shadow-theme-primary/50 group-active:scale-95 transition-all border-4 border-white">
+                    <Home size={24} strokeWidth={2.5} className="text-white" />
                 </div>
-                <span className="text-[9px] font-bold text-blue-900 group-hover:text-blue-700">Home</span>
+                <span className="text-[10px] font-bold text-theme-primary mt-0.5">Home</span>
             </button>
-      
+
+            {/* Facebook Page */}
             {facebookLink ? (
-                <a
-                    href={facebookLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Facebook Page"
-                    className="flex flex-col items-center gap-1.5 transition w-1/5 group"
-                >
-                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
-                        <Facebook size={20} strokeWidth={2} className="text-gray-600 group-hover:text-cyan-600" />
+                <a href={facebookLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-0.5 transition w-1/5 group">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                        <Facebook size={20} className="text-gray-600" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Page</span>
+                    <span className="text-[10px] font-medium text-gray-500">Page</span>
                 </a>
             ) : (
-                <button className="flex flex-col items-center gap-1.5 transition w-1/5 group">
-                    <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] transition group-hover:from-white/50 group-hover:to-white/25">
-                        <Facebook size={20} strokeWidth={2} className="text-gray-600 group-hover:text-cyan-600" />
+                <button className="flex flex-col items-center gap-0.5 transition w-1/5" type="button" disabled>
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+                        <Facebook size={20} className="text-gray-300" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Page</span>
+                    <span className="text-[10px] font-medium text-gray-300">Page</span>
                 </button>
             )}
-      
+
+            {/* Menu */}
             <div ref={accountSectionRef} className="relative flex justify-center w-1/5">
-                <button onClick={() => setIsAccountMenuOpen((prev) => !prev)} className={`flex flex-col items-center gap-1.5 transition w-full group`}>
-                    <div className={`relative w-10 h-10 rounded-2xl backdrop-blur-md border flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] transition ${ isAccountMenuOpen ? 'bg-gradient-to-br from-white/50 to-white/30 border-white/40 shadow-[0_12px_48px_rgba(0,120,150,0.25),inset_0_1px_0_rgba(255,255,255,0.4)]' : 'bg-gradient-to-br from-white/40 to-white/20 border-white/30 hover:shadow-[0_12px_48px_rgba(0,120,150,0.2),inset_0_1px_0_rgba(255,255,255,0.4)]'}`}>
-                        <User size={20} strokeWidth={2} className={`${isAccountMenuOpen ? 'text-cyan-600' : 'text-gray-600 group-hover:text-cyan-600'}`} />
+                <button onClick={onMenuClick} className="flex flex-col items-center gap-0.5 transition w-full group">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                        <Menu size={20} className="text-gray-600" />
                     </div>
-                    <span className="text-[9px] font-semibold text-gray-700 group-hover:text-cyan-600">Account</span>
+                    <span className="text-[10px] font-medium text-gray-500">Menu</span>
                 </button>
-                {isAccountMenuOpen && (
-                    <div className="absolute bottom-[70px] left-1/2 -translate-x-1/2 w-[230px] rounded-3xl border border-gray-100 bg-white shadow-[0_15px_45px_rgba(15,23,42,0.15)] p-4 z-[60]">
-                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b border-r border-gray-100 rotate-45"></div>
-                        {user ? (
-                            <>
-                                <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 text-white flex items-center justify-center text-sm font-semibold">
-                                        {customerInitial}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-gray-900 truncate">{customerLabel}</p>
-                                        {user.email && <p className="text-xs text-gray-500 truncate">{user.email}</p>}
-                                    </div>
-                                </div>
-                                <button onClick={handleAccountPrimaryAction} className="mt-3 w-full flex items-center justify-between rounded-2xl bg-gray-50 hover:bg-pink-50 text-gray-800 hover:text-pink-600 text-sm font-medium py-2.5 px-3 transition">
-                                    <span>My Account</span>
-                                    <ChevronRight size={16} />
-                                </button>
-                                <button onClick={handleAccountLogout} disabled={!onLogoutClick} className={`mt-2 w-full flex items-center justify-between rounded-2xl text-sm font-semibold py-2.5 px-3 transition ${onLogoutClick ? 'text-rose-600 hover:bg-rose-50' : 'text-gray-400 cursor-not-allowed'}`}>
-                                    <span>Logout</span>
-                                    <LogOut size={16} />
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <div className="pb-3 border-b border-gray-100">
-                                    <p className="text-sm text-gray-600">Sign in to track orders and manage your wishlist.</p>
-                                </div>
-                                <button onClick={handleAccountPrimaryAction} className="flex-1 btn-order py-1.5 px-2 text-sm">
-                                    Sign in / Sign up
-                                </button>
-                                {chatFallbackLink && (
-                                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="mt-2 block text-center text-xs text-gray-500 hover:text-pink-600 transition">
-                                        Need help? Chat on WhatsApp
-                                    </a>
-                                )}
-                            </>
-                        )}
-                    </div>
-                )}
             </div>
         </div>
     );

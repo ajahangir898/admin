@@ -833,38 +833,107 @@ export const AdminHeader: React.FC<{
 
 export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon, colorClass }) => {
 	const getCardStyle = (color: string) => {
-		if (['green', 'teal', 'primary'].includes(color)) {
-			return 'bg-gradient-to-br from-green-50 to-green-100 text-green-700 border border-green-200';
+		switch(color) {
+			case 'pink':
+				return 'bg-gradient-to-r from-pink-200 via-pink-100 to-pink-50';
+			case 'orange':
+				return 'bg-gradient-to-r from-orange-200 via-orange-100 to-orange-50';
+			case 'green':
+				return 'bg-gradient-to-r from-green-200 via-green-100 to-green-50';
+			case 'purple':
+				return 'bg-gradient-to-r from-purple-200 via-purple-100 to-purple-50';
+			case 'lavender':
+				return 'bg-gradient-to-r from-violet-200 via-violet-100 to-violet-50';
+			case 'cyan':
+				return 'bg-gradient-to-r from-cyan-200 via-cyan-100 to-cyan-50';
+			case 'red':
+				return 'bg-gradient-to-r from-red-200 via-red-100 to-red-50';
+			case 'blue':
+				return 'bg-gradient-to-r from-blue-200 via-blue-100 to-blue-50';
+			case 'beige':
+				return 'bg-gradient-to-r from-amber-100 via-orange-50 to-yellow-50';
+			case 'gray':
+				return 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-50';
+			default:
+				return 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-50';
 		}
-		if (['blue', 'primary-strong'].includes(color)) {
-			return 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 border border-blue-200';
-		}
-		if (['orange', 'pink', 'red', 'secondary'].includes(color)) {
-			return 'bg-gradient-to-br from-red-50 to-red-100 text-red-700 border border-red-200';
-		}
-		if (['purple', 'secondary-strong'].includes(color)) {
-			return 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-700 border border-purple-200';
-		}
-		if (color === 'cyan') {
-			return 'bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-700 border border-cyan-200';
-		}
-		return 'bg-white text-gray-700 border border-gray-200';
 	};
 
+	const getIconStyle = (color: string) => {
+		switch(color) {
+			case 'pink':
+				return 'border-pink-500 text-pink-500 bg-white';
+			case 'orange':
+				return 'border-orange-500 text-orange-500 bg-white';
+			case 'green':
+				return 'border-green-500 text-green-500 bg-white';
+			case 'purple':
+				return 'border-purple-500 text-purple-500 bg-white';
+			case 'lavender':
+				return 'border-violet-500 text-violet-500 bg-white';
+			case 'cyan':
+				return 'border-cyan-500 text-cyan-500 bg-white';
+			case 'red':
+				return 'border-red-500 text-red-500 bg-white';
+			case 'blue':
+				return 'border-blue-500 text-blue-500 bg-white';
+			case 'beige':
+				return 'border-amber-600 text-amber-600 bg-white';
+			case 'gray':
+				return 'border-gray-500 text-gray-500 bg-white';
+			default:
+				return 'border-gray-500 text-gray-500 bg-white';
+		}
+	};
+
+	const getValueColor = (color: string) => {
+		switch(color) {
+			case 'pink':
+			case 'red':
+				return 'text-red-500';
+			case 'orange':
+				return 'text-orange-500';
+			case 'green':
+				return 'text-green-600';
+			case 'purple':
+				return 'text-purple-600';
+			case 'lavender':
+				return 'text-violet-600';
+			case 'cyan':
+			case 'blue':
+				return 'text-blue-600';
+			case 'beige':
+				return 'text-amber-700';
+			default:
+				return 'text-gray-700';
+		}
+	};
+
+	// Check if value is a currency (contains ৳ or starts with number)
+	const isCurrency = typeof value === 'string' && (value.includes('৳') || value.includes('BDT'));
+	const displayValue = isCurrency ? value : (typeof value === 'number' ? value : value);
+
 	return (
-		<div className={`p-4 rounded-xl transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-32 relative overflow-hidden group ${getCardStyle(colorClass)}`}>
-			<div className="z-10 relative">
-				<p className="text-xs font-semibold opacity-70 mb-1 uppercase tracking-wide">{title}</p>
-				<h3 className="text-2xl font-extrabold">{value}</h3>
-			</div>
-			<div className="z-10 relative">
-				<div className="flex items-center gap-1 text-[10px] font-bold opacity-70 cursor-pointer hover:opacity-100 transition-opacity">
-					VIEW ALL &rarr;
+		<div className={`p-4 rounded-2xl ${getCardStyle(colorClass)} relative overflow-hidden min-h-[120px]`}>
+			{/* Icon */}
+			<div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${getIconStyle(colorClass)} shadow-sm`}>
+				<div className="[&>svg]:w-5 [&>svg]:h-5">
+					{icon}
 				</div>
 			</div>
-
-			<div className="absolute -bottom-4 -right-4 opacity-10 transform scale-[2.5] rotate-12 group-hover:scale-[3] group-hover:rotate-6 transition-transform duration-500">
-				{icon}
+			
+			{/* Content */}
+			<div className="mt-3">
+				<p className="text-xs text-gray-600 font-medium">{title}</p>
+				<div className="flex items-center gap-2 mt-1">
+					<span className={`text-2xl font-bold ${getValueColor(colorClass)}`}>
+						{isCurrency ? displayValue : `৳${displayValue}`}
+					</span>
+					{/* Trend line */}
+					<svg width="40" height="16" viewBox="0 0 40 16" className={getValueColor(colorClass)}>
+						<path d="M0 12 L8 8 L16 10 L24 4 L32 6 L40 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+					</svg>
+				</div>
 			</div>
 		</div>
 	);

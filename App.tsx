@@ -164,6 +164,7 @@ const App = () => {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariantSelection | null>(null);
   const [landingPages, setLandingPages] = useState<LandingPage[]>([]);
   const [selectedLandingPage, setSelectedLandingPage] = useState<LandingPage | null>(null);
+  const [mobileMenuOpenFn, setMobileMenuOpenFn] = useState<(() => void) | null>(null);
 
   // === NAVIGATION (from useNavigation hook) ===
   const navigation = useNavigation({ products, user });
@@ -963,11 +964,13 @@ const App = () => {
                       tags={tags}
                       initialCategoryFilter={urlCategoryFilter}
                       onCategoryFilterChange={handleCategoryFilterChange}
+                      onMobileMenuOpenRef={(fn) => setMobileMenuOpenFn(() => fn)}
                     />
                     <MobileBottomNav 
                       onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
                       onCartClick={() => {}}
                       onAccountClick={() => user ? setCurrentView('profile') : setIsLoginOpen(true)}
+                      onMenuClick={() => mobileMenuOpenFn?.()}
                       cartCount={cartItems.length}
                       websiteConfig={websiteConfig}
                       onChatClick={handleOpenChat}
@@ -1002,6 +1005,8 @@ const App = () => {
                     onCheckoutFromCart={handleCheckoutFromCart}
                     onAddToCart={(product, quantity, variant) => handleAddProductToCart(product, quantity, variant, { silent: true })}
                     productCatalog={products}
+                    categories={categories}
+                    onCategoryClick={handleCategoryFilterChange}
                   />
                 </Suspense>
               )}
@@ -1074,6 +1079,7 @@ const App = () => {
                       onHomeClick={() => { setCurrentView('store'); window.scrollTo(0,0); }}
                       onCartClick={() => {}}
                       onAccountClick={() => {}}
+                      onMenuClick={() => mobileMenuOpenFn?.()}
                       cartCount={cartItems.length}
                       websiteConfig={websiteConfig}
                       onChatClick={handleOpenChat}

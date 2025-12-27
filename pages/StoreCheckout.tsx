@@ -265,7 +265,7 @@ const StoreCheckout = ({
       </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <section className="bg-white rounded-2xl shadow-sm p-4 md:p-6 top-16 z-10">
+        <section className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 md:p-6 top-16 z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Checkout</p>
@@ -314,7 +314,7 @@ const StoreCheckout = ({
           </div>
         </section>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8 shadow-lg">
           <div className="flex-1 space-y-8">
             {isLoading && (
               <div className="space-y-8">
@@ -328,7 +328,7 @@ const StoreCheckout = ({
             {!isLoading && (
               <>
                 {deliveryConfigs && deliveryConfigs.length > 0 && (
-              <div className="store-card p-6 rounded-3xl border border-gray-100">
+              <div className="store-card p-6 rounded-3xl border border-gray-200 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800">Delivery Options</h2>
                   <span className="text-xs text-gray-500">Choose the best speed for you</span>
@@ -365,7 +365,7 @@ const StoreCheckout = ({
               </div>
             )}
 
-            <div className="store-card p-6 rounded-3xl shadow-sm border border-gray-100">
+            <div className="store-card p-6 rounded-3xl shadow-lg border border-gray-200">
               <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">Step 1</p>
@@ -376,17 +376,17 @@ const StoreCheckout = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
-                  <div className="relative">
-                    <UserIcon className={`absolute left-3 top-3.5 transition ${formErrors.fullName && touchedFields.fullName ? 'text-rose-400' : 'text-gray-400'}`} size={18} />
+                  <label className="block text-sm font-bold text-gray-700 mb-2.5">Full Name <span className="text-rose-500">*</span></label>
+                  <div className="relative group">
+                    <UserIcon className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${formErrors.fullName && touchedFields.fullName ? 'text-rose-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} size={18} />
                     <input
                       type="text"
                       placeholder="John Doe"
                       autoComplete="name"
-                      className={`w-full pl-10 pr-4 py-3 border rounded-xl transition focus:outline-none focus:ring-2 ${
+                      className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-2xl transition-all duration-200 focus:outline-none text-gray-800 placeholder:text-gray-400 ${
                         formErrors.fullName && touchedFields.fullName 
-                          ? 'border-rose-400 bg-rose-50/50 focus:ring-rose-200 focus:ring-opacity-50' 
-                          : 'border-gray-200 focus:ring-emerald-200 focus:ring-opacity-50'
+                          ? 'border-rose-300 bg-rose-50/50 focus:border-rose-400 focus:ring-4 focus:ring-rose-100' 
+                          : 'border-gray-200 bg-white hover:border-gray-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50'
                       }`}
                       value={formData.fullName}
                       onChange={e => updateField('fullName', e.target.value)}
@@ -401,17 +401,17 @@ const StoreCheckout = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
-                  <div className="relative">
-                    <Phone className={`absolute left-3 top-3.5 transition ${formErrors.phone && touchedFields.phone ? 'text-rose-400' : 'text-gray-400'}`} size={18} />
+                  <label className="block text-sm font-bold text-gray-700 mb-2.5">Phone Number <span className="text-rose-500">*</span></label>
+                  <div className="relative group">
+                    <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${formErrors.phone && touchedFields.phone ? 'text-rose-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} size={18} />
                     <input
                       type="tel"
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="+880 1XXX-XXXXXX"
                       autoComplete="tel"
-                      className={`w-full pl-10 pr-4 py-3 border rounded-xl transition focus:outline-none focus:ring-2 ${
+                      className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-2xl transition-all duration-200 focus:outline-none text-gray-800 placeholder:text-gray-400 ${
                         formErrors.phone && touchedFields.phone 
-                          ? 'border-rose-400 bg-rose-50/50 focus:ring-rose-200 focus:ring-opacity-50' 
-                          : 'border-gray-200 focus:ring-emerald-200 focus:ring-opacity-50'
+                          ? 'border-rose-300 bg-rose-50/50 focus:border-rose-400 focus:ring-4 focus:ring-rose-100' 
+                          : 'border-gray-200 bg-white hover:border-gray-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50'
                       }`}
                       value={formData.phone}
                       onChange={e => updateField('phone', e.target.value)}
@@ -429,17 +429,17 @@ const StoreCheckout = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
-                  <div className="relative">
-                    <Mail className={`absolute left-3 top-3.5 transition ${formErrors.email && touchedFields.email ? 'text-rose-400' : 'text-gray-400'}`} size={18} />
+                  <label className="block text-sm font-bold text-gray-700 mb-2.5">Email Address <span className="text-rose-500">*</span></label>
+                  <div className="relative group">
+                    <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${formErrors.email && touchedFields.email ? 'text-rose-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} size={18} />
                     <input
                       type="email"
                       placeholder="you@example.com"
                       autoComplete="email"
-                      className={`w-full pl-10 pr-4 py-3 border rounded-xl transition focus:outline-none focus:ring-2 ${
+                      className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-2xl transition-all duration-200 focus:outline-none text-gray-800 placeholder:text-gray-400 ${
                         formErrors.email && touchedFields.email 
-                          ? 'border-rose-400 bg-rose-50/50 focus:ring-rose-200 focus:ring-opacity-50' 
-                          : 'border-gray-200 focus:ring-emerald-200 focus:ring-opacity-50'
+                          ? 'border-rose-300 bg-rose-50/50 focus:border-rose-400 focus:ring-4 focus:ring-rose-100' 
+                          : 'border-gray-200 bg-white hover:border-gray-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50'
                       }`}
                       value={formData.email}
                       onChange={e => updateField('email', e.target.value)}
@@ -454,15 +454,15 @@ const StoreCheckout = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Division/Region *</label>
-                  <div className="relative">
-                    <MapPin className={`absolute left-3 top-3.5 pointer-events-none transition ${formErrors.division && touchedFields.division ? 'text-rose-400' : 'text-gray-400'}`} size={18} />
+                  <label className="block text-sm font-bold text-gray-700 mb-2.5">Division/Region <span className="text-rose-500">*</span></label>
+                  <div className="relative group">
+                    <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-200 ${formErrors.division && touchedFields.division ? 'text-rose-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} size={18} />
                     <select
-                      className={`w-full pl-10 pr-4 py-3 border rounded-xl transition focus:outline-none focus:ring-2 appearance-none ${
+                      className={`w-full pl-12 pr-10 py-3.5 border-2 rounded-2xl transition-all duration-200 focus:outline-none appearance-none cursor-pointer ${
                         formErrors.division && touchedFields.division 
-                          ? 'border-rose-400 bg-rose-50/50 focus:ring-rose-200 focus:ring-opacity-50' 
-                          : 'border-gray-200 focus:ring-emerald-200 focus:ring-opacity-50'
-                      } text-gray-700 bg-white`}
+                          ? 'border-rose-300 bg-rose-50/50 focus:border-rose-400 focus:ring-4 focus:ring-rose-100' 
+                          : 'border-gray-200 bg-white hover:border-gray-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50'
+                      } text-gray-800`}
                       value={formData.division}
                       onChange={e => updateField('division', e.target.value)}
                       aria-invalid={!!(formErrors.division && touchedFields.division)}
@@ -488,16 +488,16 @@ const StoreCheckout = ({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Address *</label>
-                <div className="relative">
-                  <MapPin className={`absolute left-3 top-3 pointer-events-none transition ${formErrors.address && touchedFields.address ? 'text-rose-400' : 'text-gray-400'}`} size={18} />
+                <label className="block text-sm font-bold text-gray-700 mb-2.5">Delivery Address <span className="text-rose-500">*</span></label>
+                <div className="relative group">
+                  <MapPin className={`absolute left-4 top-4 pointer-events-none transition-colors duration-200 ${formErrors.address && touchedFields.address ? 'text-rose-400' : 'text-gray-400 group-focus-within:text-emerald-500'}`} size={18} />
                   <textarea
-                    placeholder="123 Main Street, Apartment 4B, Your City, State 12345"
+                    placeholder="House #, Road #, Area, City - Please provide detailed address for smooth delivery"
                     autoComplete="street-address"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-2xl transition focus:outline-none focus:ring-2 min-h-[110px] resize-none ${
+                    className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-2xl transition-all duration-200 focus:outline-none min-h-[120px] resize-none text-gray-800 placeholder:text-gray-400 ${
                       formErrors.address && touchedFields.address 
-                        ? 'border-rose-400 bg-rose-50/50 focus:ring-rose-200 focus:ring-opacity-50' 
-                        : 'border-gray-200 focus:ring-emerald-200 focus:ring-opacity-50'
+                        ? 'border-rose-300 bg-rose-50/50 focus:border-rose-400 focus:ring-4 focus:ring-rose-100' 
+                        : 'border-gray-200 bg-white hover:border-gray-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50'
                     }`}
                     value={formData.address}
                     onChange={e => updateField('address', e.target.value)}
@@ -513,17 +513,17 @@ const StoreCheckout = ({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Add Product Description / Special Instructions</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2.5">Special Instructions <span className="text-gray-400 font-normal">(Optional)</span></label>
                 <textarea
                   placeholder="Add any special requests, customization details, or instructions for your order..."
-                  className="w-full px-4 py-3 border border-gray-200 rounded-2xl transition focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:ring-opacity-50 resize-none min-h-[100px]"
+                  className="w-full px-4 py-3.5 border-2 border-gray-200 bg-white rounded-2xl transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 hover:border-gray-300 resize-none min-h-[100px] text-gray-800 placeholder:text-gray-400"
                   value={formData.productDescription || ''}
                   onChange={e => {
                     const value = e.target.value;
                     setFormData(prev => ({ ...prev, productDescription: value }));
                   }}
                 />
-                <p className="text-xs text-gray-500 mt-2">Optional: Let us know about any specific requirements or customizations</p>
+                <p className="text-xs text-gray-500 mt-2 flex items-center gap-1"><Gift size={12} /> Let us know about any specific requirements</p>
               </div>
             </div>
 
@@ -531,9 +531,9 @@ const StoreCheckout = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">Step 2</p>
-                  <h2 className="text-xl font-bold text-gray-900">Payment Details</h2>
+                  <h2 className="text-xl font-bold text-gray-900">Payment Method</h2>
                 </div>
-                <span className="text-xs text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1 font-semibold"><Lock size={14} /> SSL Secured</span>
+                <span className="text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1.5 font-bold"><ShieldCheck size={14} /> Secure Payment</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button className="border-2 border-emerald-500 bg-emerald-50 hover:bg-emerald-100 rounded-2xl p-4 flex flex-col gap-2 transition-colors text-left">
@@ -544,48 +544,13 @@ const StoreCheckout = ({
                   <Banknote size={40} className="text-emerald-500" />
                 </button>
                 <div className="border border-dashed border-gray-200 rounded-2xl p-4 flex flex-col gap-3">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <CreditCard size={16} /> Card Payment
-                  </div>
+                  
                   <div className="grid grid-cols-1 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Name on card"
-                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
-                        formErrors.cardName && touchedFields.cardName ? 'border-rose-400 focus:ring-rose-100' : 'border-gray-200 focus:ring-emerald-100'
-                      }`}
-                      onChange={e => updateField('cardName', e.target.value)}
-                      onBlur={e => updateField('cardName', e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="1234 5678 9012 3456"
-                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
-                        formErrors.cardNumber && touchedFields.cardNumber ? 'border-rose-400 focus:ring-rose-100' : 'border-gray-200 focus:ring-emerald-100'
-                      }`}
-                      onChange={e => updateField('cardNumber', e.target.value)}
-                      onBlur={e => updateField('cardNumber', e.target.value)}
-                    />
+                   
+                 
                     <div className="grid grid-cols-2 gap-3">
-                      <input
-                        type="text"
-                        placeholder="MM/YY"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
-                          formErrors.expiry && touchedFields.expiry ? 'border-rose-400 focus:ring-rose-100' : 'border-gray-200 focus:ring-emerald-100'
-                        }`}
-                        onChange={e => updateField('expiry', e.target.value)}
-                        onBlur={e => updateField('expiry', e.target.value)}
-                      />
-                      <input
-                        type="password"
-                        placeholder="CVV"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
-                          formErrors.cvv && touchedFields.cvv ? 'border-rose-400 focus:ring-rose-100' : 'border-gray-200 focus:ring-emerald-100'
-                        }`}
-                        onChange={e => updateField('cvv', e.target.value)}
-                        onBlur={e => updateField('cvv', e.target.value)}
-                      />
+                   
+                   
                     </div>
                   </div>
                 </div>
@@ -657,20 +622,20 @@ const StoreCheckout = ({
               </div>
 
               <div className="mt-6 space-y-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-gray-500">Promo code</label>
+                <div className="flex flex-col gap-2.5">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">Have a promo code?</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="SUMMER10"
+                      placeholder="Enter code"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
-                      className="flex-1 px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                      className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 transition-all duration-200 text-gray-800 placeholder:text-gray-400 hover:border-gray-300"
                     />
                     <button
                       type="button"
                       onClick={applyPromoCode}
-                      className="px-4 py-3 rounded-2xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700"
+                      className="px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-colors duration-200 shadow-md hover:shadow-lg"
                     >
                       Apply
                     </button>
@@ -681,21 +646,18 @@ const StoreCheckout = ({
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Lock size={14} /> Payments secured by SSL & PCI DSS
-                </div>
               </div>
 
               <div className="mt-6 flex flex-col gap-3">
                 <button
                   onClick={handleSubmit}
-                  className="w-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold py-3 text-sm tracking-wide shadow-lg shadow-emerald-500/30 hover:-translate-y-0.5 transition"
+                  className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold py-4 text-base tracking-wide shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/30 hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98]"
                 >
-                  Place Order
+                  Confirm Order • ৳{grandTotal.toLocaleString()}
                 </button>
                 <button
                   onClick={onBack}
-                  className="w-full rounded-full border border-gray-200 text-gray-700 font-semibold py-3 text-sm hover:bg-gray-50 flex items-center justify-center gap-2"
+                  className="w-full rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold py-3.5 text-sm hover:bg-gray-50 hover:border-gray-300 flex items-center justify-center gap-2 transition-all duration-200"
                 >
                   <ArrowLeft size={16} /> Continue Shopping
                 </button>

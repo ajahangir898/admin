@@ -1,6 +1,9 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { Camera, Search, X, Loader2, ArrowLeft, Tag, DollarSign, Package, Palette, Box, Target, Sparkles, Copy, Check, Plus } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Camera, Search, X, Loader2, ArrowLeft, Tag, DollarSign, Package, Palette, Box, Target, Sparkles, Copy, Check, Plus, Wifi, WifiOff } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_YOLO_API_URL || 'http://localhost:8001';
 
 // Types
 interface PriceEstimate {
@@ -34,21 +37,65 @@ interface AnalysisState {
   error: string | null;
 }
 
-// API call to analyze image
+interface ApiStatus {
+  status: 'checking' | 'ready' | 'error' | 'offline';
+  message: string;
+}
+
+// API Functions
+const checkApiStatus = async (): Promise<ApiStatus> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/model-status`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      return { status: 'error', message: 'API returned error' };
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'ready') {
+      return { status: 'ready', message: data.message || 'YOLO API Ready' };
+    }
+    
+    return { status: 'error', message: data.message || 'Model not ready' };
+  } catch (error) {
+    console.error('[ImageSearch] API status check failed:', error);
+    return { status: 'offline', message: 'Cannot connect to YOLO API server' };
+  }
+};
+
 const analyzeProductImage = async (file: File): Promise<ProductDetails | null> => {
   const formData = new FormData();
-  formData.append('image', file);
-
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://systemnextit.com';
-  const response = await fetch(`${apiBase}/api/gemini-image-search`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || 'Analysis failed');
+  formData.append('file', file);
   
-  return data.productDetails;
+  try {
+    console.log('[ImageSearch] Sending image to YOLO API...');
+    
+    const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `API error: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.success && result.data) {
+      console.log('[ImageSearch] YOLO analysis successful');
+      return result.data as ProductDetails;
+    }
+    
+    throw new Error(result.error || 'Could not analyze the image');
+  } catch (error) {
+    console.error('[ImageSearch] YOLO analysis failed:', error);
+    throw error;
+  }
 };
 
 // Copy button component
@@ -81,7 +128,7 @@ const DetailCard: React.FC<{
   copyable?: boolean;
   className?: string;
 }> = ({ icon, label, value, copyable = true, className = '' }) => (
-  <div className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 ${className}`}>
+  <div className={`bg-white rounded-xl p-4 shadow-lg border border-gray-200 ${className}`}>
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
         {icon}
@@ -95,7 +142,7 @@ const DetailCard: React.FC<{
 
 // Price Card Component
 const PriceCard: React.FC<{ price: PriceEstimate }> = ({ price }) => (
-  <div className="bg-gradient-to-br from-theme-primary/10 to-theme-primary/5 rounded-xl p-5 border border-theme-primary/20">
+  <div className="bg-gradient-to-br from-theme-primary/10 to-theme-primary/5 rounded-xl p-5 border border-theme-primary/30 shadow-lg">
     <div className="flex items-center gap-2 text-theme-primary mb-3">
       <DollarSign size={18} />
       <span className="font-semibold">Estimated Price (BDT)</span>
@@ -119,7 +166,7 @@ const PriceCard: React.FC<{ price: PriceEstimate }> = ({ price }) => (
 
 // Tags Component
 const TagsSection: React.FC<{ tags: string[] }> = ({ tags }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+  <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-200">
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2 text-gray-500 text-sm">
         <Tag size={16} />
@@ -142,7 +189,7 @@ const TagsSection: React.FC<{ tags: string[] }> = ({ tags }) => (
 
 // Selling Points Component
 const SellingPointsSection: React.FC<{ points: string[] }> = ({ points }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+  <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-200">
     <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
       <Sparkles size={16} />
       <span>Selling Points</span>
@@ -160,7 +207,7 @@ const SellingPointsSection: React.FC<{ points: string[] }> = ({ points }) => (
 
 // Specifications Component
 const SpecificationsSection: React.FC<{ specs: Record<string, string> }> = ({ specs }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+  <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-200">
     <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
       <Box size={16} />
       <span>Specifications</span>
@@ -184,10 +231,37 @@ const ImageSearchPage: React.FC = () => {
     productDetails: null,
     error: null,
   });
+  const [apiStatus, setApiStatus] = useState<ApiStatus>({ status: 'checking', message: 'Connecting to YOLO API...' });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Check API status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      setApiStatus({ status: 'checking', message: 'Connecting to YOLO API...' });
+      const status = await checkApiStatus();
+      setApiStatus(status);
+    };
+    
+    checkStatus();
+    
+    // Periodically check status if offline
+    const interval = setInterval(async () => {
+      if (apiStatus.status === 'offline' || apiStatus.status === 'error') {
+        const status = await checkApiStatus();
+        setApiStatus(status);
+      }
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const handleImageUpload = useCallback(async (file: File) => {
+    if (apiStatus.status !== 'ready') {
+      toast.error('YOLO API is not available. Please wait or check connection.');
+      return;
+    }
+    
     // Create preview
     const reader = new FileReader();
     reader.onload = async () => {
@@ -200,7 +274,8 @@ const ImageSearchPage: React.FC = () => {
       });
 
       try {
-        toast.loading('AI is analyzing your product...', { id: 'analyze' });
+        toast.loading('YOLO AI is analyzing your product...', { id: 'analyze' });
+        
         const details = await analyzeProductImage(file);
         toast.dismiss('analyze');
         
@@ -225,7 +300,7 @@ const ImageSearchPage: React.FC = () => {
       }
     };
     reader.readAsDataURL(file);
-  }, []);
+  }, [apiStatus.status]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -265,7 +340,54 @@ const ImageSearchPage: React.FC = () => {
     }
   };
 
+  const handleRetryConnection = async () => {
+    setApiStatus({ status: 'checking', message: 'Reconnecting...' });
+    const status = await checkApiStatus();
+    setApiStatus(status);
+    if (status.status === 'ready') {
+      toast.success('Connected to YOLO API!');
+    } else {
+      toast.error('Still cannot connect to API');
+    }
+  };
+
   const { isAnalyzing, imagePreview, productDetails } = state;
+
+  // Render API status indicator
+  const renderStatusIndicator = () => {
+    switch (apiStatus.status) {
+      case 'checking':
+        return (
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-full text-sm border border-yellow-200">
+            <Loader2 size={14} className="animate-spin" />
+            <span>{apiStatus.message}</span>
+          </div>
+        );
+      case 'ready':
+        return (
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm border border-green-200">
+            <Wifi size={14} />
+            <span>YOLO API Ready • Fast server analysis</span>
+          </div>
+        );
+      case 'offline':
+      case 'error':
+        return (
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-full text-sm border border-red-200">
+            <WifiOff size={14} />
+            <span>{apiStatus.message}</span>
+            <button 
+              onClick={handleRetryConnection}
+              className="ml-2 px-2 py-0.5 bg-red-100 hover:bg-red-200 rounded text-xs font-medium transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -284,12 +406,17 @@ const ImageSearchPage: React.FC = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6">
+        {/* API Status Indicator */}
+        <div className="mb-4 flex justify-center">
+          {renderStatusIndicator()}
+        </div>
+
         {/* Upload Section */}
         {!imagePreview && (
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="bg-white rounded-2xl border-2 border-dashed border-gray-200 hover:border-theme-primary/50 transition-all cursor-pointer"
+            className="bg-white rounded-2xl border-2 border-dashed border-gray-300 hover:border-theme-primary/50 transition-all cursor-pointer shadow-lg"
             onClick={() => fileInputRef.current?.click()}
           >
             <div className="py-16 px-8 text-center">
@@ -325,7 +452,7 @@ const ImageSearchPage: React.FC = () => {
         {imagePreview && (
           <div className="space-y-6">
             {/* Image Preview */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm relative">
+            <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 relative">
               <button
                 onClick={handleClear}
                 className="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-red-50 hover:text-red-500 transition-all"
@@ -365,7 +492,7 @@ const ImageSearchPage: React.FC = () => {
             {productDetails && (
               <>
                 {/* Product Name & Category */}
-                <div className="bg-white rounded-2xl p-5 shadow-sm">
+                <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-200">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <p className="text-xs text-theme-primary font-semibold uppercase tracking-wide mb-1">

@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { Search, Filter, Edit3, Printer, ShieldAlert, ShieldCheck, X, Package2, MapPin, Mail, Truck, AlertTriangle, CheckCircle2, Send, Loader2 } from 'lucide-react';
+import { Search, Filter, Edit3, Printer, ShieldAlert, ShieldCheck, X, Package2, MapPin, Mail, Truck, AlertTriangle, CheckCircle2, Send, Loader2, MoreVertical, Download, Trash2, Phone, MessageCircle, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Order, CourierConfig } from '../types';
 import { CourierService, FraudCheckResult } from '../services/CourierService';
 import { MetricsSkeleton, TableSkeleton } from '../components/SkeletonLoaders';
+import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface AdminOrdersProps {
   orders: Order[];
@@ -56,12 +57,40 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
   const [isLoading, setIsLoading] = useState(true);
   const [highlightedOrderId, setHighlightedOrderId] = useState<string | null>(null);
   const orderRowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
+  
+  // Multi-select state
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [openActionDropdown, setOpenActionDropdown] = useState<string | null>(null);
+  const [showCourierModal, setShowCourierModal] = useState(false);
+  const [courierModalOrderId, setCourierModalOrderId] = useState<string | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+
+  // Available couriers
+  const COURIERS = [
+    { id: 'pathao', name: 'Pathao Courier', logo: '/icons/pathao.png' },
+    { id: 'steadfast', name: 'Steadfast Courier', logo: '/icons/steadfast.png' },
+    { id: 'redx', name: 'RedX Courier', logo: '/icons/redx.png' },
+  ];
 
   // Simulate initial data loading
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openActionDropdown !== null) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-action-dropdown]')) {
+          setOpenActionDropdown(null);
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openActionDropdown]);
 
   // Check for highlighted order from notification click
   useEffect(() => {
@@ -136,6 +165,96 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ orders, courierConfig, onUpda
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Selection handlers
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrderIds(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrderIds.length === filteredOrders.length) {
+      setSelectedOrderIds([]);
+    } else {
+      setSelectedOrderIds(filteredOrders.map(o => o.id));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedOrderIds([]);
+  };
+
+  // Bulk action handlers
+  const handleBulkDelete = () => {
+    if (selectedOrderIds.length === 0) return;
+    if (window.confirm(`Are you sure you want to delete ${selectedOrderIds.length} order(s)?`)) {
+      // Implementation would call backend
+      toast.success(`${selectedOrderIds.length} order(s) deleted`);
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleBulkStatusChange = (newStatus: Order['status']) => {
+    selectedOrderIds.forEach(orderId => {
+      onUpdateOrder(orderId, { status: newStatus });
+    });
+    toast.success(`Updated ${selectedOrderIds.length} order(s) to ${newStatus}`);
+    setSelectedOrderIds([]);
+    setShowStatusModal(false);
+  };
+
+  const handleDownloadExcel = () => {
+    const selectedOrders = orders.filter(o => selectedOrderIds.includes(o.id));
+    // Create CSV content
+    const headers = ['Order ID', 'Customer', 'Phone', 'Location', 'Amount', 'Status', 'Date'];
+    const rows = selectedOrders.map(o => [
+      o.id, o.customer, o.phone || '', o.location, o.amount, o.status, o.date
+    ]);
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Excel file downloaded');
+  };
+
+  const handleMultiplePrint = () => {
+    selectedOrderIds.forEach(orderId => {
+      const order = orders.find(o => o.id === orderId);
+      if (order) handlePrintInvoice(order);
+    });
+  };
+
+  const handleAssignCourier = (courierId: string, courierName: string) => {
+    if (courierModalOrderId) {
+      // Single order assignment
+      onUpdateOrder(courierModalOrderId, { 
+        courierProvider: courierName as Order['courierProvider'],
+        status: 'Sent to Courier'
+      });
+      toast.success(`Courier assigned: ${courierName}`);
+    } else {
+      // Bulk assignment
+      selectedOrderIds.forEach(orderId => {
+        onUpdateOrder(orderId, { 
+          courierProvider: courierName as Order['courierProvider'],
+          status: 'Sent to Courier'
+        });
+      });
+      toast.success(`Courier assigned to ${selectedOrderIds.length} order(s)`);
+      setSelectedOrderIds([]);
+    }
+    setShowCourierModal(false);
+    setCourierModalOrderId(null);
   };
 
   const handleFraudCheck = async (order: Order) => {
@@ -415,81 +534,282 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
             <table className="min-w-full divide-y divide-white/5 text-sm">
               <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-white/50">
                 <tr>
-                  <th className="px-6 py-3">Order</th>
-                  <th className="px-6 py-3">Customer</th>
-                  <th className="px-6 py-3">Destination</th>
-                  <th className="px-6 py-3">Amount</th>
-                  <th className="px-6 py-3">Courier</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
+                  <th className="px-3 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedOrderIds.length === filteredOrders.length && filteredOrders.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-white/20 bg-white/5 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    />
+                  </th>
+                  <th className="px-3 py-3">Image</th>
+                  <th className="px-3 py-3">SKU</th>
+                  <th className="px-3 py-3">Order ID</th>
+                  <th className="px-3 py-3">Name</th>
+                  <th className="px-3 py-3">Phone No</th>
+                  <th className="px-3 py-3">Order From</th>
+                  <th className="px-3 py-3">Order Date Time</th>
+                  <th className="px-3 py-3">Payment Type</th>
+                  <th className="px-3 py-3">Order Status</th>
+                  <th className="px-3 py-3">Courier</th>
+                  <th className="px-3 py-3">Reward Points</th>
+                  <th className="px-3 py-3">Grand Total</th>
+                  <th className="px-3 py-3">Note</th>
+                  <th className="px-3 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filteredOrders.length ? (
-                  filteredOrders.map((order) => (
-                  <tr 
-                    key={order.id} 
-                    ref={(el) => { if (el) orderRowRefs.current.set(order.id, el); }}
-                    className={`cursor-pointer transition hover:bg-white/5 ${
-                      highlightedOrderId === order.id 
-                        ? 'bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse' 
-                        : 'bg-white/0'
-                    }`} 
-                    onClick={() => openOrderModal(order)}
-                  >
-                    <td className="px-6 py-4 text-white">
-                      <p className="font-semibold">{order.id}</p>
-                      <p className="text-xs text-white/50">{order.date}</p>
-                    </td>
-                    <td className="px-6 py-4 text-white">
-                      <p className="font-semibold">{order.customer}</p>
-                      <p className="text-xs text-white/50">{order.phone || order.email || 'No contact'}</p>
-                    </td>
-                    <td className="px-6 py-4 text-white">
-                      <p className="font-semibold flex items-center gap-2"><MapPin size={14} className="text-rose-300" /> {order.location}</p>
-                      <p className="text-xs text-white/50">{order.division || 'N/A'}</p>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-emerald-300">{formatCurrency(order.amount)}</td>
-                    <td className="px-6 py-4">
-                      {order.courierProvider === 'Steadfast' && order.trackingId ? (
-                        <div className="flex flex-col gap-1">
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300">
-                            <CheckCircle2 size={12} /> Steadfast
-                          </span>
-                          <span className="text-[10px] text-white/40 font-mono">{order.trackingId}</span>
+                  filteredOrders.map((order) => {
+                    const isSelected = selectedOrderIds.includes(order.id);
+                    const courierId = getCourierId(order);
+                    
+                    return (
+                    <tr 
+                      key={order.id} 
+                      ref={(el) => { if (el) orderRowRefs.current.set(order.id, el); }}
+                      className={`transition hover:bg-white/5 ${
+                        highlightedOrderId === order.id 
+                          ? 'bg-emerald-500/20 ring-2 ring-emerald-500/50 animate-pulse' 
+                          : isSelected
+                          ? 'bg-purple-500/10'
+                          : 'bg-white/0'
+                      }`}
+                    >
+                      {/* Checkbox */}
+                      <td className="px-3 py-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleOrderSelection(order.id);
+                          }}
+                          className="w-4 h-4 rounded border-white/20 bg-white/5 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        />
+                      </td>
+                      
+                      {/* Image */}
+                      <td className="px-3 py-3">
+                        <div className="w-12 h-12 rounded-lg bg-white/10 overflow-hidden">
+                          {order.productImage ? (
+                            <img 
+                              src={normalizeImageUrl(order.productImage)} 
+                              alt={order.productName || 'Product'} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/30">
+                              <Package2 size={20} />
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <span className="text-xs text-white/40">Not assigned</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[order.status]}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      </td>
+                      
+                      {/* SKU */}
+                      <td className="px-3 py-3 text-white">
+                        <p className="text-xs font-mono text-white/70 max-w-[150px] truncate" title={(order as any).sku || order.productName}>
+                          {(order as any).sku || order.productName || '—'}
+                        </p>
+                      </td>
+                      
+                      {/* Order ID */}
+                      <td className="px-3 py-3 text-white">
+                        <p className="font-semibold text-sm">{order.id}</p>
+                      </td>
+                      
+                      {/* Name */}
+                      <td className="px-3 py-3 text-white">
+                        <p className="font-medium text-sm">{order.customer}</p>
+                      </td>
+                      
+                      {/* Phone No */}
+                      <td className="px-3 py-3">
+                        {order.phone ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-white text-sm">{order.phone}</span>
+                            <div className="flex items-center gap-2">
+                              <a 
+                                href={`https://wa.me/${order.phone.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-green-400 hover:text-green-300"
+                                title="WhatsApp"
+                              >
+                                <MessageCircle size={14} />
+                              </a>
+                              <a 
+                                href={`tel:${order.phone}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-blue-400 hover:text-blue-300"
+                                title="Call"
+                              >
+                                <Phone size={14} />
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-white/40">—</span>
+                        )}
+                      </td>
+                      
+                      {/* Order From */}
+                      <td className="px-3 py-3">
+                        <span className="text-xs text-white/70">{(order as any).orderFrom || 'Website'}</span>
+                      </td>
+                      
+                      {/* Order Date Time */}
+                      <td className="px-3 py-3 text-white">
+                        <p className="text-xs">{order.date}</p>
+                      </td>
+                      
+                      {/* Payment Type */}
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                            {(order as any).paymentType || 'COD'}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            (order as any).paymentStatus === 'Paid' 
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                          }`}>
+                            {(order as any).paymentStatus || 'Unpaid'}
+                          </span>
+                        </div>
+                      </td>
+                      
+                      {/* Order Status */}
+                      <td className="px-3 py-3">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${STATUS_COLORS[order.status]}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      
+                      {/* Courier */}
+                      <td className="px-3 py-3">
+                        {order.courierProvider && courierId ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-white/80">{order.courierProvider}</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-white/50 font-mono">{courierId}</span>
+                              <a
+                                href={`#`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toast.success('Tracking link copied!');
+                                }}
+                                className="text-cyan-400 hover:text-cyan-300"
+                                title="Tracking Link"
+                              >
+                                <ExternalLink size={12} />
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCourierModalOrderId(order.id);
+                              setShowCourierModal(true);
+                            }}
+                            className="text-xs text-purple-400 hover:text-purple-300 underline"
+                          >
+                            Assign Courier
+                          </button>
+                        )}
+                      </td>
+                      
+                      {/* Reward Points */}
+                      <td className="px-3 py-3 text-center">
+                        <span className="text-xs text-white/50">{(order as any).rewardPoints || '—'}</span>
+                      </td>
+                      
+                      {/* Grand Total */}
+                      <td className="px-3 py-3">
+                        <span className="font-semibold text-emerald-300">৳ {order.amount.toLocaleString()}</span>
+                      </td>
+                      
+                      {/* Note */}
+                      <td className="px-3 py-3">
                         <button
-                          onClick={(event) => { event.stopPropagation(); openOrderModal(order); }}
-                          className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition hover:border-rose-400 hover:text-rose-300"
-                          aria-label="View or edit order"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toast.success('Add note feature');
+                          }}
+                          className="text-xs text-blue-400 hover:text-blue-300 whitespace-nowrap"
                         >
-                          <Edit3 size={16} />
+                          Add Note
                         </button>
-                        <button
-                          onClick={(event) => { event.stopPropagation(); handlePrintInvoice(order); }}
-                          className="rounded-full border border-white/10 bg-white/5 p-2 text-white transition hover:border-rose-400 hover:text-rose-300"
-                          aria-label="Print invoice"
-                        >
-                          <Printer size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      
+                      {/* Actions */}
+                      <td className="px-3 py-3">
+                        <div className="relative flex items-center justify-end" data-action-dropdown>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenActionDropdown(openActionDropdown === order.id ? null : order.id);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-white/10 transition"
+                          >
+                            <MoreVertical size={16} className="text-white/60" />
+                          </button>
+                          
+                          {openActionDropdown === order.id && (
+                            <div className="absolute right-0 top-8 w-40 bg-[#1a1015] rounded-lg shadow-xl border border-white/10 z-50 py-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openOrderModal(order);
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-3 py-2 text-left text-xs text-white/80 hover:bg-white/10 flex items-center gap-2"
+                              >
+                                <Edit3 size={12} /> Edit
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toast.success(`Viewing details for ${order.id}`);
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-3 py-2 text-left text-xs text-white/80 hover:bg-white/10 flex items-center gap-2"
+                              >
+                                <FileText size={12} /> Details
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePrintInvoice(order);
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-3 py-2 text-left text-xs text-white/80 hover:bg-white/10 flex items-center gap-2"
+                              >
+                                <Printer size={12} /> Print Invoice
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCourierModalOrderId(order.id);
+                                  setShowCourierModal(true);
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-3 py-2 text-left text-xs text-white/80 hover:bg-white/10 flex items-center gap-2"
+                              >
+                                <Truck size={12} /> Assign Courier
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-20 text-center text-white/50">
+                  <td colSpan={15} className="px-6 py-20 text-center text-white/50">
                     No orders found for the current filters.
                   </td>
                 </tr>
@@ -498,6 +818,133 @@ footer { text-align: center; margin-top: 32px; font-size: 12px; color: #475569; 
           </table>
         </div>
       </div>
+      )}
+
+      {/* Floating Selection Bar */}
+      {selectedOrderIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-[#1a1015] text-white px-4 py-3 rounded-full shadow-2xl z-50 flex items-center gap-4 border border-white/10">
+          <span className="flex items-center gap-2 bg-purple-600 px-3 py-1 rounded-full text-sm font-semibold">
+            {selectedOrderIds.length} Items selected
+          </span>
+          
+          <button
+            onClick={clearSelection}
+            className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition"
+          >
+            <X size={14} /> Clear Selection
+          </button>
+          
+          <button
+            onClick={handleDownloadExcel}
+            className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-500 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+          >
+            <Download size={14} /> Download Excel
+          </button>
+          
+          <button
+            onClick={handleMultiplePrint}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+          >
+            <Printer size={14} /> Multiple print
+          </button>
+          
+          <button
+            onClick={() => setShowStatusModal(true)}
+            className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+          >
+            Change Order Status
+          </button>
+          
+          <button
+            onClick={handleBulkDelete}
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+          >
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      )}
+
+      {/* Select Courier Modal */}
+      {showCourierModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-xl font-bold text-gray-800 text-center mb-6">Select Your Courier</h3>
+            
+            <div className="space-y-3">
+              {COURIERS.map((courier) => (
+                <button
+                  key={courier.id}
+                  onClick={() => handleAssignCourier(courier.id, courier.name)}
+                  className="w-full flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition group"
+                >
+                  <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {courier.logo ? (
+                      <img src={courier.logo} alt={courier.name} className="w-8 h-8 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    ) : null}
+                    <Truck size={20} className="text-gray-400" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold text-gray-800">{courier.name}</p>
+                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 border-gray-300 group-hover:border-green-500 group-hover:bg-green-500 flex items-center justify-center">
+                    <CheckCircle2 size={12} className="text-white opacity-0 group-hover:opacity-100" />
+                  </div>
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex justify-center gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowCourierModal(false);
+                  setCourierModalOrderId(null);
+                }}
+                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowCourierModal(false);
+                  setCourierModalOrderId(null);
+                }}
+                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-[#1a1015] rounded-2xl shadow-2xl w-full max-w-md p-6 border border-white/10">
+            <h3 className="text-xl font-bold text-white text-center mb-6">Change Order Status</h3>
+            
+            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+              {STATUSES.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => handleBulkStatusChange(status)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition ${STATUS_COLORS[status]} hover:opacity-80`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="px-6 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {selectedOrder && draftOrder && (

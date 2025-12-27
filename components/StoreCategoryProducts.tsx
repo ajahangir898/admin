@@ -103,14 +103,31 @@ export const StoreCategoryProducts: React.FC<StoreCategoryProductsProps> = ({
     return [];
   }, [brands]);
 
+  // Check if showing all products or brand filter
+  const isShowingAll = selectedCategory === '__all__';
+  const isBrandFilter = selectedCategory.startsWith('brand:');
+  const brandFromFilter = isBrandFilter ? selectedCategory.replace('brand:', '') : null;
+
   // Filter products by category and brand
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
+      // If showing all products, only filter by selected brand
+      if (isShowingAll) {
+        const brandMatch = !selectedBrand || product.brand?.toLowerCase() === selectedBrand.toLowerCase();
+        return brandMatch;
+      }
+      // If brand filter from URL
+      if (isBrandFilter && brandFromFilter) {
+        const brandMatch = product.brand?.toLowerCase() === brandFromFilter.toLowerCase();
+        const extraBrandMatch = !selectedBrand || product.brand?.toLowerCase() === selectedBrand.toLowerCase();
+        return brandMatch || extraBrandMatch;
+      }
+      // Normal category filter
       const categoryMatch = product.category?.toLowerCase() === selectedCategory.toLowerCase();
       const brandMatch = !selectedBrand || product.brand?.toLowerCase() === selectedBrand.toLowerCase();
       return categoryMatch && brandMatch;
     });
-  }, [products, selectedCategory, selectedBrand]);
+  }, [products, selectedCategory, selectedBrand, isShowingAll, isBrandFilter, brandFromFilter]);
 
   // Sort products
   const sortedProducts = useMemo(() => {
@@ -129,12 +146,22 @@ export const StoreCategoryProducts: React.FC<StoreCategoryProductsProps> = ({
     }
   }, [filteredProducts, sortOption]);
 
-  // Get brands available in current category
+  // Get brands available in current category (or all brands if showing all)
   const brandsInCategory = useMemo(() => {
+    if (isShowingAll) {
+      return activeBrands;
+    }
     const categoryProducts = products.filter(p => p.category?.toLowerCase() === selectedCategory.toLowerCase());
     const brandNames = new Set(categoryProducts.map(p => p.brand).filter(Boolean));
     return activeBrands.filter(b => brandNames.has(b.name));
-  }, [products, selectedCategory, activeBrands]);
+  }, [products, selectedCategory, activeBrands, isShowingAll]);
+
+  // Get display title
+  const displayTitle = useMemo(() => {
+    if (isShowingAll) return 'All Products';
+    if (isBrandFilter && brandFromFilter) return brandFromFilter;
+    return selectedCategory;
+  }, [selectedCategory, isShowingAll, isBrandFilter, brandFromFilter]);
 
   const handleBrandSelect = (brandName: string) => {
     setSelectedBrand(prev => prev === brandName ? null : brandName);
@@ -297,7 +324,7 @@ export const StoreCategoryProducts: React.FC<StoreCategoryProductsProps> = ({
               </button>
               <div className="h-6 w-px bg-gray-200" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900">{selectedCategory}</h1>
+                <h1 className="text-lg font-bold text-gray-900">{displayTitle}</h1>
                 <p className="text-xs text-gray-500">{sortedProducts.length} products</p>
               </div>
             </div>
@@ -363,8 +390,8 @@ export const StoreCategoryProducts: React.FC<StoreCategoryProductsProps> = ({
                 <p className="text-gray-500 font-medium text-lg">No products found</p>
                 <p className="text-gray-400 text-sm mt-1">
                   {selectedBrand 
-                    ? `No ${selectedBrand} products in ${selectedCategory}` 
-                    : `No products in ${selectedCategory}`}
+                    ? `No ${selectedBrand} products in ${displayTitle}` 
+                    : `No products in ${displayTitle}`}
                 </p>
                 {selectedBrand && (
                   <button

@@ -88,36 +88,36 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
   onVoiceSearch,
   onVisualSearch
 }) => (
-  <div ref={containerRef} className="md:hidden fixed left-0 right-0 top-[60px] bg-white shadow-lg z-30 p-3 flex gap-2 animate-slideIn">
-    <div className="relative flex-1">
-      <SearchHintOverlay
-        activeSearchValue={activeSearchValue}
-        activeHint={activeHint}
-        activeHintIndex={activeHintIndex}
-        offsetClass="left-4"
+  <div ref={containerRef} className="flex-1 relative">
+    <SearchHintOverlay
+      activeSearchValue={activeSearchValue}
+      activeHint={activeHint}
+      activeHintIndex={activeHintIndex}
+      offsetClass="left-4"
+    />
+    <input
+      type="text"
+      placeholder="Search product..."
+      value={activeSearchValue}
+      onChange={(event) => onInputChange(event.target.value)}
+      className="w-full border-2 border-theme-primary rounded-full py-2.5 pl-4 pr-28 text-sm focus:outline-none focus:ring-2 focus:ring-theme-primary/20 placeholder-transparent bg-gray-50"
+    />
+    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+      <CameraButton />
+      <VoiceButton
+        isListening={isListening}
+        supportsVoiceSearch={supportsVoiceSearch}
+        onVoiceSearch={onVoiceSearch}
       />
-      <input
-        type="text"
-        placeholder="Search product..."
-        value={activeSearchValue}
-        onChange={(event) => onInputChange(event.target.value)}
-        className="w-full border-2 border-theme-primary rounded-full py-2 pl-4 pr-24 text-sm focus:outline-none placeholder-transparent"
-      />
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-        <CameraButton />
-        <VoiceButton
-          isListening={isListening}
-          supportsVoiceSearch={supportsVoiceSearch}
-          onVoiceSearch={onVoiceSearch}
-        />
-        <button className="bg-theme-primary text-white p-1.5 rounded-full">
-          <Search size={16} />
-        </button>
-      </div>
-      {isSuggestionsOpen && suggestions.length > 0 && (
-        <SearchSuggestions suggestions={suggestions} onSuggestionClick={onSuggestionClick} />
-      )}
-      <VoiceStreamOverlay isListening={isListening} liveTranscript={liveTranscript} />
+      <button className="bg-theme-primary text-white p-2 rounded-full hover:opacity-90 transition-opacity">
+        <Search size={16} />
+      </button>
     </div>
+    {isSuggestionsOpen && suggestions.length > 0 && (
+      <div className="absolute left-0 right-0 top-full mt-1 z-50">
+        <SearchSuggestions suggestions={suggestions} onSuggestionClick={onSuggestionClick} />
+      </div>
+    )}
+    <VoiceStreamOverlay isListening={isListening} liveTranscript={liveTranscript} />
   </div>
 );

@@ -107,7 +107,7 @@ const StoreProfile = ({
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar Navigation */}
             <div className="w-full md:w-64 flex-shrink-0">
-               <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+               <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                   <div className="p-6 bg-gradient-to-br from-green-500 to-green-600 text-center">
                      <div className="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center text-green-600 shadow-md">
                         <UserIcon size={32} />
@@ -239,7 +239,7 @@ const StoreProfile = ({
 
                {/* ORDERS TAB */}
                {activeTab === 'orders' && (
-                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 animate-in fade-in">
+                 <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 md:p-8 animate-in fade-in">
                     <h2 className="text-xl font-bold text-gray-800 mb-6">Order History</h2>
                     
                     {myOrders.length > 0 ? (

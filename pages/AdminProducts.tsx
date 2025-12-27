@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Product, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2, FileEdit, Copy } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Upload, Save, Image as ImageIcon, CheckCircle, AlertCircle, Grid, List, CheckSquare, Layers, Tag as TagIcon, Percent, Filter, RefreshCw, Palette, Ruler, ChevronDown, Maximize2, Square, Grip, Table, Loader2, FileEdit, Copy, MoreVertical, Eye, ExternalLink } from 'lucide-react';
 import { convertFileToWebP, compressProductImage, convertProductImage } from '../services/imageUtils';
 import { uploadImageToServer, deleteImageFromServer } from '../services/imageUploadService';
 import { slugify } from '../services/slugify';
@@ -143,6 +143,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const [bulkValue, setBulkValue] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('largeIcons');
   const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
+  const [openActionDropdown, setOpenActionDropdown] = useState<number | string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState<Partial<Product>>({
@@ -202,16 +203,24 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       if (isViewMenuOpen && viewMenuRef.current && !viewMenuRef.current.contains(event.target as Node)) {
         setIsViewMenuOpen(false);
       }
+      // Close action dropdown when clicking outside
+      if (openActionDropdown !== null) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-action-dropdown]')) {
+          setOpenActionDropdown(null);
+        }
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isViewMenuOpen]);
+  }, [isViewMenuOpen, openActionDropdown]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsViewMenuOpen(false);
+        setOpenActionDropdown(null);
       }
     };
 
@@ -637,8 +646,6 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       name: clonedName,
       slug: baseSlug,
       sku: product.sku ? `${product.sku}-COPY` : '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
     
     // Remove _id if exists (MongoDB)
@@ -920,7 +927,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
   const ActiveViewIcon = activeViewOption?.icon || Square;
   const gridTemplateClass = VIEW_GRID_LAYOUTS[viewMode];
   const imageHeightClass = VIEW_IMAGE_HEIGHT[viewMode];
-  const isListLikeView = viewMode === 'list' || viewMode === 'details';
+  const isListLikeView = viewMode === 'list';  // details mode now uses table view
 
   return (
     <div className="space-y-6 animate-fade-in relative">
@@ -1239,7 +1246,214 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       )}
 
       {/* Product List */}
-      <div className={`grid ${gridTemplateClass} pb-20`}>
+      {viewMode === 'details' ? (
+        /* Table View for Details Mode */
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-20">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.length === filteredProducts.length && filteredProducts.length > 0}
+                      onChange={() => {
+                        if (selectedIds.length === filteredProducts.length) {
+                          setSelectedIds([]);
+                        } else {
+                          setSelectedIds(filteredProducts.map(p => p.id));
+                        }
+                      }}
+                      className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer"
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">SL</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Image</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sub Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Priority</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tags</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredProducts.map((product, index) => {
+                  const isSelected = selectedIds.includes(product.id);
+                  const isDraftProduct = (product as any)._isDraft;
+                  const draftId = (product as any)._draftId;
+                  const productKey = isDraftProduct ? draftId : product.id;
+                  const statusClass = (product.status || 'Active') === 'Active' 
+                    ? 'bg-green-100 text-green-700' 
+                    : isDraftProduct 
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-gray-100 text-gray-600';
+
+                  return (
+                    <tr 
+                      key={productKey}
+                      className={`hover:bg-gray-50 transition ${isSelected ? 'bg-purple-50' : ''} ${isDraftProduct ? 'border-l-4 border-l-yellow-500' : ''}`}
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelection(product.id)}
+                          className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer"
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{index + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="relative w-12 h-12 rounded-lg bg-gray-100 overflow-hidden">
+                          <img 
+                            src={normalizeImageUrl(product.galleryImages?.[0] || product.image)} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover"
+                          />
+                          {isDraftProduct && (
+                            <span className="absolute top-0 left-0 bg-yellow-500 text-white text-[8px] px-1 rounded-br">
+                              DRAFT
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="max-w-[200px]">
+                          <p className="text-sm font-medium text-gray-900 truncate" title={product.name}>{product.name}</p>
+                          <p className="text-xs text-gray-500">ID: {product.id}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                          {product.category || '—'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs text-gray-600">
+                          {product.subCategory || '—'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="text-sm text-gray-600">{(product as any).priority || '—'}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1 max-w-[150px]">
+                          {product.tags?.slice(0, 2).map((tag, i) => (
+                            <span key={i} className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                          {product.tags && product.tags.length > 2 && (
+                            <span className="text-[10px] text-gray-400">+{product.tags.length - 2}</span>
+                          )}
+                          {(!product.tags || product.tags.length === 0) && <span className="text-xs text-gray-400">—</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${statusClass}`}>
+                          {isDraftProduct ? 'Draft' : product.status || 'Active'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="relative" data-action-dropdown>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenActionDropdown(openActionDropdown === productKey ? null : productKey);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-gray-100 transition"
+                          >
+                            <MoreVertical size={18} className="text-gray-500" />
+                          </button>
+                          
+                          {openActionDropdown === productKey && (
+                            <div className="absolute right-0 top-8 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenModal(product as any);
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <Edit size={14} /> Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toast.success(`Product details: ${product.name}`);
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <Eye size={14} /> Details
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const productUrl = `${shareOrigin}/product/${product.slug || product.id}`;
+                                  window.open(productUrl, '_blank');
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <ExternalLink size={14} /> Details in website
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!isDraftProduct) {
+                                    handleCloneProduct(product);
+                                  } else {
+                                    toast.error("Can't clone draft products");
+                                  }
+                                  setOpenActionDropdown(null);
+                                }}
+                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${isDraftProduct ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'}`}
+                                disabled={isDraftProduct}
+                              >
+                                <Copy size={14} /> Clone
+                              </button>
+                              <div className="border-t border-gray-100 my-1"></div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(product.id, isDraftProduct, draftId);
+                                  setOpenActionDropdown(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                              >
+                                <Trash2 size={14} /> Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {filteredProducts.length === 0 && (
+            <div className="py-12 text-center text-gray-500 flex flex-col items-center justify-center">
+              <Search size={48} className="text-gray-300 mb-4" />
+              <p className="font-medium text-lg">No products found</p>
+              <p className="text-sm mb-4">Try adjusting your search or filters</p>
+              <button onClick={resetFilters} className="text-purple-600 font-bold hover:underline">Clear Filters</button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Grid/List View */
+        <div className={`grid ${gridTemplateClass} pb-20`}>
          {filteredProducts.map(product => {
            const formattedPrice = formatCurrency(product.price);
            const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
@@ -1447,7 +1661,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                 <button onClick={resetFilters} className="text-purple-600 font-bold hover:underline">Clear Filters</button>
             </div>
          )}
-      </div>
+        </div>
+      )}
 
       {/* Add/Edit Modal */}
       {isModalOpen && (

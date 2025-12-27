@@ -77,6 +77,7 @@ interface StoreHomeProps {
   tags?: any[];
   initialCategoryFilter?: string | null;
   onCategoryFilterChange?: (categorySlug: string | null) => void;
+  onMobileMenuOpenRef?: (openFn: () => void) => void;
 }
 
 const StoreHome = ({ 
@@ -107,7 +108,8 @@ const StoreHome = ({
   onImageSearchClick,
   onOpenChat,
   initialCategoryFilter,
-  onCategoryFilterChange
+  onCategoryFilterChange,
+  onMobileMenuOpenRef
 }: StoreHomeProps) => {
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -126,6 +128,16 @@ const StoreHome = ({
   // Sync category view with URL filter
   useEffect(() => {
     if (initialCategoryFilter) {
+      // Handle 'all' filter - show all products view
+      if (initialCategoryFilter === 'all') {
+        setSelectedCategoryView('__all__');
+        return;
+      }
+      // Handle brand filter
+      if (initialCategoryFilter.startsWith('brand:')) {
+        setSelectedCategoryView(initialCategoryFilter);
+        return;
+      }
       // Find category by slug
       const category = categories?.find(c => slugify(c.name) === initialCategoryFilter);
       if (category) {
@@ -493,7 +505,14 @@ const StoreHome = ({
   };
 
   const handleCategoriesNav = () => performScroll(categoriesSectionRef);
-  const handleProductsNav = () => performScroll(productsSectionRef);
+  const handleProductsNav = () => {
+    // Navigate to /all-products page
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/all-products');
+      // Dispatch popstate to trigger navigation
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  };
 
   const selectInstantVariant = (product: Product): ProductVariantSelection => ({
     color: product.variantDefaults?.color || product.colors?.[0] || 'Default',
@@ -604,6 +623,7 @@ const StoreHome = ({
         childCategories={childCategories}
         brands={brands}
         tags={tags}
+        onMobileMenuOpenRef={onMobileMenuOpenRef}
       />
       
       {isTrackOrderOpen && (

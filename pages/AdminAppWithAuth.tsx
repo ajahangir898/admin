@@ -54,13 +54,7 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
     
     const validateSession = async () => {
       try {
-        if (!authService.isAuthenticated()) {
-          setIsAuthenticated(false);
-          setIsValidating(false);
-          return;
-        }
-
-        // Use stored user first - don't force API validation on every reload
+        // First check stored user - prioritize this over token validation
         const storedUser = authService.getStoredUser();
         const storedPerms = authService.getStoredPermissions();
         
@@ -95,21 +89,8 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
             console.log('Background refresh failed, using stored session');
           });
         } else {
-          // No stored user, try API
-          const { user: currentUser, permissions } = await authService.getCurrentUser();
-          setUser(currentUser as User);
-          
-          if (Array.isArray(permissions)) {
-            const permMap: PermissionMap = {};
-            permissions.forEach((p: any) => {
-              permMap[p.resource] = p.actions;
-            });
-            setUserPermissions(permMap);
-          } else if (permissions && typeof permissions === 'object') {
-            setUserPermissions(permissions as PermissionMap);
-          }
-          
-          setIsAuthenticated(true);
+          // No stored user - not authenticated
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Session validation failed:', error);

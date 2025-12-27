@@ -8,7 +8,7 @@ import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from '../constants';
 
 // --- Constants ---
 export const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };
-export const SESSION_STORAGE_KEY = 'seven-days-user';
+export const SESSION_STORAGE_KEY = 'admin_auth_user';
 export const ACTIVE_TENANT_STORAGE_KEY = 'seven-days-active-tenant';
 export const CART_STORAGE_KEY = 'seven-days-cart';
 export const PRIMARY_TENANT_DOMAIN = normalizeDomainValue(import.meta.env.VITE_PRIMARY_DOMAIN);

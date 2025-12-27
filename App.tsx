@@ -271,13 +271,21 @@ const App = () => {
         if (parsedTenantId) {
           setActiveTenantId(parsedTenantId);
         }
+        // On admin subdomain, restore admin view for admin users
+        if (isAdminSubdomain && parsed.role && ['super_admin', 'admin', 'tenant_admin', 'staff'].includes(parsed.role)) {
+          if (parsed.role === 'super_admin') {
+            setCurrentView('super-admin');
+          } else {
+            setCurrentView('admin');
+          }
+        }
       }
     } catch (error) {
       console.warn('Unable to restore session', error);
       window.localStorage.removeItem(SESSION_STORAGE_KEY);
       window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
     }
-  }, [setActiveTenantId]);
+  }, [setActiveTenantId, setCurrentView]);
 
   // Persist user session
   useEffect(() => {

@@ -12,6 +12,9 @@ interface AdminSettingsProps {
   onNavigate: (page: string) => void;
   user?: User | null;
   onUpdateProfile?: (updatedUser: User) => void;
+  activeTenant?: { name?: string; subdomain?: string; logo?: string; plan?: string } | null;
+  logo?: string | null;
+  onUpdateLogo?: (logo: string | null) => void;
 }
 
 const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzY0NzQ4YiIgc3Ryb2tlLXdpZHRoPSIxLjUiPjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNCIvPjxwYXRoIGQ9Ik00IDIwYzAtNCA0LTggOC04czggNCA4IDgiLz48L3N2Zz4=';
@@ -56,13 +59,16 @@ const Field: React.FC<{ label: string; icon: React.ReactNode; value: string; onC
   </div>
 );
 
-const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdateProfile }) => {
+const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdateProfile, activeTenant, logo, onUpdateLogo }) => {
   const fileRef = useRef<HTMLInputElement>(null);
+  const shopLogoRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ name: '', username: '', email: '', phone: '', address: '' });
   const [avatar, setAvatar] = useState(DEFAULT_AVATAR);
+  const [shopLogo, setShopLogo] = useState<string | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [shopLogoLoading, setShopLogoLoading] = useState(false);
   const [pwModal, setPwModal] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [pwStatus, setPwStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
@@ -73,6 +79,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
       setAvatar(user.image || DEFAULT_AVATAR);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (logo) setShopLogo(logo);
+  }, [logo]);
 
   const showStatus = (type: 'success' | 'error', msg: string) => { setStatus({ type, msg }); setTimeout(() => setStatus(null), 4000); };
 
@@ -98,6 +108,22 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
     e.target.value = '';
   };
 
+  const handleShopLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setShopLogoLoading(true);
+    try {
+      const img = await convertFileToWebP(file, { quality: 0.85, maxDimension: 400 });
+      setShopLogo(img);
+      if (onUpdateLogo) {
+        onUpdateLogo(img);
+        showStatus('success', 'Shop logo updated!');
+      }
+    } catch { showStatus('error', 'Image processing failed'); }
+    setShopLogoLoading(false);
+    e.target.value = '';
+  };
+
   const handlePassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !onUpdateProfile) return setPwStatus({ type: 'error', msg: 'No session' });
@@ -119,31 +145,65 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
         {/* Profile Card - Left side */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="relative mb-4">
-              <img src={avatar} alt="Avatar" className="w-24 h-24 rounded-2xl object-cover border-2 border-gray-100 bg-gray-50" />
-              <button onClick={() => fileRef.current?.click()} className="absolute -bottom-2 -right-2 bg-white border border-gray-200 text-gray-600 rounded-full p-2 shadow-sm hover:scale-105 transition">
-                {avatarLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-              </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
+        <div className="space-y-6">
+          {/* User Profile Card */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="relative mb-4">
+                <img src={avatar} alt="Avatar" className="w-24 h-24 rounded-2xl object-cover border-2 border-gray-100 bg-gray-50" />
+                <button onClick={() => fileRef.current?.click()} className="absolute -bottom-2 -right-2 bg-white border border-gray-200 text-gray-600 rounded-full p-2 shadow-sm hover:scale-105 transition">
+                  {avatarLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
+              </div>
+              <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{formatRole(user?.role)}</p>
+              <h3 className="text-xl font-bold text-gray-900">{form.name || 'Admin'}</h3>
+              <p className="text-gray-500 text-sm">{form.email}</p>
+              <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
+                <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full flex items-center gap-1"><Shield size={12} /> {user?.roleId ? 'Custom' : 'Full'}</span>
+                <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full flex items-center gap-1"><Clock3 size={12} /> {formatDate(user?.updatedAt)}</span>
+              </div>
             </div>
-            <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{formatRole(user?.role)}</p>
-            <h3 className="text-xl font-bold text-gray-900">{form.name || 'Admin'}</h3>
-            <p className="text-gray-500 text-sm">{form.email}</p>
-            <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
-              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full flex items-center gap-1"><Shield size={12} /> {user?.roleId ? 'Custom' : 'Full'}</span>
-              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full flex items-center gap-1"><Clock3 size={12} /> {formatDate(user?.updatedAt)}</span>
+            <div className="mt-6 grid grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-5">
+              <div><p className="text-gray-400 text-xs mb-1">Username</p><p className="font-medium text-gray-800">{form.username ? `@${form.username}` : 'Not set'}</p></div>
+              <div><p className="text-gray-400 text-xs mb-1">Phone</p><p className="font-medium text-gray-800">{form.phone || 'Not set'}</p></div>
+            </div>
+            <button onClick={() => setPwModal(true)} className="mt-5 w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
+              <span className="flex items-center gap-2"><Lock size={14} /> Change Password</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* Shop Logo Card */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Settings size={18} className="text-emerald-600" /> Shop Info
+            </h4>
+            <div className="flex flex-col items-center">
+              <div className="relative mb-4">
+                {shopLogo ? (
+                  <img src={shopLogo} alt="Shop Logo" className="w-28 h-28 rounded-xl object-contain border-2 border-gray-100 bg-gray-50 p-2" />
+                ) : (
+                  <div className="w-28 h-28 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
+                    <Camera size={32} className="text-gray-300" />
+                  </div>
+                )}
+                <button onClick={() => shopLogoRef.current?.click()} className="absolute -bottom-2 -right-2 bg-emerald-500 text-white rounded-full p-2 shadow-sm hover:bg-emerald-600 hover:scale-105 transition">
+                  {shopLogoLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                </button>
+                <input ref={shopLogoRef} type="file" accept="image/*" className="hidden" onChange={handleShopLogo} />
+              </div>
+              <p className="text-sm font-medium text-gray-800">{activeTenant?.name || 'My Shop'}</p>
+              {activeTenant?.subdomain && (
+                <p className="text-xs text-gray-500">{activeTenant.subdomain}.systemnextit.com</p>
+              )}
+              {activeTenant?.plan && (
+                <span className="mt-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 capitalize">
+                  {activeTenant.plan} Plan
+                </span>
+              )}
             </div>
           </div>
-          <div className="mt-6 grid grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-5">
-            <div><p className="text-gray-400 text-xs mb-1">Username</p><p className="font-medium text-gray-800">{form.username ? `@${form.username}` : 'Not set'}</p></div>
-            <div><p className="text-gray-400 text-xs mb-1">Phone</p><p className="font-medium text-gray-800">{form.phone || 'Not set'}</p></div>
-          </div>
-          <button onClick={() => setPwModal(true)} className="mt-5 w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
-            <span className="flex items-center gap-2"><Lock size={14} /> Change Password</span>
-            <ArrowRight size={14} />
-          </button>
         </div>
 
         {/* Profile Form - Right side */}

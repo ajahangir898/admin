@@ -266,8 +266,33 @@ const App = () => {
   // === SESSION RESTORATION ===
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    
+    // Check for superadmin subdomain - always show login if not logged in
+    if (isSuperAdminSubdomain) {
+      const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as User;
+          if (parsed && parsed.role === 'super_admin') {
+            setUser(parsed);
+            setCurrentView('super-admin');
+            return;
+          }
+        } catch (e) {}
+      }
+      // Not logged in or not super_admin - show login
+      setCurrentView('admin-login');
+      return;
+    }
+    
     const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
-    if (!stored) return;
+    if (!stored) {
+      // No stored session - on admin subdomain show login
+      if (isAdminSubdomain) {
+        setCurrentView('admin-login');
+      }
+      return;
+    }
     try {
       const parsed = JSON.parse(stored) as User;
       if (parsed) {

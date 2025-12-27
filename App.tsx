@@ -315,8 +315,13 @@ const App = () => {
     }
 
     // Only allow admin access on admin subdomain
-    if (isAdminRole(user.role) && !currentViewRef.current.startsWith('admin') && isAdminSubdomain) {
-      setCurrentView('admin');
+    if (isAdminRole(user.role) && !currentViewRef.current.startsWith('admin') && !currentViewRef.current.startsWith('super') && isAdminSubdomain) {
+      // Set correct view based on role
+      if (user.role === 'super_admin') {
+        setCurrentView('super-admin');
+      } else {
+        setCurrentView('admin');
+      }
       setAdminSection('dashboard');
     }
   }, [user, activeTenantId, setActiveTenantId, setCurrentView, setAdminSection, currentViewRef]);

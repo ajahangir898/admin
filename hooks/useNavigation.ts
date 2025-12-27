@@ -4,9 +4,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Product, User } from '../types';
-import { isAdminRole } from '../utils/appHelpers';
+import { isAdminRole, SESSION_STORAGE_KEY } from '../utils/appHelpers';
 
-export type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'admin-login' | 'visual-search';
+export type ViewState = 'store' | 'detail' | 'checkout' | 'success' | 'profile' | 'admin' | 'landing_preview' | 'admin-login' | 'visual-search' | 'super-admin';
 
 // Parse order ID from URL for success page
 export function getOrderIdFromUrl(): string | null {
@@ -20,14 +20,41 @@ const isAdminSubdomain = typeof window !== 'undefined' &&
   (window.location.hostname === 'admin.systemnextit.com' || 
    window.location.hostname.startsWith('admin.'));
 
+// Get initial view based on stored session
+function getInitialView(): ViewState {
+  if (typeof window === 'undefined') return 'store';
+  
+  if (isAdminSubdomain) {
+    // Check for stored user session
+    try {
+      const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
+      if (stored) {
+        const user = JSON.parse(stored);
+        if (user && user.role) {
+          if (user.role === 'super_admin') {
+            return 'super-admin';
+          } else if (['admin', 'tenant_admin', 'staff'].includes(user.role)) {
+            return 'admin';
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+    return 'admin-login';
+  }
+  
+  return 'store';
+}
+
 interface UseNavigationOptions {
   products: Product[];
   user: User | null;
 }
 
 export function useNavigation({ products, user }: UseNavigationOptions) {
-  // Start with admin-login if on admin subdomain, otherwise store
-  const [currentView, setCurrentView] = useState<ViewState>(isAdminSubdomain ? 'admin-login' : 'store');
+  // Start with correct view based on stored session
+  const [currentView, setCurrentView] = useState<ViewState>(getInitialView);
   const [adminSection, setAdminSection] = useState('dashboard');
   const [urlCategoryFilter, setUrlCategoryFilter] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);

@@ -122,7 +122,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 			{/* Sidebar Header - Modern Dark */}
 			<div className="p-5 border-b border-slate-700/50 flex items-center justify-between">
 				{logo ? (
-					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain brightness-0 invert" />
+					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
 				) : (
 					<h2 className="text-xl font-bold tracking-tight">
 						<span className="text-white">Admin</span>
@@ -892,8 +892,25 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 	const isCurrency = typeof value === 'string' && (value.includes('৳') || value.includes('BDT'));
 	const displayValue = isCurrency ? value : (typeof value === 'number' ? value : value);
 
+	// Get background color for decorative element
+	const getDecorativeBackground = (color: string) => {
+		switch(color) {
+			case 'pink': return 'bg-pink-100';
+			case 'orange': return 'bg-orange-100';
+			case 'green': return 'bg-emerald-100';
+			case 'purple': return 'bg-violet-100';
+			case 'lavender': return 'bg-violet-100';
+			case 'cyan': return 'bg-cyan-100';
+			case 'red': return 'bg-red-100';
+			case 'blue': return 'bg-blue-100';
+			case 'beige': return 'bg-amber-100';
+			case 'gray': return 'bg-slate-100';
+			default: return 'bg-indigo-100';
+		}
+	};
+
 	return (
-		<div className={`p-5 rounded-xl ${getCardStyle(colorClass)} relative overflow-hidden min-h-[120px] transition-all duration-200 hover:shadow-lg cursor-default`}>
+		<div className={`p-5 rounded-xl ${getCardStyle(colorClass)} relative overflow-hidden min-h-[120px] transition-all duration-200 hover:shadow-lg`}>
 			{/* Icon */}
 			<div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getIconStyle(colorClass)}`}>
 				<div className="[&>svg]:w-5 [&>svg]:h-5">
@@ -912,7 +929,7 @@ export const DashboardStatCard: React.FC<StatCardProps> = ({ title, value, icon,
 			</div>
 
 			{/* Decorative element */}
-			<div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-5 ${getIconStyle(colorClass).split(' ')[0]}`}></div>
+			<div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-5 ${getDecorativeBackground(colorClass)}`}></div>
 		</div>
 	);
 };

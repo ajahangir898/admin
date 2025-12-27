@@ -73,6 +73,8 @@ export const preloadCheckout = () => import('./pages/StoreCheckout');
 export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
 
 // Admin pages - lazy loaded
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
 
 const AdminAppWithAuth = lazy(() => {
   import('./pages/AdminApp').then(m => m.preloadAdminChunks?.());
@@ -880,7 +882,19 @@ const App = () => {
 
           {currentView === 'admin-login' ? (
             <Suspense fallback={null}>
-            
+              <AdminLogin onLoginSuccess={(loggedUser) => {
+                setUser(loggedUser);
+                // Check if super admin - go to super admin dashboard
+                if (loggedUser.role === 'super_admin') {
+                  setCurrentView('super-admin');
+                } else {
+                  setCurrentView('admin');
+                }
+              }} />
+            </Suspense>
+          ) : currentView === 'super-admin' ? (
+            <Suspense fallback={null}>
+              <SuperAdminDashboard />
             </Suspense>
           ) : currentView === 'admin' ? (
             <Suspense fallback={null}>

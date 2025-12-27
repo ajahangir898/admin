@@ -26,6 +26,18 @@ server {
         try_files $uri =404;
     }
 
+    location /yolo-api/ {
+        proxy_pass http://127.0.0.1:8001/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_request_buffering off;
+        proxy_read_timeout 300s;
+        client_max_body_size 50M;
+    }
+
     location /api/ {
         proxy_pass http://127.0.0.1:5001;
         proxy_http_version 1.1;
@@ -37,7 +49,6 @@ server {
         proxy_request_buffering off;
         proxy_read_timeout 300s;
 
-        # CORS preflight
         if ($request_method = 'OPTIONS') {
             add_header Access-Control-Allow-Origin $http_origin always;
             add_header Access-Control-Allow-Methods 'GET, POST, PUT, PATCH, DELETE, OPTIONS' always;
@@ -72,6 +83,16 @@ server {
         expires 1y;
         add_header Cache-Control public;
         add_header Access-Control-Allow-Origin * always;
+    }
+
+    location = /promo {
+        return 301 /promo/;
+    }
+
+    location /promo/ {
+        alias /var/www/admin/pages/promoPage/;
+        index index.html;
+        try_files $uri $uri/ /promo/index.html;
     }
 
     location / {

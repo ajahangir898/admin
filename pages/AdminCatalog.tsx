@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { Plus, Search, Edit, Trash2, X, Save, Image as ImageIcon, Upload, CheckCircle, Tag as TagIcon, Layers, Folder, FolderTree, Bookmark, Hash } from 'lucide-react';
+import { convertFileToWebP } from '../services/imageUtils';
 
 interface AdminCatalogProps {
   view: string; // 'catalog_categories', 'catalog_subcategories', etc.

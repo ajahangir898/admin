@@ -3,11 +3,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
-import { convertFileToWebP, convertCarouselImage, CAROUSEL_WIDTH, CAROUSEL_HEIGHT, CAROUSEL_MOBILE_WIDTH, CAROUSEL_MOBILE_HEIGHT } from '../services/imageUtils';
+import { convertFileToWebP, convertCarouselImage, dataUrlToFile, CAROUSEL_WIDTH, CAROUSEL_HEIGHT, CAROUSEL_MOBILE_WIDTH, CAROUSEL_MOBILE_HEIGHT } from '../services/imageUtils';
 import { DataService } from '../services/DataService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
+import { uploadPreparedImageToServer } from '../services/imageUploadService';
 
 interface AdminCustomizationProps {
+    tenantId: string;
   logo: string | null;
   onUpdateLogo: (logo: string | null) => void;
   themeConfig?: ThemeConfig;
@@ -18,6 +20,7 @@ interface AdminCustomizationProps {
 }
 
 const AdminCustomization: React.FC<AdminCustomizationProps> = ({ 
+    tenantId,
   logo, 
   onUpdateLogo,
   themeConfig,
@@ -203,7 +206,20 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 });
             }
             
-            if (type === 'logo') {
+            if (type === 'carousel' || type === 'carouselMobile') {
+                // Upload carousel assets to server (tenant-scoped) instead of storing base64.
+                const webpFile = dataUrlToFile(
+                    converted,
+                    `${type === 'carouselMobile' ? 'carousel-mobile' : 'carousel'}-${Date.now()}.webp`
+                );
+                const uploadedUrl = await uploadPreparedImageToServer(webpFile, tenantId, 'carousel');
+
+                if (type === 'carousel') {
+                    setCarouselFormData(prev => ({ ...prev, image: uploadedUrl }));
+                } else {
+                    setCarouselFormData(prev => ({ ...prev, mobileImage: uploadedUrl }));
+                }
+            } else if (type === 'logo') {
                 onUpdateLogo(converted);
             } else if (type === 'favicon') {
                 setConfig(prev => ({ ...prev, favicon: converted }));
@@ -211,10 +227,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 setConfig(prev => ({ ...prev, headerLogo: converted }));
             } else if (type === 'footerLogo') {
                 setConfig(prev => ({ ...prev, footerLogo: converted }));
-            } else if (type === 'carousel') {
-                setCarouselFormData(prev => ({ ...prev, image: converted }));
-            } else if (type === 'carouselMobile') {
-                setCarouselFormData(prev => ({ ...prev, mobileImage: converted }));
             } else if (type === 'popup') {
                 setPopupFormData(prev => ({ ...prev, image: converted }));
             }

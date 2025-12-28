@@ -12,6 +12,15 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+const ALLOWED_FOLDERS = new Set(['carousel']);
+
+const sanitizeFolder = (value: unknown): string | null => {
+  const folder = typeof value === 'string' ? value.trim() : '';
+  if (!folder) return null;
+  if (!ALLOWED_FOLDERS.has(folder)) return null;
+  return folder;
+};
+
 // Configure multer for image uploads - use memory storage first, then save to disk
 const memoryStorage = multer.memoryStorage();
 
@@ -70,9 +79,14 @@ router.post('/api/upload', upload.single('file'), handleMulterError, (req: Reque
 
     // Get tenant ID from body (now available after multer parses form data)
     const tenantId = req.body.tenantId || 'default';
+
+    // Optional folder for special asset buckets (e.g., carousel)
+    const folder = sanitizeFolder(req.body.folder);
     
     // Create tenant directory if it doesn't exist
-    const tenantDir = path.join(uploadDir, tenantId);
+    const tenantDir = folder
+      ? path.join(uploadDir, folder, tenantId)
+      : path.join(uploadDir, tenantId);
     if (!fs.existsSync(tenantDir)) {
       fs.mkdirSync(tenantDir, { recursive: true });
     }
@@ -85,7 +99,9 @@ router.post('/api/upload', upload.single('file'), handleMulterError, (req: Reque
     // Write file to disk
     fs.writeFileSync(filePath, req.file.buffer);
 
-    const imageUrl = `/uploads/images/${tenantId}/${filename}`;
+    const imageUrl = folder
+      ? `/uploads/images/${folder}/${tenantId}/${filename}`
+      : `/uploads/images/${tenantId}/${filename}`;
 
     console.log(`[upload] Image saved: ${imageUrl}`);
 
@@ -118,10 +134,48 @@ router.delete('/api/upload', (req: Request, res: Response) => {
       });
     }
 
-    // Extract filename from URL
-    const urlParts = imageUrl.split('/');
-    const filename = urlParts[urlParts.length - 1];
-    const filePath = path.join(uploadDir, tenantId || 'default', filename);
+    // Resolve to local filesystem path.
+    // Expecting paths like:
+    //   /uploads/images/<tenantId>/<file>
+    //   /uploads/images/carousel/<tenantId>/<file>
+    const relative = String(imageUrl)
+      .replace(/^https?:\/\/[^/]+/i, '')
+      .trim();
+
+    if (!relative.startsWith('/uploads/images/')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid image URL',
+      });
+    }
+
+    const expectedTenantId = tenantId || 'default';
+    const parts = relative.split('/').filter(Boolean); // [uploads, images, ...]
+
+    // parts[0]=uploads parts[1]=images
+    const maybeFolder = parts[2];
+    const hasFolder = ALLOWED_FOLDERS.has(maybeFolder);
+    const resolvedTenantId = hasFolder ? parts[3] : parts[2];
+    const filename = parts[hasFolder ? 4 : 3];
+
+    if (!resolvedTenantId || !filename) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid image URL',
+      });
+    }
+
+    // Enforce tenant scoping: only allow deleting within the provided tenant
+    if (resolvedTenantId !== expectedTenantId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Tenant mismatch',
+      });
+    }
+
+    const filePath = hasFolder
+      ? path.join(uploadDir, maybeFolder, resolvedTenantId, filename)
+      : path.join(uploadDir, resolvedTenantId, filename);
 
     // Check if file exists and delete it
     if (fs.existsSync(filePath)) {

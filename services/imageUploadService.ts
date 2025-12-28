@@ -18,6 +18,50 @@ export interface UploadResponse {
 }
 
 /**
+ * Upload a file to the server without applying product-specific transforms.
+ * Useful for assets like carousel images that are already resized/converted.
+ */
+export const uploadPreparedImageToServer = async (
+  file: File,
+  tenantId: string,
+  folder?: 'carousel'
+): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('tenantId', tenantId);
+    if (folder) formData.append('folder', folder);
+
+    const response = await fetch(`${API_BASE_URL}/api/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const responseText = await response.text();
+    if (!response.ok) {
+      let errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      try {
+        const error = JSON.parse(responseText);
+        errorMessage = error.message || error.error || errorMessage;
+      } catch {}
+      throw new Error(errorMessage);
+    }
+
+    const data: UploadResponse = JSON.parse(responseText);
+    if (!data.success) {
+      throw new Error(data.error || 'Upload failed');
+    }
+
+    if (data.imageUrl.startsWith('http://') || data.imageUrl.startsWith('https://')) {
+      return data.imageUrl.replace('https://systemnextit.com', API_BASE_URL);
+    }
+    return `${API_BASE_URL}${data.imageUrl.startsWith('/') ? '' : '/'}${data.imageUrl}`;
+  } catch (error) {
+    throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+/**
  * Convert a server image URL to CDN URL if CDN is enabled
  * @param imageUrl The original image URL from the server
  * @returns CDN URL if enabled, otherwise original URL

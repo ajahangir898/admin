@@ -3,6 +3,7 @@
  * Fixes legacy localhost URLs from development
  */
 const PRODUCTION_URL = 'https://systemnextit.com';
+const UPLOADS_BASE_URL = 'https://cdn.systemnextit.com';
 
 // Image size presets for different use cases
 export type ImageSize = 'thumb' | 'small' | 'medium' | 'large' | 'full';
@@ -30,12 +31,12 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
   
   // If it's a relative URL (starts with /uploads), prepend the base URL
   if (url.startsWith('/uploads')) {
-    return `${PRODUCTION_URL}${url}`;
+    return `${UPLOADS_BASE_URL}${url}`;
   }
   
   // Handle relative URLs without leading slash (e.g., uploads/...)
   if (url.startsWith('uploads/')) {
-    return `${PRODUCTION_URL}/${url}`;
+    return `${UPLOADS_BASE_URL}/${url}`;
   }
   
   // If it's a localhost URL, replace with production domain

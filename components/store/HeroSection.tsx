@@ -10,7 +10,7 @@ export interface HeroSectionProps {
     websiteConfig?: WebsiteConfig;
 }
 
-const MAX_CAROUSEL_ITEMS = 3;
+const MAX_CAROUSEL_ITEMS = 10;
 
 const ensureProtocol = (url: string) => {
     if (/^https?:\/\//i.test(url)) return url;

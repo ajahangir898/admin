@@ -142,6 +142,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   });
   const carouselFileRef = useRef<HTMLInputElement>(null);
   const carouselMobileFileRef = useRef<HTMLInputElement>(null);
+    const [isCarouselSaving, setIsCarouselSaving] = useState(false);
 
   // Popup State
   const [popups, setPopups] = useState<Popup[]>([]);
@@ -405,29 +406,47 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       setIsCarouselModalOpen(true);
   };
 
-  const saveCarouselItem = (e: React.FormEvent) => {
+  const saveCarouselItem = async (e: React.FormEvent) => {
       e.preventDefault();
-      
+      if (isCarouselSaving) return;
+
+      if (!carouselFormData.image) {
+          toast.error('Please upload a desktop carousel banner.');
+          return;
+      }
+
+      setIsCarouselSaving(true);
+
       const newItem: CarouselItem = {
           id: editingCarousel ? editingCarousel.id : Date.now().toString(),
           name: carouselFormData.name || 'Untitled',
           image: carouselFormData.image || '',
           mobileImage: carouselFormData.mobileImage || '',
           url: carouselFormData.url || '#',
-          urlType: carouselFormData.urlType as 'Internal' | 'External',
+          urlType: (carouselFormData.urlType as 'Internal' | 'External') || 'Internal',
           serial: Number(carouselFormData.serial),
-          status: carouselFormData.status as 'Publish' | 'Draft'
+          status: (carouselFormData.status as 'Publish' | 'Draft') || 'Publish'
       };
 
-      let newItems;
-      if (editingCarousel) {
-          newItems = config.carouselItems.map(i => i.id === editingCarousel.id ? newItem : i);
-      } else {
-          newItems = [...config.carouselItems, newItem];
+      const newItems = editingCarousel
+          ? config.carouselItems.map(i => i.id === editingCarousel.id ? newItem : i)
+          : [...config.carouselItems, newItem];
+
+      const updatedConfig = { ...config, carouselItems: newItems };
+
+      try {
+          setConfig(updatedConfig);
+          if (onUpdateWebsiteConfig) {
+              await onUpdateWebsiteConfig(updatedConfig);
+          }
+          toast.success(editingCarousel ? 'Carousel updated successfully.' : 'Carousel added successfully.');
+          setIsCarouselModalOpen(false);
+      } catch (error) {
+          console.error('Failed to save carousel item', error);
+          toast.error('Failed to save carousel changes. Please try again.');
+      } finally {
+          setIsCarouselSaving(false);
       }
-      
-      setConfig(prev => ({ ...prev, carouselItems: newItems }));
-      setIsCarouselModalOpen(false);
   };
 
   const deleteCarouselItem = (id: string) => {
@@ -1603,7 +1622,20 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                       </div>
                       <div className="pt-4 flex justify-end gap-3">
                           <button type="button" onClick={() => setIsCarouselModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Cancel</button>
-                          <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700">Save Carousel</button>
+                          <button
+                              type="submit"
+                              disabled={isCarouselSaving}
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                              {isCarouselSaving ? (
+                                  <>
+                                      <Loader2 size={16} className="animate-spin" />
+                                      Saving...
+                                  </>
+                              ) : (
+                                  'Save Carousel'
+                              )}
+                          </button>
                       </div>
                   </form>
               </div>

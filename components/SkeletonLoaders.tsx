@@ -145,3 +145,63 @@ export const ProductDetailSkeleton: React.FC = () => (
 
 // Export Bone for custom skeletons
 export { Bone };
+
+// SuperAdmin Dashboard skeleton
+export const SuperAdminDashboardSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-slate-50 flex">
+    {/* Sidebar skeleton */}
+    <div className="hidden lg:block w-72 bg-white border-r border-slate-200 p-6">
+      <Bone className="h-8 w-32 mb-8" />
+      <div className="space-y-2">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Bone key={i} className="h-10 w-full rounded-lg" />
+        ))}
+      </div>
+    </div>
+    
+    {/* Main content skeleton */}
+    <div className="flex-1">
+      {/* Top bar */}
+      <div className="bg-white border-b border-slate-200 p-4">
+        <div className="flex items-center justify-between">
+          <Bone className="h-10 w-64 rounded-lg" />
+          <div className="flex gap-3">
+            <Bone className="h-10 w-10 rounded-full" />
+            <Bone className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Content */}
+      <div className="p-6">
+        <MetricsSkeleton count={4} />
+        <div className="mt-6 space-y-4">
+          <Bone className="h-64 w-full rounded-xl" />
+          <Bone className="h-96 w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// SuperAdmin Tab content skeleton
+export const SuperAdminTabSkeleton: React.FC = () => (
+  <div className="p-6 space-y-6">
+    <div className="flex justify-between items-center">
+      <Bone className="h-8 w-48" />
+      <Bone className="h-10 w-32 rounded-lg" />
+    </div>
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="p-6 space-y-4">
+        <Bone className="h-6 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Bone className="h-32 rounded-lg" />
+          <Bone className="h-32 rounded-lg" />
+        </div>
+      </div>
+    </div>
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <TableSkeleton rows={5} cols={4} />
+    </div>
+  </div>
+);

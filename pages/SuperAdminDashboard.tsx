@@ -5,7 +5,7 @@ import { SubscriptionService } from '../services/SubscriptionService';
 import { getAuthHeader } from '../services/authService';
 import { Tenant, CreateTenantPayload, TenantStatus } from '../types';
 import { toast } from 'react-hot-toast';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import { SuperAdminTabSkeleton } from '../components/SkeletonLoaders';
 
 // Import core UI components directly (not through barrel export to enable better code splitting)
 // IMPORTANT: Direct imports are used here instead of barrel exports (components/superadmin/index.ts)
@@ -342,8 +342,8 @@ const mockAtRiskMerchants: AtRiskMerchant[] = [
   }
 ];
 
-// Loading fallback for lazy-loaded tabs
-const TabLoadingFallback = () => <LoadingSpinner minHeight="min-h-[400px]" />;
+// Loading fallback for lazy-loaded tabs - using skeleton instead of spinner
+const TabLoadingFallback = () => <SuperAdminTabSkeleton />;
 
 const SuperAdminDashboard: React.FC = () => {
   // UI State

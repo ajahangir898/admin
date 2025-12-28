@@ -3,7 +3,8 @@
  * Fixes legacy localhost URLs from development
  */
 const PRODUCTION_URL = 'https://systemnextit.com';
-const UPLOADS_BASE_URL = 'https://cdn.systemnextit.com';
+// Use production URL for uploads since CDN may not have sync enabled
+const UPLOADS_BASE_URL = 'https://systemnextit.com';
 
 // Image size presets for different use cases
 export type ImageSize = 'thumb' | 'small' | 'medium' | 'large' | 'full';
@@ -22,6 +23,11 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
   // Data URIs are already complete - return as-is
   if (url.startsWith('data:')) {
     return url;
+  }
+  
+  // Convert cdn.systemnextit.com URLs to production URL (CDN may not have the files)
+  if (url.includes('cdn.systemnextit.com')) {
+    return url.replace('https://cdn.systemnextit.com', PRODUCTION_URL);
   }
   
   // If it's already a full URL with systemnextit.com, return as-is

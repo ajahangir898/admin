@@ -124,6 +124,7 @@ const OptimizedImage = memo(({
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -154,12 +155,17 @@ const OptimizedImage = memo(({
   };
 
   const handleError = () => {
+    // Try fallback to original src if optimized version fails
+    if (!useFallback && src && !src.startsWith('data:')) {
+      setUseFallback(true);
+      return;
+    }
     setHasError(true);
     onError?.();
   };
 
-  const optimizedSrc = getOptimizedUrl(src, width);
-  const srcSet = generateSrcSet(src);
+  const optimizedSrc = useFallback ? src : getOptimizedUrl(src, width);
+  const srcSet = useFallback ? '' : generateSrcSet(src);
   const placeholderSrc = placeholder === 'blur' 
     ? generateBlurPlaceholder(src) 
     : PLACEHOLDER_EMPTY;

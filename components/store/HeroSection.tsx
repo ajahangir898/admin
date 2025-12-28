@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { CarouselItem, WebsiteConfig } from '../../types';
+import { CarouselItem, WebsiteConfig, Campaign } from '../../types';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
 import { OptimizedImage } from '../OptimizedImage';
 import { HeroSkeleton } from '../SkeletonLoaders';
@@ -12,7 +12,112 @@ export interface HeroSectionProps {
 
 const MAX_CAROUSEL_ITEMS = 3;
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
+// Countdown timer hook
+const useCountdown = (targetDate: string) => {
+    const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+    const [isStarted, setIsStarted] = useState(false);
+
+    useEffect(() => {
+        const calculateTime = () => {
+            const now = new Date().getTime();
+            const target = new Date(targetDate).getTime();
+            const difference = target - now;
+
+            if (difference <= 0) {
+                setIsStarted(true);
+                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+                return;
+            }
+
+            setIsStarted(false);
+            setTimeLeft({
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                seconds: Math.floor((difference % (1000 * 60)) / 1000)
+            });
+        };
+
+        calculateTime();
+        const timer = setInterval(calculateTime, 1000);
+        return () => clearInterval(timer);
+    }, [targetDate]);
+
+    return { timeLeft, isStarted };
+};
+
+// Campaign Card Component
+const CampaignCard: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
+    const { timeLeft, isStarted } = useCountdown(campaign.startDate);
+
+    return (
+        <a 
+            href={campaign.url || '#'} 
+            className="flex items-center gap-3 p-3 bg-white rounded-lg hover:shadow-md transition-shadow"
+        >
+            {/* Campaign Logo */}
+            <div className="flex-shrink-0 w-20">
+                {campaign.logo ? (
+                    <OptimizedImage
+                        src={normalizeImageUrl(campaign.logo)}
+                        alt={campaign.name}
+                        width={80}
+                        height={40}
+                        className="w-full h-10 object-contain"
+                    />
+                ) : (
+                    <div className="w-full h-10 bg-gray-100 rounded flex items-center justify-center">
+                        <span className="text-xs font-bold text-gray-600 truncate px-1">{campaign.name}</span>
+                    </div>
+                )}
+                <p className="text-[10px] text-orange-500 font-medium mt-1">
+                    {isStarted ? 'Campaign live!' : 'Campaign starts in'}
+                </p>
+            </div>
+            
+            {/* Countdown Timer */}
+            <div className="grid grid-cols-2 gap-1">
+                <div className="bg-gray-700 text-white text-center rounded px-2 py-1 min-w-[36px]">
+                    <span className="text-sm font-bold">{timeLeft.days}d</span>
+                </div>
+                <div className="bg-gray-700 text-white text-center rounded px-2 py-1 min-w-[36px]">
+                    <span className="text-sm font-bold">{timeLeft.hours}h</span>
+                </div>
+                <div className="bg-gray-700 text-white text-center rounded px-2 py-1 min-w-[36px]">
+                    <span className="text-sm font-bold">{timeLeft.minutes}m</span>
+                </div>
+                <div className="bg-gray-700 text-white text-center rounded px-2 py-1 min-w-[36px]">
+                    <span className="text-sm font-bold">{timeLeft.seconds}s</span>
+                </div>
+            </div>
+        </a>
+    );
+};
+
+// Upcoming Campaigns Sidebar Component
+const UpcomingCampaigns: React.FC<{ campaigns?: Campaign[] }> = ({ campaigns }) => {
+    const upcomingCampaigns = campaigns
+        ?.filter(c => c.status === 'Publish')
+        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+        .slice(0, 3) || [];
+
+    if (upcomingCampaigns.length === 0) return null;
+
+    return (
+        <div className="hidden lg:flex flex-col w-64 flex-shrink-0">
+            <div className="bg-gray-50 rounded-xl p-4 h-full">
+                <h3 className="text-lg font-bold text-gray-800 mb-3">Upcoming Campaigns</h3>
+                <div className="space-y-3">
+                    {upcomingCampaigns.map((campaign) => (
+                        <CampaignCard key={campaign.id} campaign={campaign} />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, websiteConfig }) => {
     const items = (carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [])
         .slice(0, MAX_CAROUSEL_ITEMS);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -86,69 +191,79 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
 
     // Show skeleton until first image loads
     const showSkeleton = loadedImages.size === 0;
+    const hasCampaigns = websiteConfig?.campaigns && websiteConfig.campaigns.filter(c => c.status === 'Publish').length > 0;
 
     return (
         <div className="max-w-7xl mx-auto px-4 mt-4">
-            {showSkeleton && <HeroSkeleton />}
-            {/* Full Width Carousel - different aspect ratio for mobile when mobile image exists */}
-            <div className={`relative w-full ${isMobile && items.some(i => i.mobileImage) ? 'aspect-[16/9]' : 'aspect-[3/1] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1]'} rounded-xl overflow-hidden shadow-lg group bg-gray-100 ${showSkeleton ? 'hidden' : ''}`}>
-                {items.map((item, index) => {
-                    const isActive = index === currentIndex;
-                    const shouldLoad = loadedImages.has(index) || isActive;
-                    const imageSrc = getImageSrc(item);
-                    const hasMobileImage = isMobile && item.mobileImage;
-                    return (
-                        <a
-                            href={item.url || '#'}
-                            key={item.id}
-                            className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                        >
-                            {shouldLoad && (
-                                <OptimizedImage
-                                    src={imageSrc}
-                                    alt={item.name}
-                                    width={hasMobileImage ? 800 : 1600}
-                                    height={hasMobileImage ? 450 : 400}
-                                    priority={index === 0}
-                                    placeholder="blur"
-                                    objectFit={hasMobileImage ? "cover" : "contain"}
-                                    className="w-full h-full"
-                                    onLoad={() => handleImageLoad(index)}
-                                />
-                            )}
-                        </a>
-                    );
-                })}
+            <div className={`flex gap-4 ${showSkeleton ? 'hidden' : ''}`}>
+                {/* Main Carousel */}
+                <div className="flex-1 min-w-0">
+                    {showSkeleton && <HeroSkeleton />}
+                    {/* Full Width Carousel - different aspect ratio for mobile when mobile image exists */}
+                    <div className={`relative w-full ${isMobile && items.some(i => i.mobileImage) ? 'aspect-[16/9]' : 'aspect-[3/1] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1]'} rounded-xl overflow-hidden shadow-lg group bg-gray-100`}>
+                        {items.map((item, index) => {
+                            const isActive = index === currentIndex;
+                            const shouldLoad = loadedImages.has(index) || isActive;
+                            const imageSrc = getImageSrc(item);
+                            const hasMobileImage = isMobile && item.mobileImage;
+                            return (
+                                <a
+                                    href={item.url || '#'}
+                                    key={item.id}
+                                    className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                                >
+                                    {shouldLoad && (
+                                        <OptimizedImage
+                                            src={imageSrc}
+                                            alt={item.name}
+                                            width={hasMobileImage ? 800 : 1600}
+                                            height={hasMobileImage ? 450 : 400}
+                                            priority={index === 0}
+                                            placeholder="blur"
+                                            objectFit={hasMobileImage ? "cover" : "contain"}
+                                            className="w-full h-full"
+                                            onLoad={() => handleImageLoad(index)}
+                                        />
+                                    )}
+                                </a>
+                            );
+                        })}
 
-                {items.length > 1 && (
-                    <>
-                        {/* Navigation Arrows */}
-                        <button
-                            onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev - 1 + items.length) % items.length); }}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                        <button
-                            onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev + 1) % items.length); }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
-                        >
-                            <ChevronRight size={20} />
-                        </button>
-
-                        {/* Dots Navigation */}
-                        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
-                            {items.map((_, idx) => (
+                        {items.length > 1 && (
+                            <>
+                                {/* Navigation Arrows */}
                                 <button
-                                    key={idx}
-                                    onClick={(e) => { e.preventDefault(); setCurrentIndex(idx); }}
-                                    className={`h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50 w-2 hover:bg-white/80'}`}
-                                />
-                            ))}
-                        </div>
-                    </>
-                )}
+                                    onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev - 1 + items.length) % items.length); }}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <button
+                                    onClick={(e) => { e.preventDefault(); setCurrentIndex((prev) => (prev + 1) % items.length); }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+
+                                {/* Dots Navigation */}
+                                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
+                                    {items.map((_, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={(e) => { e.preventDefault(); setCurrentIndex(idx); }}
+                                            className={`h-2 rounded-full transition-all duration-300 shadow-sm ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50 w-2 hover:bg-white/80'}`}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Upcoming Campaigns Sidebar */}
+                {hasCampaigns && <UpcomingCampaigns campaigns={websiteConfig?.campaigns} />}
             </div>
+            {showSkeleton && <HeroSkeleton />}
         </div>
     );
 };

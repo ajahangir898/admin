@@ -257,6 +257,17 @@ export interface CarouselItem {
   status: 'Publish' | 'Draft';
 }
 
+export interface Campaign {
+  id: string;
+  name: string;
+  logo?: string;
+  startDate: string;
+  endDate: string;
+  url?: string;
+  status: 'Publish' | 'Draft';
+  serial: number;
+}
+
 export interface WebsiteConfig {
   tenantId?: string;
   websiteName: string;
@@ -307,6 +318,8 @@ export interface WebsiteConfig {
   iosAppUrl?: string;
   // Admin Notice Ticker
   adminNoticeText?: string;
+  // Campaigns
+  campaigns?: Campaign[];
 }
 
 export interface DeliveryConfig {

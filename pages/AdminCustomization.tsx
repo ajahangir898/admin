@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
+import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Moon, Sun, Globe, MapPin, Mail, Phone, Plus, Facebook, Instagram, Youtube, ShoppingBag, Youtube as YoutubeIcon, Search, Eye, MoreVertical, Edit, Check, X, Filter, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2, MessageCircle, CalendarDays } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup } from '../types';
+import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup, Campaign } from '../types';
 import { convertFileToWebP, convertCarouselImage, dataUrlToFile, CAROUSEL_WIDTH, CAROUSEL_HEIGHT, CAROUSEL_MOBILE_WIDTH, CAROUSEL_MOBILE_HEIGHT } from '../services/imageUtils';
 import { DataService } from '../services/DataService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
@@ -58,6 +58,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     showFlashSaleCounter: true,
     brandingText: '',
     carouselItems: [],
+    campaigns: [],
     searchHints: '',
     orderLanguage: 'English',
     adminNoticeText: ''
@@ -73,7 +74,8 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                 footerUsefulLinks: websiteConfig.footerUsefulLinks || [],
                 showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true,
                 headerLogo: websiteConfig.headerLogo ?? null,
-                footerLogo: websiteConfig.footerLogo ?? null
+                footerLogo: websiteConfig.footerLogo ?? null,
+                campaigns: websiteConfig.campaigns || []
             }));
     }
   }, [websiteConfig]);
@@ -147,10 +149,20 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const [editingPopup, setEditingPopup] = useState<Popup | null>(null);
   const [popupFilter, setPopupFilter] = useState<'All' | 'Publish' | 'Draft'>('All');
   const [popupSearch, setPopupSearch] = useState('');
-  const [popupFormData, setPopupFormData] = useState<Partial<Popup>>({ 
+  const [popupFormData, setPopupFormData] = useState<Partial<Popup>>({
     name: '', image: '', url: '', urlType: 'Internal', priority: 0, status: 'Draft' 
   });
   const popupFileRef = useRef<HTMLInputElement>(null);
+
+  // Campaign State
+  const [campaignFilter, setCampaignFilter] = useState<'All' | 'Publish' | 'Draft'>('All');
+  const [campaignSearch, setCampaignSearch] = useState('');
+  const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [campaignFormData, setCampaignFormData] = useState<Partial<Campaign>>({
+    name: '', logo: '', startDate: '', endDate: '', url: '', status: 'Publish', serial: 1
+  });
+  const campaignLogoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (themeConfig) {
@@ -430,6 +442,78 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       const matchesSearch = item.name.toLowerCase().includes(carouselSearch.toLowerCase());
       return matchesStatus && matchesSearch;
   });
+
+  // Campaign Logic
+  const openCampaignModal = (campaign?: Campaign) => {
+      if (campaign) {
+          setEditingCampaign(campaign);
+          setCampaignFormData({ ...campaign });
+      } else {
+          setEditingCampaign(null);
+          setCampaignFormData({
+              name: '',
+              logo: '',
+              startDate: '',
+              endDate: '',
+              url: '',
+              serial: (config.campaigns?.length || 0) + 1,
+              status: 'Publish'
+          });
+      }
+      setIsCampaignModalOpen(true);
+  };
+
+  const saveCampaign = (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      const newCampaign: Campaign = {
+          id: editingCampaign ? editingCampaign.id : Date.now().toString(),
+          name: campaignFormData.name || 'Untitled',
+          logo: campaignFormData.logo || '',
+          startDate: campaignFormData.startDate || new Date().toISOString(),
+          endDate: campaignFormData.endDate || new Date().toISOString(),
+          url: campaignFormData.url || '#',
+          serial: Number(campaignFormData.serial),
+          status: campaignFormData.status as 'Publish' | 'Draft'
+      };
+
+      let newCampaigns;
+      if (editingCampaign) {
+          newCampaigns = (config.campaigns || []).map(c => c.id === editingCampaign.id ? newCampaign : c);
+      } else {
+          newCampaigns = [...(config.campaigns || []), newCampaign];
+      }
+      
+      setConfig(prev => ({ ...prev, campaigns: newCampaigns }));
+      setIsCampaignModalOpen(false);
+  };
+
+  const deleteCampaign = (id: string) => {
+      if(confirm('Are you sure you want to delete this campaign?')) {
+          setConfig(prev => ({ ...prev, campaigns: (prev.campaigns || []).filter(c => c.id !== id) }));
+      }
+  };
+
+  const filteredCampaigns = (config.campaigns || []).filter(campaign => {
+      const matchesStatus = campaignFilter === 'All' || campaign.status === campaignFilter;
+      const matchesSearch = campaign.name.toLowerCase().includes(campaignSearch.toLowerCase());
+      return matchesStatus && matchesSearch;
+  });
+
+  const handleCampaignLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+          const converted = await convertFileToWebP(file, { quality: 0.85, maxDimension: 400 });
+          const webpFile = dataUrlToFile(converted, `campaign-logo-${Date.now()}.webp`);
+          const uploadedUrl = await uploadPreparedImageToServer(webpFile, tenantId, 'carousel');
+          setCampaignFormData(prev => ({ ...prev, logo: uploadedUrl }));
+      } catch (error) {
+          console.error('Failed to upload campaign logo', error);
+          toast.error('Failed to upload logo');
+      }
+      if (campaignLogoRef.current) campaignLogoRef.current.value = '';
+  };
   
   const socialOptions = ['Facebook', 'Instagram', 'YouTube', 'Daraz', 'Twitter', 'LinkedIn'];
     const footerLinkSections: { field: FooterLinkField; title: string; helper: string }[] = [
@@ -538,6 +622,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       {/* Navigation Tabs */}
       <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white rounded-t-xl">
          <TabButton id="carousel" label="Carousel" icon={<ImageIcon size={18}/>} />
+         <TabButton id="campaigns" label="Campaigns" icon={<CalendarDays size={18}/>} />
          <TabButton id="popup" label="Popup" icon={<Layers size={18}/>} />
          <TabButton id="website_info" label="Website Information" icon={<Globe size={18}/>} />
          <TabButton id="chat_settings" label="Chat Settings" icon={<MessageCircle size={18}/>} />
@@ -657,6 +742,201 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                         <button disabled className="px-2 py-1 bg-gray-50 text-gray-400 border-r"><ChevronLeft size={16}/></button>
                         <button disabled className="px-2 py-1 bg-gray-50 text-gray-400"><ChevronRight size={16}/></button>
                     </div>
+                </div>
+            </div>
+        )}
+
+        {/* CAMPAIGNS TAB */}
+        {activeTab === 'campaigns' && (
+            <div className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                        {['All', 'Publish', 'Draft'].map(status => (
+                            <button 
+                                key={status}
+                                onClick={() => setCampaignFilter(status as any)}
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+                                    campaignFilter === status 
+                                    ? 'bg-white text-green-600 shadow-sm' 
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                {status === 'All' ? 'All Campaigns' : status}
+                                {status === 'All' && <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">{(config.campaigns || []).length}</span>}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+                            <input 
+                                type="text"
+                                value={campaignSearch}
+                                onChange={(e) => setCampaignSearch(e.target.value)}
+                                placeholder="Search campaigns..."
+                                className="pl-10 pr-4 py-2 border rounded-lg w-64 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            />
+                        </div>
+                        <button onClick={() => openCampaignModal()} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-medium">
+                            <Plus size={18}/> Add Campaign
+                        </button>
+                    </div>
+                </div>
+
+                {/* Campaigns Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredCampaigns.map((campaign) => (
+                        <div key={campaign.id} className="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition group">
+                            <div className="p-4">
+                                <div className="flex items-center gap-3 mb-3">
+                                    {campaign.logo ? (
+                                        <img src={normalizeImageUrl(campaign.logo)} alt={campaign.name} className="w-16 h-10 object-contain rounded" />
+                                    ) : (
+                                        <div className="w-16 h-10 bg-gray-100 rounded flex items-center justify-center">
+                                            <CalendarDays className="text-gray-400" size={20} />
+                                        </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-gray-800 truncate">{campaign.name}</h4>
+                                        <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${campaign.status === 'Publish' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                            {campaign.status}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                    <p>Starts: {new Date(campaign.startDate).toLocaleDateString()}</p>
+                                    <p>Ends: {new Date(campaign.endDate).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <div className="flex border-t divide-x">
+                                <button onClick={() => openCampaignModal(campaign)} className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium flex items-center justify-center gap-1">
+                                    <Edit size={16}/> Edit
+                                </button>
+                                <button onClick={() => deleteCampaign(campaign.id)} className="flex-1 px-4 py-2 text-red-600 hover:bg-red-50 font-medium flex items-center justify-center gap-1">
+                                    <Trash2 size={16}/> Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    {filteredCampaigns.length === 0 && (
+                        <div className="col-span-full text-center py-12 text-gray-500">
+                            <CalendarDays size={48} className="mx-auto mb-3 opacity-30"/>
+                            <p>No campaigns found. Add your first campaign!</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {/* Campaign Modal */}
+        {isCampaignModalOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsCampaignModalOpen(false)}>
+                <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    <div className="p-6 border-b sticky top-0 bg-white z-10">
+                        <h3 className="text-xl font-bold">{editingCampaign ? 'Edit Campaign' : 'Add New Campaign'}</h3>
+                    </div>
+                    <form onSubmit={saveCampaign} className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name *</label>
+                            <input 
+                                type="text" 
+                                value={campaignFormData.name || ''} 
+                                onChange={e => setCampaignFormData(prev => ({ ...prev, name: e.target.value }))}
+                                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
+                                required
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Logo</label>
+                            <div className="flex items-center gap-4">
+                                {campaignFormData.logo ? (
+                                    <img src={normalizeImageUrl(campaignFormData.logo)} alt="Logo" className="w-20 h-12 object-contain border rounded" />
+                                ) : (
+                                    <div className="w-20 h-12 bg-gray-100 rounded flex items-center justify-center">
+                                        <ImageIcon className="text-gray-400" size={24} />
+                                    </div>
+                                )}
+                                <input type="file" ref={campaignLogoRef} accept="image/*" onChange={handleCampaignLogoUpload} className="hidden" />
+                                <button type="button" onClick={() => campaignLogoRef.current?.click()} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                                    Upload Logo
+                                </button>
+                                {campaignFormData.logo && (
+                                    <button type="button" onClick={() => setCampaignFormData(prev => ({ ...prev, logo: '' }))} className="text-red-500 hover:text-red-700">
+                                        <X size={20} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                                <input 
+                                    type="datetime-local" 
+                                    value={campaignFormData.startDate ? campaignFormData.startDate.slice(0, 16) : ''} 
+                                    onChange={e => setCampaignFormData(prev => ({ ...prev, startDate: new Date(e.target.value).toISOString() }))}
+                                    className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
+                                <input 
+                                    type="datetime-local" 
+                                    value={campaignFormData.endDate ? campaignFormData.endDate.slice(0, 16) : ''} 
+                                    onChange={e => setCampaignFormData(prev => ({ ...prev, endDate: new Date(e.target.value).toISOString() }))}
+                                    className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
+                            <input 
+                                type="text" 
+                                value={campaignFormData.url || ''} 
+                                onChange={e => setCampaignFormData(prev => ({ ...prev, url: e.target.value }))}
+                                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
+                                placeholder="https://..."
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                                <input 
+                                    type="number" 
+                                    value={campaignFormData.serial || 1} 
+                                    onChange={e => setCampaignFormData(prev => ({ ...prev, serial: parseInt(e.target.value) }))}
+                                    className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
+                                    min={1}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select 
+                                    value={campaignFormData.status || 'Publish'} 
+                                    onChange={e => setCampaignFormData(prev => ({ ...prev, status: e.target.value as 'Publish' | 'Draft' }))}
+                                    className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
+                                >
+                                    <option value="Publish">Publish</option>
+                                    <option value="Draft">Draft</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <button type="button" onClick={() => setIsCampaignModalOpen(false)} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button type="submit" className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
+                                {editingCampaign ? 'Update' : 'Create'} Campaign
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         )}

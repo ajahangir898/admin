@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { Announcement, AnnouncementType, AnnouncementPriority, AnnouncementStatus } from '../models/Announcement';
+import { Announcement } from '../models/Announcement';
 import { Notification } from '../models/Notification';
 import { authenticateToken } from '../middleware/auth';
 import mongoose from 'mongoose';
@@ -150,14 +150,13 @@ announcementsRouter.get('/:id', authenticateToken, async (req: Request, res: Res
 // POST /api/announcements - Create new announcement (super_admin only)
 announcementsRouter.post('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId, email, role } = (req as any).user;
-    const user = (req as any).user;
+    const { userId, email, role, name } = (req as any).user;
     
     if (role !== 'super_admin') {
       return res.status(403).json({ error: 'Only super admins can create announcements' });
     }
 
-    const userName = user.name || user.email.split('@')[0];
+    const userName = name || email.split('@')[0];
     const validatedData = createAnnouncementSchema.parse(req.body);
 
     const announcement = new Announcement({

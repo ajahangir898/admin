@@ -52,11 +52,18 @@ async function calculateAtRiskStatus(tenantId: string): Promise<{
     if (activity.previousRevenue > 0) {
       const currentRevenue = activity.totalRevenue;
       const dropAmount = activity.previousRevenue - currentRevenue;
-      revenueDropPercentage = (dropAmount / activity.previousRevenue) * 100;
       
-      if (revenueDropPercentage >= RISK_CRITERIA.REVENUE_DROP_PERCENTAGE) {
-        isAtRisk = true;
-        riskReasons.push(`Revenue dropped by ${revenueDropPercentage.toFixed(1)}%`);
+      // Only treat this as a drop if current revenue is lower than previous
+      if (dropAmount > 0) {
+        revenueDropPercentage = (dropAmount / activity.previousRevenue) * 100;
+        
+        if (revenueDropPercentage >= RISK_CRITERIA.REVENUE_DROP_PERCENTAGE) {
+          isAtRisk = true;
+          riskReasons.push(`Revenue dropped by ${revenueDropPercentage.toFixed(1)}%`);
+        }
+      } else {
+        // No drop (revenue steady or increased)
+        revenueDropPercentage = 0;
       }
     }
 
@@ -164,9 +171,15 @@ merchantTrackingRouter.get('/stats', authenticateToken, async (req: Request, res
   }
 });
 
-// POST /api/merchant-tracking/update - Update merchant activity (called by system)
+// POST /api/merchant-tracking/update - Update merchant activity (super_admin only)
 merchantTrackingRouter.post('/update', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { role } = (req as any).user;
+    
+    if (role !== 'super_admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
     const { tenantId, lastLoginAt, lastOrderAt, totalOrders, totalRevenue, previousRevenue } = req.body;
 
     if (!tenantId) {
@@ -284,34 +297,6 @@ merchantTrackingRouter.post('/scan', authenticateToken, async (req: Request, res
       message: 'Merchant scan completed',
       results
     });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// POST /api/merchant-tracking/:tenantId/track-login - Track login activity
-merchantTrackingRouter.post('/:tenantId/track-login', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { tenantId } = req.params;
-
-    let activity = await MerchantActivity.findOne({ tenantId });
-    
-    if (!activity) {
-      activity = new MerchantActivity({ tenantId });
-    }
-
-    activity.lastLoginAt = new Date();
-    
-    // Recalculate at-risk status
-    const riskStatus = await calculateAtRiskStatus(tenantId);
-    activity.isAtRisk = riskStatus.isAtRisk;
-    activity.riskReasons = riskStatus.riskReasons;
-    activity.revenueDropPercentage = riskStatus.revenueDropPercentage;
-    activity.lastCheckedAt = new Date();
-
-    await activity.save();
-
-    res.json({ message: 'Login tracked' });
   } catch (error) {
     next(error);
   }

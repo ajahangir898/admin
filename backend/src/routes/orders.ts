@@ -112,6 +112,42 @@ ordersRouter.post('/:tenantId', async (req, res, next) => {
       }
       activity.totalRevenue = totalRevenue;
       
+      // Recalculate at-risk status
+      const RISK_CRITERIA = { NO_LOGIN_DAYS: 14, NO_ORDER_DAYS: 30, REVENUE_DROP_PERCENTAGE: 80 };
+      let isAtRisk = false;
+      const riskReasons: string[] = [];
+      
+      // Check for no login
+      if (activity.lastLoginAt) {
+        const daysSinceLogin = Math.floor((Date.now() - activity.lastLoginAt.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSinceLogin >= RISK_CRITERIA.NO_LOGIN_DAYS) {
+          isAtRisk = true;
+          riskReasons.push(`No login for ${daysSinceLogin} days`);
+        }
+      } else {
+        isAtRisk = true;
+        riskReasons.push('No login recorded');
+      }
+      
+      // Check for revenue drop
+      if (activity.previousRevenue > 0) {
+        const dropAmount = activity.previousRevenue - activity.totalRevenue;
+        if (dropAmount > 0) {
+          const revenueDropPercentage = (dropAmount / activity.previousRevenue) * 100;
+          if (revenueDropPercentage >= RISK_CRITERIA.REVENUE_DROP_PERCENTAGE) {
+            isAtRisk = true;
+            riskReasons.push(`Revenue dropped by ${revenueDropPercentage.toFixed(1)}%`);
+          }
+          activity.revenueDropPercentage = revenueDropPercentage;
+        } else {
+          activity.revenueDropPercentage = 0;
+        }
+      }
+      
+      activity.isAtRisk = isAtRisk;
+      activity.riskReasons = riskReasons;
+      activity.lastCheckedAt = new Date();
+      
       await activity.save();
     } catch (err) {
       console.error('Failed to track merchant activity:', err);

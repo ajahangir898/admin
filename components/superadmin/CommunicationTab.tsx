@@ -6,7 +6,6 @@ import {
   Clock, 
   CheckCircle,
   Users,
-  TrendingDown,
   Calendar,
   MessageSquare,
   Plus,
@@ -103,6 +102,9 @@ const CommunicationTab: React.FC<CommunicationTabProps> = () => {
       if (response.ok) {
         const result = await response.json();
         setAnnouncements(result.data || []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || 'Failed to load announcements');
       }
     } catch (error) {
       console.error('Failed to load announcements:', error);
@@ -122,6 +124,9 @@ const CommunicationTab: React.FC<CommunicationTabProps> = () => {
       if (response.ok) {
         const result = await response.json();
         setAtRiskMerchants(result.data || []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || 'Failed to load at-risk merchants');
       }
     } catch (error) {
       console.error('Failed to load at-risk merchants:', error);
@@ -141,9 +146,13 @@ const CommunicationTab: React.FC<CommunicationTabProps> = () => {
       if (response.ok) {
         const result = await response.json();
         setMerchantStats(result.data);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || 'Failed to load merchant stats');
       }
     } catch (error) {
       console.error('Failed to load merchant stats:', error);
+      toast.error('Failed to load merchant stats');
     }
   };
 
@@ -185,6 +194,10 @@ const CommunicationTab: React.FC<CommunicationTabProps> = () => {
   };
 
   const handleSendAnnouncement = async (id: string) => {
+    if (!confirm('Are you sure you want to send this announcement? This action cannot be undone and will notify all target merchants.')) {
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/announcements/${id}/send`, {
@@ -198,7 +211,8 @@ const CommunicationTab: React.FC<CommunicationTabProps> = () => {
         toast.success('Announcement sent successfully');
         loadAnnouncements();
       } else {
-        toast.error('Failed to send announcement');
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || 'Failed to send announcement');
       }
     } catch (error) {
       console.error('Error sending announcement:', error);
@@ -224,7 +238,8 @@ const CommunicationTab: React.FC<CommunicationTabProps> = () => {
         toast.success('Announcement deleted successfully');
         loadAnnouncements();
       } else {
-        toast.error('Failed to delete announcement');
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || 'Failed to delete announcement');
       }
     } catch (error) {
       console.error('Error deleting announcement:', error);

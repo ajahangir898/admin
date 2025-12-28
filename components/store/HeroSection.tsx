@@ -149,6 +149,18 @@ const UpcomingCampaigns: React.FC<{ campaigns?: Campaign[] }> = ({ campaigns }) 
 export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, websiteConfig }) => {
     const items = (carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [])
         .slice(0, MAX_CAROUSEL_ITEMS);
+    
+    // Debug: Log carousel items when they change
+    useEffect(() => {
+        if (carouselItems && carouselItems.length > 0) {
+            console.log('[HeroSection] Carousel items loaded:', carouselItems.length, 'items');
+            console.log('[HeroSection] Published items:', items.length);
+            if (items.length > 0) {
+                console.log('[HeroSection] First item image URL:', items[0].image);
+            }
+        }
+    }, [carouselItems, items]);
+    
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
     const [isMobile, setIsMobile] = useState(false);
@@ -252,7 +264,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                                             height={hasMobileImage ? 450 : 400}
                                             priority={index === 0}
                                             placeholder="blur"
-                                            objectFit={hasMobileImage ? "cover" : "contain"}
+                                            objectFit="cover"
                                             className="w-full h-full"
                                             onLoad={() => handleImageLoad(index)}
                                         />

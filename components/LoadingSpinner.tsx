@@ -24,7 +24,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   const containerClasses = fullScreen 
     ? 'flex items-center justify-center min-h-screen bg-slate-50'
-    : `flex items-center justify-center ${minHeight ? minHeight : ''}`;
+    : `flex items-center justify-center ${minHeight || ''}`;
 
   return (
     <div className={`${containerClasses} ${className}`}>

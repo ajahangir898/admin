@@ -338,6 +338,9 @@ const mockAtRiskMerchants: AtRiskMerchant[] = [
   }
 ];
 
+// Loading fallback for lazy-loaded tabs
+const TabLoadingFallback = () => <LoadingSpinner minHeight="min-h-[400px]" />;
+
 const SuperAdminDashboard: React.FC = () => {
   // UI State
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -1026,9 +1029,6 @@ const SuperAdminDashboard: React.FC = () => {
       throw error;
     }
   }, []);
-
-  // Loading fallback for lazy-loaded tabs
-  const TabLoadingFallback = () => <LoadingSpinner minHeight="min-h-[400px]" />;
 
   // Render active tab content
   const renderTabContent = () => {

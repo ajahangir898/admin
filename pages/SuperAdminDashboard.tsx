@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Building2, CreditCard, AlertTriangle, Rocket, MessageSquare } from 'lucide-react';
 import { DataService } from '../services/DataService';
+import { SubscriptionService } from '../services/SubscriptionService';
 import { Tenant, CreateTenantPayload, TenantStatus } from '../types';
 import { toast } from 'react-hot-toast';
 
@@ -13,6 +14,7 @@ import {
   NotificationsTab,
   ThemeConfigTab,
   ChatConfigTab,
+  SubscriptionsTab,
   TabType,
   SystemStats,
   TenantStats,
@@ -426,6 +428,37 @@ const SuperAdminDashboard: React.FC = () => {
               deletingTenantId={deletingTenantId}
             />
           </React.Suspense>
+        );
+
+      case 'subscriptions':
+        return (
+          <SubscriptionsTab
+            onLoadPlans={async () => await SubscriptionService.getPlans()}
+            onCreatePlan={async (plan) => {
+              await SubscriptionService.createPlan(plan);
+            }}
+            onUpdatePlan={async (id, plan) => {
+              await SubscriptionService.updatePlan(id, plan);
+            }}
+            onDeletePlan={async (id) => {
+              await SubscriptionService.deletePlan(id);
+            }}
+            onLoadTransactions={async () => {
+              const result = await SubscriptionService.getTransactions();
+              return result.data;
+            }}
+            onRefundTransaction={async (id, reason) => {
+              await SubscriptionService.refundTransaction(id, reason);
+            }}
+            onLoadInvoices={async () => {
+              const result = await SubscriptionService.getInvoices();
+              return result.data;
+            }}
+            onLoadTrialSettings={async () => await SubscriptionService.getTrialSettings()}
+            onUpdateTrialSettings={async (settings) => {
+              await SubscriptionService.updateTrialSettings(settings);
+            }}
+          />
         );
 
       case 'settings':

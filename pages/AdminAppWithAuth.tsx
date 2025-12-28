@@ -29,8 +29,8 @@ interface AdminAppWithAuthProps {
   onBulkDeleteProducts: (ids: number[]) => void;
   onBulkUpdateProducts: (ids: number[], updates: Partial<Product>) => void;
   onUpdateLogo: (logo: string | null) => void;
-  onUpdateTheme: (config: ThemeConfig) => void;
-  onUpdateWebsiteConfig: (config: WebsiteConfig) => void;
+  onUpdateTheme: (config: ThemeConfig) => Promise<void>;
+  onUpdateWebsiteConfig: (config: WebsiteConfig) => Promise<void>;
   onUpdateDeliveryConfig: (configs: DeliveryConfig[]) => void;
   onUpdateCourierConfig: (config: CourierConfig) => void;
   onUpdateProfile: (user: User) => void;

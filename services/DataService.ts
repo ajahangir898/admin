@@ -959,13 +959,17 @@ class DataServiceImpl {
     }
     
     try {
-      const response = await this.requestTenantApi<{ data: { id: string; name: string; subdomain: string; status: string } }>(
+      const response = await this.requestTenantApi<{ data: { id?: unknown; _id?: unknown; name: string; subdomain: string; status: string } }>(
         `/api/tenants/resolve/${encodeURIComponent(subdomain)}`
       );
-      if (response?.data?.id) {
+      const raw = response?.data as any;
+      const rawId = raw?.id ?? raw?._id;
+      const id = rawId != null ? String(rawId) : '';
+      if (id) {
+        const normalized = { id, name: String(raw?.name ?? ''), subdomain: String(raw?.subdomain ?? subdomain) };
         // Cache the resolved tenant for future loads
-        setCachedData(`tenant_resolve_${subdomain}`, response.data, 'global');
-        return response.data;
+        setCachedData(`tenant_resolve_${subdomain}`, normalized, 'global');
+        return normalized;
       }
     } catch (error) {
       console.warn('[DataService] Failed to resolve tenant by subdomain:', subdomain, error);

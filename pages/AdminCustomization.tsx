@@ -11,9 +11,9 @@ interface AdminCustomizationProps {
   logo: string | null;
   onUpdateLogo: (logo: string | null) => void;
   themeConfig?: ThemeConfig;
-  onUpdateTheme?: (config: ThemeConfig) => void;
+    onUpdateTheme?: (config: ThemeConfig) => Promise<void>;
   websiteConfig?: WebsiteConfig;
-  onUpdateWebsiteConfig?: (config: WebsiteConfig) => void;
+    onUpdateWebsiteConfig?: (config: WebsiteConfig) => Promise<void>;
   initialTab?: string;
 }
 
@@ -328,12 +328,12 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     try {
       // Save Website Config
       if (onUpdateWebsiteConfig) {
-        onUpdateWebsiteConfig(config);
+                await onUpdateWebsiteConfig(config);
       }
       
       // Save Theme
       if (onUpdateTheme) {
-        onUpdateTheme({
+                await onUpdateTheme({
           primaryColor: colors.primary,
           secondaryColor: colors.secondary,
           tertiaryColor: colors.tertiary,
@@ -347,9 +347,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           adminFocusColor: colors.adminFocus
         });
       }
-
-      // Wait a bit to ensure changes are persisted
-      await new Promise(resolve => setTimeout(resolve, 800));
       
       setSaveSuccess(true);
       toast.success('Changes saved successfully!');

@@ -240,6 +240,8 @@ const App = () => {
 
   // === REFS FOR PERSISTENCE ===
   const prevLogoRef = useRef<string | null>(null);
+  const prevThemeConfigRef = useRef<ThemeConfig | null>(null);
+  const prevWebsiteConfigRef = useRef<WebsiteConfig | undefined>(undefined);
   const ordersLoadedRef = useRef(false);
   const prevOrdersRef = useRef<Order[]>([]);
   const prevDeliveryConfigRef = useRef<DeliveryConfig[]>([]);
@@ -663,6 +665,32 @@ const App = () => {
     prevLogoRef.current = logo;
     DataService.save('logo', logo, activeTenantId);
   }, [logo, isLoading, isTenantSwitching, activeTenantId]);
+
+  useEffect(() => {
+    if (!activeTenantId || isLoading || isTenantSwitching) return;
+    if (themeConfig === prevThemeConfigRef.current) return;
+    if (isKeyFromSocket('theme', activeTenantId)) {
+      clearSocketFlag('theme', activeTenantId);
+      prevThemeConfigRef.current = themeConfig;
+      return;
+    }
+    prevThemeConfigRef.current = themeConfig;
+    DataService.saveImmediate('theme_config', themeConfig, activeTenantId);
+  }, [themeConfig, isLoading, isTenantSwitching, activeTenantId]);
+
+  useEffect(() => {
+    if (!activeTenantId || isLoading || isTenantSwitching) return;
+    if (websiteConfig === prevWebsiteConfigRef.current) return;
+    if (isKeyFromSocket('website', activeTenantId)) {
+      clearSocketFlag('website', activeTenantId);
+      prevWebsiteConfigRef.current = websiteConfig;
+      return;
+    }
+    prevWebsiteConfigRef.current = websiteConfig;
+    if (websiteConfig) {
+      DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
+    }
+  }, [websiteConfig, isLoading, isTenantSwitching, activeTenantId]);
   
   useEffect(() => { 
     if(!isLoading && !isTenantSwitching && activeTenantId && deliveryConfig.length > 0) {
@@ -851,8 +879,18 @@ const App = () => {
   };
 
   const handleUpdateLogo = (newLogo: string | null) => setLogo(newLogo);
-  const handleUpdateTheme = (newConfig: ThemeConfig) => setThemeConfig(newConfig);
-  const handleUpdateWebsiteConfig = (newConfig: WebsiteConfig) => setWebsiteConfig(newConfig);
+  const handleUpdateTheme = async (newConfig: ThemeConfig) => {
+    setThemeConfig(newConfig);
+    if (activeTenantId) {
+      await DataService.saveImmediate('theme_config', newConfig, activeTenantId);
+    }
+  };
+  const handleUpdateWebsiteConfig = async (newConfig: WebsiteConfig) => {
+    setWebsiteConfig(newConfig);
+    if (activeTenantId) {
+      await DataService.saveImmediate('website_config', newConfig, activeTenantId);
+    }
+  };
   const handleUpdateCourierConfig = (config: CourierConfig) => setCourierConfig(config);
   const handleUpdateDeliveryConfig = (configs: DeliveryConfig[]) => setDeliveryConfig(configs);
 

@@ -61,7 +61,7 @@ tenantsRouter.get('/resolve/:subdomain', async (req, res, next) => {
     // Only return public info
     res.json({ 
       data: {
-        id: tenant._id,
+        id: String(tenant._id),
         name: tenant.name,
         subdomain: tenant.subdomain,
         status: tenant.status,

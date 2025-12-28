@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, memo } from 'react';
-import { Camera, Search, X, Loader2, ArrowLeft, Tag, DollarSign, Package, Palette, Box, Target, Sparkles, Copy, Check, Plus, Wifi, WifiOff } from 'lucide-react';
+import { Camera, Search, X, Loader2, ArrowLeft, Tag, DollarSign, Package, Palette, Box, Target, Sparkles, Copy, Check, Plus, Wifi, WifiOff, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // API Configuration
@@ -27,6 +27,21 @@ interface ProductDetails {
   searchKeywords?: string;
   targetAudience?: string;
   sellingPoints?: string[];
+}
+
+// Detection types
+interface Detection {
+  bbox: [number, number, number, number]; // [x1, y1, x2, y2]
+  label: string;
+  confidence: number;
+}
+
+interface DetectionResponse {
+  success: boolean;
+  detections?: Detection[];
+  image_width?: number;
+  image_height?: number;
+  error?: string;
 }
 
 type ApiStatusType = 'checking' | 'ready' | 'error' | 'offline';
@@ -71,6 +86,24 @@ const analyzeProductImage = async (file: File): Promise<ProductDetails> => {
   const result = await response.json();
   if (result.success && result.data) return result.data;
   throw new Error(result.error || 'Could not analyze the image');
+};
+
+// Detection API function
+const detectObjects = async (file: File): Promise<DetectionResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await fetch(`${API_BASE_URL}/api/detect`, {
+    method: 'POST',
+    body: formData,
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `API error: ${response.status}`);
+  }
+  
+  return response.json();
 };
 
 // Reusable Components
@@ -190,6 +223,169 @@ const SpecificationsSection = memo<{ specs: Record<string, string> }>(({ specs }
   </div>
 ));
 
+// Color palette for different detection classes
+const DETECTION_COLORS: Record<string, string> = {
+  'person': '#FF6384',
+  'car': '#36A2EB',
+  'bottle': '#FFCE56',
+  'cell phone': '#4BC0C0',
+  'laptop': '#9966FF',
+  'book': '#FF9F40',
+  'default': '#00D084',
+};
+
+const getColorForLabel = (label: string): string => {
+  return DETECTION_COLORS[label.toLowerCase()] || DETECTION_COLORS['default'];
+};
+
+// Detection Canvas Overlay Component
+const DetectionCanvas = memo<{
+  imagePreview: string;
+  detections: Detection[];
+  originalWidth: number;
+  originalHeight: number;
+}>(({ imagePreview, detections, originalWidth, originalHeight }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
+
+  // Update canvas when image loads or detections change
+  useEffect(() => {
+    const image = imageRef.current;
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    
+    if (!image || !canvas || !container) return;
+
+    const updateCanvas = () => {
+      // Get the displayed image dimensions
+      const displayedWidth = image.clientWidth;
+      const displayedHeight = image.clientHeight;
+      
+      // Set canvas dimensions to match displayed image
+      canvas.width = displayedWidth;
+      canvas.height = displayedHeight;
+      setDisplaySize({ width: displayedWidth, height: displayedHeight });
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Calculate scale factors
+      const scaleX = displayedWidth / originalWidth;
+      const scaleY = displayedHeight / originalHeight;
+
+      // Draw bounding boxes
+      detections.forEach((detection, index) => {
+        const [x1, y1, x2, y2] = detection.bbox;
+        
+        // Scale coordinates to displayed size
+        const scaledX1 = x1 * scaleX;
+        const scaledY1 = y1 * scaleY;
+        const scaledX2 = x2 * scaleX;
+        const scaledY2 = y2 * scaleY;
+        
+        const width = scaledX2 - scaledX1;
+        const height = scaledY2 - scaledY1;
+
+        const color = getColorForLabel(detection.label);
+
+        // Draw bounding box
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(scaledX1, scaledY1, width, height);
+
+        // Draw semi-transparent fill
+        ctx.fillStyle = color + '20'; // 20 = ~12% opacity
+        ctx.fillRect(scaledX1, scaledY1, width, height);
+
+        // Draw label background
+        const labelText = `${detection.label} ${(detection.confidence * 100).toFixed(1)}%`;
+        ctx.font = 'bold 12px Inter, system-ui, sans-serif';
+        const textMetrics = ctx.measureText(labelText);
+        const textHeight = 18;
+        const padding = 4;
+        
+        // Position label above the box, or below if not enough space
+        const labelY = scaledY1 > textHeight + padding ? scaledY1 - textHeight - padding : scaledY1 + height + padding;
+        
+        ctx.fillStyle = color;
+        ctx.fillRect(
+          scaledX1,
+          labelY,
+          textMetrics.width + padding * 2,
+          textHeight
+        );
+
+        // Draw label text
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(labelText, scaledX1 + padding, labelY + 13);
+      });
+    };
+
+    // Wait for image to load
+    if (image.complete) {
+      updateCanvas();
+    } else {
+      image.onload = updateCanvas;
+    }
+
+    // Handle resize
+    const resizeObserver = new ResizeObserver(updateCanvas);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, [detections, originalWidth, originalHeight, imagePreview]);
+
+  return (
+    <div ref={containerRef} className="relative w-full flex items-center justify-center">
+      <img
+        ref={imageRef}
+        src={imagePreview}
+        alt="Product with detections"
+        className="max-h-96 w-auto object-contain"
+      />
+      <canvas
+        ref={canvasRef}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        style={{ width: displaySize.width || 'auto', height: displaySize.height || 'auto' }}
+      />
+    </div>
+  );
+});
+
+// Detection Results List Component
+const DetectionsList = memo<{ detections: Detection[] }>(({ detections }) => (
+  <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-200">
+    <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
+      <Eye size={16} />
+      <span>Detected Objects ({detections.length})</span>
+    </div>
+    <div className="space-y-2 max-h-60 overflow-y-auto">
+      {detections.map((detection, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: getColorForLabel(detection.label) }}
+            />
+            <span className="text-gray-800 font-medium capitalize">{detection.label}</span>
+          </div>
+          <span className="text-gray-500 text-sm">
+            {(detection.confidence * 100).toFixed(1)}%
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+));
+
 // Status Badge Component
 const StatusBadge = memo<{ status: ApiStatus; onRetry: () => void }>(({ status, onRetry }) => {
   const configs: Record<ApiStatusType, { bg: string; icon: React.ReactNode; showRetry?: boolean }> = {
@@ -300,6 +496,12 @@ const ImageSearchPage: React.FC = () => {
   const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus>({ status: 'checking', message: 'Connecting to YOLO API...' });
   
+  // Detection state
+  const [detections, setDetections] = useState<Detection[]>([]);
+  const [imageOriginalSize, setImageOriginalSize] = useState<{ width: number; height: number } | null>(null);
+  const [showDetections, setShowDetections] = useState(true);
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toastIdRef = useRef<string | null>(null);
 
@@ -332,6 +534,7 @@ const ImageSearchPage: React.FC = () => {
   const handleImageUpload = useCallback(async (file: File) => {
     if (apiStatus.status !== 'ready') {
       toast.error('YOLO API is not available. Please wait or check connection.');
+      setApiStatus({ status: 'error', message: 'YOLO API is not available' });
       return;
     }
     
@@ -341,17 +544,47 @@ const ImageSearchPage: React.FC = () => {
       setImagePreview(base64);
       setIsAnalyzing(true);
       setProductDetails(null);
+      setDetections([]);
+      setImageOriginalSize(null);
+      setCurrentFile(file);
 
       try {
         toastIdRef.current = toast.loading('YOLO AI is analyzing your product...');
-        const details = await analyzeProductImage(file);
+        
+        // Run both detection and analysis in parallel
+        const [detectionResult, analysisResult] = await Promise.allSettled([
+          detectObjects(file),
+          analyzeProductImage(file)
+        ]);
+        
+        // Handle detection result
+        if (detectionResult.status === 'fulfilled' && detectionResult.value.success) {
+          setDetections(detectionResult.value.detections || []);
+          setImageOriginalSize({
+            width: detectionResult.value.image_width || 0,
+            height: detectionResult.value.image_height || 0
+          });
+        } else if (detectionResult.status === 'rejected') {
+          console.error('Detection failed:', detectionResult.reason);
+        }
+        
+        // Handle analysis result
+        if (analysisResult.status === 'fulfilled') {
+          setProductDetails(analysisResult.value);
+        } else {
+          console.error('Analysis failed:', analysisResult.reason);
+          // Don't throw if we at least got detections
+          if (detectionResult.status !== 'fulfilled' || !detectionResult.value.success) {
+            throw analysisResult.reason;
+          }
+        }
         
         if (toastIdRef.current) toast.dismiss(toastIdRef.current);
         toast.success('Product analyzed successfully!');
-        setProductDetails(details);
       } catch (error: any) {
         if (toastIdRef.current) toast.dismiss(toastIdRef.current);
         toast.error(error.message || 'Failed to analyze image');
+        setApiStatus({ status: 'error', message: error.message || 'API request failed' });
       } finally {
         setIsAnalyzing(false);
         toastIdRef.current = null;
@@ -376,6 +609,9 @@ const ImageSearchPage: React.FC = () => {
     setImagePreview(null);
     setProductDetails(null);
     setIsAnalyzing(false);
+    setDetections([]);
+    setImageOriginalSize(null);
+    setCurrentFile(null);
   }, []);
 
   const openFilePicker = useCallback(() => fileInputRef.current?.click(), []);
@@ -430,16 +666,43 @@ const ImageSearchPage: React.FC = () => {
         {/* Results Section */}
         {imagePreview && (
           <div className="space-y-6">
-            {/* Image Preview */}
+            {/* Image Preview with Detection Overlay */}
             <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 relative">
-              <button
-                onClick={handleClear}
-                className="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-red-50 hover:text-red-500 transition-all"
-              >
-                <X size={20} />
-              </button>
-              <div className="relative rounded-xl overflow-hidden bg-gray-100 max-h-80 flex items-center justify-center">
-                <img src={imagePreview} alt="Product" className="max-h-80 w-auto object-contain" />
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  {detections.length > 0 && (
+                    <button
+                      onClick={() => setShowDetections(!showDetections)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        showDetections 
+                          ? 'bg-theme-primary/10 text-theme-primary' 
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      <Eye size={16} />
+                      {showDetections ? 'Hide' : 'Show'} Detections ({detections.length})
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={handleClear}
+                  className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-red-50 hover:text-red-500 transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="relative rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                {showDetections && detections.length > 0 && imageOriginalSize ? (
+                  <DetectionCanvas
+                    imagePreview={imagePreview}
+                    detections={detections}
+                    originalWidth={imageOriginalSize.width}
+                    originalHeight={imageOriginalSize.height}
+                  />
+                ) : (
+                  <img src={imagePreview} alt="Product" className="max-h-96 w-auto object-contain" />
+                )}
                 {isAnalyzing && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                     <div className="text-center text-white">
@@ -461,6 +724,9 @@ const ImageSearchPage: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {/* Detections List */}
+            {detections.length > 0 && <DetectionsList detections={detections} />}
 
             {productDetails && <ProductDetailsDisplay details={productDetails} imagePreview={imagePreview} />}
           </div>

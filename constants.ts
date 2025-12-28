@@ -10,6 +10,7 @@ export const RESERVED_TENANT_SLUGS = [
   'www',
   'admin',
   'adminlogin',
+  'superadmin',
   'login',
   'app',
   'api',

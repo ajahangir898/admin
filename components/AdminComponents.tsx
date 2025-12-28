@@ -4,7 +4,7 @@ import {
 	LayoutDashboard, ShoppingBag, Box, Settings, Sliders,
 	FileText, Star, Users, Image as ImageIcon, DollarSign,
 	Shield, LogOut, Bell, Menu, X, Globe, LogOut as LogOutIcon, ChevronDown, ChevronRight,
-	Layers, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock
+	Layers, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock, Headphones
 } from 'lucide-react';
 import { StatCardProps, User, Tenant } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
@@ -60,7 +60,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'products', icon: <Box size={18} />, label: 'Products', resource: 'products' },
 		{ id: 'landing_pages', icon: <FileText size={18} />, label: 'Landing page', resource: 'landing_pages' },
 		{ id: 'popups', icon: <Layers size={18} />, label: 'Popups', resource: 'landing_pages' },
-		{ id: 'tenants', icon: <Users size={18} />, label: 'Tenant Manager', resource: 'tenants' },
 		{ id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management', resource: 'inventory' },
 		{ id: 'customers', icon: <Users size={18} />, label: 'Customers', resource: 'customers' },
 		{ id: 'reviews', icon: <MessageCircle size={18} />, label: 'Reviews', resource: 'reviews' },
@@ -256,6 +255,23 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 							>
 								<Settings size={18} />
 								<span>Settings</span>
+							</div>
+						)}
+						{/* Support menu item - after Settings */}
+						{canSeeSettings && (
+							<div
+								onClick={() => { onNavigate && onNavigate('support'); onClose && onClose(); }}
+								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'support' ? 'font-semibold' : ''}`}
+								style={activePage === 'support' ? {
+									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
+									color: 'white',
+									boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
+								} : {
+									color: '#4b5563'
+								}}
+							>
+								<Headphones size={18} />
+								<span>Support</span>
 							</div>
 						)}
 						{canSeeAdminControl && (

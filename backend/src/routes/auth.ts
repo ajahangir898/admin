@@ -123,7 +123,13 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
     
     // Also check header for subdomain (backup method)
     const subdomainHeader = req.headers['x-tenant-subdomain'] as string | undefined;
-    const tenantSubdomain = subdomain || subdomainHeader;
+    let tenantSubdomain = subdomain || subdomainHeader;
+    
+    // Exclude special subdomains that are not tenant subdomains
+    const specialSubdomains = ['www', 'admin', 'superadmin', 'api', 'static'];
+    if (tenantSubdomain && specialSubdomains.includes(tenantSubdomain.toLowerCase())) {
+      tenantSubdomain = undefined;
+    }
 
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() });

@@ -33,8 +33,8 @@ const getCurrentSubdomain = (): string | null => {
   // If we have a subdomain (e.g., amit.systemnextit.com)
   if (parts.length > 2) {
     const subdomain = parts[0];
-    // Exclude www and admin as they're not tenant subdomains
-    if (subdomain !== 'www' && subdomain !== 'admin') {
+    // Exclude www, admin, and superadmin as they're not tenant subdomains
+    if (subdomain !== 'www' && subdomain !== 'admin' && subdomain !== 'superadmin') {
       return subdomain;
     }
   }

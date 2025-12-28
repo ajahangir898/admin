@@ -35,6 +35,7 @@ const AdminFacebookPixel = lazy(() => import(/* webpackChunkName: "admin-pixel" 
 const AdminLandingPage = lazy(() => import(/* webpackChunkName: "admin-landing" */ './AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import(/* webpackChunkName: "admin-tenant" */ './AdminTenantManagement'));
 const AdminDueList = lazy(() => import(/* webpackChunkName: "admin-duelist" */ './AdminDueList'));
+const AdminSupport = lazy(() => import(/* webpackChunkName: "admin-support" */ './AdminSupport'));
 // Admin Components - directly imported for instant layout render
 import { AdminSidebar, AdminHeader } from '../components/AdminComponents';
 
@@ -554,20 +555,11 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'daily_target' ? <AdminDailyTarget /> :
          adminSection === 'gallery' ? <AdminGallery /> :
          adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={onUpdateCourierConfig} onNavigate={setAdminSection} user={user} onUpdateProfile={onUpdateProfile} activeTenant={selectedTenantRecord} logo={logo} onUpdateLogo={onUpdateLogo} /> :
+         adminSection === 'support' ? <AdminSupport user={user} activeTenant={selectedTenantRecord} /> :
          adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={onUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={onUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={(cfg) => onUpdateCourierConfig(cfg)} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'admin' ? <AdminControlNew users={users} roles={roles} onAddUser={handleAddUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} currentUser={user} tenantId={activeTenantId} userPermissions={userPermissions} /> :
-         adminSection === 'tenants' ? (platformOperator
-           ? <AdminTenantManagement 
-               tenants={tenants} 
-               onCreateTenant={onCreateTenant} 
-               isCreating={isTenantCreating} 
-               onDeleteTenant={onDeleteTenant} 
-               deletingTenantId={deletingTenantId}
-               onRefreshTenants={onRefreshTenants}
-             />
-           : <AdminDashboard orders={orders} products={products} />) :
          adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} onNavigate={setAdminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
          adminSection.startsWith('business_report_') ? <AdminBusinessReport initialTab={adminSection} orders={orders} products={products} user={user} onLogout={onLogout} tenantId={activeTenantId} /> :
          <AdminCustomization logo={logo} onUpdateLogo={onUpdateLogo} themeConfig={themeConfig} onUpdateTheme={onUpdateTheme} websiteConfig={websiteConfig} onUpdateWebsiteConfig={onUpdateWebsiteConfig} initialTab={adminSection === 'customization' ? 'website_info' : adminSection} />

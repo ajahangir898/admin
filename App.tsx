@@ -370,7 +370,8 @@ const App = () => {
         
         // For subdomains: ALWAYS verify tenant matches the subdomain
         // This prevents wrong data being shown when visiting different stores
-        if (hostTenantSlug && !isAdminSubdomain) {
+        // Skip tenant resolution for admin and superadmin subdomains
+        if (hostTenantSlug && !isAdminSubdomain && !isSuperAdminSubdomain) {
           const sanitizedSlug = sanitizeSubdomainSlug(hostTenantSlug);
           const resolved = await DataService.resolveTenantBySubdomain(sanitizedSlug);
           if (!isMounted) return;

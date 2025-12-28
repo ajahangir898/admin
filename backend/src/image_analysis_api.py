@@ -211,6 +211,123 @@ async def analyze_base64_image(data: Dict[str, str]):
         }
 
 
+# Detection response models
+class Detection(BaseModel):
+    bbox: List[float]  # [x1, y1, x2, y2]
+    label: str
+    confidence: float
+
+
+class DetectionResponse(BaseModel):
+    success: bool
+    detections: Optional[List[Detection]] = None
+    image_width: Optional[int] = None
+    image_height: Optional[int] = None
+    error: Optional[str] = None
+
+
+@app.post("/api/detect", response_model=DetectionResponse)
+async def detect_objects(file: UploadFile = File(...)):
+    """
+    Detect objects in an image using YOLO
+    
+    - **file**: Image file (JPG, PNG, WebP)
+    
+    Returns a list of detections with bbox [x1, y1, x2, y2], label, and confidence.
+    All values are converted to standard Python types for JSON serialization.
+    """
+    from yolo_service import load_yolo_model
+    from PIL import Image
+    import io
+    
+    # Validate file type
+    allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}"
+        )
+    
+    # Check file size (max 10MB)
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=400,
+            detail="File too large. Maximum size is 10MB"
+        )
+    
+    try:
+        # Load model
+        model = load_yolo_model()
+        if model is None:
+            return DetectionResponse(
+                success=False,
+                error="YOLO model not available"
+            )
+        
+        # Load image
+        image = Image.open(io.BytesIO(contents))
+        
+        # Convert to RGB if necessary
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Get original image dimensions
+        img_width, img_height = image.size
+        
+        # Run YOLO inference
+        results = model(image, verbose=False)
+        
+        # Process results - convert tensors to Python types
+        detections = []
+        for result in results:
+            boxes = result.boxes
+            if boxes is not None:
+                for i, box in enumerate(boxes):
+                    # Get class id and convert to int
+                    cls_id = int(box.cls[0].item()) if hasattr(box.cls[0], 'item') else int(box.cls[0])
+                    
+                    # Get confidence and convert to float
+                    conf = float(box.conf[0].item()) if hasattr(box.conf[0], 'item') else float(box.conf[0])
+                    
+                    # Get class name
+                    class_name = model.names[cls_id]
+                    
+                    # Get bbox and convert to list of floats
+                    bbox_tensor = box.xyxy[0]
+                    bbox = [
+                        float(bbox_tensor[0].item()) if hasattr(bbox_tensor[0], 'item') else float(bbox_tensor[0]),
+                        float(bbox_tensor[1].item()) if hasattr(bbox_tensor[1], 'item') else float(bbox_tensor[1]),
+                        float(bbox_tensor[2].item()) if hasattr(bbox_tensor[2], 'item') else float(bbox_tensor[2]),
+                        float(bbox_tensor[3].item()) if hasattr(bbox_tensor[3], 'item') else float(bbox_tensor[3]),
+                    ]
+                    
+                    detections.append(Detection(
+                        bbox=bbox,
+                        label=class_name,
+                        confidence=round(conf, 4)
+                    ))
+        
+        # Sort by confidence
+        detections.sort(key=lambda x: x.confidence, reverse=True)
+        
+        return DetectionResponse(
+            success=True,
+            detections=detections,
+            image_width=img_width,
+            image_height=img_height
+        )
+        
+    except Exception as e:
+        print(f"[API] Detection error: {e}")
+        import traceback
+        traceback.print_exc()
+        return DetectionResponse(
+            success=False,
+            error=str(e)
+        )
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "image_analysis_api:app",

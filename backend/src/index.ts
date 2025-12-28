@@ -26,6 +26,7 @@ import { courierRouter } from './routes/courier';
 import supportRouter from './routes/support';
 import announcementsRouter from './routes/announcements';
 import merchantTrackingRouter from './routes/merchantTracking';
+import subscriptionsRouter from './routes/subscriptions';
 import { User } from './models/User';
 import imageOptimizeRouter from './routes/imageOptimize';
 
@@ -149,6 +150,7 @@ app.use('/api/courier', courierRouter);
 app.use('/api/support', supportRouter);
 app.use('/api/announcements', announcementsRouter);
 app.use('/api/merchant-tracking', merchantTrackingRouter);
+app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api', dueListRoutes);
 app.use('/', uploadRouter);
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Building2, CreditCard, AlertTriangle, Rocket, MessageSquare } from 'lucide-react';
 import { DataService } from '../services/DataService';
 import { SubscriptionService } from '../services/SubscriptionService';
+import { getAuthHeader } from '../services/authService';
 import { Tenant, CreateTenantPayload, TenantStatus } from '../types';
 import { toast } from 'react-hot-toast';
 
@@ -360,7 +361,8 @@ const SuperAdminDashboard: React.FC = () => {
   const [announcements, setAnnouncements] = useState<BulkAnnouncement[]>(mockAnnouncements);
 
   // Support tickets state
-  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(mockSupportTickets);
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
 
   // Merchant health state
   const [merchantHealth, setMerchantHealth] = useState<MerchantHealth[]>(mockMerchantHealth);
@@ -390,6 +392,20 @@ const SuperAdminDashboard: React.FC = () => {
     }
   ]);
 
+  // Helper to get API URL
+  const getApiUrl = (): string => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:3001/api';
+      }
+      return 'https://systemnextit.com/api';
+    }
+    return 'https://systemnextit.com/api';
+  };
+
+  const API_URL = getApiUrl();
+
   // Load tenants on mount
   useEffect(() => {
     const loadTenants = async () => {
@@ -402,6 +418,97 @@ const SuperAdminDashboard: React.FC = () => {
     };
     loadTenants();
   }, []);
+
+  // Load support tickets from API
+  useEffect(() => {
+    const loadSupportTickets = async () => {
+      setIsLoadingTickets(true);
+      try {
+        const response = await fetch(`${API_URL}/support`, {
+          headers: getAuthHeader()
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          // Transform backend tickets to frontend format
+          const tickets: SupportTicket[] = (result.data || []).map((ticket: any) => ({
+            id: ticket.id || ticket._id,
+            tenantId: ticket.tenantId,
+            tenantName: ticket.submittedBy?.name || 'Unknown Merchant',
+            tenantSubdomain: ticket.tenantId,
+            subject: ticket.title || getTicketSubject(ticket.type),
+            description: ticket.description,
+            category: mapTicketType(ticket.type),
+            priority: ticket.priority || 'medium',
+            status: mapTicketStatus(ticket.status),
+            assignedTo: ticket.assignedTo?.name,
+            createdAt: formatTimeAgo(ticket.createdAt),
+            updatedAt: formatTimeAgo(ticket.updatedAt),
+            messages: (ticket.comments || []).map((c: any) => ({
+              id: c.id || c._id,
+              senderId: c.userId,
+              senderName: c.userName || 'Unknown',
+              senderType: c.userId === ticket.submittedBy?.userId ? 'merchant' : 'support',
+              message: c.message,
+              createdAt: formatTimeAgo(c.createdAt)
+            })),
+            tags: ticket.images?.length > 0 ? ['has-attachments'] : []
+          }));
+          setSupportTickets(tickets);
+        }
+      } catch (error) {
+        console.error('Failed to load support tickets:', error);
+      } finally {
+        setIsLoadingTickets(false);
+      }
+    };
+    loadSupportTickets();
+  }, [API_URL]);
+
+  // Helper functions for ticket data transformation
+  const getTicketSubject = (type: string): string => {
+    switch (type) {
+      case 'issue': return 'Issue Report';
+      case 'feedback': return 'Feedback';
+      case 'feature': return 'Feature Request';
+      default: return 'Support Request';
+    }
+  };
+
+  const mapTicketType = (type: string): 'bug' | 'feature_request' | 'billing' | 'technical' | 'general' => {
+    switch (type) {
+      case 'issue': return 'bug';
+      case 'feature': return 'feature_request';
+      case 'feedback': return 'general';
+      default: return 'general';
+    }
+  };
+
+  const mapTicketStatus = (status: string): 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed' => {
+    switch (status) {
+      case 'pending': return 'open';
+      case 'in-progress': return 'in_progress';
+      case 'resolved': return 'resolved';
+      case 'closed': return 'closed';
+      default: return 'open';
+    }
+  };
+
+  const formatTimeAgo = (dateString: string): string => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
 
   // System stats derived from tenants
   const systemStats: SystemStats = {
@@ -711,41 +818,111 @@ const SuperAdminDashboard: React.FC = () => {
   // Support ticket handlers
   const handleCreateTicket = useCallback(async (ticket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt' | 'messages'>) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const newTicket: SupportTicket = {
-        ...ticket,
-        id: Date.now().toString(),
-        createdAt: 'Just now',
-        updatedAt: 'Just now',
-        messages: []
-      };
-      setSupportTickets(prev => [newTicket, ...prev]);
+      const response = await fetch(`${API_URL}/support`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeader(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: ticket.category === 'bug' ? 'issue' : ticket.category === 'feature_request' ? 'feature' : 'feedback',
+          title: ticket.subject,
+          description: ticket.description,
+          priority: ticket.priority,
+          tenantId: ticket.tenantId
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to create ticket');
+      
+      // Refresh tickets list
+      const refreshResponse = await fetch(`${API_URL}/support`, { headers: getAuthHeader() });
+      if (refreshResponse.ok) {
+        const result = await refreshResponse.json();
+        const tickets: SupportTicket[] = (result.data || []).map((t: any) => ({
+          id: t.id || t._id,
+          tenantId: t.tenantId,
+          tenantName: t.submittedBy?.name || 'Unknown Merchant',
+          tenantSubdomain: t.tenantId,
+          subject: t.title || getTicketSubject(t.type),
+          description: t.description,
+          category: mapTicketType(t.type),
+          priority: t.priority || 'medium',
+          status: mapTicketStatus(t.status),
+          assignedTo: t.assignedTo?.name,
+          createdAt: formatTimeAgo(t.createdAt),
+          updatedAt: formatTimeAgo(t.updatedAt),
+          messages: (t.comments || []).map((c: any) => ({
+            id: c.id || c._id,
+            senderId: c.userId,
+            senderName: c.userName || 'Unknown',
+            senderType: c.userId === t.submittedBy?.userId ? 'merchant' : 'support',
+            message: c.message,
+            createdAt: formatTimeAgo(c.createdAt)
+          })),
+          tags: t.images?.length > 0 ? ['has-attachments'] : []
+        }));
+        setSupportTickets(tickets);
+      }
       toast.success('Ticket created');
     } catch (error) {
       toast.error('Failed to create ticket');
       throw error;
     }
-  }, []);
+  }, [API_URL]);
 
   const handleUpdateTicket = useCallback(async (id: string, updates: Partial<SupportTicket>) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      const backendUpdates: any = {};
+      if (updates.status) {
+        backendUpdates.status = updates.status === 'open' ? 'pending' 
+          : updates.status === 'in_progress' ? 'in-progress' 
+          : updates.status;
+      }
+      if (updates.priority) backendUpdates.priority = updates.priority;
+      
+      const response = await fetch(`${API_URL}/support/${id}`, {
+        method: 'PATCH',
+        headers: {
+          ...getAuthHeader(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(backendUpdates)
+      });
+      
+      if (!response.ok) throw new Error('Failed to update ticket');
+      
       setSupportTickets(prev => prev.map(t => t.id === id ? { ...t, ...updates, updatedAt: 'Just now' } : t));
       toast.success('Ticket updated');
     } catch (error) {
       toast.error('Failed to update ticket');
       throw error;
     }
-  }, []);
+  }, [API_URL]);
 
   const handleReplyTicket = useCallback(async (ticketId: string, message: Omit<TicketMessage, 'id' | 'createdAt'>) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      const response = await fetch(`${API_URL}/support/${ticketId}/comments`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeader(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: message.message })
+      });
+      
+      if (!response.ok) throw new Error('Failed to send reply');
+      
+      const result = await response.json();
       const newMessage: TicketMessage = {
-        ...message,
-        id: Date.now().toString(),
+        id: result.data?.id || Date.now().toString(),
+        senderId: message.senderId,
+        senderName: message.senderName,
+        senderType: 'support',
+        message: message.message,
         createdAt: 'Just now'
       };
+      
       setSupportTickets(prev => prev.map(t => 
         t.id === ticketId 
           ? { ...t, messages: [...t.messages, newMessage], updatedAt: 'Just now', status: 'waiting_response' as const }
@@ -756,11 +933,21 @@ const SuperAdminDashboard: React.FC = () => {
       toast.error('Failed to send reply');
       throw error;
     }
-  }, []);
+  }, [API_URL]);
 
   const handleCloseTicket = useCallback(async (id: string) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      const response = await fetch(`${API_URL}/support/${id}`, {
+        method: 'PATCH',
+        headers: {
+          ...getAuthHeader(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'closed' })
+      });
+      
+      if (!response.ok) throw new Error('Failed to close ticket');
+      
       setSupportTickets(prev => prev.map(t => 
         t.id === id ? { ...t, status: 'closed' as const, resolvedAt: new Date().toISOString() } : t
       ));
@@ -769,7 +956,7 @@ const SuperAdminDashboard: React.FC = () => {
       toast.error('Failed to close ticket');
       throw error;
     }
-  }, []);
+  }, [API_URL]);
 
   // Merchant success handlers
   const handleAcknowledgeAlert = useCallback(async (merchantId: string, alertId: string) => {

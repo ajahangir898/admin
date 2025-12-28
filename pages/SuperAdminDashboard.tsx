@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Building2, CreditCard, AlertTriangle, Rocket, MessageSquare } from 'lucide-react';
 import { DataService } from '../services/DataService';
-import { Tenant, CreateTenantPayload } from '../types';
+import { Tenant, CreateTenantPayload, TenantStatus } from '../types';
 import { toast } from 'react-hot-toast';
 
 // Import components from superadmin folder
@@ -329,6 +329,81 @@ const SuperAdminDashboard: React.FC = () => {
     }
   }, []);
 
+  // Tenant status update handler
+  const handleUpdateTenantStatus = useCallback(async (tenantId: string, status: Tenant['status'], reason?: string): Promise<void> => {
+    try {
+      // In production, this would call an API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const updatedTenants = tenants.map(t => 
+        t.id === tenantId 
+          ? { 
+              ...t, 
+              status,
+              ...(status === 'active' && { approvedAt: new Date().toISOString(), approvedBy: 'super_admin' }),
+              ...(status === 'inactive' && reason && { rejectedAt: new Date().toISOString(), rejectedBy: 'super_admin', rejectionReason: reason }),
+              ...(status === 'suspended' && { suspendedAt: new Date().toISOString(), suspendedBy: 'super_admin', suspensionReason: reason }),
+            }
+          : t
+      );
+      
+      setTenants(updatedTenants);
+      toast.success(`Tenant status updated to ${status}`);
+    } catch (error) {
+      toast.error('Failed to update tenant status');
+      throw error;
+    }
+  }, [tenants]);
+
+  // Login as merchant handler
+  const handleLoginAsMerchant = useCallback(async (tenantId: string): Promise<void> => {
+    try {
+      const tenant = tenants.find(t => t.id === tenantId);
+      if (!tenant) throw new Error('Tenant not found');
+      
+      // In production, this would:
+      // 1. Create a temporary admin session for the tenant
+      // 2. Redirect to the tenant's admin dashboard
+      // 3. Log the superadmin action for audit
+      
+      toast.success(`Ghosting as ${tenant.name}...`);
+      
+      // Simulate redirect delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo purposes, show what would happen
+      console.log(`Would redirect to: https://${tenant.subdomain}.systemnextit.com/admin with impersonation token`);
+      
+      // In production: window.location.href = impersonationUrl;
+    } catch (error) {
+      toast.error('Failed to login as merchant');
+      throw error;
+    }
+  }, [tenants]);
+
+  // Domain update handler
+  const handleUpdateDomain = useCallback(async (tenantId: string, domain: string, type: 'subdomain' | 'custom'): Promise<void> => {
+    try {
+      // In production, this would call an API and update DNS records
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const updatedTenants = tenants.map(t => 
+        t.id === tenantId 
+          ? { 
+              ...t, 
+              customDomain: type === 'custom' ? domain : t.customDomain,
+            }
+          : t
+      );
+      
+      setTenants(updatedTenants);
+      toast.success(`Domain ${domain} added successfully`);
+    } catch (error) {
+      toast.error('Failed to update domain');
+      throw error;
+    }
+  }, [tenants]);
+
   // Render active tab content
   const renderTabContent = () => {
     switch (activeTab) {
@@ -344,6 +419,9 @@ const SuperAdminDashboard: React.FC = () => {
               onCreateTenant={handleCreateTenant}
               onDeleteTenant={handleDeleteTenant}
               onRefreshTenants={handleRefreshTenants}
+              onUpdateTenantStatus={handleUpdateTenantStatus}
+              onLoginAsMerchant={handleLoginAsMerchant}
+              onUpdateDomain={handleUpdateDomain}
               isCreating={isTenantCreating}
               deletingTenantId={deletingTenantId}
             />

@@ -32,9 +32,12 @@ describe('AdminTenantManagement', () => {
       />
     );
 
-    await user.type(screen.getByPlaceholderText(/acme outdoors/i), 'Acme Labs');
+    // Click "Add Shop" button first to show the form
+    await user.click(screen.getByRole('button', { name: /add shop/i }));
 
-    expect(screen.getByPlaceholderText(/acme-shop/i)).toHaveValue('acme-labs');
+    await user.type(screen.getByPlaceholderText(/my awesome store/i), 'Acme Labs');
+
+    expect(screen.getByPlaceholderText(/mystore/i)).toHaveValue('acme-labs');
   });
 
   test('disables submission when subdomain conflicts', async () => {
@@ -47,13 +50,34 @@ describe('AdminTenantManagement', () => {
       />
     );
 
-    await user.type(screen.getByPlaceholderText(/acme outdoors/i), 'Acme Shop');
-    await user.type(screen.getByPlaceholderText(/ops@acme.com/i), 'ops@acme.com');
-    await user.type(screen.getByPlaceholderText(/admin@acme.com/i), 'admin@acme.com');
-    await user.type(screen.getByPlaceholderText(/temppass123/i), 'secret12');
-    await user.type(screen.getByPlaceholderText(/repeat password/i), 'secret12');
+    // Click "Add Shop" button first to show the form
+    await user.click(screen.getByRole('button', { name: /add shop/i }));
 
-    expect(screen.getByRole('button', { name: /launch tenant/i })).toBeDisabled();
+    // Fill in the form with a conflicting subdomain
+    await user.type(screen.getByPlaceholderText(/my awesome store/i), 'Acme Shop');
+    // Blur the name field to trigger subdomain generation
+    await user.tab();
+    
+    // The subdomain should auto-generate to 'acme-shop' which conflicts
+    const subdomainInput = screen.getByPlaceholderText(/mystore/i);
+    expect(subdomainInput).toHaveValue('acme-shop');
+    
+    // Fill in other required fields
+    await user.type(screen.getByPlaceholderText(/contact@store.com/i), 'ops@acme.com');
+    await user.type(screen.getByPlaceholderText(/admin@store.com/i), 'admin@acme.com');
+    await user.type(screen.getByPlaceholderText(/min 6 characters/i), 'secret12');
+    await user.type(screen.getByPlaceholderText(/confirm password/i), 'secret12');
+    
+    // Blur all fields to trigger validation
+    await user.tab();
+
+    // The submit button should be disabled due to subdomain conflict
+    // Note: The component validates on submit, so we need to try clicking
+    const submitButton = screen.getByRole('button', { name: /create tenant/i });
+    await user.click(submitButton);
+    
+    // Check that an error message appears
+    expect(screen.getByText(/subdomain already exists/i)).toBeInTheDocument();
   });
 
   test('submits payload via onCreateTenant', async () => {
@@ -67,14 +91,17 @@ describe('AdminTenantManagement', () => {
       />
     );
 
-    await user.type(screen.getByPlaceholderText(/acme outdoors/i), 'Beta Shop');
-    await user.type(screen.getByPlaceholderText(/ops@acme.com/i), 'beta@example.com');
-    await user.type(screen.getByPlaceholderText(/sadia islam/i), 'Bianca');
-    await user.type(screen.getByPlaceholderText(/admin@acme.com/i), 'owner@beta.com');
-    await user.type(screen.getByPlaceholderText(/temppass123/i), 'BetaSecret1');
-    await user.type(screen.getByPlaceholderText(/repeat password/i), 'BetaSecret1');
+    // Click "Add Shop" button first to show the form
+    await user.click(screen.getByRole('button', { name: /add shop/i }));
 
-    await user.click(screen.getByRole('button', { name: /launch tenant/i }));
+    await user.type(screen.getByPlaceholderText(/my awesome store/i), 'Beta Shop');
+    await user.type(screen.getByPlaceholderText(/contact@store.com/i), 'beta@example.com');
+    await user.type(screen.getByPlaceholderText(/john doe/i), 'Bianca');
+    await user.type(screen.getByPlaceholderText(/admin@store.com/i), 'owner@beta.com');
+    await user.type(screen.getByPlaceholderText(/min 6 characters/i), 'BetaSecret1');
+    await user.type(screen.getByPlaceholderText(/confirm password/i), 'BetaSecret1');
+
+    await user.click(screen.getByRole('button', { name: /create tenant/i }));
 
     expect(onCreateTenant).toHaveBeenCalledTimes(1);
     expect(onCreateTenant.mock.calls[0][0]).toMatchObject({
@@ -100,8 +127,13 @@ describe('AdminTenantManagement', () => {
       />
     );
 
-    await user.click(screen.getByRole('button', { name: /remove/i }));
-    await user.click(screen.getByRole('button', { name: /delete tenant/i }));
+    // Click the delete button for the tenant (has title "Delete tenant")
+    await user.click(screen.getByTitle(/delete tenant/i));
+    
+    // In the modal, click the confirm delete button
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    // The second one should be in the modal (first is "Delete tenant" title button)
+    await user.click(deleteButtons[deleteButtons.length - 1]);
 
     expect(onDeleteTenant).toHaveBeenCalledWith('tenant-1');
   });

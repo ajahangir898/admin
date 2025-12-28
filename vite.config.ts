@@ -179,8 +179,8 @@ const manualChunkResolver = (id: string): string | undefined => {
   }
 
   // SuperAdmin tab components - split each into its own chunk for optimal lazy loading
-  // IMPORTANT: This list should be kept in sync with components/superadmin/*.tsx tab files
-  // Tab components: *Tab.tsx files that are lazy loaded in SuperAdminDashboard
+  // IMPORTANT: Keep this list synchronized with components/superadmin/*Tab.tsx files
+  // The lowercase names below match the actual component file names (e.g., OverviewTab.tsx → 'overviewtab')
   if (normalized.includes('/components/superadmin/')) {
     const segment = normalized.split('/components/superadmin/')[1];
     if (segment) {
@@ -198,7 +198,8 @@ const manualChunkResolver = (id: string): string | undefined => {
         return `superadmin-${componentName}`;
       }
       
-      // Small UI components bundled together (Sidebar, TopBar, etc. - always needed, ~9KB total)
+      // Core UI components bundled together (Sidebar, TopBar - loaded immediately with dashboard, ~9KB)
+      // NavItem, StatsCard, etc. are small utility components used by Sidebar/TopBar
       if (['sidebar', 'topbar', 'navitem', 'statscard', 'servermetric', 'quickactionbutton'].includes(componentName)) {
         return 'superadmin-ui';
       }

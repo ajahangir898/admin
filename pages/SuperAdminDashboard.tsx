@@ -7,10 +7,10 @@ import { Tenant, CreateTenantPayload, TenantStatus } from '../types';
 import { toast } from 'react-hot-toast';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
-// Import core UI components (small, needed immediately)
-import {
-  Sidebar,
-  TopBar,
+// Import core UI components directly (not through barrel export to enable better code splitting)
+import Sidebar from '../components/superadmin/Sidebar';
+import TopBar from '../components/superadmin/TopBar';
+import type {
   TabType,
   SystemStats,
   TenantStats,
@@ -24,9 +24,10 @@ import {
   TicketMessage,
   MerchantHealth,
   AtRiskMerchant
-} from '../components/superadmin';
+} from '../components/superadmin/types';
 
-// Lazy load tab components for better performance
+// Lazy load tab components for better performance and code splitting
+// Each tab component will be in its own bundle chunk
 const OverviewTab = React.lazy(() => import('../components/superadmin/OverviewTab'));
 const SettingsTab = React.lazy(() => import('../components/superadmin/SettingsTab'));
 const NotificationsTab = React.lazy(() => import('../components/superadmin/NotificationsTab'));

@@ -178,6 +178,39 @@ const manualChunkResolver = (id: string): string | undefined => {
     }
   }
 
+  // SuperAdmin tab components - split each into its own chunk for optimal lazy loading
+  if (normalized.includes('/components/superadmin/')) {
+    const segment = normalized.split('/components/superadmin/')[1];
+    if (segment) {
+      const fileName = segment.split('/')[0];
+      const componentName = fileName.replace(/\.(tsx|ts|jsx|js)$/, '').toLowerCase();
+      
+      // Tab components get individual chunks
+      const tabComponents = [
+        'overviewtab', 'settingstab', 'notificationstab', 'themeconfigtab',
+        'chatconfigtab', 'subscriptionstab', 'bulkannouncementstab',
+        'supportticketstab', 'merchantsuccesstab'
+      ];
+      
+      if (tabComponents.includes(componentName)) {
+        return `superadmin-${componentName}`;
+      }
+      
+      // Small UI components (Sidebar, TopBar, etc.) bundled together
+      if (['sidebar', 'topbar', 'navitem', 'statscard', 'servermetric', 'quickactionbutton'].includes(componentName)) {
+        return 'superadmin-ui';
+      }
+      
+      // Types and utilities
+      if (componentName === 'types' || componentName === 'utils' || componentName === 'index') {
+        return 'superadmin-core';
+      }
+      
+      // Other superadmin components
+      return `superadmin-${componentName}`;
+    }
+  }
+
   if (normalized.includes('/components/')) {
     const componentSegment = normalized.split('/components/')[1];
     if (componentSegment) {

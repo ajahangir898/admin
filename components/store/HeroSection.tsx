@@ -12,6 +12,35 @@ export interface HeroSectionProps {
 
 const MAX_CAROUSEL_ITEMS = 3;
 
+const ensureProtocol = (url: string) => {
+    if (/^https?:\/\//i.test(url)) return url;
+    return `https://${url.replace(/^\/*/, '')}`;
+};
+
+const buildInternalHref = (url: string): string => {
+    if (!url) return '#';
+    const trimmed = url.trim();
+    if (trimmed.startsWith('#') || trimmed.startsWith('?')) {
+        return trimmed;
+    }
+
+    // Remove any absolute domain (localhost, staging, etc.)
+    const domainStripped = trimmed.replace(/^https?:\/\/[^/]+/i, '');
+    const normalized = domainStripped || '/';
+    return normalized.startsWith('/') ? normalized : `/${normalized.replace(/^\/*/, '')}`;
+};
+
+const getCarouselHref = (item: CarouselItem): { href: string; isExternal: boolean } => {
+    const rawUrl = item.url?.trim() || '';
+    if (!rawUrl) return { href: '#', isExternal: false };
+
+    if (item.urlType === 'External') {
+        return { href: ensureProtocol(rawUrl), isExternal: true };
+    }
+
+    return { href: buildInternalHref(rawUrl), isExternal: false };
+};
+
 // Countdown timer hook
 const useCountdown = (targetDate: string) => {
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -206,9 +235,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                             const shouldLoad = loadedImages.has(index) || isActive;
                             const imageSrc = getImageSrc(item);
                             const hasMobileImage = isMobile && item.mobileImage;
+                            const { href, isExternal } = getCarouselHref(item);
                             return (
                                 <a
-                                    href={item.url || '#'}
+                                    href={href}
+                                    target={isExternal ? '_blank' : undefined}
+                                    rel={isExternal ? 'noopener noreferrer' : undefined}
                                     key={item.id}
                                     className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                                 >

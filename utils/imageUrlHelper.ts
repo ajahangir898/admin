@@ -1,10 +1,24 @@
 /**
- * Normalizes image URLs to use production domain
+ * Normalizes image URLs to use current domain or production domain
  * Fixes legacy localhost URLs from development
  */
+const getBaseUrl = (): string => {
+  // In browser, use current origin for uploads to avoid CORS issues
+  if (typeof window !== 'undefined') {
+    // Get the backend API URL from environment or use current origin
+    const apiUrl = import.meta.env.VITE_API_BASE_URL;
+    // Validate URL format before using
+    if (apiUrl && /^https?:\/\/.+/.test(apiUrl)) {
+      return apiUrl;
+    }
+    // Use current origin for same-domain requests
+    return window.location.origin;
+  }
+  // Fallback to production URL during SSR
+  return 'https://systemnextit.com';
+};
+
 const PRODUCTION_URL = 'https://systemnextit.com';
-// Use production URL for uploads since CDN may not have sync enabled
-const UPLOADS_BASE_URL = 'https://systemnextit.com';
 
 // Image size presets for different use cases
 export type ImageSize = 'thumb' | 'small' | 'medium' | 'large' | 'full';
@@ -30,27 +44,33 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
     return url.replace('https://cdn.systemnextit.com', PRODUCTION_URL);
   }
   
-  // If it's already a full URL with systemnextit.com, return as-is
+  // If it's already a full URL with systemnextit.com, keep it
   if (url.includes('systemnextit.com')) {
     return url;
   }
   
   // If it's a relative URL (starts with /uploads), prepend the base URL
   if (url.startsWith('/uploads')) {
-    return `${UPLOADS_BASE_URL}${url}`;
+    return `${getBaseUrl()}${url}`;
   }
   
   // Handle relative URLs without leading slash (e.g., uploads/...)
   if (url.startsWith('uploads/')) {
-    return `${UPLOADS_BASE_URL}/${url}`;
+    return `${getBaseUrl()}/${url}`;
   }
   
-  // If it's a localhost URL, replace with production domain
-  if (url.includes('localhost')) {
-    return url.replace(/https?:\/\/localhost:\d+/, PRODUCTION_URL);
+  // If it's a localhost URL, replace with current origin or production
+  if (url.includes('localhost') || url.includes('127.0.0.1')) {
+    const baseUrl = getBaseUrl();
+    return url.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, baseUrl);
   }
   
-  // Return as-is if already a valid URL or other format
+  // If it's already a full URL (http:// or https://), return as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Return as-is if it doesn't match any pattern
   return url;
 };
 
@@ -65,8 +85,14 @@ export const getOptimizedImageUrl = (
   const normalizedUrl = normalizeImageUrl(url);
   if (!normalizedUrl) return '';
   
-  // For data URIs or external URLs, return as-is
-  if (normalizedUrl.startsWith('data:') || !normalizedUrl.includes(PRODUCTION_URL)) {
+  // For data URIs, return as-is
+  if (normalizedUrl.startsWith('data:')) {
+    return normalizedUrl;
+  }
+  
+  // For external URLs (not on our domain), return as-is
+  const baseUrl = getBaseUrl();
+  if (!normalizedUrl.includes(baseUrl) && !normalizedUrl.includes(PRODUCTION_URL) && !normalizedUrl.includes('systemnextit.com')) {
     return normalizedUrl;
   }
   

@@ -178,6 +178,42 @@ const manualChunkResolver = (id: string): string | undefined => {
     }
   }
 
+  // SuperAdmin tab components - split each into its own chunk for optimal lazy loading
+  // IMPORTANT: Keep this list synchronized with components/superadmin/*Tab.tsx files
+  // The lowercase names below match the actual component file names (e.g., OverviewTab.tsx → 'overviewtab')
+  if (normalized.includes('/components/superadmin/')) {
+    const segment = normalized.split('/components/superadmin/')[1];
+    if (segment) {
+      const fileName = segment.split('/')[0];
+      const componentName = fileName.replace(/\.(tsx|ts|jsx|js)$/, '').toLowerCase();
+      
+      // Tab components get individual chunks (each 8-22KB, loaded on-demand)
+      const tabComponents = [
+        'overviewtab', 'settingstab', 'notificationstab', 'themeconfigtab',
+        'chatconfigtab', 'subscriptionstab', 'bulkannouncementstab',
+        'supportticketstab', 'merchantsuccesstab'
+      ];
+      
+      if (tabComponents.includes(componentName)) {
+        return `superadmin-${componentName}`;
+      }
+      
+      // Core UI components bundled together (Sidebar, TopBar - loaded immediately with dashboard, ~9KB)
+      // NavItem, StatsCard, etc. are small utility components used by Sidebar/TopBar
+      if (['sidebar', 'topbar', 'navitem', 'statscard', 'servermetric', 'quickactionbutton'].includes(componentName)) {
+        return 'superadmin-ui';
+      }
+      
+      // Types and utilities (~500 bytes)
+      if (componentName === 'types' || componentName === 'utils' || componentName === 'index') {
+        return 'superadmin-core';
+      }
+      
+      // Other superadmin components
+      return `superadmin-${componentName}`;
+    }
+  }
+
   if (normalized.includes('/components/')) {
     const componentSegment = normalized.split('/components/')[1];
     if (componentSegment) {

@@ -77,8 +77,8 @@ const ImageSearchPage = lazy(() => import('./pages/ImageSearch'));
 export const preloadCheckout = () => import('./pages/StoreCheckout');
 export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
 
-// Admin pages - SuperAdminDashboard directly imported for instant load
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
+// Admin pages - lazy loaded
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 
 const AdminAppWithAuth = lazy(() => {
@@ -90,6 +90,9 @@ const AdminAppWithAuth = lazy(() => {
 const LoginModal = lazy(() => import('./components/store/LoginModal').then(m => ({ default: m.LoginModal })));
 const MobileBottomNav = lazy(() => import('./components/store/MobileBottomNav').then(m => ({ default: m.MobileBottomNav })));
 const StoreChatModal = lazy(() => import('./components/store/StoreChatModal').then(m => ({ default: m.StoreChatModal })));
+
+// Skeleton loaders for better UX
+import { SuperAdminDashboardSkeleton } from './components/SkeletonLoaders';
 
 // Preload critical chunks during idle time
 if (typeof window !== 'undefined') {
@@ -934,7 +937,9 @@ const App = () => {
               }} />
             </Suspense>
           ) : currentView === 'super-admin' ? (
-            <SuperAdminDashboard />
+            <Suspense fallback={<SuperAdminDashboardSkeleton />}>
+              <SuperAdminDashboard />
+            </Suspense>
           ) : currentView === 'admin' ? (
             <Suspense fallback={null}>
               <AdminAppWithAuth

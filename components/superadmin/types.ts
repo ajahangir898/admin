@@ -108,6 +108,105 @@ export interface Activity {
   icon: React.ElementType;
 }
 
+// Subscription & Billing Types
+export interface FeatureLimits {
+  maxProducts: number | 'unlimited';
+  maxOrders: number | 'unlimited';
+  maxUsers: number | 'unlimited';
+  maxStorageGB: number | 'unlimited';
+  customDomain: boolean;
+  analyticsAccess: boolean;
+  prioritySupport: boolean;
+  apiAccess: boolean;
+  whiteLabel: boolean;
+  multiCurrency: boolean;
+  advancedReports: boolean;
+}
+
+export interface SubscriptionPlan {
+  _id?: string;
+  name: 'basic' | 'pro' | 'enterprise';
+  displayName: string;
+  description: string;
+  price: number;
+  billingCycle: 'monthly' | 'yearly';
+  currency: string;
+  features: FeatureLimits;
+  isActive: boolean;
+  isPopular: boolean;
+  stripePriceId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BillingTransaction {
+  _id: string;
+  tenantId: string;
+  tenantName: string;
+  planName: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: 'card' | 'bank_transfer' | 'bkash' | 'nagad' | 'rocket' | 'other';
+  transactionId?: string;
+  invoiceId?: string;
+  billingPeriodStart: string;
+  billingPeriodEnd: string;
+  refundedAt?: string;
+  refundReason?: string;
+  refundedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Invoice {
+  _id: string;
+  invoiceNumber: string;
+  tenantId: string;
+  tenantName: string;
+  tenantEmail: string;
+  billingAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+  lineItems: Array<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+  }>;
+  subtotal: number;
+  tax: number;
+  taxRate: number;
+  total: number;
+  currency: string;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  dueDate: string;
+  paidDate?: string;
+  transactionId?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrialSettings {
+  _id?: string;
+  defaultTrialDays: number;
+  autoExpireTrials: boolean;
+  sendExpirationAlerts: boolean;
+  alertDaysBeforeExpiry: number[];
+  allowTrialExtension: boolean;
+  maxTrialExtensionDays: number;
+  requirePaymentMethod: boolean;
+  autoConvertToFreePlan: boolean;
+  freePlanName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export type TabType = 
   | 'overview' 
   | 'tenants' 

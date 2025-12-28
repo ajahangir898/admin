@@ -26,6 +26,7 @@ import { courierRouter } from './routes/courier';
 import supportRouter from './routes/support';
 import { User } from './models/User';
 import imageOptimizeRouter from './routes/imageOptimize';
+import { subscriptionsRouter } from './routes/subscriptions';
 
 
 const app = express();
@@ -145,6 +146,7 @@ app.use('/api/profit-loss', profitLossRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/courier', courierRouter);
 app.use('/api/support', supportRouter);
+app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api', dueListRoutes);
 app.use('/', uploadRouter);
 

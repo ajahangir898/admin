@@ -159,7 +159,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                 console.log('[HeroSection] First item image URL:', items[0].image);
             }
         }
-    }, [carouselItems, items]);
+    }, [carouselItems]); // Only depend on carouselItems, items is derived
     
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));

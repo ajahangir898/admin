@@ -257,7 +257,11 @@ supportRouter.patch('/:id', authenticateToken, async (req: Request, res: Respons
       if (validatedData.assignedTo === null) {
         ticket.assignedTo = undefined;
       } else {
-        ticket.assignedTo = validatedData.assignedTo;
+        ticket.assignedTo = {
+          userId: validatedData.assignedTo.userId,
+          name: validatedData.assignedTo.name,
+          email: validatedData.assignedTo.email
+        };
       }
     }
 

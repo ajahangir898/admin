@@ -24,6 +24,8 @@ import authRouter from './routes/auth';
 import { notificationsRouter } from './routes/notifications';
 import { courierRouter } from './routes/courier';
 import supportRouter from './routes/support';
+import announcementsRouter from './routes/announcements';
+import merchantTrackingRouter from './routes/merchantTracking';
 import { User } from './models/User';
 import imageOptimizeRouter from './routes/imageOptimize';
 
@@ -145,6 +147,8 @@ app.use('/api/profit-loss', profitLossRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/courier', courierRouter);
 app.use('/api/support', supportRouter);
+app.use('/api/announcements', announcementsRouter);
+app.use('/api/merchant-tracking', merchantTrackingRouter);
 app.use('/api', dueListRoutes);
 app.use('/', uploadRouter);
 

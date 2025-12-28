@@ -10,6 +10,7 @@ export { default as OverviewTab } from './OverviewTab';
 export { default as NotificationsTab } from './NotificationsTab';
 export { default as ThemeConfigTab } from './ThemeConfigTab';
 export { default as ChatConfigTab } from './ChatConfigTab';
+export { default as CommunicationTab } from './CommunicationTab';
 
 // Export types
 export * from './types';

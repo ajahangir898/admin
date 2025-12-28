@@ -122,4 +122,5 @@ export type TabType =
   | 'notifications'
   | 'theme-config'
   | 'chat-config'
-  | 'website-config';
+  | 'website-config'
+  | 'communication';

@@ -13,6 +13,7 @@ import {
   NotificationsTab,
   ThemeConfigTab,
   ChatConfigTab,
+  CommunicationTab,
   TabType,
   SystemStats,
   TenantStats,
@@ -469,6 +470,9 @@ const SuperAdminDashboard: React.FC = () => {
             tenants={tenants}
           />
         );
+
+      case 'communication':
+        return <CommunicationTab />;
 
       case 'website-config':
         return (

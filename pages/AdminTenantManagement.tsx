@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Building2, Plus, Trash2, ExternalLink, RefreshCw, CheckCircle2, 
   AlertCircle, Mail, User, Globe, Shield, Sparkles, Loader2, 
-  Eye, EyeOff, Copy, Check, X, Store
+  Eye, EyeOff, Copy, Check, X, Store, UserCheck, UserX, Ban, 
+  PlayCircle, LogIn, Settings
 } from 'lucide-react';
 import { CreateTenantPayload, Tenant } from '../types';
 import { RESERVED_TENANT_SLUGS } from '../constants';
@@ -12,6 +13,9 @@ interface AdminTenantManagementProps {
   onCreateTenant: (payload: CreateTenantPayload, options?: { activate?: boolean }) => Promise<Tenant>;
   onDeleteTenant?: (tenantId: string) => Promise<void>;
   onRefreshTenants?: () => Promise<Tenant[] | void>;
+  onUpdateTenantStatus?: (tenantId: string, status: Tenant['status'], reason?: string) => Promise<void>;
+  onLoginAsMerchant?: (tenantId: string) => Promise<void>;
+  onUpdateDomain?: (tenantId: string, domain: string, type: 'subdomain' | 'custom') => Promise<void>;
   isCreating?: boolean;
   deletingTenantId?: string | null;
 }
@@ -36,6 +40,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> =
   trialing: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
   suspended: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
   inactive: { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400' },
+  pending: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
 };
 
 const sanitizeSubdomain = (value: string) =>
@@ -66,6 +71,9 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
   onCreateTenant,
   onDeleteTenant,
   onRefreshTenants,
+  onUpdateTenantStatus,
+  onLoginAsMerchant,
+  onUpdateDomain,
   isCreating = false,
   deletingTenantId,
 }) => {
@@ -90,9 +98,16 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
   // UI state
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [deleteModal, setDeleteModal] = useState<Tenant | null>(null);
+  const [statusModal, setStatusModal] = useState<{ tenant: Tenant; action: 'approve' | 'reject' | 'suspend' | 'activate' } | null>(null);
+  const [domainModal, setDomainModal] = useState<Tenant | null>(null);
+  const [statusReason, setStatusReason] = useState('');
+  const [customDomain, setCustomDomain] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<Tenant['status'] | 'all'>('all');
+  const [actioningTenantId, setActioningTenantId] = useState<string | null>(null);
 
   const primaryDomain = getPrimaryDomain();
   const protocol = primaryDomain.includes('localhost') ? 'http' : 'https';
@@ -280,11 +295,112 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
     return `${protocol}://${subdomain}.${primaryDomain}`;
   };
 
+  // New handlers for status management
+  const handleStatusAction = async () => {
+    if (!statusModal || !onUpdateTenantStatus) return;
+    
+    const { tenant, action } = statusModal;
+    let newStatus: Tenant['status'];
+    
+    switch (action) {
+      case 'approve':
+        newStatus = 'active';
+        break;
+      case 'reject':
+        newStatus = 'inactive';
+        break;
+      case 'suspend':
+        newStatus = 'suspended';
+        break;
+      case 'activate':
+        newStatus = 'active';
+        break;
+      default:
+        return;
+    }
+    
+    setActioningTenantId(tenant.id);
+    try {
+      await onUpdateTenantStatus(tenant.id, newStatus, statusReason || undefined);
+      setNotification({ 
+        type: 'success', 
+        message: `Tenant "${tenant.name}" ${action}d successfully` 
+      });
+      setStatusModal(null);
+      setStatusReason('');
+      
+      if (onRefreshTenants) {
+        await onRefreshTenants();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `Failed to ${action} tenant`;
+      setNotification({ type: 'error', message });
+    } finally {
+      setActioningTenantId(null);
+    }
+  };
+
+  const handleLoginAsMerchant = async (tenant: Tenant) => {
+    if (!onLoginAsMerchant) return;
+    
+    setActioningTenantId(tenant.id);
+    try {
+      await onLoginAsMerchant(tenant.id);
+      setNotification({ 
+        type: 'success', 
+        message: `Logging in as ${tenant.name}...` 
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to login as merchant';
+      setNotification({ type: 'error', message });
+    } finally {
+      setActioningTenantId(null);
+    }
+  };
+
+  const handleUpdateDomain = async () => {
+    if (!domainModal || !onUpdateDomain || !customDomain.trim()) return;
+    
+    setActioningTenantId(domainModal.id);
+    try {
+      await onUpdateDomain(domainModal.id, customDomain.trim(), 'custom');
+      setNotification({ 
+        type: 'success', 
+        message: `Custom domain "${customDomain}" added to ${domainModal.name}` 
+      });
+      setDomainModal(null);
+      setCustomDomain('');
+      
+      if (onRefreshTenants) {
+        await onRefreshTenants();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update domain';
+      setNotification({ type: 'error', message });
+    } finally {
+      setActioningTenantId(null);
+    }
+  };
+
+  // Filter and search tenants
+  const filteredTenants = tenants.filter(tenant => {
+    const matchesSearch = !searchQuery || 
+      tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tenant.subdomain?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tenant.contactEmail?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || tenant.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   // Metrics
   const metrics = {
     total: tenants.length,
     active: tenants.filter(t => t.status === 'active').length,
     trialing: tenants.filter(t => t.status === 'trialing').length,
+    pending: tenants.filter(t => t.status === 'pending').length,
+    suspended: tenants.filter(t => t.status === 'suspended').length,
   };
 
   return (
@@ -337,6 +453,14 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
                 <p className="text-2xl font-bold text-amber-400">{metrics.trialing}</p>
                 <p className="text-white/60 text-xs">Trial</p>
               </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-400">{metrics.pending}</p>
+                <p className="text-white/60 text-xs">Pending</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-red-400">{metrics.suspended}</p>
+                <p className="text-white/60 text-xs">Suspended</p>
+              </div>
             </div>
             
             {onRefreshTenants && (
@@ -355,6 +479,63 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
             >
               {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
               {showForm ? 'Cancel' : 'Add Shop'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-xl border shadow-sm p-4">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Search by name, subdomain, or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                statusFilter === 'all' 
+                  ? 'bg-emerald-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setStatusFilter('pending')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                statusFilter === 'pending' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setStatusFilter('active')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                statusFilter === 'active' 
+                  ? 'bg-emerald-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setStatusFilter('suspended')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                statusFilter === 'suspended' 
+                  ? 'bg-red-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Suspended
             </button>
           </div>
         </div>
@@ -596,17 +777,21 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
       {/* Tenant List */}
       <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
         <div className="p-4 border-b bg-gray-50">
-          <h2 className="font-semibold text-gray-800">All Tenants ({tenants.length})</h2>
+          <h2 className="font-semibold text-gray-800">All Tenants ({filteredTenants.length})</h2>
         </div>
         
-        {tenants.length === 0 ? (
+        {filteredTenants.length === 0 ? (
           <div className="p-12 text-center">
             <Building2 className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500">No tenants yet. Create your first storefront!</p>
+            <p className="text-gray-500">
+              {searchQuery || statusFilter !== 'all' 
+                ? 'No tenants match your filters' 
+                : 'No tenants yet. Create your first storefront!'}
+            </p>
           </div>
         ) : (
           <div className="divide-y">
-            {tenants.map((tenant) => {
+            {filteredTenants.map((tenant) => {
               const url = getTenantUrl(tenant.subdomain);
               const statusStyle = STATUS_COLORS[tenant.status || 'inactive'] || STATUS_COLORS.inactive;
               
@@ -663,6 +848,75 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Login as Merchant */}
+                      {onLoginAsMerchant && tenant.status === 'active' && (
+                        <button
+                          onClick={() => handleLoginAsMerchant(tenant)}
+                          disabled={actioningTenantId === tenant.id}
+                          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition disabled:opacity-50"
+                          title="Login as merchant"
+                        >
+                          {actioningTenantId === tenant.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <LogIn className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
+
+                      {/* Domain Management */}
+                      {onUpdateDomain && (
+                        <button
+                          onClick={() => setDomainModal(tenant)}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="Manage domains"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                      )}
+
+                      {/* Status Actions */}
+                      {onUpdateTenantStatus && (
+                        <>
+                          {tenant.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => setStatusModal({ tenant, action: 'approve' })}
+                                className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                                title="Approve tenant"
+                              >
+                                <UserCheck className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setStatusModal({ tenant, action: 'reject' })}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                title="Reject tenant"
+                              >
+                                <UserX className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                          {tenant.status === 'active' && (
+                            <button
+                              onClick={() => setStatusModal({ tenant, action: 'suspend' })}
+                              className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                              title="Suspend tenant"
+                            >
+                              <Ban className="w-4 h-4" />
+                            </button>
+                          )}
+                          {tenant.status === 'suspended' && (
+                            <button
+                              onClick={() => setStatusModal({ tenant, action: 'activate' })}
+                              className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                              title="Activate tenant"
+                            >
+                              <PlayCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                        </>
+                      )}
+
                       {url && (
                         <button
                           onClick={() => copyToClipboard(url, tenant.id)}
@@ -752,6 +1006,162 @@ const AdminTenantManagement: React.FC<AdminTenantManagementProps> = ({
                   <>
                     <Trash2 className="w-4 h-4" />
                     Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Change Modal */}
+      {statusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-2 rounded-lg ${
+                statusModal.action === 'approve' ? 'bg-emerald-100 text-emerald-600' :
+                statusModal.action === 'reject' ? 'bg-red-100 text-red-600' :
+                statusModal.action === 'suspend' ? 'bg-orange-100 text-orange-600' :
+                'bg-blue-100 text-blue-600'
+              }`}>
+                {statusModal.action === 'approve' && <UserCheck className="w-5 h-5" />}
+                {statusModal.action === 'reject' && <UserX className="w-5 h-5" />}
+                {statusModal.action === 'suspend' && <Ban className="w-5 h-5" />}
+                {statusModal.action === 'activate' && <PlayCircle className="w-5 h-5" />}
+              </div>
+              <h3 className="text-lg font-semibold capitalize">{statusModal.action} Tenant</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to {statusModal.action} <strong>{statusModal.tenant.name}</strong>?
+            </p>
+            
+            {(statusModal.action === 'reject' || statusModal.action === 'suspend') && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason {statusModal.action === 'reject' ? '(required)' : '(optional)'}
+                </label>
+                <textarea
+                  value={statusReason}
+                  onChange={(e) => setStatusReason(e.target.value)}
+                  placeholder={`Why are you ${statusModal.action}ing this tenant?`}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setStatusModal(null);
+                  setStatusReason('');
+                }}
+                disabled={!!actioningTenantId}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStatusAction}
+                disabled={!!actioningTenantId || (statusModal.action === 'reject' && !statusReason.trim())}
+                className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition disabled:opacity-50 ${
+                  statusModal.action === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700' :
+                  statusModal.action === 'reject' ? 'bg-red-600 hover:bg-red-700' :
+                  statusModal.action === 'suspend' ? 'bg-orange-600 hover:bg-orange-700' :
+                  'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {actioningTenantId ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Confirm
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Domain Management Modal */}
+      {domainModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-blue-600 mb-4">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Globe className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-semibold">Manage Custom Domain</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-4">
+              Add a custom domain for <strong>{domainModal.name}</strong>
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Domains
+              </label>
+              <div className="space-y-2">
+                <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm">
+                  <span className="text-emerald-600 font-medium">Primary:</span> {domainModal.subdomain}.{primaryDomain}
+                </div>
+                {domainModal.customDomain && (
+                  <div className="px-3 py-2 bg-blue-50 rounded-lg text-sm">
+                    <span className="text-blue-600 font-medium">Custom:</span> {domainModal.customDomain}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                New Custom Domain
+              </label>
+              <input
+                type="text"
+                value={customDomain}
+                onChange={(e) => setCustomDomain(e.target.value)}
+                placeholder="example.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Enter the custom domain without http:// or https://
+              </p>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setDomainModal(null);
+                  setCustomDomain('');
+                }}
+                disabled={!!actioningTenantId}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateDomain}
+                disabled={!!actioningTenantId || !customDomain.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50"
+              >
+                {actioningTenantId ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Add Domain
                   </>
                 )}
               </button>

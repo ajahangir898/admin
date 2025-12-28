@@ -2,7 +2,7 @@
 import React from 'react';
 
 export type TenantPlan = 'starter' | 'growth' | 'enterprise';
-export type TenantStatus = 'active' | 'trialing' | 'suspended' | 'inactive';
+export type TenantStatus = 'active' | 'trialing' | 'suspended' | 'inactive' | 'pending';
 
 export interface TenantBranding {
   logo?: string;
@@ -11,11 +11,31 @@ export interface TenantBranding {
   fontFamily?: string;
 }
 
+export interface DomainMapping {
+  id: string;
+  tenantId: string;
+  domain: string;
+  type: 'subdomain' | 'custom';
+  verified: boolean;
+  isPrimary: boolean;
+  sslEnabled: boolean;
+  createdAt: string;
+  verificationToken?: string;
+  dnsRecords?: {
+    type: string;
+    name: string;
+    value: string;
+    verified: boolean;
+  }[];
+}
+
 export interface Tenant {
   id: string;
+  _id?: string; // MongoDB compatibility
   name: string;
   subdomain: string;
   customDomain?: string;
+  customDomains?: DomainMapping[];
   contactEmail: string;
   contactName?: string;
   adminEmail?: string;
@@ -26,6 +46,14 @@ export interface Tenant {
   createdAt: string;
   updatedAt: string;
   onboardingCompleted: boolean;
+  approvedAt?: string;
+  approvedBy?: string;
+  rejectedAt?: string;
+  rejectedBy?: string;
+  rejectionReason?: string;
+  suspendedAt?: string;
+  suspendedBy?: string;
+  suspensionReason?: string;
   locale?: string;
   currency?: string;
   branding?: TenantBranding;

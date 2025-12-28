@@ -91,6 +91,30 @@ ordersRouter.post('/:tenantId', async (req, res, next) => {
     // Save orders
     await setTenantData(tenantId, 'orders', updatedOrders);
     
+    // Track merchant activity for at-risk monitoring
+    try {
+      const { MerchantActivity } = await import('../models/MerchantActivity');
+      let activity = await MerchantActivity.findOne({ tenantId });
+      
+      if (!activity) {
+        activity = new MerchantActivity({ tenantId });
+      }
+      
+      activity.lastOrderAt = new Date();
+      activity.totalOrders = updatedOrders.length;
+      
+      // Calculate total revenue from all orders
+      const totalRevenue = updatedOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+      if (activity.totalRevenue > 0 && totalRevenue !== activity.totalRevenue) {
+        activity.previousRevenue = activity.totalRevenue;
+      }
+      activity.totalRevenue = totalRevenue;
+      
+      await activity.save();
+    } catch (err) {
+      console.error('Failed to track merchant activity:', err);
+    }
+    
     // Emit real-time update
     emitOrderUpdate(req, tenantId, 'new-order', orderData);
     

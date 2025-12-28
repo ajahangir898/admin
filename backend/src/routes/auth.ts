@@ -184,6 +184,24 @@ authRouter.post('/login', async (req: Request, res: Response, next: NextFunction
     user.lastLogin = new Date();
     await user.save();
 
+    // Track merchant activity for at-risk monitoring (only for tenant admins and admins)
+    if (user.tenantId && (user.role === 'tenant_admin' || user.role === 'admin')) {
+      try {
+        const { MerchantActivity } = await import('../models/MerchantActivity');
+        let activity = await MerchantActivity.findOne({ tenantId: user.tenantId });
+        
+        if (!activity) {
+          activity = new MerchantActivity({ tenantId: user.tenantId });
+        }
+        
+        activity.lastLoginAt = new Date();
+        await activity.save();
+      } catch (err) {
+        // Don't fail login if tracking fails
+        console.error('Failed to track merchant activity:', err);
+      }
+    }
+
     // Generate token
     const token = generateToken(user);
 

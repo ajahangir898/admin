@@ -645,7 +645,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onClick={() => setRevenueRange(tab)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium border transition ${
                     tab === revenueRange
-                      ? 'bg-gray-900 text-white border-gray-900'
+                      ? 'text-white border-gray-900'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >

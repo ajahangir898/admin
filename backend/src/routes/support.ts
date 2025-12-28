@@ -169,8 +169,10 @@ supportRouter.get('/:id', authenticateToken, async (req: Request, res: Response,
 // POST /api/support - Create new ticket
 supportRouter.post('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { tenantId, userId, email } = (req as any).user;
     const user = (req as any).user;
+    const userId = req.userId || user._id?.toString();
+    const email = user.email;
+    const tenantId = req.tenantId || user.tenantId;
     
     // Get user's name from the request or user object
     const userName = req.body.userName || user.name || email.split('@')[0];

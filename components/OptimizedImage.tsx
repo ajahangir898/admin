@@ -19,6 +19,10 @@ const PLACEHOLDER_EMPTY = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAE
 
 // Low quality blur placeholder generator
 const generateBlurPlaceholder = (src: string): string => {
+  // Don't process data URLs
+  if (src.startsWith('data:')) {
+    return src;
+  }
   // For external images, use a small version if CDN supports it
   if (src.includes('unsplash.com')) {
     return src.replace(/w=\d+/, 'w=20').replace(/q=\d+/, 'q=10');
@@ -41,6 +45,12 @@ const supportsWebP = (() => {
 // Transform image URL for optimization
 const getOptimizedUrl = (src: string, width?: number): string => {
   if (!src) return PLACEHOLDER_EMPTY;
+  
+  // Don't process data URLs (base64 images)
+  if (src.startsWith('data:')) {
+    return src;
+  }
+  
   const targetWidth = width || 640;
 
   const applyCDN = (url: string, requestedWidth?: number) => {

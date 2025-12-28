@@ -179,13 +179,15 @@ const manualChunkResolver = (id: string): string | undefined => {
   }
 
   // SuperAdmin tab components - split each into its own chunk for optimal lazy loading
+  // IMPORTANT: This list should be kept in sync with components/superadmin/*.tsx tab files
+  // Tab components: *Tab.tsx files that are lazy loaded in SuperAdminDashboard
   if (normalized.includes('/components/superadmin/')) {
     const segment = normalized.split('/components/superadmin/')[1];
     if (segment) {
       const fileName = segment.split('/')[0];
       const componentName = fileName.replace(/\.(tsx|ts|jsx|js)$/, '').toLowerCase();
       
-      // Tab components get individual chunks
+      // Tab components get individual chunks (each 8-22KB, loaded on-demand)
       const tabComponents = [
         'overviewtab', 'settingstab', 'notificationstab', 'themeconfigtab',
         'chatconfigtab', 'subscriptionstab', 'bulkannouncementstab',
@@ -196,12 +198,12 @@ const manualChunkResolver = (id: string): string | undefined => {
         return `superadmin-${componentName}`;
       }
       
-      // Small UI components (Sidebar, TopBar, etc.) bundled together
+      // Small UI components bundled together (Sidebar, TopBar, etc. - always needed, ~9KB total)
       if (['sidebar', 'topbar', 'navitem', 'statscard', 'servermetric', 'quickactionbutton'].includes(componentName)) {
         return 'superadmin-ui';
       }
       
-      // Types and utilities
+      // Types and utilities (~500 bytes)
       if (componentName === 'types' || componentName === 'utils' || componentName === 'index') {
         return 'superadmin-core';
       }

@@ -104,6 +104,8 @@ ordersRouter.post('/:tenantId', async (req, res, next) => {
       activity.totalOrders = updatedOrders.length;
       
       // Calculate total revenue from all orders
+      // Note: This is a simplified tracking mechanism. For more accurate revenue drop detection,
+      // consider implementing periodic snapshots or a time-series database
       const totalRevenue = updatedOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
       if (activity.totalRevenue > 0 && totalRevenue !== activity.totalRevenue) {
         activity.previousRevenue = activity.totalRevenue;

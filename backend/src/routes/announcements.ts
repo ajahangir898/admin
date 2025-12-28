@@ -157,7 +157,7 @@ announcementsRouter.post('/', authenticateToken, async (req: Request, res: Respo
       return res.status(403).json({ error: 'Only super admins can create announcements' });
     }
 
-    const userName = user.name || email.split('@')[0];
+    const userName = user.name || user.email.split('@')[0];
     const validatedData = createAnnouncementSchema.parse(req.body);
 
     const announcement = new Announcement({

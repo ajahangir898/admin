@@ -6,6 +6,13 @@ import { listTenants, getTenantStats } from '../services/tenantsService';
 
 export const merchantTrackingRouter = Router();
 
+// Risk criteria constants - easily configurable
+const RISK_CRITERIA = {
+  NO_LOGIN_DAYS: 14,
+  NO_ORDER_DAYS: 30,
+  REVENUE_DROP_PERCENTAGE: 80
+};
+
 // Helper function to calculate at-risk status
 async function calculateAtRiskStatus(tenantId: string): Promise<{
   isAtRisk: boolean;
@@ -31,7 +38,7 @@ async function calculateAtRiskStatus(tenantId: string): Promise<{
     // Check for no login in 14+ days
     if (activity.lastLoginAt) {
       const daysSinceLogin = Math.floor((Date.now() - activity.lastLoginAt.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysSinceLogin >= 14) {
+      if (daysSinceLogin >= RISK_CRITERIA.NO_LOGIN_DAYS) {
         isAtRisk = true;
         riskReasons.push(`No login for ${daysSinceLogin} days`);
       }
@@ -47,7 +54,7 @@ async function calculateAtRiskStatus(tenantId: string): Promise<{
       const dropAmount = activity.previousRevenue - currentRevenue;
       revenueDropPercentage = (dropAmount / activity.previousRevenue) * 100;
       
-      if (revenueDropPercentage >= 80) {
+      if (revenueDropPercentage >= RISK_CRITERIA.REVENUE_DROP_PERCENTAGE) {
         isAtRisk = true;
         riskReasons.push(`Revenue dropped by ${revenueDropPercentage.toFixed(1)}%`);
       }
@@ -56,7 +63,7 @@ async function calculateAtRiskStatus(tenantId: string): Promise<{
     // Check for no orders recently
     if (activity.lastOrderAt) {
       const daysSinceOrder = Math.floor((Date.now() - activity.lastOrderAt.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysSinceOrder >= 30) {
+      if (daysSinceOrder >= RISK_CRITERIA.NO_ORDER_DAYS) {
         isAtRisk = true;
         riskReasons.push(`No orders for ${daysSinceOrder} days`);
       }
@@ -143,9 +150,9 @@ merchantTrackingRouter.get('/stats', authenticateToken, async (req: Request, res
       merchantsWithNoLogin14Days: activities.filter(a => {
         if (!a.lastLoginAt) return true;
         const days = Math.floor((Date.now() - a.lastLoginAt.getTime()) / (1000 * 60 * 60 * 24));
-        return days >= 14;
+        return days >= RISK_CRITERIA.NO_LOGIN_DAYS;
       }).length,
-      merchantsWithRevenueDrop: activities.filter(a => a.revenueDropPercentage >= 80).length,
+      merchantsWithRevenueDrop: activities.filter(a => a.revenueDropPercentage >= RISK_CRITERIA.REVENUE_DROP_PERCENTAGE).length,
       averageRevenueDrop: activities.length > 0 
         ? activities.reduce((sum, a) => sum + a.revenueDropPercentage, 0) / activities.length 
         : 0

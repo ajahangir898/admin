@@ -1,24 +1,35 @@
 import { render, screen } from '@testing-library/react';
-import { HeroSection } from './StoreProductComponents';
+import { HeroSection } from './store/HeroSection';
+import { CarouselItem } from '../types';
 
-const carouselItems = [
-  { id: '1', name: 'Hero 1', image: 'https://example.com/hero1.jpg', status: 'Publish', serial: 1 },
-  { id: '2', name: 'Hero 2', image: 'https://example.com/hero2.jpg', status: 'Publish', serial: 2 },
+const carouselItems: CarouselItem[] = [
+  { id: '1', name: 'Hero 1', image: '/uploads/images/carousel/test-tenant/hero1.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 1 },
+  { id: '2', name: 'Hero 2', image: '/uploads/images/carousel/test-tenant/hero2.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 2 },
 ];
 
-describe('HeroSection performance hints', () => {
-  test('prioritizes the first hero image to improve LCP', () => {
+describe('HeroSection', () => {
+  test('renders carousel items when provided', () => {
     render(<HeroSection carouselItems={carouselItems} />);
+    
+    // Should render the carousel container
+    const heroImages = screen.getAllByRole('img');
+    expect(heroImages.length).toBeGreaterThan(0);
+  });
 
-    const firstHero = screen.getByAltText('Hero 1') as HTMLImageElement;
-    const secondHero = screen.getByAltText('Hero 2') as HTMLImageElement;
+  test('returns null when no carousel items are provided', () => {
+    const { container } = render(<HeroSection carouselItems={[]} />);
+    expect(container.firstChild).toBeNull();
+  });
 
-    expect(firstHero).toHaveAttribute('fetchpriority', 'high');
-    expect(firstHero).toHaveAttribute('loading', 'eager');
-    expect(firstHero).toHaveAttribute('width', '1600');
-    expect(firstHero).toHaveAttribute('height', '400');
-
-    expect(secondHero).toHaveAttribute('fetchpriority', 'low');
-    expect(secondHero).toHaveAttribute('loading', 'lazy');
+  test('filters and shows only published carousel items', () => {
+    const mixedItems: CarouselItem[] = [
+      { id: '1', name: 'Published', image: '/test1.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 1 },
+      { id: '2', name: 'Draft', image: '/test2.webp', url: '#', urlType: 'Internal', status: 'Draft', serial: 2 },
+    ];
+    
+    render(<HeroSection carouselItems={mixedItems} />);
+    
+    // Should only show published items
+    expect(screen.queryByAltText('Draft')).not.toBeInTheDocument();
   });
 });

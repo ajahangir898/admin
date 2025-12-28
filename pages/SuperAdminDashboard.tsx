@@ -6,19 +6,10 @@ import { getAuthHeader } from '../services/authService';
 import { Tenant, CreateTenantPayload, TenantStatus } from '../types';
 import { toast } from 'react-hot-toast';
 
-// Import components from superadmin folder
+// Import core UI components (small, needed immediately)
 import {
   Sidebar,
   TopBar,
-  OverviewTab,
-  SettingsTab,
-  NotificationsTab,
-  ThemeConfigTab,
-  ChatConfigTab,
-  SubscriptionsTab,
-  BulkAnnouncementsTab,
-  SupportTicketsTab,
-  MerchantSuccessTab,
   TabType,
   SystemStats,
   TenantStats,
@@ -33,6 +24,17 @@ import {
   MerchantHealth,
   AtRiskMerchant
 } from '../components/superadmin';
+
+// Lazy load tab components for better performance
+const OverviewTab = React.lazy(() => import('../components/superadmin/OverviewTab'));
+const SettingsTab = React.lazy(() => import('../components/superadmin/SettingsTab'));
+const NotificationsTab = React.lazy(() => import('../components/superadmin/NotificationsTab'));
+const ThemeConfigTab = React.lazy(() => import('../components/superadmin/ThemeConfigTab'));
+const ChatConfigTab = React.lazy(() => import('../components/superadmin/ChatConfigTab'));
+const SubscriptionsTab = React.lazy(() => import('../components/superadmin/SubscriptionsTab'));
+const BulkAnnouncementsTab = React.lazy(() => import('../components/superadmin/BulkAnnouncementsTab'));
+const SupportTicketsTab = React.lazy(() => import('../components/superadmin/SupportTicketsTab'));
+const MerchantSuccessTab = React.lazy(() => import('../components/superadmin/MerchantSuccessTab'));
 
 // Lazy load AdminTenantManagement
 const AdminTenantManagement = React.lazy(() => import('./AdminTenantManagement'));
@@ -1026,14 +1028,17 @@ const SuperAdminDashboard: React.FC = () => {
 
   // Render active tab content
   const renderTabContent = () => {
+    // Loading fallback for lazy-loaded tabs
+    const TabLoadingFallback = () => (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+
     switch (activeTab) {
       case 'tenants':
         return (
-          <React.Suspense fallback={
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-          }>
+          <React.Suspense fallback={<TabLoadingFallback />}>
             <AdminTenantManagement
               tenants={tenants}
               onCreateTenant={handleCreateTenant}
@@ -1050,113 +1055,129 @@ const SuperAdminDashboard: React.FC = () => {
 
       case 'subscriptions':
         return (
-          <SubscriptionsTab
-            onLoadPlans={async () => await SubscriptionService.getPlans()}
-            onCreatePlan={async (plan) => {
-              await SubscriptionService.createPlan(plan);
-            }}
-            onUpdatePlan={async (id, plan) => {
-              await SubscriptionService.updatePlan(id, plan);
-            }}
-            onDeletePlan={async (id) => {
-              await SubscriptionService.deletePlan(id);
-            }}
-            onLoadTransactions={async () => {
-              const result = await SubscriptionService.getTransactions();
-              return result.data;
-            }}
-            onRefundTransaction={async (id, reason) => {
-              await SubscriptionService.refundTransaction(id, reason);
-            }}
-            onLoadInvoices={async () => {
-              const result = await SubscriptionService.getInvoices();
-              return result.data;
-            }}
-            onLoadTrialSettings={async () => await SubscriptionService.getTrialSettings()}
-            onUpdateTrialSettings={async (settings) => {
-              await SubscriptionService.updateTrialSettings(settings);
-            }}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <SubscriptionsTab
+              onLoadPlans={async () => await SubscriptionService.getPlans()}
+              onCreatePlan={async (plan) => {
+                await SubscriptionService.createPlan(plan);
+              }}
+              onUpdatePlan={async (id, plan) => {
+                await SubscriptionService.updatePlan(id, plan);
+              }}
+              onDeletePlan={async (id) => {
+                await SubscriptionService.deletePlan(id);
+              }}
+              onLoadTransactions={async () => {
+                const result = await SubscriptionService.getTransactions();
+                return result.data;
+              }}
+              onRefundTransaction={async (id, reason) => {
+                await SubscriptionService.refundTransaction(id, reason);
+              }}
+              onLoadInvoices={async () => {
+                const result = await SubscriptionService.getInvoices();
+                return result.data;
+              }}
+              onLoadTrialSettings={async () => await SubscriptionService.getTrialSettings()}
+              onUpdateTrialSettings={async (settings) => {
+                await SubscriptionService.updateTrialSettings(settings);
+              }}
+            />
+          </React.Suspense>
         );
 
       case 'settings':
         return (
-          <SettingsTab
-            platformConfig={platformConfig}
-            setPlatformConfig={setPlatformConfig}
-            isSavingSettings={isSavingSettings}
-            onSave={handleSavePlatformSettings}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <SettingsTab
+              platformConfig={platformConfig}
+              setPlatformConfig={setPlatformConfig}
+              isSavingSettings={isSavingSettings}
+              onSave={handleSavePlatformSettings}
+            />
+          </React.Suspense>
         );
 
       case 'notifications':
         return (
-          <NotificationsTab
-            notifications={notifications}
-            onSendNotification={handleSendNotification}
-            onDeleteNotification={handleDeleteNotification}
-            tenants={tenants}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <NotificationsTab
+              notifications={notifications}
+              onSendNotification={handleSendNotification}
+              onDeleteNotification={handleDeleteNotification}
+              tenants={tenants}
+            />
+          </React.Suspense>
         );
 
       case 'theme-config':
         return (
-          <ThemeConfigTab
-            config={themeConfig}
-            onSave={handleSaveTheme}
-            onApplyToTenant={handleApplyThemeToTenant}
-            onApplyToAll={handleApplyThemeToAll}
-            tenants={tenants}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <ThemeConfigTab
+              config={themeConfig}
+              onSave={handleSaveTheme}
+              onApplyToTenant={handleApplyThemeToTenant}
+              onApplyToAll={handleApplyThemeToAll}
+              tenants={tenants}
+            />
+          </React.Suspense>
         );
 
       case 'chat-config':
         return (
-          <ChatConfigTab
-            config={chatConfig}
-            onSave={handleSaveChatConfig}
-            onApplyToTenant={handleApplyChatToTenant}
-            onApplyToAll={handleApplyChatToAll}
-            tenants={tenants}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <ChatConfigTab
+              config={chatConfig}
+              onSave={handleSaveChatConfig}
+              onApplyToTenant={handleApplyChatToTenant}
+              onApplyToAll={handleApplyChatToAll}
+              tenants={tenants}
+            />
+          </React.Suspense>
         );
 
       case 'announcements':
         return (
-          <BulkAnnouncementsTab
-            announcements={announcements}
-            tenants={tenants}
-            onCreateAnnouncement={handleCreateAnnouncement}
-            onUpdateAnnouncement={handleUpdateAnnouncement}
-            onDeleteAnnouncement={handleDeleteAnnouncement}
-            onSendAnnouncement={handleSendAnnouncement}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <BulkAnnouncementsTab
+              announcements={announcements}
+              tenants={tenants}
+              onCreateAnnouncement={handleCreateAnnouncement}
+              onUpdateAnnouncement={handleUpdateAnnouncement}
+              onDeleteAnnouncement={handleDeleteAnnouncement}
+              onSendAnnouncement={handleSendAnnouncement}
+            />
+          </React.Suspense>
         );
 
       case 'support-tickets':
         return (
-          <SupportTicketsTab
-            tickets={supportTickets}
-            tenants={tenants}
-            onCreateTicket={handleCreateTicket}
-            onUpdateTicket={handleUpdateTicket}
-            onReplyTicket={handleReplyTicket}
-            onCloseTicket={handleCloseTicket}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <SupportTicketsTab
+              tickets={supportTickets}
+              tenants={tenants}
+              onCreateTicket={handleCreateTicket}
+              onUpdateTicket={handleUpdateTicket}
+              onReplyTicket={handleReplyTicket}
+              onCloseTicket={handleCloseTicket}
+            />
+          </React.Suspense>
         );
 
       case 'merchant-success':
         return (
-          <MerchantSuccessTab
-            merchantHealth={merchantHealth}
-            atRiskMerchants={atRiskMerchants}
-            tenants={tenants}
-            onAcknowledgeAlert={handleAcknowledgeAlert}
-            onContactMerchant={handleContactMerchant}
-            onScheduleFollowUp={handleScheduleFollowUp}
-            onUpdateMerchantStatus={handleUpdateMerchantStatus}
-            onAddNote={handleAddNote}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <MerchantSuccessTab
+              merchantHealth={merchantHealth}
+              atRiskMerchants={atRiskMerchants}
+              tenants={tenants}
+              onAcknowledgeAlert={handleAcknowledgeAlert}
+              onContactMerchant={handleContactMerchant}
+              onScheduleFollowUp={handleScheduleFollowUp}
+              onUpdateMerchantStatus={handleUpdateMerchantStatus}
+              onAddNote={handleAddNote}
+            />
+          </React.Suspense>
         );
 
       case 'website-config':
@@ -1215,12 +1236,14 @@ const SuperAdminDashboard: React.FC = () => {
 
       default:
         return (
-          <OverviewTab
-            systemStats={systemStats}
-            topTenants={mockTopTenants}
-            recentActivities={mockRecentActivities}
-            onViewAllTenants={() => setActiveTab('tenants')}
-          />
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <OverviewTab
+              systemStats={systemStats}
+              topTenants={mockTopTenants}
+              recentActivities={mockRecentActivities}
+              onViewAllTenants={() => setActiveTab('tenants')}
+            />
+          </React.Suspense>
         );
     }
   };

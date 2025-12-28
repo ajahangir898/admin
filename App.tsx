@@ -77,8 +77,8 @@ const ImageSearchPage = lazy(() => import('./pages/ImageSearch'));
 export const preloadCheckout = () => import('./pages/StoreCheckout');
 export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
 
-// Admin pages - SuperAdminDashboard directly imported for instant load
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
+// Admin pages - lazy loaded
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 
 const AdminAppWithAuth = lazy(() => {
@@ -934,7 +934,13 @@ const App = () => {
               }} />
             </Suspense>
           ) : currentView === 'super-admin' ? (
-            <SuperAdminDashboard />
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            }>
+              <SuperAdminDashboard />
+            </Suspense>
           ) : currentView === 'admin' ? (
             <Suspense fallback={null}>
               <AdminAppWithAuth

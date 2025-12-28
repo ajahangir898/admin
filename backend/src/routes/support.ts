@@ -32,8 +32,8 @@ const addCommentSchema = z.object({
 // GET /api/support - List tickets (with filters)
 supportRouter.get('/', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { tenantId } = (req as any).user;
     const user = (req as any).user;
+    const tenantId = req.tenantId || user.tenantId;
     
     // For super_admin, can see all tickets or filter by tenantId query param
     const filterTenantId = user.role === 'super_admin' 
@@ -90,8 +90,8 @@ supportRouter.get('/', authenticateToken, async (req: Request, res: Response, ne
 // GET /api/support/stats - Get ticket statistics
 supportRouter.get('/stats', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { tenantId } = (req as any).user;
     const user = (req as any).user;
+    const tenantId = req.tenantId || user.tenantId;
     
     const filterTenantId = user.role === 'super_admin' 
       ? (req.query.tenantId as string || undefined)
@@ -135,8 +135,8 @@ supportRouter.get('/stats', authenticateToken, async (req: Request, res: Respons
 // GET /api/support/:id - Get single ticket
 supportRouter.get('/:id', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { tenantId } = (req as any).user;
     const user = (req as any).user;
+    const tenantId = req.tenantId || user.tenantId;
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -219,7 +219,9 @@ supportRouter.post('/', authenticateToken, async (req: Request, res: Response, n
 // PATCH /api/support/:id - Update ticket
 supportRouter.patch('/:id', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { tenantId, role } = (req as any).user;
+    const user = (req as any).user;
+    const tenantId = req.tenantId || user.tenantId;
+    const role = user.role;
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -280,8 +282,11 @@ supportRouter.patch('/:id', authenticateToken, async (req: Request, res: Respons
 // POST /api/support/:id/comments - Add comment to ticket
 supportRouter.post('/:id/comments', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { tenantId, userId, email, role } = (req as any).user;
     const user = (req as any).user;
+    const userId = req.userId || user._id?.toString();
+    const tenantId = req.tenantId || user.tenantId;
+    const email = user.email;
+    const role = user.role;
     const { id } = req.params;
     const userName = user.name || email.split('@')[0];
 
@@ -328,7 +333,9 @@ supportRouter.post('/:id/comments', authenticateToken, async (req: Request, res:
 // DELETE /api/support/:id - Delete ticket (admin only)
 supportRouter.delete('/:id', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { tenantId, role } = (req as any).user;
+    const user = (req as any).user;
+    const tenantId = req.tenantId || user.tenantId;
+    const role = user.role;
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {

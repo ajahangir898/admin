@@ -109,3 +109,37 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml image/svg+xml;
 }
+
+# Static subdomain for CDN assets with CORS
+server {
+    listen 443 ssl;
+    server_name static.systemnextit.com;
+
+    ssl_certificate /etc/letsencrypt/live/systemnextit.com-0001/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/systemnextit.com-0001/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    root /var/www/admin/dist/client;
+
+    location / {
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, OPTIONS' always;
+        add_header Access-Control-Allow-Headers 'Content-Type' always;
+        add_header Cache-Control 'public, max-age=31536000';
+        try_files $uri $uri/ =404;
+    }
+
+    location /uploads/ {
+        alias /var/www/admin/backend/uploads/;
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods 'GET, OPTIONS' always;
+        add_header Cache-Control 'public, max-age=2592000';
+        try_files $uri =404;
+    }
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml image/svg+xml;
+}

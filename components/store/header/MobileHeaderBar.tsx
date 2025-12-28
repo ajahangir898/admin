@@ -28,26 +28,9 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
   searchProps
 }) => (
   <div className="md:hidden bg-white px-3 py-2.5 border-b border-gray-100 shadow-sm sticky top-0 z-40">
-    {/* Top Row: Logo Left, Actions Right */}
+    {/* Top Row: Actions Left, Logo Right */}
     <div className="flex items-center justify-between gap-2 mb-2.5">
-      {/* Left: Logo */}
-      <button type="button" className="flex items-center" onClick={onHomeClick}>
-        {resolvedHeaderLogo ? (
-          <img
-            key={logoKey}
-            src={normalizeImageUrl(resolvedHeaderLogo)}
-            alt="Store logo"
-            className="h-8 max-w-[120px] object-contain"
-          />
-        ) : (
-          <h1 className="text-lg font-bold tracking-tight">
-            <span className="text-green-900">YOUR</span>
-            <span className="text-theme-primary">SHOP</span>
-          </h1>
-        )}
-      </button>
-
-      {/* Right: Action Icons */}
+      {/* Left: Action Icons */}
       <div className="flex items-center gap-0.5">
         <button 
           type="button" 
@@ -81,6 +64,23 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
           <User size={20} />
         </button>
       </div>
+
+      {/* Right: Logo */}
+      <button type="button" className="flex items-center" onClick={onHomeClick}>
+        {resolvedHeaderLogo ? (
+          <img
+            key={logoKey}
+            src={normalizeImageUrl(resolvedHeaderLogo)}
+            alt="Store logo"
+            className="h-8 max-w-[120px] object-contain"
+          />
+        ) : (
+          <h1 className="text-lg font-bold tracking-tight">
+            <span className="text-green-900">YOUR</span>
+            <span className="text-theme-primary">SHOP</span>
+          </h1>
+        )}
+      </button>
     </div>
 
     {/* Bottom Row: Search Bar */}

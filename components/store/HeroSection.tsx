@@ -150,9 +150,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     const items = (carouselItems?.filter(i => i.status === 'Publish').sort((a,b) => a.serial - b.serial) || [])
         .slice(0, MAX_CAROUSEL_ITEMS);
     
-    // Debug: Log carousel items when they change
+    // Debug: Log carousel items when they change (only in development)
     useEffect(() => {
-        if (carouselItems && carouselItems.length > 0) {
+        if (import.meta.env.DEV && carouselItems && carouselItems.length > 0) {
             console.log('[HeroSection] Carousel items loaded:', carouselItems.length, 'items');
             console.log('[HeroSection] Published items:', items.length);
             if (items.length > 0) {

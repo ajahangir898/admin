@@ -7,7 +7,7 @@ const getBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
     // Get the backend API URL from environment or use current origin
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
-    if (apiUrl && apiUrl !== '') {
+    if (apiUrl) {
       return apiUrl;
     }
     // Use current origin for same-domain requests
@@ -18,8 +18,8 @@ const getBaseUrl = (): string => {
 };
 
 const PRODUCTION_URL = 'https://systemnextit.com';
-// Use dynamic base URL for uploads to work across environments
-const UPLOADS_BASE_URL = getBaseUrl();
+// Use function to get dynamic base URL for uploads to work across environments
+const getUploadsBaseUrl = (): string => getBaseUrl();
 
 // Image size presets for different use cases
 export type ImageSize = 'thumb' | 'small' | 'medium' | 'large' | 'full';
@@ -52,12 +52,12 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
   
   // If it's a relative URL (starts with /uploads), prepend the base URL
   if (url.startsWith('/uploads')) {
-    return `${UPLOADS_BASE_URL}${url}`;
+    return `${getUploadsBaseUrl()}${url}`;
   }
   
   // Handle relative URLs without leading slash (e.g., uploads/...)
   if (url.startsWith('uploads/')) {
-    return `${UPLOADS_BASE_URL}/${url}`;
+    return `${getUploadsBaseUrl()}/${url}`;
   }
   
   // If it's a localhost URL, replace with current origin or production

@@ -207,6 +207,100 @@ export interface TrialSettings {
   updatedAt?: string;
 }
 
+// Bulk Announcement for system-wide communication
+export interface BulkAnnouncement {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'maintenance' | 'feature';
+  channel: 'notification' | 'email' | 'both';
+  targetAudience: 'all' | 'active' | 'trialing' | 'suspended' | 'specific';
+  targetTenantIds?: string[];
+  scheduledAt?: string;
+  sentAt?: string;
+  status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
+  createdAt: string;
+  createdBy: string;
+  openRate?: number;
+  clickRate?: number;
+  template?: string;
+}
+
+// Support Ticket System
+export interface SupportTicket {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  tenantSubdomain: string;
+  subject: string;
+  description: string;
+  category: 'bug' | 'feature_request' | 'billing' | 'technical' | 'general';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
+  assignedTo?: string;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+  messages: TicketMessage[];
+  attachments?: string[];
+  tags?: string[];
+}
+
+export interface TicketMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderType: 'merchant' | 'support';
+  message: string;
+  createdAt: string;
+  attachments?: string[];
+}
+
+// Merchant Health & Success Tracking
+export interface MerchantHealth {
+  tenantId: string;
+  tenantName: string;
+  tenantSubdomain: string;
+  plan: 'starter' | 'growth' | 'enterprise';
+  healthScore: number; // 0-100
+  riskLevel: 'healthy' | 'at_risk' | 'critical';
+  lastLoginAt: string;
+  daysSinceLastLogin: number;
+  salesTrend: 'growing' | 'stable' | 'declining' | 'inactive';
+  salesChangePercent: number;
+  currentMonthRevenue: number;
+  previousMonthRevenue: number;
+  totalOrders30Days: number;
+  totalOrdersPrevious30Days: number;
+  activeProducts: number;
+  supportTicketsOpen: number;
+  alerts: MerchantAlert[];
+}
+
+export interface MerchantAlert {
+  id: string;
+  type: 'no_login' | 'sales_drop' | 'no_orders' | 'subscription_expiring' | 'high_refund_rate' | 'low_inventory';
+  severity: 'warning' | 'critical';
+  message: string;
+  triggeredAt: string;
+  acknowledged: boolean;
+  acknowledgedAt?: string;
+  acknowledgedBy?: string;
+}
+
+export interface AtRiskMerchant {
+  tenantId: string;
+  tenantName: string;
+  tenantSubdomain: string;
+  plan: 'starter' | 'growth' | 'enterprise';
+  riskScore: number; // Higher = more at risk
+  riskFactors: string[];
+  lastContact?: string;
+  nextFollowUp?: string;
+  notes?: string;
+  status: 'needs_attention' | 'contacted' | 'recovered' | 'churned';
+}
+
 export type TabType = 
   | 'overview' 
   | 'tenants' 
@@ -221,4 +315,7 @@ export type TabType =
   | 'notifications'
   | 'theme-config'
   | 'chat-config'
-  | 'website-config';
+  | 'website-config'
+  | 'announcements'
+  | 'support-tickets'
+  | 'merchant-success';

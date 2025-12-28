@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   LayoutDashboard, Users, Building2, ShoppingCart, CreditCard,
   BarChart3, Server, Database, Shield, Settings, ChevronDown, Crown,
-  Bell, Palette, MessageCircle, Globe
+  Bell, Palette, MessageCircle, Globe, Megaphone, LifeBuoy, Target
 } from 'lucide-react';
 import NavItem from './NavItem';
 import { TabType } from './types';
@@ -113,6 +113,32 @@ const Sidebar: React.FC<SidebarProps> = ({
           label="Notifications" 
           active={activeTab === 'notifications'} 
           onClick={() => setActiveTab('notifications')} 
+          collapsed={!sidebarOpen} 
+        />
+
+        <div className="pt-4 pb-2">
+          {sidebarOpen && <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Communication & CRM</p>}
+        </div>
+
+        <NavItem 
+          icon={Megaphone} 
+          label="Announcements" 
+          active={activeTab === 'announcements'} 
+          onClick={() => setActiveTab('announcements')} 
+          collapsed={!sidebarOpen} 
+        />
+        <NavItem 
+          icon={LifeBuoy} 
+          label="Support Tickets" 
+          active={activeTab === 'support-tickets'} 
+          onClick={() => setActiveTab('support-tickets')} 
+          collapsed={!sidebarOpen} 
+        />
+        <NavItem 
+          icon={Target} 
+          label="Merchant Success" 
+          active={activeTab === 'merchant-success'} 
+          onClick={() => setActiveTab('merchant-success')} 
           collapsed={!sidebarOpen} 
         />
         

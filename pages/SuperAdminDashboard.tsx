@@ -15,6 +15,9 @@ import {
   ThemeConfigTab,
   ChatConfigTab,
   SubscriptionsTab,
+  BulkAnnouncementsTab,
+  SupportTicketsTab,
+  MerchantSuccessTab,
   TabType,
   SystemStats,
   TenantStats,
@@ -22,7 +25,12 @@ import {
   Activity,
   AdminNotification,
   TenantThemeConfig,
-  ChatConfig
+  ChatConfig,
+  BulkAnnouncement,
+  SupportTicket,
+  TicketMessage,
+  MerchantHealth,
+  AtRiskMerchant
 } from '../components/superadmin';
 
 // Lazy load AdminTenantManagement
@@ -95,6 +103,237 @@ const mockRecentActivities: Activity[] = [
   { id: 5, type: 'support', message: 'New support ticket from HomeDecor Plus', time: '2 hours ago', icon: MessageSquare },
 ];
 
+// Mock announcements
+const mockAnnouncements: BulkAnnouncement[] = [
+  {
+    id: '1',
+    title: 'Scheduled Maintenance - December 29th',
+    message: 'We will be performing scheduled maintenance on our servers. Expected downtime: 2 hours.',
+    type: 'maintenance',
+    channel: 'both',
+    targetAudience: 'all',
+    status: 'scheduled',
+    scheduledAt: '2025-12-29T02:00:00',
+    createdAt: '2 days ago',
+    createdBy: 'Super Admin'
+  },
+  {
+    id: '2',
+    title: 'New Feature: Instagram Integration',
+    message: 'We are excited to announce Instagram Shopping integration is now available for all Enterprise plans!',
+    type: 'feature',
+    channel: 'both',
+    targetAudience: 'active',
+    status: 'sent',
+    sentAt: '2025-12-26',
+    createdAt: '3 days ago',
+    createdBy: 'Super Admin',
+    openRate: 78,
+    clickRate: 34
+  },
+  {
+    id: '3',
+    title: 'Holiday Season Tips',
+    message: 'Maximize your sales this holiday season with these proven strategies...',
+    type: 'info',
+    channel: 'email',
+    targetAudience: 'all',
+    status: 'draft',
+    createdAt: '1 day ago',
+    createdBy: 'Super Admin'
+  }
+];
+
+// Mock support tickets
+const mockSupportTickets: SupportTicket[] = [
+  {
+    id: '1',
+    tenantId: '1',
+    tenantName: 'OPBD Fashion',
+    tenantSubdomain: 'opbd',
+    subject: 'Payment gateway not working',
+    description: 'Customers are unable to complete payments through bKash. Getting error code 500.',
+    category: 'bug',
+    priority: 'urgent',
+    status: 'in_progress',
+    assignedTo: 'Support Team',
+    createdAt: '2 hours ago',
+    updatedAt: '30 min ago',
+    messages: [
+      { id: 'm1', senderId: 'tenant1', senderName: 'OPBD Admin', senderType: 'merchant', message: 'This is urgent, we are losing sales!', createdAt: '2 hours ago' },
+      { id: 'm2', senderId: 'support', senderName: 'Support Team', senderType: 'support', message: 'We are investigating this issue. Can you provide the error logs?', createdAt: '1 hour ago' }
+    ]
+  },
+  {
+    id: '2',
+    tenantId: '3',
+    tenantName: 'TechMart Online',
+    tenantSubdomain: 'techmart',
+    subject: 'Request: Bulk product import from CSV',
+    description: 'We have 500+ products to add. Need ability to import from CSV file.',
+    category: 'feature_request',
+    priority: 'medium',
+    status: 'open',
+    createdAt: '1 day ago',
+    updatedAt: '1 day ago',
+    messages: [
+      { id: 'm3', senderId: 'tenant3', senderName: 'TechMart Admin', senderType: 'merchant', message: 'Adding products one by one is very time consuming. Please add CSV import.', createdAt: '1 day ago' }
+    ],
+    tags: ['enhancement', 'products']
+  },
+  {
+    id: '3',
+    tenantId: '5',
+    tenantName: 'HomeDecor Plus',
+    tenantSubdomain: 'homedecor',
+    subject: 'Billing question - discount not applied',
+    description: 'I signed up with a 20% discount code but my invoice shows full price.',
+    category: 'billing',
+    priority: 'high',
+    status: 'waiting_response',
+    assignedTo: 'Billing Team',
+    createdAt: '5 hours ago',
+    updatedAt: '3 hours ago',
+    messages: [
+      { id: 'm4', senderId: 'tenant5', senderName: 'HomeDecor Admin', senderType: 'merchant', message: 'The code was HOLIDAY20. Please check.', createdAt: '5 hours ago' },
+      { id: 'm5', senderId: 'support', senderName: 'Billing Team', senderType: 'support', message: 'We\'ve applied the discount. Please confirm on your next invoice.', createdAt: '3 hours ago' }
+    ]
+  }
+];
+
+// Mock merchant health data
+const mockMerchantHealth: MerchantHealth[] = [
+  {
+    tenantId: '1',
+    tenantName: 'OPBD Fashion',
+    tenantSubdomain: 'opbd',
+    plan: 'enterprise',
+    healthScore: 92,
+    riskLevel: 'healthy',
+    lastLoginAt: '2025-12-28T10:30:00',
+    daysSinceLastLogin: 0,
+    salesTrend: 'growing',
+    salesChangePercent: 15,
+    currentMonthRevenue: 485000,
+    previousMonthRevenue: 421000,
+    totalOrders30Days: 245,
+    totalOrdersPrevious30Days: 210,
+    activeProducts: 156,
+    supportTicketsOpen: 1,
+    alerts: []
+  },
+  {
+    tenantId: '2',
+    tenantName: 'StyleHub BD',
+    tenantSubdomain: 'stylehub',
+    plan: 'growth',
+    healthScore: 78,
+    riskLevel: 'healthy',
+    lastLoginAt: '2025-12-27T14:20:00',
+    daysSinceLastLogin: 1,
+    salesTrend: 'stable',
+    salesChangePercent: 3,
+    currentMonthRevenue: 320000,
+    previousMonthRevenue: 310000,
+    totalOrders30Days: 182,
+    totalOrdersPrevious30Days: 175,
+    activeProducts: 89,
+    supportTicketsOpen: 0,
+    alerts: []
+  },
+  {
+    tenantId: '3',
+    tenantName: 'TechMart Online',
+    tenantSubdomain: 'techmart',
+    plan: 'enterprise',
+    healthScore: 45,
+    riskLevel: 'at_risk',
+    lastLoginAt: '2025-12-20T09:00:00',
+    daysSinceLastLogin: 8,
+    salesTrend: 'declining',
+    salesChangePercent: -35,
+    currentMonthRevenue: 578000,
+    previousMonthRevenue: 890000,
+    totalOrders30Days: 98,
+    totalOrdersPrevious30Days: 156,
+    activeProducts: 234,
+    supportTicketsOpen: 1,
+    alerts: [
+      { id: 'a1', type: 'sales_drop', severity: 'critical', message: 'Sales dropped 35% compared to last month', triggeredAt: '3 days ago', acknowledged: false },
+      { id: 'a2', type: 'no_login', severity: 'warning', message: 'No login for 8 days', triggeredAt: '1 day ago', acknowledged: false }
+    ]
+  },
+  {
+    tenantId: '4',
+    tenantName: 'FoodieExpress',
+    tenantSubdomain: 'foodie',
+    plan: 'starter',
+    healthScore: 28,
+    riskLevel: 'critical',
+    lastLoginAt: '2025-12-10T11:45:00',
+    daysSinceLastLogin: 18,
+    salesTrend: 'inactive',
+    salesChangePercent: -80,
+    currentMonthRevenue: 9000,
+    previousMonthRevenue: 45000,
+    totalOrders30Days: 12,
+    totalOrdersPrevious30Days: 58,
+    activeProducts: 23,
+    supportTicketsOpen: 0,
+    alerts: [
+      { id: 'a3', type: 'no_login', severity: 'critical', message: 'No login for 18 days', triggeredAt: '4 days ago', acknowledged: false },
+      { id: 'a4', type: 'sales_drop', severity: 'critical', message: 'Sales dropped 80% - merchant may be churning', triggeredAt: '5 days ago', acknowledged: false },
+      { id: 'a5', type: 'subscription_expiring', severity: 'warning', message: 'Trial expires in 5 days', triggeredAt: '2 days ago', acknowledged: false }
+    ]
+  },
+  {
+    tenantId: '5',
+    tenantName: 'HomeDecor Plus',
+    tenantSubdomain: 'homedecor',
+    plan: 'growth',
+    healthScore: 65,
+    riskLevel: 'at_risk',
+    lastLoginAt: '2025-12-25T16:00:00',
+    daysSinceLastLogin: 3,
+    salesTrend: 'declining',
+    salesChangePercent: -20,
+    currentMonthRevenue: 168000,
+    previousMonthRevenue: 210000,
+    totalOrders30Days: 78,
+    totalOrdersPrevious30Days: 98,
+    activeProducts: 67,
+    supportTicketsOpen: 1,
+    alerts: [
+      { id: 'a6', type: 'sales_drop', severity: 'warning', message: 'Sales declined 20% this month', triggeredAt: '1 week ago', acknowledged: true }
+    ]
+  }
+];
+
+// Mock at-risk merchants
+const mockAtRiskMerchants: AtRiskMerchant[] = [
+  {
+    tenantId: '4',
+    tenantName: 'FoodieExpress',
+    tenantSubdomain: 'foodie',
+    plan: 'starter',
+    riskScore: 85,
+    riskFactors: ['No login for 18 days', 'Sales dropped 80%', 'Trial expiring soon'],
+    status: 'needs_attention'
+  },
+  {
+    tenantId: '3',
+    tenantName: 'TechMart Online',
+    tenantSubdomain: 'techmart',
+    plan: 'enterprise',
+    riskScore: 55,
+    riskFactors: ['Sales dropped 35%', 'Reduced login frequency'],
+    lastContact: '2025-12-22',
+    nextFollowUp: '2025-12-30',
+    notes: 'Merchant mentioned they are restructuring their business',
+    status: 'contacted'
+  }
+];
+
 const SuperAdminDashboard: React.FC = () => {
   // UI State
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -116,6 +355,16 @@ const SuperAdminDashboard: React.FC = () => {
 
   // Chat configuration state
   const [chatConfig, setChatConfig] = useState<ChatConfig>(defaultChatConfig);
+
+  // Announcements state
+  const [announcements, setAnnouncements] = useState<BulkAnnouncement[]>(mockAnnouncements);
+
+  // Support tickets state
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(mockSupportTickets);
+
+  // Merchant health state
+  const [merchantHealth, setMerchantHealth] = useState<MerchantHealth[]>(mockMerchantHealth);
+  const [atRiskMerchants, setAtRiskMerchants] = useState<AtRiskMerchant[]>(mockAtRiskMerchants);
 
   // Notifications state
   const [notifications, setNotifications] = useState<AdminNotification[]>([
@@ -406,6 +655,188 @@ const SuperAdminDashboard: React.FC = () => {
     }
   }, [tenants]);
 
+  // Announcement handlers
+  const handleCreateAnnouncement = useCallback(async (announcement: Omit<BulkAnnouncement, 'id' | 'createdAt' | 'status'>) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const newAnnouncement: BulkAnnouncement = {
+        ...announcement,
+        id: Date.now().toString(),
+        createdAt: 'Just now',
+        status: announcement.scheduledAt ? 'scheduled' : 'draft'
+      };
+      setAnnouncements(prev => [newAnnouncement, ...prev]);
+      toast.success('Announcement created successfully');
+    } catch (error) {
+      toast.error('Failed to create announcement');
+      throw error;
+    }
+  }, []);
+
+  const handleUpdateAnnouncement = useCallback(async (id: string, updates: Partial<BulkAnnouncement>) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+      toast.success('Announcement updated');
+    } catch (error) {
+      toast.error('Failed to update announcement');
+      throw error;
+    }
+  }, []);
+
+  const handleDeleteAnnouncement = useCallback(async (id: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setAnnouncements(prev => prev.filter(a => a.id !== id));
+      toast.success('Announcement deleted');
+    } catch (error) {
+      toast.error('Failed to delete announcement');
+      throw error;
+    }
+  }, []);
+
+  const handleSendAnnouncement = useCallback(async (id: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setAnnouncements(prev => prev.map(a => 
+        a.id === id ? { ...a, status: 'sent' as const, sentAt: new Date().toISOString() } : a
+      ));
+      toast.success('Announcement sent successfully');
+    } catch (error) {
+      toast.error('Failed to send announcement');
+      throw error;
+    }
+  }, []);
+
+  // Support ticket handlers
+  const handleCreateTicket = useCallback(async (ticket: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt' | 'messages'>) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const newTicket: SupportTicket = {
+        ...ticket,
+        id: Date.now().toString(),
+        createdAt: 'Just now',
+        updatedAt: 'Just now',
+        messages: []
+      };
+      setSupportTickets(prev => [newTicket, ...prev]);
+      toast.success('Ticket created');
+    } catch (error) {
+      toast.error('Failed to create ticket');
+      throw error;
+    }
+  }, []);
+
+  const handleUpdateTicket = useCallback(async (id: string, updates: Partial<SupportTicket>) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setSupportTickets(prev => prev.map(t => t.id === id ? { ...t, ...updates, updatedAt: 'Just now' } : t));
+      toast.success('Ticket updated');
+    } catch (error) {
+      toast.error('Failed to update ticket');
+      throw error;
+    }
+  }, []);
+
+  const handleReplyTicket = useCallback(async (ticketId: string, message: Omit<TicketMessage, 'id' | 'createdAt'>) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const newMessage: TicketMessage = {
+        ...message,
+        id: Date.now().toString(),
+        createdAt: 'Just now'
+      };
+      setSupportTickets(prev => prev.map(t => 
+        t.id === ticketId 
+          ? { ...t, messages: [...t.messages, newMessage], updatedAt: 'Just now', status: 'waiting_response' as const }
+          : t
+      ));
+      toast.success('Reply sent');
+    } catch (error) {
+      toast.error('Failed to send reply');
+      throw error;
+    }
+  }, []);
+
+  const handleCloseTicket = useCallback(async (id: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setSupportTickets(prev => prev.map(t => 
+        t.id === id ? { ...t, status: 'closed' as const, resolvedAt: new Date().toISOString() } : t
+      ));
+      toast.success('Ticket closed');
+    } catch (error) {
+      toast.error('Failed to close ticket');
+      throw error;
+    }
+  }, []);
+
+  // Merchant success handlers
+  const handleAcknowledgeAlert = useCallback(async (merchantId: string, alertId: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setMerchantHealth(prev => prev.map(m => 
+        m.tenantId === merchantId 
+          ? { ...m, alerts: m.alerts.map(a => a.id === alertId ? { ...a, acknowledged: true, acknowledgedAt: new Date().toISOString() } : a) }
+          : m
+      ));
+      toast.success('Alert acknowledged');
+    } catch (error) {
+      toast.error('Failed to acknowledge alert');
+      throw error;
+    }
+  }, []);
+
+  const handleContactMerchant = useCallback(async (merchantId: string, method: 'email' | 'phone' | 'message') => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      toast.success(`Opening ${method} for merchant...`);
+      // In production, this would open email client, phone dialer, or messaging interface
+    } catch (error) {
+      toast.error('Failed to contact merchant');
+      throw error;
+    }
+  }, []);
+
+  const handleScheduleFollowUp = useCallback(async (merchantId: string, date: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setAtRiskMerchants(prev => prev.map(m => 
+        m.tenantId === merchantId ? { ...m, nextFollowUp: date } : m
+      ));
+      toast.success('Follow-up scheduled');
+    } catch (error) {
+      toast.error('Failed to schedule follow-up');
+      throw error;
+    }
+  }, []);
+
+  const handleUpdateMerchantStatus = useCallback(async (merchantId: string, status: AtRiskMerchant['status']) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setAtRiskMerchants(prev => prev.map(m => 
+        m.tenantId === merchantId ? { ...m, status } : m
+      ));
+      toast.success('Merchant status updated');
+    } catch (error) {
+      toast.error('Failed to update status');
+      throw error;
+    }
+  }, []);
+
+  const handleAddNote = useCallback(async (merchantId: string, note: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setAtRiskMerchants(prev => prev.map(m => 
+        m.tenantId === merchantId ? { ...m, notes: note } : m
+      ));
+      toast.success('Note saved');
+    } catch (error) {
+      toast.error('Failed to save note');
+      throw error;
+    }
+  }, []);
+
   // Render active tab content
   const renderTabContent = () => {
     switch (activeTab) {
@@ -500,6 +931,44 @@ const SuperAdminDashboard: React.FC = () => {
             onApplyToTenant={handleApplyChatToTenant}
             onApplyToAll={handleApplyChatToAll}
             tenants={tenants}
+          />
+        );
+
+      case 'announcements':
+        return (
+          <BulkAnnouncementsTab
+            announcements={announcements}
+            tenants={tenants}
+            onCreateAnnouncement={handleCreateAnnouncement}
+            onUpdateAnnouncement={handleUpdateAnnouncement}
+            onDeleteAnnouncement={handleDeleteAnnouncement}
+            onSendAnnouncement={handleSendAnnouncement}
+          />
+        );
+
+      case 'support-tickets':
+        return (
+          <SupportTicketsTab
+            tickets={supportTickets}
+            tenants={tenants}
+            onCreateTicket={handleCreateTicket}
+            onUpdateTicket={handleUpdateTicket}
+            onReplyTicket={handleReplyTicket}
+            onCloseTicket={handleCloseTicket}
+          />
+        );
+
+      case 'merchant-success':
+        return (
+          <MerchantSuccessTab
+            merchantHealth={merchantHealth}
+            atRiskMerchants={atRiskMerchants}
+            tenants={tenants}
+            onAcknowledgeAlert={handleAcknowledgeAlert}
+            onContactMerchant={handleContactMerchant}
+            onScheduleFollowUp={handleScheduleFollowUp}
+            onUpdateMerchantStatus={handleUpdateMerchantStatus}
+            onAddNote={handleAddNote}
           />
         );
 

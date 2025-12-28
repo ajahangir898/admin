@@ -11,6 +11,9 @@ export { default as NotificationsTab } from './NotificationsTab';
 export { default as ThemeConfigTab } from './ThemeConfigTab';
 export { default as ChatConfigTab } from './ChatConfigTab';
 export { default as SubscriptionsTab } from './SubscriptionsTab';
+export { default as BulkAnnouncementsTab } from './BulkAnnouncementsTab';
+export { default as SupportTicketsTab } from './SupportTicketsTab';
+export { default as MerchantSuccessTab } from './MerchantSuccessTab';
 
 // Export types
 export * from './types';

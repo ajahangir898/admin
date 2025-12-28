@@ -5,6 +5,7 @@ import { SubscriptionService } from '../services/SubscriptionService';
 import { getAuthHeader } from '../services/authService';
 import { Tenant, CreateTenantPayload, TenantStatus } from '../types';
 import { toast } from 'react-hot-toast';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 // Import core UI components (small, needed immediately)
 import {
@@ -1026,15 +1027,11 @@ const SuperAdminDashboard: React.FC = () => {
     }
   }, []);
 
+  // Loading fallback for lazy-loaded tabs
+  const TabLoadingFallback = () => <LoadingSpinner minHeight="min-h-[400px]" />;
+
   // Render active tab content
   const renderTabContent = () => {
-    // Loading fallback for lazy-loaded tabs
-    const TabLoadingFallback = () => (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-
     switch (activeTab) {
       case 'tenants':
         return (

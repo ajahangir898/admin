@@ -91,6 +91,9 @@ const LoginModal = lazy(() => import('./components/store/LoginModal').then(m => 
 const MobileBottomNav = lazy(() => import('./components/store/MobileBottomNav').then(m => ({ default: m.MobileBottomNav })));
 const StoreChatModal = lazy(() => import('./components/store/StoreChatModal').then(m => ({ default: m.StoreChatModal })));
 
+// Loading spinner component
+import { LoadingSpinner } from './components/LoadingSpinner';
+
 // Preload critical chunks during idle time
 if (typeof window !== 'undefined') {
   const preload = () => {
@@ -934,11 +937,7 @@ const App = () => {
               }} />
             </Suspense>
           ) : currentView === 'super-admin' ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center min-h-screen bg-slate-50">
-                <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-              </div>
-            }>
+            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
               <SuperAdminDashboard />
             </Suspense>
           ) : currentView === 'admin' ? (

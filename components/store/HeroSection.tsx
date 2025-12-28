@@ -40,6 +40,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems }) => {
     useEffect(() => {
         if (!items[0]) return;
         const href = normalizeImageUrl(isMobile && items[0].mobileImage ? items[0].mobileImage : items[0].image);
+
+        // Never preload data URLs (base64) or extremely long URLs.
+        // Preloading them can bloat memory and often triggers
+        // "preloaded but not used" warnings.
+        if (!href || href.startsWith('data:') || href.length > 2048) return;
         const link = document.createElement('link');
         link.rel = 'preload';
         link.as = 'image';

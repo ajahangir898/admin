@@ -3,10 +3,14 @@ import {
   ChevronRight, Shirt, Monitor, Home, ShoppingCart, 
   Sparkles, Smartphone, Heart, Gift, Loader2, Send, Bot, X 
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 // --- Gemini API Configuration ---
-const apiKey = ""; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+// TODO: Move API key to environment variables for production
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ""; 
+const API_URL = apiKey 
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`
+  : '';
 
 const initialCategories = [
   { id: 1, name: "Man Fashion", icon: <Shirt size={14} className="text-blue-500" /> },
@@ -34,6 +38,10 @@ const CategorySectionMobile = () => {
 
   // --- Gemini API Helper ---
   const callGemini = async (prompt: string, systemPrompt = "", retries = 5, delay = 1000): Promise<string> => {
+    if (!API_URL) {
+      throw new Error('Gemini API key not configured. Please set VITE_GEMINI_API_KEY environment variable.');
+    }
+    
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -43,7 +51,13 @@ const CategorySectionMobile = () => {
           systemInstruction: { parts: [{ text: systemPrompt }] }
         })
       });
-      if (!response.ok) throw new Error('API Error');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData?.error?.message || `API returned ${response.status}`;
+        throw new Error(errorMessage);
+      }
+      
       const data = await response.json();
       return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     } catch (error) {
@@ -57,6 +71,11 @@ const CategorySectionMobile = () => {
 
   // Feature 1: ✨ AI Category Suggestion
   const handleAiSuggest = async () => {
+    if (!API_URL) {
+      toast.error('AI features require API key configuration');
+      return;
+    }
+    
     setIsSuggesting(true);
     const prompt = `Suggest one unique e-commerce category name (max 2 words) not in this list: ${categories.map(c => c.name).join(", ")}. Also provide a matching single emoji. Output format: "Emoji Name"`;
     
@@ -73,8 +92,11 @@ const CategorySectionMobile = () => {
       
       setCategories(prev => [newCat, ...prev]);
       if (scrollRef.current) scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      toast.success('New category added!');
     } catch (err) {
-      console.error("AI Suggestion failed");
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get AI suggestion';
+      console.error("AI Suggestion failed:", err);
+      toast.error(errorMessage.includes('API key') ? 'API key not configured' : 'AI suggestion failed. Please try again.');
     } finally {
       setIsSuggesting(false);
     }
@@ -83,6 +105,11 @@ const CategorySectionMobile = () => {
   // Feature 2: ✨ AI Chat Interaction
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
+    if (!API_URL) {
+      toast.error('AI chat requires API key configuration');
+      return;
+    }
+    
     const userMsg = { role: 'user', text: chatInput };
     setMessages(prev => [...prev, userMsg]);
     setChatInput("");
@@ -95,7 +122,12 @@ const CategorySectionMobile = () => {
       );
       setMessages(prev => [...prev, { role: 'bot', text: botResponse }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'bot', text: "Sorry, I'm offline. Please try again!" }]);
+      const errorMessage = err instanceof Error ? err.message : 'Service unavailable';
+      console.error("AI Chat failed:", err);
+      const userFriendlyMessage = errorMessage.includes('API key') 
+        ? "Sorry, AI chat is not configured." 
+        : "Sorry, I'm offline. Please try again!";
+      setMessages(prev => [...prev, { role: 'bot', text: userFriendlyMessage }]);
     } finally {
       setIsTyping(false);
     }

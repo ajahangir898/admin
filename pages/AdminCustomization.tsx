@@ -403,12 +403,12 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     }
   }, [websiteConfig]);
 
-  // Load popupList from storage
+  // Load popups from storage
   useEffect(() => {
-    DataService.get<Popup[]>('popupList', []).then(setPopupList);
+    DataService.get<Popup[]>('popups', []).then(setPopupList);
   }, []);
 
-  // Sync theme themeColors with prop
+  // Sync theme colors with prop
   useEffect(() => {
     if (themeConfig) {
       setThemeColors({
@@ -898,7 +898,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           } as Popup
         ];
 
-    await DataService.save('popupList', updatedPopups);
+    await DataService.save('popups', updatedPopups);
     setPopupList(updatedPopups);
     setIsPopupModalOpen(false);
   };
@@ -906,7 +906,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const handleDeletePopup = async (popupId: number): Promise<void> => {
     if (confirm('Delete popup?')) {
       const updatedPopups = popupList.filter((item) => item.id !== popupId);
-      await DataService.save('popupList', updatedPopups);
+      await DataService.save('popups', updatedPopups);
       setPopupList(updatedPopups);
     }
   };
@@ -921,11 +921,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           }
         : item
     );
-    await DataService.save('popupList', updatedPopups);
+    await DataService.save('popups', updatedPopups);
     setPopupList(updatedPopups);
   };
 
-  // Filter popupList based on status and search
+  // Filter popups based on status and search
   const filteredPopups = popupList.filter(
     (popup) =>
       (popupFilterStatus === 'All' || popup.status === popupFilterStatus) &&
@@ -1305,7 +1305,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
               <table className="w-full">
                 <thead className="bg-gray-50 border-b"><tr><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Image</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">URL</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Priority</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th></tr></thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredPopups.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No popupList found</td></tr> : filteredPopups.map(p => <tr key={p.id} className="hover:bg-gray-50"><td className="px-4 py-3"><img src={p.image} alt={p.name} className="h-12 w-16 object-cover rounded border"/></td><td className="px-4 py-3 text-sm font-medium text-gray-800">{p.name}</td><td className="px-4 py-3 text-sm text-gray-500 truncate max-w-xs">{p.url || '-'}</td><td className="px-4 py-3 text-sm text-gray-800">{p.priority || 0}</td><td className="px-4 py-3"><button onClick={() => handleTogglePopupStatus(p)} className={`px-3 py-1 rounded-full text-xs font-semibold ${p.status === 'Publish' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{p.status}</button></td><td className="px-4 py-3 text-right"><div className="flex items-center justify-end gap-2"><button onClick={() => openPopupModal(p)} className="p-1.5 hover:bg-blue-50 rounded text-blue-600"><Edit size={16}/></button><button onClick={() => handleDeletePopup(p.id)} className="p-1.5 hover:bg-red-50 rounded text-red-600"><Trash2 size={16}/></button></div></td></tr>)}
+                  {filteredPopups.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No popups found</td></tr> : filteredPopups.map(p => <tr key={p.id} className="hover:bg-gray-50"><td className="px-4 py-3"><img src={p.image} alt={p.name} className="h-12 w-16 object-cover rounded border"/></td><td className="px-4 py-3 text-sm font-medium text-gray-800">{p.name}</td><td className="px-4 py-3 text-sm text-gray-500 truncate max-w-xs">{p.url || '-'}</td><td className="px-4 py-3 text-sm text-gray-800">{p.priority || 0}</td><td className="px-4 py-3"><button onClick={() => handleTogglePopupStatus(p)} className={`px-3 py-1 rounded-full text-xs font-semibold ${p.status === 'Publish' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{p.status}</button></td><td className="px-4 py-3 text-right"><div className="flex items-center justify-end gap-2"><button onClick={() => openPopupModal(p)} className="p-1.5 hover:bg-blue-50 rounded text-blue-600"><Edit size={16}/></button><button onClick={() => handleDeletePopup(p.id)} className="p-1.5 hover:bg-red-50 rounded text-red-600"><Trash2 size={16}/></button></div></td></tr>)}
                 </tbody>
               </table>
             </div>

@@ -117,7 +117,7 @@ def load_yolo_model():
         return _model
     
     try:
-        from ultralytics import YOLO
+        from ultralytics import YOLO # type: ignore
         # Use YOLOv8 nano for fast inference, can upgrade to yolov8s or yolov8m for better accuracy
         _model = YOLO('yolov8n.pt')
         _model_loaded = True

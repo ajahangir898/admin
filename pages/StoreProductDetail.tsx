@@ -652,7 +652,7 @@ const StoreProductDetail = ({
                       onClick={handleShareLink}
                       className="inline-flex items-center gap-2 rounded-full bg-[#0064d1] hover:bg-[#0055b2] text-white text-sm font-semibold px-4 py-2 shadow-sm"
                     >
-                        <Share2 size={16} /> Share now
+                        <Share2 size={16} /> Share
                      </button>
                      <span className="text-xs text-gray-500 break-all">
                        
@@ -776,8 +776,8 @@ const StoreProductDetail = ({
                  <div className="space-y-2 text-sm text-gray-600 border-t border-gray-100 pt-4 mt-auto">
                     <p><span className="font-semibold text-gray-800 w-24 inline-block">Category:</span> <span className="text-theme-primary">{product.category || 'Electronics'}</span></p>
                     {product.tags && (
-                      <p><span className="font-semibold text-gray-800 w-24 inline-block">Tags:</span> {product.tags.join(', ')}</p>
-                    )}
+                      <><p><span className="font-semibold text-gray-800 w-24 inline-block">Tags:</span> {product.tags.join(', ')}</p> <p><span className="font-semibold text-gray-800 w-24 inline-block">SKU: {product.sku}</span></p></>   
+                   )}
                  </div>
               </div>
             </div>

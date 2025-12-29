@@ -1,155 +1,74 @@
-import React, { memo, useMemo } from 'react';
+import { memo, useMemo, RefObject, ReactNode } from 'react';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
 import { Category } from '../../types';
-// Categories are loaded from tenant data, not from constants
 
-// Local component definitions
-const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+const SectionHeader = ({ title }: { title: string }) => (
   <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">{title}</h2>
 );
 
-const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+const CategoryCircle = ({ name, icon }: { name: string; icon: ReactNode }) => (
   <div className="flex flex-col items-center gap-2">
-    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300">
-      {icon}
-    </div>
+    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300">{icon}</div>
     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{name}</span>
   </div>
 );
 
-const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
+const CategoryPill = ({ name, icon }: { name: string; icon: ReactNode }) => (
   <div className="flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-gray-700 dark:bg-slate-700 dark:text-gray-300">
     {icon}
     <span className="text-sm font-medium">{name}</span>
   </div>
 );
 
-// Pre-rendered icon map for faster access
-const iconMap: Record<string, React.ReactNode> = {
-  smartphone: <Smartphone size={28} strokeWidth={1.5} />,
-  watch: <Watch size={28} strokeWidth={1.5} />,
-  'battery-charging': <BatteryCharging size={28} strokeWidth={1.5} />,
-  headphones: <Headphones size={28} strokeWidth={1.5} />,
-  zap: <Zap size={28} strokeWidth={1.5} />,
-  bluetooth: <Bluetooth size={28} strokeWidth={1.5} />,
-  'gamepad-2': <Gamepad2 size={28} strokeWidth={1.5} />,
-  camera: <Camera size={28} strokeWidth={1.5} />,
+const icons = { smartphone: Smartphone, watch: Watch, 'battery-charging': BatteryCharging, headphones: Headphones, zap: Zap, bluetooth: Bluetooth, 'gamepad-2': Gamepad2, camera: Camera };
+
+const getIcon = (name: string, size: number, stroke = 1.5) => {
+  const Icon = icons[name as keyof typeof icons] || Smartphone;
+  return <Icon size={size} strokeWidth={stroke} />;
 };
 
-// Pre-rendered small icons for style2
-const smallIconMap: Record<string, React.ReactNode> = {
-  smartphone: <Smartphone size={20} strokeWidth={2} />,
-  watch: <Watch size={20} strokeWidth={2} />,
-  'battery-charging': <BatteryCharging size={20} strokeWidth={2} />,
-  headphones: <Headphones size={20} strokeWidth={2} />,
-  zap: <Zap size={20} strokeWidth={2} />,
-  bluetooth: <Bluetooth size={20} strokeWidth={2} />,
-  'gamepad-2': <Gamepad2 size={20} strokeWidth={2} />,
-  camera: <Camera size={20} strokeWidth={2} />,
-};
-
-// Pre-rendered large icons for style1
-const largeIconMap: Record<string, React.ReactNode> = {
-  smartphone: <Smartphone size={32} strokeWidth={1.5} />,
-  watch: <Watch size={32} strokeWidth={1.5} />,
-  'battery-charging': <BatteryCharging size={32} strokeWidth={1.5} />,
-  headphones: <Headphones size={32} strokeWidth={1.5} />,
-  zap: <Zap size={32} strokeWidth={1.5} />,
-  bluetooth: <Bluetooth size={32} strokeWidth={1.5} />,
-  'gamepad-2': <Gamepad2 size={32} strokeWidth={1.5} />,
-  camera: <Camera size={32} strokeWidth={1.5} />,
-};
-
-interface CategoriesSectionProps {
+interface Props {
   style?: 'style1' | 'style2';
   categories?: Category[];
-  onCategoryClick: (categoryName: string) => void;
-  categoryScrollRef?: React.RefObject<HTMLDivElement>;
-  sectionRef?: React.RefObject<HTMLDivElement>;
+  onCategoryClick: (name: string) => void;
+  categoryScrollRef?: RefObject<HTMLDivElement>;
+  sectionRef?: RefObject<HTMLDivElement>;
 }
 
-// Rolling categories will be computed from actual data
-const createRollingCategories = (cats: { name: string; icon: string }[]) => {
-  if (!cats.length) return [];
-  return [...cats, ...cats, ...cats];
-};
+export const CategoriesSection = memo(({ style = 'style1', categories, onCategoryClick, categoryScrollRef, sectionRef }: Props) => {
+  const processed = useMemo(() => 
+    categories?.filter(c => c.status === 'Active').map(c => ({ name: c.name, icon: c.icon || 'smartphone', image: c.image })) || []
+  , [categories]);
 
-export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
-  style = 'style1',
-  categories,
-  onCategoryClick,
-  categoryScrollRef,
-  sectionRef
-}) => {
-  // Memoize processed categories for style1
-  const processedCategories = useMemo(() => {
-    if (categories && categories.length > 0) {
-      return categories.filter((c) => c.status === 'Active').map((cat) => ({
-        name: cat.name,
-        icon: cat.icon || 'smartphone',
-        image: cat.image
-      }));
-    }
-    return []; // Return empty array - no dummy data
-  }, [categories]);
+  const rolling = useMemo(() => processed.length ? [...processed, ...processed, ...processed] : [], [processed]);
 
-  // Compute rolling categories from actual data
-  const rollingCategories = useMemo(() => createRollingCategories(processedCategories), [processedCategories]);
+  if (!processed.length) return null;
 
-  if (style === 'style2') {
-    // Hide section if no categories
-    if (processedCategories.length === 0) return null;
-    
-    return (
-      <div ref={sectionRef} className="mt-1 -mb-1">
-        <div className="flex items-end justify-between border-b border-gray-100 pb-0 md:pb-1">
-          <div className="relative pb-1">
-            <h2 className="text-[15px] md:text-[20px] font-bold text-gray-800 dark:text-white">
-              {/* Categories */}
-            </h2>
-          </div>
-          <a
-            href="#"
-            className="group mb-1 flex items-center gap-2 text-xs md:text-sm font-bold text-gray-600 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition dark:text-gray-400"
-            role="button"
-            aria-label="View all categories"
-          >
-            {/* View All */}
-            <div className="h-0 w-0 border-b-[4px] border-l-[6px] border-t-[4px] border-b-transparent border-l-blue-500 border-t-transparent transition-transform group-hover:translate-x-1" />
-          </a>
-        </div>
-        {/* rolling category pills */}
-        <div
-          ref={categoryScrollRef}
-          className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide"
-          style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}
-        >
-          {rollingCategories.map((cat, idx) => (
-            <div key={`${cat.name}-${idx}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer inline-block">
-              <CategoryPill
-                name={cat.name}
-                icon={smallIconMap[cat.icon] || smallIconMap['smartphone']}
-              />
-            </div>
-          ))}
-        </div>
+  if (style === 'style2') return (
+    <div ref={sectionRef} className="mt-1 -mb-1">
+      <div className="flex items-end justify-between border-b border-gray-100 pb-0 md:pb-1">
+        <div className="relative pb-1"><h2 className="text-[15px] md:text-[20px] font-bold text-gray-800 dark:text-white" /></div>
+        <a href="#" className="group mb-1 flex items-center gap-2 text-xs md:text-sm font-bold text-gray-600 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition dark:text-gray-400">
+          <div className="h-0 w-0 border-b-[4px] border-l-[6px] border-t-[4px] border-b-transparent border-l-blue-500 border-t-transparent transition-transform group-hover:translate-x-1" />
+        </a>
       </div>
-    );
-  }
+      <div ref={categoryScrollRef} className="flex gap-6 overflow-x-hidden whitespace-nowrap scrollbar-hide" style={{ maskImage: 'linear-gradient(to right, transparent, black 2%, black 98%, transparent)' }}>
+        {rolling.map((cat, i) => (
+          <div key={`${cat.name}-${i}`} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer inline-block">
+            <CategoryPill name={cat.name} icon={getIcon(cat.icon, 20, 2)} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
-  // Default style1 - hide when no categories
-  if (processedCategories.length === 0) return null;
-  
   return (
     <div ref={sectionRef} className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <SectionHeader title="Categories" />
       <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
-        {processedCategories.map((cat, idx) => (
-          <div key={idx} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
-            <CategoryCircle
-              name={cat.name}
-              icon={largeIconMap[cat.icon as keyof typeof largeIconMap] || largeIconMap['smartphone']}
-            />
+        {processed.map((cat, i) => (
+          <div key={i} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
+            <CategoryCircle name={cat.name} icon={getIcon(cat.icon, 32)} />
           </div>
         ))}
       </div>
@@ -158,5 +77,5 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = memo(({
 });
 
 CategoriesSection.displayName = 'CategoriesSection';
-
 export default CategoriesSection;
+// RR

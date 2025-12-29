@@ -1,80 +1,32 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { onDataRefresh } from '../services/DataService';
 
-type RefreshHandler = (key: string, tenantId?: string) => void;
+type Handler = (key: string, tenantId?: string) => void;
 
-/**
- * Hook to subscribe to data refresh events from DataService
- * Use this in components that need to react when Admin updates data
- * 
- * @param handler - Called when any data is saved via DataService
- * @param keys - Optional array of keys to filter (e.g., ['products', 'orders'])
- * @param tenantId - Optional tenant ID to filter by
- */
-export const useDataRefresh = (
-  handler: RefreshHandler,
-  keys?: string[],
-  tenantId?: string
-) => {
-  const handlerRef = useRef(handler);
-  handlerRef.current = handler;
+export const useDataRefresh = (handler: Handler, keys?: string[], tenantId?: string) => {
+  const ref = useRef(handler);
+  ref.current = handler;
 
-  useEffect(() => {
-    const unsubscribe = onDataRefresh((key, eventTenantId) => {
-      // Filter by keys if specified
-      if (keys && keys.length > 0 && !keys.includes(key)) {
-        return;
-      }
-      // Filter by tenant if specified
-      if (tenantId && eventTenantId && eventTenantId !== tenantId) {
-        return;
-      }
-      handlerRef.current(key, eventTenantId);
-    });
-
-    return unsubscribe;
-  }, [keys?.join(','), tenantId]);
+  useEffect(() => onDataRefresh((key, tid) => {
+    if (keys?.length && !keys.includes(key)) return;
+    if (tenantId && tid && tid !== tenantId) return;
+    ref.current(key, tid);
+  }), [keys?.join(','), tenantId]);
 };
 
-/**
- * Hook that returns a function to trigger a refresh after a short delay
- * Useful for debouncing multiple rapid updates
- */
-export const useDataRefreshDebounced = (
-  handler: RefreshHandler,
-  debounceMs = 500,
-  keys?: string[],
-  tenantId?: string
-) => {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingKeyRef = useRef<string | null>(null);
-  const pendingTenantRef = useRef<string | undefined>(undefined);
+export const useDataRefreshDebounced = (handler: Handler, debounceMs = 500, keys?: string[], tenantId?: string) => {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pending = useRef<{ key: string | null; tid?: string }>({ key: null });
 
-  const debouncedHandler = useCallback((key: string, eventTenantId?: string) => {
-    pendingKeyRef.current = key;
-    pendingTenantRef.current = eventTenantId;
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    timerRef.current = setTimeout(() => {
-      if (pendingKeyRef.current) {
-        handler(pendingKeyRef.current, pendingTenantRef.current);
-      }
-      timerRef.current = null;
-      pendingKeyRef.current = null;
+  const debounced = useCallback((key: string, tid?: string) => {
+    pending.current = { key, tid };
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      pending.current.key && handler(pending.current.key, pending.current.tid);
+      timer.current = null; pending.current.key = null;
     }, debounceMs);
   }, [handler, debounceMs]);
 
-  useDataRefresh(debouncedHandler, keys, tenantId);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
+  useDataRefresh(debounced, keys, tenantId);
+  useEffect(() => () => { timer.current && clearTimeout(timer.current); }, []);
 };

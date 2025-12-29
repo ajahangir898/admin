@@ -20,6 +20,7 @@ export interface UploadResponse {
 /**
  * Upload a file to the server without applying product-specific transforms.
  * Useful for assets like carousel images that are already resized/converted.
+ * Returns a relative URL that can be normalized by normalizeImageUrl()
  */
 export const uploadPreparedImageToServer = async (
   file: File,
@@ -52,10 +53,12 @@ export const uploadPreparedImageToServer = async (
       throw new Error(data.error || 'Upload failed');
     }
 
-    if (data.imageUrl.startsWith('http://') || data.imageUrl.startsWith('https://')) {
-      return data.imageUrl.replace('https://systemnextit.com', API_BASE_URL);
-    }
-    return `${API_BASE_URL}${data.imageUrl.startsWith('/') ? '' : '/'}${data.imageUrl}`;
+    // Return relative URL - will be normalized when displayed
+    const url = data.imageUrl;
+    if (url.startsWith('/uploads')) return url;
+    // Strip any domain prefix to get relative path
+    const match = url.match(/\/uploads\/.+$/);
+    return match ? match[0] : url;
   } catch (error) {
     throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
@@ -71,6 +74,7 @@ export const isBase64Image = (str: string): boolean => {
 /**
  * Convert a base64 image to an uploaded file URL
  * Used to fix carousel images that were incorrectly stored as base64
+ * Returns a relative URL that can be normalized by normalizeImageUrl()
  */
 export const convertBase64ToUploadedUrl = async (
   base64Data: string,
@@ -80,15 +84,8 @@ export const convertBase64ToUploadedUrl = async (
   try {
     const response = await fetch(`${API_BASE_URL}/api/upload/fix-base64`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        base64Data,
-        tenantId,
-        folder,
-        filename: `carousel-fixed-${Date.now()}.webp`,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64Data, tenantId, folder, filename: `carousel-fixed-${Date.now()}.webp` }),
     });
 
     const responseText = await response.text();
@@ -102,14 +99,13 @@ export const convertBase64ToUploadedUrl = async (
     }
 
     const data: UploadResponse = JSON.parse(responseText);
-    if (!data.success) {
-      throw new Error(data.error || 'Conversion failed');
-    }
+    if (!data.success) throw new Error(data.error || 'Conversion failed');
 
-    if (data.imageUrl.startsWith('http://') || data.imageUrl.startsWith('https://')) {
-      return data.imageUrl.replace('https://systemnextit.com', API_BASE_URL);
-    }
-    return `${API_BASE_URL}${data.imageUrl.startsWith('/') ? '' : '/'}${data.imageUrl}`;
+    // Return relative URL - will be normalized when displayed
+    const url = data.imageUrl;
+    if (url.startsWith('/uploads')) return url;
+    const match = url.match(/\/uploads\/.+$/);
+    return match ? match[0] : url;
   } catch (error) {
     throw new Error(`Failed to convert base64 image: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }

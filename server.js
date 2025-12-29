@@ -55,6 +55,16 @@ async function createServer() {
   // Use aggressive compression for faster responses
   app.use(compression({ level: 6, threshold: 0 }));
 
+  // Block access to sensitive files and directories
+  app.use((req, res, next) => {
+    const blocked = ['.git', '.env', '.htaccess', '.svn', 'wp-admin', 'wp-login', 'phpinfo', '.DS_Store'];
+    const url = req.url.toLowerCase();
+    if (blocked.some(b => url.includes(b))) {
+      return res.status(404).end();
+    }
+    next();
+  });
+
   let vite;
   if (!isProduction) {
     // Development: use Vite's dev server as middleware

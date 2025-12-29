@@ -114,7 +114,7 @@ const AdminCustomization = ({ tenantId, logo, onUpdateLogo, themeConfig, onUpdat
         footerLogo: websiteConfig.footerLogo ?? null, 
         campaigns: websiteConfig.campaigns || [], 
         carouselItems: websiteConfig.carouselItems || [], 
-        categorySectionStyle: websiteConfig.categorySectionStyle || 'style1' 
+        categorySectionStyle: websiteConfig.categorySectionStyle || defConfig.categorySectionStyle 
       })); 
     }
   }, [websiteConfig]);

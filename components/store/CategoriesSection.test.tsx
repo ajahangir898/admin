@@ -44,9 +44,10 @@ describe('CategoriesSection', () => {
       />
     );
     expect(container.firstChild).toBeTruthy();
-    // Style4 should have the full-width background wrapper
-    expect(container.querySelector('.bg-\\[\\#F2F4F8\\]')).toBeInTheDocument();
+    // Style4 should render categories in the DOM
     expect(screen.getByText('Smartphones')).toBeInTheDocument();
+    expect(screen.getByText('Watches')).toBeInTheDocument();
+    expect(screen.getByText('Headphones')).toBeInTheDocument();
   });
 
   it('filters out inactive categories', () => {

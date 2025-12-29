@@ -29,6 +29,7 @@ const STYLE4_DEFAULT_ICONS = [
   '/category-icons/category-3.webp',
   '/category-icons/category-4.webp',
   '/category-icons/category-5.webp',
+  '/category-icons/category-6.webp',
 ];
 
 const getIcon = (name: string, size: number, stroke = 1.5) => {

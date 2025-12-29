@@ -102,7 +102,22 @@ const AdminCustomization = ({ tenantId, logo, onUpdateLogo, themeConfig, onUpdat
   const cFileRef = useRef<HTMLInputElement>(null), cMobRef = useRef<HTMLInputElement>(null), pFileRef = useRef<HTMLInputElement>(null), caLogoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setTab(initialTab); }, [initialTab]);
-  useEffect(() => { if (websiteConfig) setCfg(p => ({ ...p, ...websiteConfig, footerQuickLinks: websiteConfig.footerQuickLinks || [], footerUsefulLinks: websiteConfig.footerUsefulLinks || [], showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true, headerLogo: websiteConfig.headerLogo ?? null, footerLogo: websiteConfig.footerLogo ?? null, campaigns: websiteConfig.campaigns || [], carouselItems: websiteConfig.carouselItems || [], categorySectionStyle: websiteConfig.categorySectionStyle || 'style1' })); }, [websiteConfig]);
+  useEffect(() => { 
+    if (websiteConfig) {
+      setCfg(p => ({ 
+        ...p, 
+        ...websiteConfig, 
+        footerQuickLinks: websiteConfig.footerQuickLinks || [], 
+        footerUsefulLinks: websiteConfig.footerUsefulLinks || [], 
+        showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true, 
+        headerLogo: websiteConfig.headerLogo ?? null, 
+        footerLogo: websiteConfig.footerLogo ?? null, 
+        campaigns: websiteConfig.campaigns || [], 
+        carouselItems: websiteConfig.carouselItems || [], 
+        categorySectionStyle: websiteConfig.categorySectionStyle || 'style1' 
+      })); 
+    }
+  }, [websiteConfig]);
   useEffect(() => { DataService.get<Popup[]>('popups', []).then(setPopups); }, []);
   useEffect(() => { if (themeConfig) { setColors({ primary: themeConfig.primaryColor, secondary: themeConfig.secondaryColor, tertiary: themeConfig.tertiaryColor, font: themeConfig.fontColor || defColors.font, hover: themeConfig.hoverColor || defColors.hover, surface: themeConfig.surfaceColor || defColors.surface, adminBg: themeConfig.adminBgColor || defColors.adminBg, adminInputBg: themeConfig.adminInputBgColor || defColors.adminInputBg, adminBorder: themeConfig.adminBorderColor || defColors.adminBorder, adminFocus: themeConfig.adminFocusColor || defColors.adminFocus }); setDark(themeConfig.darkMode); } }, [themeConfig]);
   useEffect(() => { setDrafts(colors); }, [colors]);

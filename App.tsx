@@ -11,6 +11,7 @@
  * - hooks/useFacebookPixel.ts - Facebook Pixel
  * - hooks/useNavigation.ts - URL routing and navigation
  */
+import { HeroSection } from './components/StoreProductComponents';
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import type { 
   Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, 

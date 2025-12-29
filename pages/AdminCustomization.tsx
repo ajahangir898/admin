@@ -1,261 +1,1279 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Save, Trash2, Image as ImageIcon, Layout, Palette, Globe, Plus, Search, Eye, Edit, X, ChevronLeft, ChevronRight, Layers, Loader2, CheckCircle2, MessageCircle, CalendarDays } from 'lucide-react';
+import {
+  Upload,
+  Save,
+  Trash2,
+  Image as ImageIcon,
+  Layout,
+  Palette,
+  Globe,
+  Plus,
+  Search,
+  Eye,
+  Edit,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  Loader2,
+  CheckCircle2,
+  MessageCircle,
+  CalendarDays
+} from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup, Campaign } from '../types';
-import { convertFileToWebP, convertCarouselImage, dataUrlToFile, CAROUSEL_WIDTH, CAROUSEL_HEIGHT, CAROUSEL_MOBILE_WIDTH, CAROUSEL_MOBILE_HEIGHT } from '../services/imageUtils';
+import {
+  ThemeConfig,
+  WebsiteConfig,
+  SocialLink,
+  CarouselItem,
+  FooterLink,
+  Popup,
+  Campaign
+} from '../types';
+import {
+  convertFileToWebP,
+  convertCarouselImage,
+  dataUrlToFile,
+  CAROUSEL_WIDTH,
+  CAROUSEL_HEIGHT,
+  CAROUSEL_MOBILE_WIDTH,
+  CAROUSEL_MOBILE_HEIGHT
+} from '../services/imageUtils';
 import { DataService } from '../services/DataService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
-import { uploadPreparedImageToServer, isBase64Image, convertBase64ToUploadedUrl } from '../services/imageUploadService';
+import {
+  uploadPreparedImageToServer,
+  isBase64Image,
+  convertBase64ToUploadedUrl
+} from '../services/imageUploadService';
 
-interface Props { tenantId: string; logo: string | null; onUpdateLogo: (logo: string | null) => void; themeConfig?: ThemeConfig; onUpdateTheme?: (config: ThemeConfig) => Promise<void>; websiteConfig?: WebsiteConfig; onUpdateWebsiteConfig?: (config: WebsiteConfig) => Promise<void>; initialTab?: string; }
+// ============================================================================
+// Types & Interfaces
+// ============================================================================
 
-type ColorKey = 'primary' | 'secondary' | 'tertiary' | 'font' | 'hover' | 'surface' | 'adminBg' | 'adminInputBg' | 'adminBorder' | 'adminFocus';
-type FooterField = 'footerQuickLinks' | 'footerUsefulLinks';
-type ImgType = 'logo' | 'favicon' | 'carousel' | 'carouselMobile' | 'popup' | 'headerLogo' | 'footerLogo';
+interface AdminCustomizationProps {
+  tenantId: string;
+  logo: string | null;
+  onUpdateLogo: (logo: string | null) => void;
+  themeConfig?: ThemeConfig;
+  onUpdateTheme?: (config: ThemeConfig) => Promise<void>;
+  websiteConfig?: WebsiteConfig;
+  onUpdateWebsiteConfig?: (config: WebsiteConfig) => Promise<void>;
+  initialTab?: string;
+}
 
-const defColors: Record<ColorKey, string> = { 
-  primary: '#22c55e', 
-  secondary: '#ec4899', 
-  tertiary: '#9333ea', 
-  font: '#0f172a', 
-  hover: '#f97316', 
-  surface: '#e2e8f0', 
-  adminBg: '#030407', 
-  adminInputBg: '#0f172a', 
-  adminBorder: '#ffffff', 
-  adminFocus: '#f87171' 
+type ColorKey =
+  | 'primary'
+  | 'secondary'
+  | 'tertiary'
+  | 'font'
+  | 'hover'
+  | 'surface'
+  | 'adminBg'
+  | 'adminInputBg'
+  | 'adminBorder'
+  | 'adminFocus';
+
+type FooterLinkField = 'footerQuickLinks' | 'footerUsefulLinks';
+
+type ImageUploadType =
+  | 'logo'
+  | 'favicon'
+  | 'carousel'
+  | 'carouselMobile'
+  | 'popup'
+  | 'headerLogo'
+  | 'footerLogo';
+
+type CarouselFilterStatus = 'All' | 'Publish' | 'Draft' | 'Trash';
+type PopupFilterStatus = 'All' | 'Publish' | 'Draft';
+type CampaignFilterStatus = 'All' | 'Publish' | 'Draft';
+
+// ============================================================================
+// Constants & Default Values
+// ============================================================================
+
+const DEFAULT_COLORS: Record<ColorKey, string> = {
+  primary: '#22c55e',
+  secondary: '#ec4899',
+  tertiary: '#9333ea',
+  font: '#0f172a',
+  hover: '#f97316',
+  surface: '#e2e8f0',
+  adminBg: '#030407',
+  adminInputBg: '#0f172a',
+  adminBorder: '#ffffff',
+  adminFocus: '#f87171'
 };
-const defConfig: WebsiteConfig = { 
-  websiteName: '', 
-  shortDescription: '', 
-  whatsappNumber: '', 
-  favicon: null, 
-  headerLogo: null, 
-  footerLogo: null, 
-  addresses: [], 
-  emails: [], 
-  phones: [], 
-  socialLinks: [], 
-  footerQuickLinks: [], 
-  footerUsefulLinks: [], 
-  showMobileHeaderCategory: true, 
-  showNewsSlider: true, 
-  headerSliderText: '', 
-  hideCopyright: false, 
-  hideCopyrightText: false, 
-  showPoweredBy: false, 
-  showFlashSaleCounter: true, 
-  brandingText: '', 
-  carouselItems: [], 
-  campaigns: [], 
-  searchHints: '', 
-  orderLanguage: 'English', 
-  adminNoticeText: '', 
-  categorySectionStyle: 'style1' 
+
+const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
+  websiteName: '',
+  shortDescription: '',
+  whatsappNumber: '',
+  favicon: null,
+  headerLogo: null,
+  footerLogo: null,
+  addresses: [],
+  emails: [],
+  phones: [],
+  socialLinks: [],
+  footerQuickLinks: [],
+  footerUsefulLinks: [],
+  showMobileHeaderCategory: true,
+  showNewsSlider: true,
+  headerSliderText: '',
+  hideCopyright: false,
+  hideCopyrightText: false,
+  showPoweredBy: false,
+  showFlashSaleCounter: true,
+  brandingText: '',
+  carouselItems: [],
+  campaigns: [],
+  searchHints: '',
+  orderLanguage: 'English',
+  adminNoticeText: '',
+  categorySectionStyle: 'style1'
 };
-const socialOpts = ['Facebook', 'Instagram', 'YouTube', 'Daraz', 'Twitter', 'LinkedIn'];
-const colorGuides: { key: ColorKey; label: string; helper: string }[] = [
-  { key: 'primary', label: 'Primary Accent', helper: 'Sidebar active state, admin CTAs, storefront hero buttons' },
-  { key: 'secondary', label: 'Secondary Accent', helper: 'Warning chips, checkout highlights, floating badges' },
-  { key: 'tertiary', label: 'Depth Accent', helper: 'Charts, outlines, subtle gradients' },
-  { key: 'font', label: 'Global Font Color', helper: 'Header links, footer text, storefront typography' },
-  { key: 'hover', label: 'Hover Accent', helper: 'Header & footer hover states, interactive link highlights' },
-  { key: 'surface', label: 'Surface Glow', helper: 'Footer background wash, elevated cards, wishlist buttons' },
-  { key: 'adminBg', label: 'Admin Background', helper: 'Admin panel main background color' },
-  { key: 'adminInputBg', label: 'Admin Input Background', helper: 'Admin input fields, select boxes, text areas background' },
-  { key: 'adminBorder', label: 'Admin Border Color', helper: 'Admin panel borders, dividers, outlines' },
-  { key: 'adminFocus', label: 'Admin Focus Color', helper: 'Input focus states, active highlights in admin' }
-];
-const footerSections: { field: FooterField; title: string; helper: string }[] = [
-  { field: 'footerQuickLinks', title: 'Footer Quick Links', helper: 'Shown in the Quick Links column of Footer 3' },
-  { field: 'footerUsefulLinks', title: 'Footer Useful Links', helper: 'Shown in the Useful Links column of Footer 3' }
+
+const SOCIAL_PLATFORM_OPTIONS = [
+  'Facebook',
+  'Instagram',
+  'YouTube',
+  'Daraz',
+  'Twitter',
+  'LinkedIn'
 ];
 
-const AdminCustomization = ({ tenantId, logo, onUpdateLogo, themeConfig, onUpdateTheme, websiteConfig, onUpdateWebsiteConfig, initialTab = 'website_info' }: Props) => {
-  const [tab, setTab] = useState(initialTab);
-  const [cfg, setCfg] = useState<WebsiteConfig>(() => websiteConfig ? { ...defConfig, ...websiteConfig } : defConfig);
-  const [colors, setColors] = useState({ ...defColors });
-  const [drafts, setDrafts] = useState({ ...defColors });
-  const [dark, setDark] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [popups, setPopups] = useState<Popup[]>([]);
-  const [cFilter, setCFilter] = useState<'All' | 'Publish' | 'Draft' | 'Trash'>('All');
-  const [cSearch, setCSearch] = useState('');
-  const [cModal, setCModal] = useState(false);
-  const [cEdit, setCEdit] = useState<CarouselItem | null>(null);
-  const [cForm, setCForm] = useState<Partial<CarouselItem>>({ name: '', image: '', mobileImage: '', url: '', urlType: 'Internal', serial: 1, status: 'Publish' });
-  const [cSaving, setCSaving] = useState(false);
-  const [pFilter, setPFilter] = useState<'All' | 'Publish' | 'Draft'>('All');
-  const [pSearch, setPSearch] = useState('');
-  const [pModal, setPModal] = useState(false);
-  const [pEdit, setPEdit] = useState<Popup | null>(null);
-  const [pForm, setPForm] = useState<Partial<Popup>>({ name: '', image: '', url: '', urlType: 'Internal', priority: 0, status: 'Draft' });
-  const [caFilter, setCaFilter] = useState<'All' | 'Publish' | 'Draft'>('All');
-  const [caSearch, setCaSearch] = useState('');
-  const [caModal, setCaModal] = useState(false);
-  const [caEdit, setCaEdit] = useState<Campaign | null>(null);
-  const [caForm, setCaForm] = useState<Partial<Campaign>>({ name: '', logo: '', startDate: '', endDate: '', url: '', status: 'Publish', serial: 1 });
+const COLOR_GUIDE_CONFIG: Array<{
+  key: ColorKey;
+  label: string;
+  helper: string;
+}> = [
+  {
+    key: 'primary',
+    label: 'Primary Accent',
+    helper: 'Sidebar active state, admin CTAs, storefront hero buttons'
+  },
+  {
+    key: 'secondary',
+    label: 'Secondary Accent',
+    helper: 'Warning chips, checkout highlights, floating badges'
+  },
+  {
+    key: 'tertiary',
+    label: 'Depth Accent',
+    helper: 'Charts, outlines, subtle gradients'
+  },
+  {
+    key: 'font',
+    label: 'Global Font Color',
+    helper: 'Header links, footer text, storefront typography'
+  },
+  {
+    key: 'hover',
+    label: 'Hover Accent',
+    helper: 'Header & footer hover states, interactive link highlights'
+  },
+  {
+    key: 'surface',
+    label: 'Surface Glow',
+    helper: 'Footer background wash, elevated cards, wishlist buttons'
+  },
+  {
+    key: 'adminBg',
+    label: 'Admin Background',
+    helper: 'Admin panel main background color'
+  },
+  {
+    key: 'adminInputBg',
+    label: 'Admin Input Background',
+    helper: 'Admin input fields, select boxes, text areas background'
+  },
+  {
+    key: 'adminBorder',
+    label: 'Admin Border Color',
+    helper: 'Admin panel borders, dividers, outlines'
+  },
+  {
+    key: 'adminFocus',
+    label: 'Admin Focus Color',
+    helper: 'Input focus states, active highlights in admin'
+  }
+];
 
-  const logoRef = useRef<HTMLInputElement>(null), favRef = useRef<HTMLInputElement>(null), hLogoRef = useRef<HTMLInputElement>(null), fLogoRef = useRef<HTMLInputElement>(null);
-  const cFileRef = useRef<HTMLInputElement>(null), cMobRef = useRef<HTMLInputElement>(null), pFileRef = useRef<HTMLInputElement>(null), caLogoRef = useRef<HTMLInputElement>(null);
+const FOOTER_LINK_SECTIONS: Array<{
+  field: FooterLinkField;
+  title: string;
+  helper: string;
+}> = [
+  {
+    field: 'footerQuickLinks',
+    title: 'Footer Quick Links',
+    helper: 'Shown in the Quick Links column of Footer 3'
+  },
+  {
+    field: 'footerUsefulLinks',
+    title: 'Footer Useful Links',
+    helper: 'Shown in the Useful Links column of Footer 3'
+  }
+];
 
-  useEffect(() => { setTab(initialTab); }, [initialTab]);
-  useEffect(() => { 
+const THEME_VIEW_SECTIONS = [
+  { title: 'Header Section', key: 'headerStyle', count: 5 },
+  { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 5 },
+  { title: 'Brand Section', key: 'brandSectionStyle', count: 5, hasNone: true },
+  {
+    title: 'Category Section',
+    key: 'categorySectionStyle',
+    count: 5,
+    hasNone: true,
+    hasMobile: true
+  },
+  { title: 'Product Section', key: 'productSectionStyle', count: 5 },
+  { title: 'Product Card', key: 'productCardStyle', count: 5 },
+  { title: 'Footer Section', key: 'footerStyle', count: 5 },
+  { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }
+];
+
+const WEBSITE_INFO_TOGGLES = [
+  { key: 'showMobileHeaderCategory', label: 'isShowMobileHeaderCategoryMenu' },
+  { key: 'showNewsSlider', label: 'Is Show News Slider' },
+  { key: 'hideCopyright', label: 'Hide Copyright Section' },
+  { key: 'hideCopyrightText', label: 'Hide Copyright Text' },
+  { key: 'showPoweredBy', label: 'Powered by SystemNext IT' }
+];
+
+const LOGO_CONFIG = [
+  { refKey: 'logo', configKey: 'logo', name: 'Primary Store Logo (Fallback)' },
+  { refKey: 'headerLogo', configKey: 'headerLogo', name: 'Header Logo Override' },
+  { refKey: 'footerLogo', configKey: 'footerLogo', name: 'Footer Logo Override' }
+] as const;
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Normalizes a hex color string to proper format
+ * Supports 3-digit and 6-digit hex codes
+ */
+const normalizeHexColor = (value: string): string => {
+  const sanitized = value.trim().replace(/[^0-9a-fA-F]/g, '');
+  if (sanitized.length === 3) {
+    return `#${sanitized
+      .split('')
+      .map((c) => `${c}${c}`)
+      .join('')
+      .toUpperCase()}`;
+  }
+  if (sanitized.length === 6) {
+    return `#${sanitized.toUpperCase()}`;
+  }
+  return '';
+};
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+const AdminCustomization: React.FC<AdminCustomizationProps> = ({
+  tenantId,
+  logo,
+  onUpdateLogo,
+  themeConfig,
+  onUpdateTheme,
+  websiteConfig,
+  onUpdateWebsiteConfig,
+  initialTab = 'website_info'
+}) => {
+  // ---------------------------------------------------------------------------
+  // Tab State
+  // ---------------------------------------------------------------------------
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // ---------------------------------------------------------------------------
+  // Website Configuration State
+  // ---------------------------------------------------------------------------
+  const [websiteConfiguration, setWebsiteConfiguration] = useState<WebsiteConfig>(
+    () => (websiteConfig ? { ...DEFAULT_WEBSITE_CONFIG, ...websiteConfig } : DEFAULT_WEBSITE_CONFIG)
+  );
+
+  // ---------------------------------------------------------------------------
+  // Theme Colors State
+  // ---------------------------------------------------------------------------
+  const [themeColors, setThemeColors] = useState({ ...DEFAULT_COLORS });
+  const [colorDrafts, setColorDrafts] = useState({ ...DEFAULT_COLORS });
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Save State
+  // ---------------------------------------------------------------------------
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Popup Management State
+  // ---------------------------------------------------------------------------
+  const [popupList, setPopupList] = useState<Popup[]>([]);
+  const [popupFilterStatus, setPopupFilterStatus] = useState<PopupFilterStatus>('All');
+  const [popupSearchQuery, setPopupSearchQuery] = useState('');
+  const [isPopupModalOpen, setIsPopupModalOpen] = useState(false);
+  const [editingPopup, setEditingPopup] = useState<Popup | null>(null);
+  const [popupFormData, setPopupFormData] = useState<Partial<Popup>>({
+    name: '',
+    image: '',
+    url: '',
+    urlType: 'Internal',
+    priority: 0,
+    status: 'Draft'
+  });
+
+  // ---------------------------------------------------------------------------
+  // Carousel Management State
+  // ---------------------------------------------------------------------------
+  const [carouselFilterStatus, setCarouselFilterStatus] = useState<CarouselFilterStatus>('All');
+  const [carouselSearchQuery, setCarouselSearchQuery] = useState('');
+  const [isCarouselModalOpen, setIsCarouselModalOpen] = useState(false);
+  const [editingCarousel, setEditingCarousel] = useState<CarouselItem | null>(null);
+  const [carouselFormData, setCarouselFormData] = useState<Partial<CarouselItem>>({
+    name: '',
+    image: '',
+    mobileImage: '',
+    url: '',
+    urlType: 'Internal',
+    serial: 1,
+    status: 'Publish'
+  });
+  const [isCarouselSaving, setIsCarouselSaving] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Campaign Management State
+  // ---------------------------------------------------------------------------
+  const [campaignFilterStatus, setCampaignFilterStatus] = useState<CampaignFilterStatus>('All');
+  const [campaignSearchQuery, setCampaignSearchQuery] = useState('');
+  const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [campaignFormData, setCampaignFormData] = useState<Partial<Campaign>>({
+    name: '',
+    logo: '',
+    startDate: '',
+    endDate: '',
+    url: '',
+    status: 'Publish',
+    serial: 1
+  });
+
+  // ---------------------------------------------------------------------------
+  // File Input Refs
+  // ---------------------------------------------------------------------------
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
+  const headerLogoInputRef = useRef<HTMLInputElement>(null);
+  const footerLogoInputRef = useRef<HTMLInputElement>(null);
+  const carouselDesktopInputRef = useRef<HTMLInputElement>(null);
+  const carouselMobileInputRef = useRef<HTMLInputElement>(null);
+  const popupImageInputRef = useRef<HTMLInputElement>(null);
+  const campaignLogoInputRef = useRef<HTMLInputElement>(null);
+
+  // ---------------------------------------------------------------------------
+  // Effects
+  // ---------------------------------------------------------------------------
+
+  // Sync active tab with initialTab prop
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  // Sync website configuration with prop
+  useEffect(() => {
     if (websiteConfig) {
-      setCfg(p => ({ 
-        ...p, 
-        ...websiteConfig, 
-        footerQuickLinks: websiteConfig.footerQuickLinks || [], 
-        footerUsefulLinks: websiteConfig.footerUsefulLinks || [], 
-        showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true, 
-        headerLogo: websiteConfig.headerLogo ?? null, 
-        footerLogo: websiteConfig.footerLogo ?? null, 
-        campaigns: websiteConfig.campaigns || [], 
-        carouselItems: websiteConfig.carouselItems || [], 
-        categorySectionStyle: websiteConfig.categorySectionStyle || defConfig.categorySectionStyle 
-      })); 
+      setWebsiteConfiguration((prev) => ({
+        ...prev,
+        ...websiteConfig,
+        footerQuickLinks: websiteConfig.footerQuickLinks || [],
+        footerUsefulLinks: websiteConfig.footerUsefulLinks || [],
+        showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true,
+        headerLogo: websiteConfig.headerLogo ?? null,
+        footerLogo: websiteConfig.footerLogo ?? null,
+        campaigns: websiteConfig.campaigns || [],
+        carouselItems: websiteConfig.carouselItems || [],
+        categorySectionStyle:
+          websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
+      }));
     }
   }, [websiteConfig]);
-  useEffect(() => { DataService.get<Popup[]>('popups', []).then(setPopups); }, []);
-  useEffect(() => { if (themeConfig) { setColors({ primary: themeConfig.primaryColor, secondary: themeConfig.secondaryColor, tertiary: themeConfig.tertiaryColor, font: themeConfig.fontColor || defColors.font, hover: themeConfig.hoverColor || defColors.hover, surface: themeConfig.surfaceColor || defColors.surface, adminBg: themeConfig.adminBgColor || defColors.adminBg, adminInputBg: themeConfig.adminInputBgColor || defColors.adminInputBg, adminBorder: themeConfig.adminBorderColor || defColors.adminBorder, adminFocus: themeConfig.adminFocusColor || defColors.adminFocus }); setDark(themeConfig.darkMode); } }, [themeConfig]);
-  useEffect(() => { setDrafts(colors); }, [colors]);
 
-  const normHex = (v: string) => { const s = v.trim().replace(/[^0-9a-fA-F]/g, ''); return s.length === 3 ? `#${s.split('').map(c => `${c}${c}`).join('').toUpperCase()}` : s.length === 6 ? `#${s.toUpperCase()}` : ''; };
-  const setColor = (k: ColorKey, v: string) => { const n = normHex(v); if (n) setColors(p => ({ ...p, [k]: n })); };
+  // Load popups from storage
+  useEffect(() => {
+    DataService.get<Popup[]>('popups', []).then(setPopupList);
+  }, []);
 
-  const upload = async (e: React.ChangeEvent<HTMLInputElement>, t: ImgType) => {
-    const f = e.target.files?.[0]; if (!f) return;
-    if (f.size > 2 * 1024 * 1024) { alert("File too large. Max 2MB."); e.target.value = ''; return; }
+  // Sync theme colors with prop
+  useEffect(() => {
+    if (themeConfig) {
+      setThemeColors({
+        primary: themeConfig.primaryColor,
+        secondary: themeConfig.secondaryColor,
+        tertiary: themeConfig.tertiaryColor,
+        font: themeConfig.fontColor || DEFAULT_COLORS.font,
+        hover: themeConfig.hoverColor || DEFAULT_COLORS.hover,
+        surface: themeConfig.surfaceColor || DEFAULT_COLORS.surface,
+        adminBg: themeConfig.adminBgColor || DEFAULT_COLORS.adminBg,
+        adminInputBg: themeConfig.adminInputBgColor || DEFAULT_COLORS.adminInputBg,
+        adminBorder: themeConfig.adminBorderColor || DEFAULT_COLORS.adminBorder,
+        adminFocus: themeConfig.adminFocusColor || DEFAULT_COLORS.adminFocus
+      });
+      setIsDarkMode(themeConfig.darkMode);
+    }
+  }, [themeConfig]);
+
+  // Sync color drafts with theme colors
+  useEffect(() => {
+    setColorDrafts(themeColors);
+  }, [themeColors]);
+
+  // ---------------------------------------------------------------------------
+  // Theme Color Handlers
+  // ---------------------------------------------------------------------------
+
+  const updateThemeColor = (colorKey: ColorKey, value: string): void => {
+    const normalized = normalizeHexColor(value);
+    if (normalized) {
+      setThemeColors((prev) => ({ ...prev, [colorKey]: normalized }));
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Image Upload Handlers
+  // ---------------------------------------------------------------------------
+
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    imageType: ImageUploadType
+  ): Promise<void> => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 2MB)
+    const MAX_FILE_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      alert('File too large. Max 2MB.');
+      event.target.value = '';
+      return;
+    }
+
     try {
-      const cv = t === 'carousel' ? await convertCarouselImage(f, { quality: 0.85 }) : t === 'carouselMobile' ? await convertCarouselImage(f, { width: CAROUSEL_MOBILE_WIDTH, height: CAROUSEL_MOBILE_HEIGHT, quality: 0.85 }) : await convertFileToWebP(f, { quality: t === 'favicon' ? 0.9 : 0.82, maxDimension: t === 'favicon' ? 512 : 2000 });
-      if (t === 'carousel' || t === 'carouselMobile') { const wf = dataUrlToFile(cv, `${t === 'carouselMobile' ? 'carousel-mobile' : 'carousel'}-${Date.now()}.webp`); const url = await uploadPreparedImageToServer(wf, tenantId, 'carousel'); setCForm(p => t === 'carousel' ? { ...p, image: url } : { ...p, mobileImage: url }); }
-      else if (t === 'logo') onUpdateLogo(cv);
-      else if (t === 'favicon') setCfg(p => ({ ...p, favicon: cv }));
-      else if (t === 'headerLogo') setCfg(p => ({ ...p, headerLogo: cv }));
-      else if (t === 'footerLogo') setCfg(p => ({ ...p, footerLogo: cv }));
-      else if (t === 'popup') setPForm(p => ({ ...p, image: cv }));
-    } catch { alert('Failed to process image.'); } finally { e.target.value = ''; }
+      let convertedImage: string;
+
+      // Process image based on type
+      if (imageType === 'carousel') {
+        convertedImage = await convertCarouselImage(file, { quality: 0.85 });
+      } else if (imageType === 'carouselMobile') {
+        convertedImage = await convertCarouselImage(file, {
+          width: CAROUSEL_MOBILE_WIDTH,
+          height: CAROUSEL_MOBILE_HEIGHT,
+          quality: 0.85
+        });
+      } else {
+        convertedImage = await convertFileToWebP(file, {
+          quality: imageType === 'favicon' ? 0.9 : 0.82,
+          maxDimension: imageType === 'favicon' ? 512 : 2000
+        });
+      }
+
+      // Handle the converted image based on type
+      if (imageType === 'carousel' || imageType === 'carouselMobile') {
+        const webpFile = dataUrlToFile(
+          convertedImage,
+          `${imageType === 'carouselMobile' ? 'carousel-mobile' : 'carousel'}-${Date.now()}.webp`
+        );
+        const uploadedUrl = await uploadPreparedImageToServer(webpFile, tenantId, 'carousel');
+        setCarouselFormData((prev) =>
+          imageType === 'carousel'
+            ? { ...prev, image: uploadedUrl }
+            : { ...prev, mobileImage: uploadedUrl }
+        );
+      } else if (imageType === 'logo') {
+        onUpdateLogo(convertedImage);
+      } else if (imageType === 'favicon') {
+        setWebsiteConfiguration((prev) => ({ ...prev, favicon: convertedImage }));
+      } else if (imageType === 'headerLogo') {
+        setWebsiteConfiguration((prev) => ({ ...prev, headerLogo: convertedImage }));
+      } else if (imageType === 'footerLogo') {
+        setWebsiteConfiguration((prev) => ({ ...prev, footerLogo: convertedImage }));
+      } else if (imageType === 'popup') {
+        setPopupFormData((prev) => ({ ...prev, image: convertedImage }));
+      }
+    } catch {
+      alert('Failed to process image.');
+    } finally {
+      event.target.value = '';
+    }
   };
 
-  const rmImg = (t: 'logo' | 'favicon' | 'headerLogo' | 'footerLogo') => {
-    if (t === 'logo') { onUpdateLogo(null); if (logoRef.current) logoRef.current.value = ''; }
-    else if (t === 'favicon') { setCfg(p => ({ ...p, favicon: null })); if (favRef.current) favRef.current.value = ''; }
-    else if (t === 'headerLogo') { setCfg(p => ({ ...p, headerLogo: null })); if (hLogoRef.current) hLogoRef.current.value = ''; }
-    else { setCfg(p => ({ ...p, footerLogo: null })); if (fLogoRef.current) fLogoRef.current.value = ''; }
+  const handleRemoveImage = (imageType: 'logo' | 'favicon' | 'headerLogo' | 'footerLogo'): void => {
+    if (imageType === 'logo') {
+      onUpdateLogo(null);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    } else if (imageType === 'favicon') {
+      setWebsiteConfiguration((prev) => ({ ...prev, favicon: null }));
+      if (faviconInputRef.current) faviconInputRef.current.value = '';
+    } else if (imageType === 'headerLogo') {
+      setWebsiteConfiguration((prev) => ({ ...prev, headerLogo: null }));
+      if (headerLogoInputRef.current) headerLogoInputRef.current.value = '';
+    } else {
+      setWebsiteConfiguration((prev) => ({ ...prev, footerLogo: null }));
+      if (footerLogoInputRef.current) footerLogoInputRef.current.value = '';
+    }
   };
 
-  const addArr = (f: 'addresses' | 'emails' | 'phones') => setCfg(p => ({ ...p, [f]: [...p[f], ''] }));
-  const updArr = (f: 'addresses' | 'emails' | 'phones', i: number, v: string) => setCfg(p => { const a = [...p[f]]; a[i] = v; return { ...p, [f]: a }; });
-  const rmArr = (f: 'addresses' | 'emails' | 'phones', i: number) => setCfg(p => ({ ...p, [f]: p[f].filter((_, x) => x !== i) }));
-  const addSocial = () => setCfg(p => ({ ...p, socialLinks: [...p.socialLinks, { id: Date.now().toString(), platform: 'Facebook', url: '' }] }));
-  const updSocial = (i: number, k: keyof SocialLink, v: string) => setCfg(p => { const l = [...p.socialLinks]; l[i] = { ...l[i], [k]: v }; return { ...p, socialLinks: l }; });
-  const rmSocial = (i: number) => setCfg(p => ({ ...p, socialLinks: p.socialLinks.filter((_, x) => x !== i) }));
-  const addFooter = (f: FooterField) => setCfg(p => ({ ...p, [f]: [...((p[f] as FooterLink[]) || []), { id: Date.now().toString(), label: '', url: '' }] }));
-  const updFooter = (f: FooterField, i: number, k: keyof FooterLink, v: string) => setCfg(p => { const c = [...((p[f] as FooterLink[]) || [])]; c[i] = { ...c[i], [k]: v }; return { ...p, [f]: c }; });
-  const rmFooter = (f: FooterField, i: number) => setCfg(p => ({ ...p, [f]: ((p[f] as FooterLink[]) || []).filter((_, x) => x !== i) }));
+  // ---------------------------------------------------------------------------
+  // Contact Information Handlers (addresses, emails, phones)
+  // ---------------------------------------------------------------------------
 
-  const save = async () => {
-    if (saving) return; setSaving(true); setSaved(false);
+  const addContactItem = (field: 'addresses' | 'emails' | 'phones'): void => {
+    setWebsiteConfiguration((prev) => ({
+      ...prev,
+      [field]: [...prev[field], '']
+    }));
+  };
+
+  const updateContactItem = (
+    field: 'addresses' | 'emails' | 'phones',
+    index: number,
+    value: string
+  ): void => {
+    setWebsiteConfiguration((prev) => {
+      const updated = [...prev[field]];
+      updated[index] = value;
+      return { ...prev, [field]: updated };
+    });
+  };
+
+  const removeContactItem = (field: 'addresses' | 'emails' | 'phones', index: number): void => {
+    setWebsiteConfiguration((prev) => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+  // ---------------------------------------------------------------------------
+  // Social Links Handlers
+  // ---------------------------------------------------------------------------
+
+  const addSocialLink = (): void => {
+    setWebsiteConfiguration((prev) => ({
+      ...prev,
+      socialLinks: [
+        ...prev.socialLinks,
+        { id: Date.now().toString(), platform: 'Facebook', url: '' }
+      ]
+    }));
+  };
+
+  const updateSocialLink = (index: number, key: keyof SocialLink, value: string): void => {
+    setWebsiteConfiguration((prev) => {
+      const updated = [...prev.socialLinks];
+      updated[index] = { ...updated[index], [key]: value };
+      return { ...prev, socialLinks: updated };
+    });
+  };
+
+  const removeSocialLink = (index: number): void => {
+    setWebsiteConfiguration((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.filter((_, i) => i !== index)
+    }));
+  };
+
+  // ---------------------------------------------------------------------------
+  // Footer Links Handlers
+  // ---------------------------------------------------------------------------
+
+  const addFooterLink = (field: FooterLinkField): void => {
+    setWebsiteConfiguration((prev) => ({
+      ...prev,
+      [field]: [
+        ...((prev[field] as FooterLink[]) || []),
+        { id: Date.now().toString(), label: '', url: '' }
+      ]
+    }));
+  };
+
+  const updateFooterLink = (
+    field: FooterLinkField,
+    index: number,
+    key: keyof FooterLink,
+    value: string
+  ): void => {
+    setWebsiteConfiguration((prev) => {
+      const updated = [...((prev[field] as FooterLink[]) || [])];
+      updated[index] = { ...updated[index], [key]: value };
+      return { ...prev, [field]: updated };
+    });
+  };
+
+  const removeFooterLink = (field: FooterLinkField, index: number): void => {
+    setWebsiteConfiguration((prev) => ({
+      ...prev,
+      [field]: ((prev[field] as FooterLink[]) || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  // ---------------------------------------------------------------------------
+  // Save All Changes Handler
+  // ---------------------------------------------------------------------------
+
+  const handleSaveChanges = async (): Promise<void> => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    setIsSaved(false);
+
     try {
-      if (onUpdateWebsiteConfig) await onUpdateWebsiteConfig(cfg);
-      if (onUpdateTheme) await onUpdateTheme({ primaryColor: colors.primary, secondaryColor: colors.secondary, tertiaryColor: colors.tertiary, fontColor: colors.font, hoverColor: colors.hover, surfaceColor: colors.surface, darkMode: dark, adminBgColor: colors.adminBg, adminInputBgColor: colors.adminInputBg, adminBorderColor: colors.adminBorder, adminFocusColor: colors.adminFocus });
-      setSaved(true); toast.success('Saved!'); setTimeout(() => setSaved(false), 2000);
-    } catch { toast.error('Save failed.'); } finally { setSaving(false); }
+      // Save website configuration
+      if (onUpdateWebsiteConfig) {
+        await onUpdateWebsiteConfig(websiteConfiguration);
+      }
+
+      // Save theme configuration
+      if (onUpdateTheme) {
+        await onUpdateTheme({
+          primaryColor: themeColors.primary,
+          secondaryColor: themeColors.secondary,
+          tertiaryColor: themeColors.tertiary,
+          fontColor: themeColors.font,
+          hoverColor: themeColors.hover,
+          surfaceColor: themeColors.surface,
+          darkMode: isDarkMode,
+          adminBgColor: themeColors.adminBg,
+          adminInputBgColor: themeColors.adminInputBg,
+          adminBorderColor: themeColors.adminBorder,
+          adminFocusColor: themeColors.adminFocus
+        });
+      }
+
+      setIsSaved(true);
+      toast.success('Saved!');
+      setTimeout(() => setIsSaved(false), 2000);
+    } catch {
+      toast.error('Save failed.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const openC = (i?: CarouselItem) => { if (i) { setCEdit(i); setCForm({ ...i }); } else { setCEdit(null); setCForm({ name: '', image: '', mobileImage: '', url: '', urlType: 'Internal', serial: cfg.carouselItems.length + 1, status: 'Publish' }); } setCModal(true); };
-  const saveC = async (e: React.FormEvent) => {
-    e.preventDefault(); if (cSaving || !cForm.image) { if (!cForm.image) toast.error('Upload desktop banner.'); return; }
-    setCSaving(true);
+  // ---------------------------------------------------------------------------
+  // Carousel Handlers
+  // ---------------------------------------------------------------------------
+
+  const openCarouselModal = (carouselItem?: CarouselItem): void => {
+    if (carouselItem) {
+      setEditingCarousel(carouselItem);
+      setCarouselFormData({ ...carouselItem });
+    } else {
+      setEditingCarousel(null);
+      setCarouselFormData({
+        name: '',
+        image: '',
+        mobileImage: '',
+        url: '',
+        urlType: 'Internal',
+        serial: websiteConfiguration.carouselItems.length + 1,
+        status: 'Publish'
+      });
+    }
+    setIsCarouselModalOpen(true);
+  };
+
+  const handleSaveCarousel = async (event: React.FormEvent): Promise<void> => {
+    event.preventDefault();
+
+    if (isCarouselSaving || !carouselFormData.image) {
+      if (!carouselFormData.image) {
+        toast.error('Upload desktop banner.');
+      }
+      return;
+    }
+
+    setIsCarouselSaving(true);
+
     try {
-      let img = cForm.image || '', mob = cForm.mobileImage || '';
-      if (isBase64Image(img)) { toast.loading('Uploading...', { id: 'cu' }); img = await convertBase64ToUploadedUrl(img, tenantId, 'carousel'); toast.dismiss('cu'); }
-      if (mob && isBase64Image(mob)) { toast.loading('Uploading mobile...', { id: 'cm' }); mob = await convertBase64ToUploadedUrl(mob, tenantId, 'carousel'); toast.dismiss('cm'); }
-      const item: CarouselItem = { id: cEdit?.id || Date.now().toString(), name: cForm.name || 'Untitled', image: img, mobileImage: mob, url: cForm.url || '#', urlType: (cForm.urlType as 'Internal' | 'External') || 'Internal', serial: Number(cForm.serial), status: (cForm.status as 'Publish' | 'Draft') || 'Publish' };
-      const items = cEdit ? cfg.carouselItems.map(x => x.id === cEdit.id ? item : x) : [...cfg.carouselItems, item];
-      const upd = { ...cfg, carouselItems: items }; setCfg(upd); if (onUpdateWebsiteConfig) await onUpdateWebsiteConfig(upd);
-      toast.success(cEdit ? 'Updated!' : 'Added!'); setCModal(false);
-    } catch { toast.error('Failed.'); } finally { setCSaving(false); }
-  };
-  const delC = (id: string) => { if (confirm('Delete carousel?')) setCfg(p => ({ ...p, carouselItems: p.carouselItems.filter(x => x.id !== id) })); };
-  const filteredC = cfg.carouselItems.filter(i => (cFilter === 'All' || i.status === cFilter) && i.name.toLowerCase().includes(cSearch.toLowerCase()));
+      let desktopImage = carouselFormData.image || '';
+      let mobileImage = carouselFormData.mobileImage || '';
 
-  const openCa = (c?: Campaign) => { if (c) { setCaEdit(c); setCaForm({ ...c }); } else { setCaEdit(null); setCaForm({ name: '', logo: '', startDate: '', endDate: '', url: '', serial: (cfg.campaigns?.length || 0) + 1, status: 'Publish' }); } setCaModal(true); };
-  const saveCa = (e: React.FormEvent) => {
-    e.preventDefault();
-    const ca: Campaign = { id: caEdit?.id || Date.now().toString(), name: caForm.name || 'Untitled', logo: caForm.logo || '', startDate: caForm.startDate || new Date().toISOString(), endDate: caForm.endDate || new Date().toISOString(), url: caForm.url || '#', serial: Number(caForm.serial), status: caForm.status as 'Publish' | 'Draft' };
-    setCfg(p => ({ ...p, campaigns: caEdit ? (p.campaigns || []).map(x => x.id === caEdit.id ? ca : x) : [...(p.campaigns || []), ca] })); setCaModal(false);
-  };
-  const delCa = (id: string) => { if (confirm('Delete campaign?')) setCfg(p => ({ ...p, campaigns: (p.campaigns || []).filter(x => x.id !== id) })); };
-  const uploadCaLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
-    try { const cv = await convertFileToWebP(f, { quality: 0.85, maxDimension: 400 }); const wf = dataUrlToFile(cv, `campaign-${Date.now()}.webp`); const url = await uploadPreparedImageToServer(wf, tenantId, 'carousel'); setCaForm(p => ({ ...p, logo: url })); } catch { toast.error('Upload failed.'); }
-    if (caLogoRef.current) caLogoRef.current.value = '';
-  };
-  const filteredCa = (cfg.campaigns || []).filter(c => (caFilter === 'All' || c.status === caFilter) && c.name.toLowerCase().includes(caSearch.toLowerCase()));
+      // Upload base64 images if needed
+      if (isBase64Image(desktopImage)) {
+        toast.loading('Uploading...', { id: 'carousel-upload' });
+        desktopImage = await convertBase64ToUploadedUrl(desktopImage, tenantId, 'carousel');
+        toast.dismiss('carousel-upload');
+      }
 
-  const openP = (p?: Popup) => { if (p) { setPEdit(p); setPForm(p); } else { setPEdit(null); setPForm({ name: '', image: '', url: '', urlType: 'Internal', priority: 0, status: 'Draft' }); } setPModal(true); };
-  const saveP = async (e: React.FormEvent) => {
-    e.preventDefault(); if (!pForm.name || !pForm.image) { alert('Fill required fields'); return; }
-    const upd = pEdit ? popups.map(x => x.id === pEdit.id ? { ...pForm, id: pEdit.id, updatedAt: new Date().toISOString() } as Popup : x) : [...popups, { ...pForm, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Popup];
-    await DataService.save('popups', upd); setPopups(upd); setPModal(false);
-  };
-  const delP = async (id: number) => { if (confirm('Delete popup?')) { const upd = popups.filter(x => x.id !== id); await DataService.save('popups', upd); setPopups(upd); } };
-  const togP = async (p: Popup) => { const upd = popups.map(x => x.id === p.id ? { ...x, status: x.status === 'Draft' ? 'Publish' : 'Draft', updatedAt: new Date().toISOString() } : x); await DataService.save('popups', upd); setPopups(upd); };
-  const filteredP = popups.filter(p => (pFilter === 'All' || p.status === pFilter) && p.name.toLowerCase().includes(pSearch.toLowerCase()));
+      if (mobileImage && isBase64Image(mobileImage)) {
+        toast.loading('Uploading mobile...', { id: 'carousel-mobile-upload' });
+        mobileImage = await convertBase64ToUploadedUrl(mobileImage, tenantId, 'carousel');
+        toast.dismiss('carousel-mobile-upload');
+      }
 
-  const Tab = ({ id, label, icon }: { id: string; label: string; icon?: React.ReactNode }) => <button onClick={() => setTab(id)} className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition whitespace-nowrap ${tab === id ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{icon} {label}</button>;
-  const Inp = ({ v, set, ph = '', cls = '' }: { v: string; set: (v: string) => void; ph?: string; cls?: string }) => <input type="text" value={v} onChange={e => set(e.target.value)} placeholder={ph} className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500 ${cls}`} />;
-  const Btn = ({ children, cls = '', ...p }: React.ButtonHTMLAttributes<HTMLButtonElement> & { cls?: string }) => <button className={`px-4 py-2 rounded-lg text-sm font-bold ${cls}`} {...p}>{children}</button>;
+      const carouselItem: CarouselItem = {
+        id: editingCarousel?.id || Date.now().toString(),
+        name: carouselFormData.name || 'Untitled',
+        image: desktopImage,
+        mobileImage: mobileImage,
+        url: carouselFormData.url || '#',
+        urlType: (carouselFormData.urlType as 'Internal' | 'External') || 'Internal',
+        serial: Number(carouselFormData.serial),
+        status: (carouselFormData.status as 'Publish' | 'Draft') || 'Publish'
+      };
+
+      const updatedItems = editingCarousel
+        ? websiteConfiguration.carouselItems.map((item) =>
+            item.id === editingCarousel.id ? carouselItem : item
+          )
+        : [...websiteConfiguration.carouselItems, carouselItem];
+
+      const updatedConfig = { ...websiteConfiguration, carouselItems: updatedItems };
+      setWebsiteConfiguration(updatedConfig);
+
+      if (onUpdateWebsiteConfig) {
+        await onUpdateWebsiteConfig(updatedConfig);
+      }
+
+      toast.success(editingCarousel ? 'Updated!' : 'Added!');
+      setIsCarouselModalOpen(false);
+    } catch {
+      toast.error('Failed.');
+    } finally {
+      setIsCarouselSaving(false);
+    }
+  };
+
+  const handleDeleteCarousel = (carouselId: string): void => {
+    if (confirm('Delete carousel?')) {
+      setWebsiteConfiguration((prev) => ({
+        ...prev,
+        carouselItems: prev.carouselItems.filter((item) => item.id !== carouselId)
+      }));
+    }
+  };
+
+  // Filter carousel items based on status and search
+  const filteredCarouselItems = websiteConfiguration.carouselItems.filter(
+    (item) =>
+      (carouselFilterStatus === 'All' || item.status === carouselFilterStatus) &&
+      item.name.toLowerCase().includes(carouselSearchQuery.toLowerCase())
+  );
+
+  // ---------------------------------------------------------------------------
+  // Campaign Handlers
+  // ---------------------------------------------------------------------------
+
+  const openCampaignModal = (campaign?: Campaign): void => {
+    if (campaign) {
+      setEditingCampaign(campaign);
+      setCampaignFormData({ ...campaign });
+    } else {
+      setEditingCampaign(null);
+      setCampaignFormData({
+        name: '',
+        logo: '',
+        startDate: '',
+        endDate: '',
+        url: '',
+        serial: (websiteConfiguration.campaigns?.length || 0) + 1,
+        status: 'Publish'
+      });
+    }
+    setIsCampaignModalOpen(true);
+  };
+
+  const handleSaveCampaign = (event: React.FormEvent): void => {
+    event.preventDefault();
+
+    const campaign: Campaign = {
+      id: editingCampaign?.id || Date.now().toString(),
+      name: campaignFormData.name || 'Untitled',
+      logo: campaignFormData.logo || '',
+      startDate: campaignFormData.startDate || new Date().toISOString(),
+      endDate: campaignFormData.endDate || new Date().toISOString(),
+      url: campaignFormData.url || '#',
+      serial: Number(campaignFormData.serial),
+      status: campaignFormData.status as 'Publish' | 'Draft'
+    };
+
+    setWebsiteConfiguration((prev) => ({
+      ...prev,
+      campaigns: editingCampaign
+        ? (prev.campaigns || []).map((item) =>
+            item.id === editingCampaign.id ? campaign : item
+          )
+        : [...(prev.campaigns || []), campaign]
+    }));
+
+    setIsCampaignModalOpen(false);
+  };
+
+  const handleDeleteCampaign = (campaignId: string): void => {
+    if (confirm('Delete campaign?')) {
+      setWebsiteConfiguration((prev) => ({
+        ...prev,
+        campaigns: (prev.campaigns || []).filter((item) => item.id !== campaignId)
+      }));
+    }
+  };
+
+  const handleCampaignLogoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const convertedImage = await convertFileToWebP(file, {
+        quality: 0.85,
+        maxDimension: 400
+      });
+      const webpFile = dataUrlToFile(convertedImage, `campaign-${Date.now()}.webp`);
+      const uploadedUrl = await uploadPreparedImageToServer(webpFile, tenantId, 'carousel');
+      setCampaignFormData((prev) => ({ ...prev, logo: uploadedUrl }));
+    } catch {
+      toast.error('Upload failed.');
+    }
+
+    if (campaignLogoInputRef.current) {
+      campaignLogoInputRef.current.value = '';
+    }
+  };
+
+  // Filter campaigns based on status and search
+  const filteredCampaigns = (websiteConfiguration.campaigns || []).filter(
+    (campaign) =>
+      (campaignFilterStatus === 'All' || campaign.status === campaignFilterStatus) &&
+      campaign.name.toLowerCase().includes(campaignSearchQuery.toLowerCase())
+  );
+
+  // ---------------------------------------------------------------------------
+  // Popup Handlers
+  // ---------------------------------------------------------------------------
+
+  const openPopupModal = (popup?: Popup): void => {
+    if (popup) {
+      setEditingPopup(popup);
+      setPopupFormData(popup);
+    } else {
+      setEditingPopup(null);
+      setPopupFormData({
+        name: '',
+        image: '',
+        url: '',
+        urlType: 'Internal',
+        priority: 0,
+        status: 'Draft'
+      });
+    }
+    setIsPopupModalOpen(true);
+  };
+
+  const handleSavePopup = async (event: React.FormEvent): Promise<void> => {
+    event.preventDefault();
+
+    if (!popupFormData.name || !popupFormData.image) {
+      alert('Fill required fields');
+      return;
+    }
+
+    const updatedPopups = editingPopup
+      ? popupList.map((item) =>
+          item.id === editingPopup.id
+            ? { ...popupFormData, id: editingPopup.id, updatedAt: new Date().toISOString() } as Popup
+            : item
+        )
+      : [
+          ...popupList,
+          {
+            ...popupFormData,
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          } as Popup
+        ];
+
+    await DataService.save('popups', updatedPopups);
+    setPopupList(updatedPopups);
+    setIsPopupModalOpen(false);
+  };
+
+  const handleDeletePopup = async (popupId: number): Promise<void> => {
+    if (confirm('Delete popup?')) {
+      const updatedPopups = popupList.filter((item) => item.id !== popupId);
+      await DataService.save('popups', updatedPopups);
+      setPopupList(updatedPopups);
+    }
+  };
+
+  const handleTogglePopupStatus = async (popup: Popup): Promise<void> => {
+    const updatedPopups = popupList.map((item) =>
+      item.id === popup.id
+        ? {
+            ...item,
+            status: item.status === 'Draft' ? 'Publish' : 'Draft',
+            updatedAt: new Date().toISOString()
+          }
+        : item
+    );
+    await DataService.save('popups', updatedPopups);
+    setPopupList(updatedPopups);
+  };
+
+  // Filter popups based on status and search
+  const filteredPopups = popupList.filter(
+    (popup) =>
+      (popupFilterStatus === 'All' || popup.status === popupFilterStatus) &&
+      popup.name.toLowerCase().includes(popupSearchQuery.toLowerCase())
+  );
+
+  // ---------------------------------------------------------------------------
+  // Sub-components for better organization
+  // ---------------------------------------------------------------------------
+
+  const TabButton: React.FC<{
+    id: string;
+    label: string;
+    icon?: React.ReactNode;
+  }> = ({ id, label, icon }) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`px-6 py-3 font-medium text-sm flex items-center gap-2 border-b-2 transition whitespace-nowrap ${
+        activeTab === id
+          ? 'border-green-600 text-green-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700'
+      }`}
+    >
+      {icon} {label}
+    </button>
+  );
+
+  const ActionButton: React.FC<
+    React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: string }
+  > = ({ children, variant = '', className = '', ...props }) => (
+    <button
+      className={`px-4 py-2 rounded-lg text-sm font-bold ${variant} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
+      {/* Page Header */}
       <div className="flex justify-between items-center bg-gray-50 z-30 pt-4 pb-2">
-        <div><h2 className="text-2xl font-bold text-gray-800">Customization</h2><p className="text-sm text-gray-500">Manage appearance and content</p></div>
-        <button onClick={save} disabled={saving} className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold transition-all shadow-lg min-w-[160px] justify-center ${saved ? 'bg-emerald-500 text-white' : saving ? 'bg-green-500 text-white cursor-wait' : 'bg-green-600 text-white hover:bg-green-700'}`}>
-          {saved ? <><CheckCircle2 size={18} className="animate-bounce"/>Saved!</> : saving ? <><Loader2 size={18} className="animate-spin"/>Saving...</> : <><Save size={18}/>Save Changes</>}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Customization</h2>
+          <p className="text-sm text-gray-500">Manage appearance and content</p>
+        </div>
+        <button
+          onClick={handleSaveChanges}
+          disabled={isSaving}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold transition-all shadow-lg min-w-[160px] justify-center ${
+            isSaved
+              ? 'bg-emerald-500 text-white'
+              : isSaving
+              ? 'bg-green-500 text-white cursor-wait'
+              : 'bg-green-600 text-white hover:bg-green-700'
+          }`}
+        >
+          {isSaved ? (
+            <>
+              <CheckCircle2 size={18} className="animate-bounce" />
+              Saved!
+            </>
+          ) : isSaving ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save size={18} />
+              Save Changes
+            </>
+          )}
         </button>
       </div>
+      {/* Tab Navigation */}
       <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white rounded-t-xl">
-        <Tab id="carousel" label="Carousel" icon={<ImageIcon size={18}/>}/><Tab id="campaigns" label="Campaigns" icon={<CalendarDays size={18}/>}/><Tab id="popup" label="Popup" icon={<Layers size={18}/>}/><Tab id="website_info" label="Website Information" icon={<Globe size={18}/>}/><Tab id="chat_settings" label="Chat Settings" icon={<MessageCircle size={18}/>}/><Tab id="theme_view" label="Theme View" icon={<Layout size={18}/>}/><Tab id="theme_colors" label="Theme Colors" icon={<Palette size={18}/>}/>
+        <TabButton id="carousel" label="Carousel" icon={<ImageIcon size={18} />} />
+        <TabButton id="campaigns" label="Campaigns" icon={<CalendarDays size={18} />} />
+        <TabButton id="popup" label="Popup" icon={<Layers size={18} />} />
+        <TabButton id="website_info" label="Website Information" icon={<Globe size={18} />} />
+        <TabButton id="chat_settings" label="Chat Settings" icon={<MessageCircle size={18} />} />
+        <TabButton id="theme_view" label="Theme View" icon={<Layout size={18} />} />
+        <TabButton id="theme_colors" label="Theme Colors" icon={<Palette size={18} />} />
       </div>
+
+      {/* Tab Content */}
       <div className="bg-white rounded-b-xl border border-t-0 border-gray-200 shadow-sm p-6 min-h-[500px]">
-        {tab === 'carousel' && (
+        {/* ================================================================== */}
+        {/* Carousel Tab */}
+        {/* ================================================================== */}
+        {activeTab === 'carousel' && (
           <div className="space-y-6">
+            {/* Filters and Search */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex bg-gray-100 rounded-lg p-1">{['All', 'Publish', 'Draft', 'Trash'].map(s => <button key={s} onClick={() => setCFilter(s as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${cFilter === s ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{s === 'All' ? 'All Data' : s}{s === 'All' && <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">{cfg.carouselItems.length}</span>}</button>)}</div>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                {(['All', 'Publish', 'Draft', 'Trash'] as CarouselFilterStatus[]).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setCarouselFilterStatus(status)}
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+                      carouselFilterStatus === status
+                        ? 'bg-white text-green-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {status === 'All' ? 'All Data' : status}
+                    {status === 'All' && (
+                      <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">
+                        {websiteConfiguration.carouselItems.length}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
               <div className="flex gap-3 w-full md:w-auto">
-                <div className="relative flex-1 md:w-64"><input type="text" placeholder="Search" className="w-full pl-10 pr-4 py-2 bg-white border rounded-lg text-sm focus:ring-1 focus:ring-green-500" value={cSearch} onChange={e => setCSearch(e.target.value)}/><Search className="absolute left-3 top-2.5 text-gray-400" size={16}/></div>
-                <Btn onClick={() => openC()} cls="bg-green-600 text-white hover:bg-green-700 flex items-center gap-2"><Plus size={16}/>Add Carousel</Btn>
+                <div className="relative flex-1 md:w-64">
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    className="w-full pl-10 pr-4 py-2 bg-white border rounded-lg text-sm focus:ring-1 focus:ring-green-500"
+                    value={carouselSearchQuery}
+                    onChange={(e) => setCarouselSearchQuery(e.target.value)}
+                  />
+                  <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                </div>
+                <ActionButton
+                  onClick={() => openCarouselModal()}
+                  variant="bg-green-600 text-white hover:bg-green-700 flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Add Carousel
+                </ActionButton>
               </div>
             </div>
+
+            {/* Carousel Table */}
             <div className="overflow-x-auto border rounded-lg shadow-sm">
               <table className="w-full text-sm text-left">
-                <thead className="bg-green-50 text-gray-700 font-semibold text-xs uppercase border-b"><tr><th className="px-4 py-3 w-10"><input type="checkbox" className="rounded"/></th><th className="px-4 py-3">Image</th><th className="px-4 py-3">Name</th><th className="px-4 py-3">Url</th><th className="px-4 py-3">Url Type</th><th className="px-4 py-3">Serial</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Actions</th></tr></thead>
+                <thead className="bg-green-50 text-gray-700 font-semibold text-xs uppercase border-b">
+                  <tr>
+                    <th className="px-4 py-3 w-10">
+                      <input type="checkbox" className="rounded" />
+                    </th>
+                    <th className="px-4 py-3">Image</th>
+                    <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Url</th>
+                    <th className="px-4 py-3">Url Type</th>
+                    <th className="px-4 py-3">Serial</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredC.map(i => <tr key={i.id} className="hover:bg-gray-50 group"><td className="px-4 py-3"><input type="checkbox" className="rounded"/></td><td className="px-4 py-3"><div className="w-16 h-10 bg-gray-100 rounded border overflow-hidden">{i.image ? <img src={normalizeImageUrl(i.image)} alt={i.name} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={16}/></div>}</div></td><td className="px-4 py-3 font-medium text-gray-800">{i.name}</td><td className="px-4 py-3 text-gray-500 max-w-xs truncate">{i.url}</td><td className="px-4 py-3 text-gray-500">{i.urlType}</td><td className="px-4 py-3 font-mono">{i.serial}</td><td className="px-4 py-3"><span className={`px-2.5 py-1 rounded-full text-xs font-bold ${i.status === 'Publish' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{i.status}</span></td><td className="px-4 py-3 text-right"><div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100"><button onClick={() => openC(i)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><Edit size={16}/></button><button onClick={() => delC(i.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16}/></button></div></td></tr>)}
-                  {filteredC.length === 0 && <tr><td colSpan={8} className="text-center py-12 text-gray-400"><ImageIcon size={32} className="mx-auto mb-2 opacity-50"/>No carousel items found.</td></tr>}
+                  {filteredCarouselItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 group">
+                      <td className="px-4 py-3">
+                        <input type="checkbox" className="rounded" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="w-16 h-10 bg-gray-100 rounded border overflow-hidden">
+                          {item.image ? (
+                            <img
+                              src={normalizeImageUrl(item.image)}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <ImageIcon size={16} />
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
+                      <td className="px-4 py-3 text-gray-500 max-w-xs truncate">{item.url}</td>
+                      <td className="px-4 py-3 text-gray-500">{item.urlType}</td>
+                      <td className="px-4 py-3 font-mono">{item.serial}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                            item.status === 'Publish'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-orange-100 text-orange-700'
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100">
+                          <button
+                            onClick={() => openCarouselModal(item)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCarousel(item.id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredCarouselItems.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="text-center py-12 text-gray-400">
+                        <ImageIcon size={32} className="mx-auto mb-2 opacity-50" />
+                        No carousel items found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
-            <div className="flex justify-end items-center gap-2"><span className="text-sm text-gray-600">1 of 1</span><div className="flex border rounded-lg overflow-hidden"><button disabled className="px-2 py-1 bg-gray-50 text-gray-400 border-r"><ChevronLeft size={16}/></button><button disabled className="px-2 py-1 bg-gray-50 text-gray-400"><ChevronRight size={16}/></button></div></div>
+
+            {/* Pagination */}
+            <div className="flex justify-end items-center gap-2">
+              <span className="text-sm text-gray-600">1 of 1</span>
+              <div className="flex border rounded-lg overflow-hidden">
+                <button disabled className="px-2 py-1 bg-gray-50 text-gray-400 border-r">
+                  <ChevronLeft size={16} />
+                </button>
+                <button disabled className="px-2 py-1 bg-gray-50 text-gray-400">
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
-        {tab === 'campaigns' && (
+        {/* ================================================================== */}
+        {/* Campaigns Tab */}
+        {/* ================================================================== */}
+        {activeTab === 'campaigns' && (
           <div className="space-y-6">
+            {/* Filters and Search */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex bg-gray-100 rounded-lg p-1">{['All', 'Publish', 'Draft'].map(s => <button key={s} onClick={() => setCaFilter(s as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${caFilter === s ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{s === 'All' ? 'All Campaigns' : s}{s === 'All' && <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">{(cfg.campaigns || []).length}</span>}</button>)}</div>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                {(['All', 'Publish', 'Draft'] as CampaignFilterStatus[]).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setCampaignFilterStatus(status)}
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+                      campaignFilterStatus === status
+                        ? 'bg-white text-green-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {status === 'All' ? 'All Campaigns' : status}
+                    {status === 'All' && (
+                      <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">
+                        {(websiteConfiguration.campaigns || []).length}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
               <div className="flex items-center gap-3">
-                <div className="relative"><Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/><input type="text" value={caSearch} onChange={e => setCaSearch(e.target.value)} placeholder="Search campaigns..." className="pl-10 pr-4 py-2 border rounded-lg w-64 focus:ring-2 focus:ring-green-500"/></div>
-                <Btn onClick={() => openCa()} cls="bg-green-600 text-white hover:bg-green-700 flex items-center gap-2"><Plus size={18}/>Add Campaign</Btn>
+                <div className="relative">
+                  <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={campaignSearchQuery}
+                    onChange={(e) => setCampaignSearchQuery(e.target.value)}
+                    placeholder="Search campaigns..."
+                    className="pl-10 pr-4 py-2 border rounded-lg w-64 focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <ActionButton
+                  onClick={() => openCampaignModal()}
+                  variant="bg-green-600 text-white hover:bg-green-700 flex items-center gap-2"
+                >
+                  <Plus size={18} />
+                  Add Campaign
+                </ActionButton>
               </div>
             </div>
+
+            {/* Campaign Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCa.map(c => <div key={c.id} className="bg-white border rounded-xl overflow-hidden hover:shadow-lg group"><div className="p-4"><div className="flex items-center gap-3 mb-3">{c.logo ? <img src={normalizeImageUrl(c.logo)} alt={c.name} className="w-16 h-10 object-contain rounded"/> : <div className="w-16 h-10 bg-gray-100 rounded flex items-center justify-center"><CalendarDays className="text-gray-400" size={20}/></div>}<div className="flex-1 min-w-0"><h4 className="font-bold text-gray-800 truncate">{c.name}</h4><span className={`inline-block px-2 py-0.5 text-xs rounded-full ${c.status === 'Publish' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{c.status}</span></div></div><div className="text-sm text-gray-600 space-y-1"><p>Starts: {new Date(c.startDate).toLocaleDateString()}</p><p>Ends: {new Date(c.endDate).toLocaleDateString()}</p></div></div><div className="flex border-t divide-x"><button onClick={() => openCa(c)} className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium flex items-center justify-center gap-1"><Edit size={16}/>Edit</button><button onClick={() => delCa(c.id)} className="flex-1 px-4 py-2 text-red-600 hover:bg-red-50 font-medium flex items-center justify-center gap-1"><Trash2 size={16}/>Delete</button></div></div>)}
-              {filteredCa.length === 0 && <div className="col-span-full text-center py-12 text-gray-500"><CalendarDays size={48} className="mx-auto mb-3 opacity-30"/><p>No campaigns found.</p></div>}
+              {filteredCampaigns.map((campaign) => (
+                <div
+                  key={campaign.id}
+                  className="bg-white border rounded-xl overflow-hidden hover:shadow-lg group"
+                >
+                  <div className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      {campaign.logo ? (
+                        <img
+                          src={normalizeImageUrl(campaign.logo)}
+                          alt={campaign.name}
+                          className="w-16 h-10 object-contain rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-10 bg-gray-100 rounded flex items-center justify-center">
+                          <CalendarDays className="text-gray-400" size={20} />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-800 truncate">{campaign.name}</h4>
+                        <span
+                          className={`inline-block px-2 py-0.5 text-xs rounded-full ${
+                            campaign.status === 'Publish'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}
+                        >
+                          {campaign.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Starts: {new Date(campaign.startDate).toLocaleDateString()}</p>
+                      <p>Ends: {new Date(campaign.endDate).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex border-t divide-x">
+                    <button
+                      onClick={() => openCampaignModal(campaign)}
+                      className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium flex items-center justify-center gap-1"
+                    >
+                      <Edit size={16} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCampaign(campaign.id)}
+                      className="flex-1 px-4 py-2 text-red-600 hover:bg-red-50 font-medium flex items-center justify-center gap-1"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredCampaigns.length === 0 && (
+                <div className="col-span-full text-center py-12 text-gray-500">
+                  <CalendarDays size={48} className="mx-auto mb-3 opacity-30" />
+                  <p>No campaigns found.</p>
+                </div>
+              )}
             </div>
           </div>
         )}

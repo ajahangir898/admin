@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import express, { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -191,6 +191,74 @@ router.delete('/api/upload', (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Delete failed',
+    });
+  }
+});
+
+/**
+ * POST /api/upload/fix-base64
+ * Convert a base64 image to a file and upload it
+ * Used to fix carousel images that were incorrectly stored as base64
+ */
+router.post('/api/upload/fix-base64', express.json({ limit: '50mb' }), async (req: Request, res: Response) => {
+  try {
+    const { base64Data, tenantId, folder, filename } = req.body;
+
+    if (!base64Data || !tenantId) {
+      return res.status(400).json({
+        success: false,
+        error: 'base64Data and tenantId are required',
+      });
+    }
+
+    // Validate base64 data format
+    const base64Match = base64Data.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!base64Match) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid base64 image format',
+      });
+    }
+
+    const imageType = base64Match[1];
+    const base64Content = base64Match[2];
+    const buffer = Buffer.from(base64Content, 'base64');
+
+    // Validate folder if provided
+    const validatedFolder = sanitizeFolder(folder);
+
+    // Create tenant directory if it doesn't exist
+    const tenantDir = validatedFolder
+      ? path.join(uploadDir, validatedFolder, tenantId)
+      : path.join(uploadDir, tenantId);
+    if (!fs.existsSync(tenantDir)) {
+      fs.mkdirSync(tenantDir, { recursive: true });
+    }
+
+    // Generate unique filename
+    const ext = imageType === 'webp' ? '.webp' : imageType === 'png' ? '.png' : '.jpg';
+    const finalFilename = filename || `${uuidv4()}${ext}`;
+    const filePath = path.join(tenantDir, finalFilename);
+
+    // Write file to disk
+    fs.writeFileSync(filePath, buffer);
+
+    const imageUrl = validatedFolder
+      ? `/uploads/images/${validatedFolder}/${tenantId}/${finalFilename}`
+      : `/uploads/images/${tenantId}/${finalFilename}`;
+
+    console.log(`[upload] Base64 image converted and saved: ${imageUrl}`);
+
+    res.json({
+      success: true,
+      imageUrl,
+      imageId: finalFilename,
+    });
+  } catch (error) {
+    console.error('Base64 conversion error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Conversion failed',
     });
   }
 });

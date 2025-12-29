@@ -2,7 +2,7 @@
   "name": "GadgetShob E-Commerce",
   "short_name": "GadgetShob",
   "description": "Your one-stop shop for electronics and gadgets",
-  "start_url": "https://static.systemnextit.com/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f9fafb",
   "theme_color": "#166d70",

@@ -6,7 +6,7 @@ import { ThemeConfig, WebsiteConfig, SocialLink, CarouselItem, FooterLink, Popup
 import { convertFileToWebP, convertCarouselImage, dataUrlToFile, CAROUSEL_WIDTH, CAROUSEL_HEIGHT, CAROUSEL_MOBILE_WIDTH, CAROUSEL_MOBILE_HEIGHT } from '../services/imageUtils';
 import { DataService } from '../services/DataService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
-import { uploadPreparedImageToServer } from '../services/imageUploadService';
+import { uploadPreparedImageToServer, isBase64Image, convertBase64ToUploadedUrl } from '../services/imageUploadService';
 
 interface AdminCustomizationProps {
     tenantId: string;
@@ -417,24 +417,42 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
       setIsCarouselSaving(true);
 
-      const newItem: CarouselItem = {
-          id: editingCarousel ? editingCarousel.id : Date.now().toString(),
-          name: carouselFormData.name || 'Untitled',
-          image: carouselFormData.image || '',
-          mobileImage: carouselFormData.mobileImage || '',
-          url: carouselFormData.url || '#',
-          urlType: (carouselFormData.urlType as 'Internal' | 'External') || 'Internal',
-          serial: Number(carouselFormData.serial),
-          status: (carouselFormData.status as 'Publish' | 'Draft') || 'Publish'
-      };
-
-      const newItems = editingCarousel
-          ? config.carouselItems.map(i => i.id === editingCarousel.id ? newItem : i)
-          : [...config.carouselItems, newItem];
-
-      const updatedConfig = { ...config, carouselItems: newItems };
-
       try {
+          // Fix any base64 images by converting them to uploaded URLs
+          let fixedImage = carouselFormData.image || '';
+          let fixedMobileImage = carouselFormData.mobileImage || '';
+
+          if (isBase64Image(fixedImage)) {
+              console.log('[Carousel] Converting base64 desktop image to uploaded URL...');
+              toast.loading('Uploading desktop image...', { id: 'carousel-upload' });
+              fixedImage = await convertBase64ToUploadedUrl(fixedImage, tenantId, 'carousel');
+              toast.dismiss('carousel-upload');
+          }
+
+          if (fixedMobileImage && isBase64Image(fixedMobileImage)) {
+              console.log('[Carousel] Converting base64 mobile image to uploaded URL...');
+              toast.loading('Uploading mobile image...', { id: 'carousel-mobile-upload' });
+              fixedMobileImage = await convertBase64ToUploadedUrl(fixedMobileImage, tenantId, 'carousel');
+              toast.dismiss('carousel-mobile-upload');
+          }
+
+          const newItem: CarouselItem = {
+              id: editingCarousel ? editingCarousel.id : Date.now().toString(),
+              name: carouselFormData.name || 'Untitled',
+              image: fixedImage,
+              mobileImage: fixedMobileImage,
+              url: carouselFormData.url || '#',
+              urlType: (carouselFormData.urlType as 'Internal' | 'External') || 'Internal',
+              serial: Number(carouselFormData.serial),
+              status: (carouselFormData.status as 'Publish' | 'Draft') || 'Publish'
+          };
+
+          const newItems = editingCarousel
+              ? config.carouselItems.map(i => i.id === editingCarousel.id ? newItem : i)
+              : [...config.carouselItems, newItem];
+
+          const updatedConfig = { ...config, carouselItems: newItems };
+
           setConfig(updatedConfig);
           if (onUpdateWebsiteConfig) {
               await onUpdateWebsiteConfig(updatedConfig);

@@ -652,17 +652,13 @@ const StoreHome = ({
 
       {/* Category Section - rendered outside main for style4 to allow full-width background */}
       {!hasSearchQuery && websiteConfig?.categorySectionStyle === 'style4' && (
-        websiteConfig?.categorySectionStyle === 'mobile1' ? (
-          <CategorySectionMobile />
-        ) : (
-          <CategoriesSection
-            style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | 'style3' | 'style4' | 'style5'}
-            categories={categories}
-            onCategoryClick={handleCategoryClick}
-            categoryScrollRef={categoryScrollRef}
-            sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
-          />
-        )
+        <CategoriesSection
+          style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | 'style3' | 'style4' | 'style5'}
+          categories={categories}
+          onCategoryClick={handleCategoryClick}
+          categoryScrollRef={categoryScrollRef}
+          sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
+        />
       )}
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">

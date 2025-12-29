@@ -15,6 +15,11 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
     client_max_body_size 10M;
 
     location /uploads/ {
@@ -35,6 +40,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_request_buffering off;
         proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
+        proxy_send_timeout 300s;
         client_max_body_size 50M;
     }
 
@@ -48,6 +55,8 @@ server {
         proxy_set_header Origin $http_origin;
         proxy_request_buffering off;
         proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
+        proxy_send_timeout 300s;
 
         if ($request_method = 'OPTIONS') {
             add_header Access-Control-Allow-Origin $http_origin always;
@@ -64,12 +73,14 @@ server {
         proxy_pass http://127.0.0.1:5001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection upgrade;
+        proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
     }
 
     location /health {
@@ -102,10 +113,15 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
+        proxy_send_timeout 300s;
     }
 
     gzip on;
     gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml image/svg+xml;
 }
@@ -119,6 +135,9 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/systemnextit.com-0001/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
 
     root /var/www/admin/dist/client;
 
@@ -140,6 +159,8 @@ server {
 
     gzip on;
     gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml image/svg+xml;
 }
@@ -154,6 +175,9 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+
     root /var/www/admin/backend/uploads;
 
     location / {
@@ -166,6 +190,8 @@ server {
 
     gzip on;
     gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml image/svg+xml;
 }

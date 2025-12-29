@@ -70,12 +70,13 @@ The mobile category style is controlled by the `categorySectionStyle` field in `
 The component requires a Gemini API key to enable AI features:
 
 1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Update the `apiKey` constant in `CategorySectionMobile.tsx`:
-   ```typescript
-   const apiKey = "YOUR_API_KEY_HERE";
+2. Add the API key to your `.env` file:
+   ```bash
+   VITE_GEMINI_API_KEY=your_api_key_here
    ```
+3. Restart your development server for the changes to take effect
 
-**Note**: For production, the API key should be stored in environment variables, not hardcoded.
+**Note**: The API key is automatically loaded from environment variables. Never commit API keys to version control.
 
 ## Usage
 

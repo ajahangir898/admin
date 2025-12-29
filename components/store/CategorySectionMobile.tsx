@@ -81,11 +81,26 @@ const CategorySectionMobile = () => {
     
     try {
       const result = await callGemini(prompt, "You are a trend-spotting shopping expert.");
-      const [emoji, ...nameParts] = result.trim().split(" ");
-      const name = nameParts.join(" ");
+      const trimmedResult = result.trim();
+      
+      // Validate and parse the response
+      if (!trimmedResult) {
+        throw new Error('Empty response from AI');
+      }
+      
+      const parts = trimmedResult.split(/\s+/);
+      if (parts.length < 2) {
+        throw new Error('Invalid response format from AI');
+      }
+      
+      const emoji = parts[0];
+      const name = parts.slice(1).join(" ");
+      
+      // Generate unique ID based on max existing ID + 1
+      const maxId = categories.reduce((max, cat) => Math.max(max, cat.id), 0);
       
       const newCat = {
-        id: Date.now(),
+        id: maxId + 1,
         name: name || "Trending Now",
         icon: <span className="text-[14px]">{emoji || "✨"}</span>
       };

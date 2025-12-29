@@ -18,7 +18,6 @@ server {
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
     client_max_body_size 10M;
@@ -80,8 +79,8 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 86400s;
-        proxy_send_timeout 86400s;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
     }
 
     location /health {

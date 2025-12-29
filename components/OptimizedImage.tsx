@@ -155,8 +155,20 @@ const OptimizedImage = memo(({
   };
 
   const handleError = () => {
+    // Log error for debugging (only in development)
+    if (import.meta.env.DEV) {
+      console.error('[OptimizedImage] Failed to load image:', {
+        originalSrc: src,
+        optimizedSrc: useFallback ? src : getOptimizedUrl(src, width),
+        useFallback
+      });
+    }
+    
     // Try fallback to original src if optimized version fails
     if (!useFallback && src && !src.startsWith('data:')) {
+      if (import.meta.env.DEV) {
+        console.log('[OptimizedImage] Attempting fallback to original src');
+      }
       setUseFallback(true);
       return;
     }

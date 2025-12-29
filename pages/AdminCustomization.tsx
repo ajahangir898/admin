@@ -14,8 +14,46 @@ type ColorKey = 'primary' | 'secondary' | 'tertiary' | 'font' | 'hover' | 'surfa
 type FooterField = 'footerQuickLinks' | 'footerUsefulLinks';
 type ImgType = 'logo' | 'favicon' | 'carousel' | 'carouselMobile' | 'popup' | 'headerLogo' | 'footerLogo';
 
-const defColors: Record<ColorKey, string> = { primary: '#22c55e', secondary: '#ec4899', tertiary: '#9333ea', font: '#0f172a', hover: '#f97316', surface: '#e2e8f0', adminBg: '#030407', adminInputBg: '#0f172a', adminBorder: '#ffffff', adminFocus: '#f87171' };
-const defConfig: WebsiteConfig = { websiteName: '', shortDescription: '', whatsappNumber: '', favicon: null, headerLogo: null, footerLogo: null, addresses: [], emails: [], phones: [], socialLinks: [], footerQuickLinks: [], footerUsefulLinks: [], showMobileHeaderCategory: true, showNewsSlider: true, headerSliderText: '', hideCopyright: false, hideCopyrightText: false, showPoweredBy: false, showFlashSaleCounter: true, brandingText: '', carouselItems: [], campaigns: [], searchHints: '', orderLanguage: 'English', adminNoticeText: '' };
+const defColors: Record<ColorKey, string> = { 
+  primary: '#22c55e', 
+  secondary: '#ec4899', 
+  tertiary: '#9333ea', 
+  font: '#0f172a', 
+  hover: '#f97316', 
+  surface: '#e2e8f0', 
+  adminBg: '#030407', 
+  adminInputBg: '#0f172a', 
+  adminBorder: '#ffffff', 
+  adminFocus: '#f87171' 
+};
+const defConfig: WebsiteConfig = { 
+  websiteName: '', 
+  shortDescription: '', 
+  whatsappNumber: '', 
+  favicon: null, 
+  headerLogo: null, 
+  footerLogo: null, 
+  addresses: [], 
+  emails: [], 
+  phones: [], 
+  socialLinks: [], 
+  footerQuickLinks: [], 
+  footerUsefulLinks: [], 
+  showMobileHeaderCategory: true, 
+  showNewsSlider: true, 
+  headerSliderText: '', 
+  hideCopyright: false, 
+  hideCopyrightText: false, 
+  showPoweredBy: false, 
+  showFlashSaleCounter: true, 
+  brandingText: '', 
+  carouselItems: [], 
+  campaigns: [], 
+  searchHints: '', 
+  orderLanguage: 'English', 
+  adminNoticeText: '', 
+  categorySectionStyle: 'style1' 
+};
 const socialOpts = ['Facebook', 'Instagram', 'YouTube', 'Daraz', 'Twitter', 'LinkedIn'];
 const colorGuides: { key: ColorKey; label: string; helper: string }[] = [
   { key: 'primary', label: 'Primary Accent', helper: 'Sidebar active state, admin CTAs, storefront hero buttons' },
@@ -281,9 +319,50 @@ const AdminCustomization = ({ tenantId, logo, onUpdateLogo, themeConfig, onUpdat
           </div>
         )}
         {tab === 'theme_view' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {[{ title: 'Header Section', key: 'headerStyle', count: 5 }, { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 5 }, { title: 'Brand Section', key: 'brandSectionStyle', count: 5, hasNone: true }, { title: 'Category Section', key: 'categorySectionStyle', count: 5, hasNone: true, hasMobile: true }, { title: 'Product Section', key: 'productSectionStyle', count: 5 }, { title: 'Product Card', key: 'productCardStyle', count: 5 }, { title: 'Footer Section', key: 'footerStyle', count: 5 }, { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }].map(s => (
-              <div key={s.title} className="space-y-3"><h3 className="font-bold text-gray-800 text-lg border-b pb-2">{s.title}</h3><div className="space-y-3">{s.hasNone && <div className="border rounded-lg p-4 flex items-center justify-between"><div className="flex items-center gap-3"><input type="radio" name={s.title} className="w-5 h-5 text-green-600" checked={!cfg[s.key as keyof WebsiteConfig]} onChange={() => setCfg({ ...cfg, [s.key]: '' })}/><span className="font-bold text-gray-700">None</span></div><button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1"><Eye size={14}/>View Site</button></div>}{Array.from({ length: s.count }).map((_, i) => { const v = `style${i + 1}`, cur = cfg[s.key as keyof WebsiteConfig] || 'style1'; return <div key={i} className={`border rounded-lg p-4 flex items-center justify-between ${cur === v ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}><div className="flex items-center gap-3"><input type="radio" name={s.title} className="w-5 h-5 text-green-600" checked={cur === v} onChange={() => setCfg({ ...cfg, [s.key]: v })}/><span className="font-bold text-gray-700">{s.title.split(' ')[0]} {i + 1}</span></div><button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1"><Eye size={14}/>View demo</button></div>; })}{s.hasMobile && <div className={`border rounded-lg p-4 flex items-center justify-between ${(cfg[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}><div className="flex items-center gap-3"><input type="radio" name={s.title} className="w-5 h-5 text-green-600" checked={(cfg[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1'} onChange={() => setCfg({ ...cfg, [s.key]: 'mobile1' })}/><span className="font-bold text-gray-700">Mobile Style 1 (AI-Powered)</span></div><button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1"><Eye size={14}/>View demo</button></div>}</div></div>
+              <div key={s.title} className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <h3 className="font-bold text-gray-800 text-lg border-b pb-2 mb-4">{s.title}</h3>
+                <div className="space-y-2">
+                  {s.hasNone && (
+                    <div className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-colors cursor-pointer ${!cfg[s.key as keyof WebsiteConfig] ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
+                      <div className="flex items-center gap-3">
+                        <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={!cfg[s.key as keyof WebsiteConfig]} onChange={() => setCfg({ ...cfg, [s.key]: '' })}/>
+                        <span className="font-semibold text-gray-700">None</span>
+                      </div>
+                      <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-colors">
+                        <Eye size={14}/>View Site
+                      </button>
+                    </div>
+                  )}
+                  {Array.from({ length: s.count }).map((_, i) => { 
+                    const v = `style${i + 1}`;
+                    const cur = cfg[s.key as keyof WebsiteConfig] || 'style1';
+                    return (
+                      <div key={i} className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-colors cursor-pointer ${cur === v ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
+                        <div className="flex items-center gap-3">
+                          <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={cur === v} onChange={() => setCfg({ ...cfg, [s.key]: v })}/>
+                          <span className="font-semibold text-gray-700">{s.title.split(' ')[0]} {i + 1}</span>
+                        </div>
+                        <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-colors">
+                          <Eye size={14}/>View demo
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {s.hasMobile && (
+                    <div className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-colors cursor-pointer ${(cfg[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
+                      <div className="flex items-center gap-3">
+                        <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={(cfg[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1'} onChange={() => setCfg({ ...cfg, [s.key]: 'mobile1' })}/>
+                        <span className="font-semibold text-gray-700">Mobile Style 1 (AI-Powered)</span>
+                      </div>
+                      <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-colors">
+                        <Eye size={14}/>View demo
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         )}

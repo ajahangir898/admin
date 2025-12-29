@@ -15,6 +15,7 @@ import { HeroSection } from '../components/store/HeroSection';
 import { CategoriesSection } from '../components/store/CategoriesSection';
 import { FlashSalesSection } from '../components/store/FlashSalesSection';
 import { ProductGridSection } from '../components/store/ProductGridSection';
+import CategorySectionMobile from '../components/store/CategorySectionMobile';
 
 // Below-the-fold - lazy loaded (only when needed)
 const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
@@ -671,13 +672,17 @@ const StoreHome = ({
         ) : (
           <>
             {/* Categories - loaded eagerly */}
-            <CategoriesSection
-              style={websiteConfig?.categorySectionStyle as 'style2'}
-              categories={categories}
-              onCategoryClick={handleCategoryClick}
-              categoryScrollRef={categoryScrollRef}
-              sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
-            />
+            {websiteConfig?.categorySectionStyle === 'mobile1' ? (
+              <CategorySectionMobile />
+            ) : (
+              <CategoriesSection
+                style={websiteConfig?.categorySectionStyle as 'style2'}
+                categories={categories}
+                onCategoryClick={handleCategoryClick}
+                categoryScrollRef={categoryScrollRef}
+                sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
+              />
+            )}
 
             {/* Flash Deals - loaded eagerly */}
             <FlashSalesSection

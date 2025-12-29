@@ -28,7 +28,7 @@ const getIcon = (name: string, size: number, stroke = 1.5) => {
 };
 
 interface Props {
-  style?: 'style1' | 'style2';
+  style?: 'style1' | 'style2' | 'style3' | 'style4' | 'style5';
   categories?: Category[];
   onCategoryClick: (name: string) => void;
   categoryScrollRef?: RefObject<HTMLDivElement>;
@@ -58,6 +58,44 @@ export const CategoriesSection = memo(({ style = 'style1', categories, onCategor
             <CategoryPill name={cat.name} icon={getIcon(cat.icon, 20, 2)} />
           </div>
         ))}
+      </div>
+    </div>
+  );
+
+  if (style === 'style4') return (
+    <div ref={sectionRef} className="bg-[#F2F4F8] py-8 px-2">
+      <div className="max-w-6xl w-full mx-auto">
+        {/* Categories Grid */}
+        <div className="bg-white rounded-md shadow-sm overflow-hidden border-t border-l border-[#eee] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+          {processed.map((category, index) => (
+            <div
+              key={index}
+              onClick={() => onCategoryClick(category.name)}
+              className="group flex flex-col items-center justify-center p-3 py-6 border-r border-b border-[#eee] hover:bg-[#F2F4F8] transition-all duration-300 cursor-pointer bg-white"
+            >
+              {/* Image Circle Container */}
+              <div className="w-16 h-16 flex items-center justify-center bg-[#F2F4F8] rounded-full mb-3 group-hover:bg-white transition-colors duration-300 overflow-hidden p-2">
+                {category.image ? (
+                  <img 
+                    src={category.image} 
+                    alt={category.name}
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://via.placeholder.com/64?text=${encodeURIComponent(category.name.charAt(0))}`;
+                    }}
+                  />
+                ) : (
+                  getIcon(category.icon, 32)
+                )}
+              </div>
+
+              {/* Category Label */}
+              <span className="text-[14px] font-semibold text-[#081621] group-hover:text-[#ef4a23] text-center leading-tight transition-colors duration-300 px-1">
+                {category.name}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -676,7 +676,7 @@ const StoreHome = ({
               <CategorySectionMobile />
             ) : (
               <CategoriesSection
-                style={websiteConfig?.categorySectionStyle as 'style2'}
+                style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | 'style3' | 'style4' | 'style5'}
                 categories={categories}
                 onCategoryClick={handleCategoryClick}
                 categoryScrollRef={categoryScrollRef}

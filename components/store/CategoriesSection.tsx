@@ -22,9 +22,23 @@ const CategoryPill = ({ name, icon }: { name: string; icon: ReactNode }) => (
 
 const icons = { smartphone: Smartphone, watch: Watch, 'battery-charging': BatteryCharging, headphones: Headphones, zap: Zap, bluetooth: Bluetooth, 'gamepad-2': Gamepad2, camera: Camera };
 
+// Default style4 category icons - these images will cycle through categories when no custom image is set
+const STYLE4_DEFAULT_ICONS = [
+  '/category-icons/category-1.webp',
+  '/category-icons/category-2.webp',
+  '/category-icons/category-3.webp',
+  '/category-icons/category-4.webp',
+  '/category-icons/category-5.webp',
+  '/category-icons/category-6.webp',
+];
+
 const getIcon = (name: string, size: number, stroke = 1.5) => {
   const Icon = icons[name as keyof typeof icons] || Smartphone;
   return <Icon size={size} strokeWidth={stroke} />;
+};
+
+const getStyle4DefaultIcon = (index: number): string => {
+  return STYLE4_DEFAULT_ICONS[index % STYLE4_DEFAULT_ICONS.length];
 };
 
 interface Props {
@@ -67,34 +81,35 @@ export const CategoriesSection = memo(({ style = 'style1', categories, onCategor
       <div className="max-w-6xl w-full mx-auto">
         {/* Categories Grid */}
         <div className="bg-white rounded-md shadow-sm overflow-hidden border-t border-l border-[#eee] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-          {processed.map((category, index) => (
-            <div
-              key={index}
-              onClick={() => onCategoryClick(category.name)}
-              className="group flex flex-col items-center justify-center p-3 py-6 border-r border-b border-[#eee] hover:bg-[#F2F4F8] transition-all duration-300 cursor-pointer bg-white"
-            >
-              {/* Image Circle Container */}
-              <div className="w-16 h-16 flex items-center justify-center bg-[#F2F4F8] rounded-full mb-3 group-hover:bg-white transition-colors duration-300 overflow-hidden p-2">
-                {category.image ? (
+          {processed.map((category, index) => {
+            // Use custom image if available, otherwise use default style4 icons
+            const displayImage = category.image || getStyle4DefaultIcon(index);
+            
+            return (
+              <div
+                key={index}
+                onClick={() => onCategoryClick(category.name)}
+                className="group flex flex-col items-center justify-center p-3 py-6 border-r border-b border-[#eee] hover:bg-[#F2F4F8] transition-all duration-300 cursor-pointer bg-white"
+              >
+                {/* Image Circle Container */}
+                <div className="w-16 h-16 flex items-center justify-center bg-[#F2F4F8] rounded-full mb-3 group-hover:bg-white transition-colors duration-300 overflow-hidden p-2">
                   <img 
-                    src={category.image} 
+                    src={displayImage} 
                     alt={category.name}
                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
                       e.currentTarget.src = `https://via.placeholder.com/64?text=${encodeURIComponent(category.name.charAt(0))}`;
                     }}
                   />
-                ) : (
-                  getIcon(category.icon, 32)
-                )}
-              </div>
+                </div>
 
-              {/* Category Label */}
-              <span className="text-[14px] font-semibold text-[#081621] group-hover:text-[#ef4a23] text-center leading-tight transition-colors duration-300 px-1">
-                {category.name}
-              </span>
-            </div>
-          ))}
+                {/* Category Label */}
+                <span className="text-[14px] font-semibold text-[#081621] group-hover:text-[#ef4a23] text-center leading-tight transition-colors duration-300 px-1">
+                  {category.name}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -87,4 +87,23 @@ describe('CategoriesSection', () => {
     expect(img).toBeInTheDocument();
     expect(img.src).toContain('test.jpg');
   });
+
+  it('renders default style4 icons when no custom image is provided', () => {
+    render(
+      <CategoriesSection
+        style="style4"
+        categories={mockCategories}
+        onCategoryClick={mockOnCategoryClick}
+      />
+    );
+    const images = screen.getAllByRole('img');
+    // Should have images for all active categories (3 active categories in mockCategories)
+    expect(images.length).toBe(3);
+    // First category should use first default icon
+    expect(images[0]).toHaveAttribute('src', '/category-icons/category-1.webp');
+    // Second category should use second default icon
+    expect(images[1]).toHaveAttribute('src', '/category-icons/category-2.webp');
+    // Third category should use third default icon
+    expect(images[2]).toHaveAttribute('src', '/category-icons/category-3.webp');
+  });
 });

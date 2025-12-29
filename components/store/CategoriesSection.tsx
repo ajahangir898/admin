@@ -63,7 +63,7 @@ export const CategoriesSection = memo(({ style = 'style1', categories, onCategor
   );
 
   if (style === 'style4') return (
-    <div ref={sectionRef} className="min-h-screen bg-[#F2F4F8] py-8 px-2 flex items-start justify-center">
+    <div ref={sectionRef} className="bg-[#F2F4F8] py-8 px-2">
       <div className="max-w-6xl w-full mx-auto">
         {/* Categories Grid */}
         <div className="bg-white rounded-md shadow-sm overflow-hidden border-t border-l border-[#eee] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">

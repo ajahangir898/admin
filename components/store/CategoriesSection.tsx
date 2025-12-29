@@ -81,7 +81,7 @@ export const CategoriesSection = memo(({ style = 'style1', categories, onCategor
                     alt={category.name}
                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/64?text=Tech';
+                      e.currentTarget.src = `https://via.placeholder.com/64?text=${encodeURIComponent(category.name.charAt(0))}`;
                     }}
                   />
                 ) : (

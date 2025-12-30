@@ -286,6 +286,7 @@ const deduplicateRequest = async <T>(
 export const INVALID_CATEGORY_IMAGE_DATA_URL = 'data:image/webp;base64,UklGRqgjAABXRUJQVlA4WAoAAAAwAAAAfwEAfwEASUNDUMgBAAAAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADZBTFBIgiAAAAHwhm27qyfZto0xz57eEzqGAKFIrzaki3QVlCKCXBaKovQSkGIBVLrSpFwCgpUOSjfU0Iu0EAiQEEhIz1lnGccPJWPMOcc8c973U4yICUD';
 const NORMALIZED_INVALID_CATEGORY_IMAGE = INVALID_CATEGORY_IMAGE_DATA_URL.replace(/\s+/g, '');
 const CATEGORY_CATALOG_KEY = 'categories';
+type CatalogMedia = { icon?: string; image?: string };
 
 const isInvalidCategoryImageDataUrl = (value?: string | null): boolean => {
   if (typeof value !== 'string') return false;
@@ -315,13 +316,21 @@ export const stripInvalidCategoryImages = <T extends { icon?: string; image?: st
 
 const sanitizeCatalogItems = (
   type: string,
-  items: any[] | null | undefined,
+  items: Array<CatalogMedia> | null | undefined,
   tenantId?: string,
   shouldCache = false
 ) => {
-  if (type !== CATEGORY_CATALOG_KEY || !Array.isArray(items) || items.length === 0) return items || [];
+  if (type !== CATEGORY_CATALOG_KEY) {
+    return items || [];
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return items || [];
+  }
+
   const cleaned = stripInvalidCategoryImages(items);
-  if (shouldCache && cleaned !== items) {
+  const hasChanges = cleaned !== items;
+  if (shouldCache && hasChanges) {
     setCachedData(type, cleaned, tenantId);
   }
   return cleaned;

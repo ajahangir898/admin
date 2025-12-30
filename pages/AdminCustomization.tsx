@@ -384,17 +384,43 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     setActiveTab(initialTab);
   }, [initialTab]);
 
-  // Track previous tenantId to reset state on tenant change
+  // Track previous tenantId to reset state on tenant change ONLY
   const prevTenantIdRef = useRef<string>(tenantId);
+  const hasLoadedInitialConfig = useRef(false);
+  
   useEffect(() => {
-    // Reset configuration when tenant changes
-    if (prevTenantIdRef.current !== tenantId && websiteConfig) {
+    // On tenant change, reload config from prop
+    if (prevTenantIdRef.current !== tenantId) {
       console.log('[AdminCustomization] Tenant changed, reloading config:', {
         oldTenant: prevTenantIdRef.current,
         newTenant: tenantId,
-        carouselCount: websiteConfig.carouselItems?.length || 0
+        carouselCount: websiteConfig?.carouselItems?.length || 0
       });
       prevTenantIdRef.current = tenantId;
+      hasLoadedInitialConfig.current = false;
+      
+      if (websiteConfig) {
+        setWebsiteConfiguration({
+          ...DEFAULT_WEBSITE_CONFIG,
+          ...websiteConfig,
+          footerQuickLinks: websiteConfig.footerQuickLinks || [],
+          footerUsefulLinks: websiteConfig.footerUsefulLinks || [],
+          showFlashSaleCounter: websiteConfig.showFlashSaleCounter ?? true,
+          headerLogo: websiteConfig.headerLogo ?? null,
+          footerLogo: websiteConfig.footerLogo ?? null,
+          campaigns: websiteConfig.campaigns || [],
+          carouselItems: websiteConfig.carouselItems || [],
+          categorySectionStyle: websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
+        });
+        hasLoadedInitialConfig.current = true;
+      }
+    } 
+    // Initial load if not yet loaded
+    else if (!hasLoadedInitialConfig.current && websiteConfig) {
+      console.log('[AdminCustomization] Initial config load:', {
+        tenantId,
+        carouselCount: websiteConfig.carouselItems?.length || 0
+      });
       setWebsiteConfiguration({
         ...DEFAULT_WEBSITE_CONFIG,
         ...websiteConfig,
@@ -407,8 +433,11 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         carouselItems: websiteConfig.carouselItems || [],
         categorySectionStyle: websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
       });
+      hasLoadedInitialConfig.current = true;
     }
-  }, [tenantId, websiteConfig]);
+    // IMPORTANT: Do NOT sync from prop after initial load unless tenant changes
+    // This prevents losing unsaved local changes when parent re-renders
+  }, [tenantId]); // ONLY depend on tenantId, NOT websiteConfig
 
   // Load popups from storage
   useEffect(() => {

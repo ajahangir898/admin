@@ -730,6 +730,14 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const handleSaveChanges = async (): Promise<void> => {
     if (isSaving) return;
 
+    console.log('[AdminCustomization] ====== SAVE BUTTON CLICKED ======');
+    console.log('[AdminCustomization] websiteConfiguration state:', {
+      carouselCount: websiteConfiguration.carouselItems?.length || 0,
+      campaignCount: websiteConfiguration.campaigns?.length || 0,
+      hasCarouselItems: !!websiteConfiguration.carouselItems,
+      firstCarouselItem: websiteConfiguration.carouselItems?.[0]
+    });
+
     setIsSaving(true);
     setIsSaved(false);
     const loadingToast = toast.loading('Saving changes...');
@@ -738,12 +746,15 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     try {
       // Save website configuration
       if (onUpdateWebsiteConfig) {
-        console.log('[AdminCustomization] Saving config:', {
+        console.log('[AdminCustomization] Calling onUpdateWebsiteConfig with:', {
           carouselCount: websiteConfiguration.carouselItems?.length || 0,
           campaignCount: websiteConfiguration.campaigns?.length || 0,
           categorySectionStyle: websiteConfiguration.categorySectionStyle
         });
         await onUpdateWebsiteConfig(websiteConfiguration);
+        console.log('[AdminCustomization] onUpdateWebsiteConfig completed successfully');
+      } else {
+        console.warn('[AdminCustomization] onUpdateWebsiteConfig is not defined!');
       }
 
       // Save theme configuration
@@ -772,9 +783,12 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       toast.dismiss(loadingToast);
       setIsSaved(true);
       hasUnsavedChangesRef.current = false; // Clear unsaved changes flag after successful save
+      prevWebsiteConfigRef.current = websiteConfiguration; // Sync prev ref to saved state
+      console.log('[AdminCustomization] ====== SAVE COMPLETED SUCCESSFULLY ======');
       toast.success('Saved successfully!');
       setTimeout(() => setIsSaved(false), 2000);
     } catch (error) {
+      console.error('[AdminCustomization] ====== SAVE FAILED ======', error);
       toast.dismiss(loadingToast);
       console.error('Save failed:', error);
       toast.error('Save failed. Please try again.');
@@ -855,14 +869,28 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
       const updatedConfig = { ...websiteConfiguration, carouselItems: updatedItems };
       
+      console.log('[Carousel Save] Saving carousel item:', {
+        carouselId: carouselItem.id,
+        carouselName: carouselItem.name,
+        totalCarousels: updatedItems.length,
+        isEdit: !!editingCarousel
+      });
+      
       toast.loading('Saving carousel...', { id: 'carousel-save' });
       
       if (onUpdateWebsiteConfig) {
         await onUpdateWebsiteConfig(updatedConfig);
+        console.log('[Carousel Save] Successfully saved to backend');
       }
 
       // Update local state only after successful save
       setWebsiteConfiguration(updatedConfig);
+      // Mark as saved - do NOT trigger unsaved changes
+      hasUnsavedChangesRef.current = false;
+      prevWebsiteConfigRef.current = updatedConfig;
+      // Do NOT mark as unsaved since we just saved
+      hasUnsavedChangesRef.current = false;
+      prevWebsiteConfigRef.current = updatedConfig;
 
       // Ensure minimum 1 second loading time
       const elapsed = Date.now() - startTime;

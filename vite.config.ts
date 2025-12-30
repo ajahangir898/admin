@@ -277,7 +277,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         logOverride: { 'this-is-undefined-in-esm': 'silent' },
         treeShaking: true,
         legalComments: 'none',
-        drop: mode === 'production' ? ['console', 'debugger'] : []
+        drop: mode === 'production' ? ['debugger'] : [] // Temporarily keep console.log for debugging
       },
       plugins: [
         react(),

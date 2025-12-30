@@ -423,6 +423,7 @@ const App = () => {
           if (!isMounted) return;
           
           if (resolved?.id) {
+            console.log(`[Tenant] Resolved subdomain "${sanitizedSlug}" to tenant ID: ${resolved.id}`);
             // If cached tenant ID doesn't match resolved, clear old cache
             if (resolvedTenantId && resolvedTenantId !== resolved.id) {
               console.log(`[Tenant] Clearing stale cache. Expected: ${resolved.id}, Cached: ${resolvedTenantId}`);
@@ -756,6 +757,7 @@ const App = () => {
       return;
     }
     prevThemeConfigRef.current = themeConfig;
+    console.log('[Save] Saving theme_config for tenant:', activeTenantId);
     DataService.saveImmediate('theme_config', themeConfig, activeTenantId);
   }, [themeConfig, isLoading, isTenantSwitching, activeTenantId]);
 
@@ -769,6 +771,7 @@ const App = () => {
     }
     prevWebsiteConfigRef.current = websiteConfig;
     if (websiteConfig) {
+      console.log('[Save] Saving website_config for tenant:', activeTenantId);
       DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
     }
   }, [websiteConfig, isLoading, isTenantSwitching, activeTenantId]);
@@ -798,6 +801,7 @@ const App = () => {
         return;
       }
       prevCategoriesRef.current = categories;
+      console.log('[Save] Saving categories for tenant:', activeTenantId);
       DataService.save('categories', categories, activeTenantId);
     }
   }, [categories, isLoading, isTenantSwitching, activeTenantId]);

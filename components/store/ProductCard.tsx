@@ -146,13 +146,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         </div>
                         
                         <div className="flex gap-1.5">
-                            <button 
-                                className="flex-1 btn-order py-1 text-xs"
-                                onClick={handleBuyNow}
-                            >
-                                Buy Now
-                            </button>
-                            <button
+
+                               <button
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -163,6 +158,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             >
                                 <ShoppingCart size={16} className="text-rose-500" />
                             </button>
+
+                            <button 
+                                className="flex-1 btn-order py-1 text-xs"
+                                onClick={handleBuyNow}
+                            >
+                                Buy Now
+                            </button>
+                         
                         </div>
                     </div>
                 </div>

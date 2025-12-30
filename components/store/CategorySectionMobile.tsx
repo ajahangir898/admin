@@ -25,7 +25,11 @@ const initialCategories = [
   { id: 10, name: "Sports", icon: <span className="text-[14px]">⚽</span> },
 ];
 
-const CategorySectionMobile = () => {
+interface CategorySectionMobileProps {
+  onCategoryClick?: (categoryName: string) => void;
+}
+
+const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ onCategoryClick }) => {
   const [categories, setCategories] = useState(initialCategories);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -177,6 +181,7 @@ const CategorySectionMobile = () => {
           {categories.map((item) => (
             <div
               key={item.id}
+              onClick={() => onCategoryClick?.(item.name)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8F9FA] border border-gray-100 rounded-full whitespace-nowrap shadow-sm active:scale-95 transition-all cursor-pointer min-w-[110px]"
             >
               <div className="flex items-center justify-center shrink-0">

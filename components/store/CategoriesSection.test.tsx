@@ -35,6 +35,17 @@ describe('CategoriesSection', () => {
     expect(container.firstChild).toBeTruthy();
   });
 
+  it('renders the refreshed default style (style5)', () => {
+    render(
+      <CategoriesSection
+        categories={mockCategories}
+        onCategoryClick={mockOnCategoryClick}
+      />
+    );
+    expect(screen.getByText('Shop by category')).toBeInTheDocument();
+    expect(screen.getByText('Smartphones')).toBeInTheDocument();
+  });
+
   it('renders categories with style4', () => {
     const { container } = render(
       <CategoriesSection

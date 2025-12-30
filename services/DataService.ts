@@ -576,7 +576,7 @@ class DataServiceImpl {
       searchHints: '',
       orderLanguage: 'English',
       productCardStyle: 'style2',
-      categorySectionStyle: 'style2',
+      categorySectionStyle: 'style5',
       productSectionStyle: 'style2',
       footerStyle: 'style2',
       chatEnabled: true,

@@ -246,6 +246,102 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         );
     }
 
+    // Style 5 (E-commerce Design)
+    if (variant === 'style5') {
+        return (
+            <div className="bg-white rounded-lg border border-gray-200 hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col">
+                {/* Product Image Container */}
+                <div className="relative aspect-square p-4 bg-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
+                    {/* Discount Badge - Top Left */}
+                    {product.discount && (
+                        <div className="absolute top-3 left-3 z-10">
+                            <span className="inline-block bg-red-500 text-white text-xs font-bold px-3 py-1 rounded">
+                                {product.discount}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Wishlist Button - Top Right */}
+                    <button 
+                        className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow-md hover:shadow-lg transition-shadow"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label="Add to wishlist"
+                    >
+                        <Heart size={18} className="text-gray-600 hover:text-red-500 transition-colors" />
+                    </button>
+
+                    {/* Product Image */}
+                    <OptimizedImage
+                        src={imageSrc}
+                        alt={product.name}
+                        width={480}
+                        height={480}
+                        placeholder="blur"
+                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                    />
+                </div>
+
+                {/* Product Details */}
+                <div className="p-4 flex-1 flex flex-col">
+                    {/* Star Rating */}
+                    <div className="flex items-center gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                            <Star 
+                                key={i} 
+                                size={14} 
+                                className="text-yellow-400" 
+                                fill="currentColor"
+                            />
+                        ))}
+                        <span className="text-xs text-gray-500 ml-1">
+                            ({product.reviews || 0} reviews)
+                        </span>
+                    </div>
+
+                    {/* Product Name */}
+                    <h3 
+                        className="font-semibold text-gray-900 text-sm mb-3 line-clamp-2 min-h-[40px] cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => onClick(product)}
+                    >
+                        {product.name}
+                    </h3>
+
+                    {/* Price Section */}
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl font-bold text-gray-900">৳{product.price}</span>
+                        {product.originalPrice && (
+                            <span className="text-sm text-gray-400 line-through">৳{product.originalPrice}</span>
+                        )}
+                    </div>
+
+                    {/* Rewards System */}
+                    <div className="mb-4">
+                        <span className="text-xs text-blue-600 font-medium">Get 50 coins</span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 mt-auto">
+                        <button 
+                            className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2.5 rounded-md transition-colors flex items-center justify-center gap-2"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAddToCart?.(product);
+                            }}
+                        >
+                            <ShoppingCart size={18} /> Cart
+                        </button>
+                        <button 
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-md transition-colors"
+                            onClick={handleBuyNow}
+                        >
+                            Buy Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     const formattedPrice = formatCurrency(product.price);
     const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
     const tagLabel = product.tag || 'Trending';

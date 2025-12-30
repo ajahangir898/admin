@@ -418,11 +418,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   }, []);
   
   useEffect(() => {
-    // Avoid unnecessary re-runs once the current tenant has been hydrated
-    if (hasLoadedInitialConfig.current && prevTenantIdRef.current === tenantId) {
-      return;
-    }
-
     // On tenant change, reload config from prop
     if (prevTenantIdRef.current !== tenantId) {
       console.log('[AdminCustomization] Tenant changed, reloading config:', {

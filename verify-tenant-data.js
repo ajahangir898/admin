@@ -1,4 +1,4 @@
-use ecommerce;
+var db = db.getSiblingDB('ecommerce');
 
 var tenantId = "6951929bba8ac9d0fe70afa7";
 

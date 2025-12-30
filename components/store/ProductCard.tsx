@@ -146,12 +146,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         </div>
                         
                         <div className="flex gap-1.5">
-                            <button 
-                                className="flex-1 btn-order py-1 text-xs"
-                                onClick={handleBuyNow}
-                            >
-                                Buy Now
-                            </button>
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -162,6 +156,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 aria-label="Add to cart"
                             >
                                 <ShoppingCart size={16} className="text-rose-500" />
+                            </button>
+                            <button 
+                                className="flex-1 btn-order py-1 text-xs"
+                                onClick={handleBuyNow}
+                            >
+                                Buy Now
                             </button>
                         </div>
                     </div>
@@ -342,129 +342,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         );
     }
 
-    const formattedPrice = formatCurrency(product.price);
-    const formattedOriginalPrice = formatCurrency(product.originalPrice, null);
-    const tagLabel = product.tag || 'Trending';
-    const accentMeta = product.brand || product.category || 'Curated pick';
-
-    // Default Style (Card 0)
-    return (
-        <div className="group relative flex flex-col rounded-2xl border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
-            <span className="pointer-events-none absolute inset-x-4 top-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-500 opacity-60 group-hover:opacity-100" />
-
-            <div className="relative px-4 pt-4">
-                <div className="flex items-center justify-between text-[11px] font-semibold">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 uppercase tracking-wide dark:bg-emerald-500/10 dark:text-emerald-200">
-                        <Sparkles size={12} /> {tagLabel}
-                    </span>
-                    {typeof product.rating === 'number' ? (
-                        <span className="inline-flex items-center gap-1 text-amber-500">
-                            <Star size={12} fill="currentColor" className="drop-shadow" />
-                            {product.rating.toFixed(1)}
-                            {typeof product.reviews === 'number' && (
-                                <span className="text-[10px] text-gray-400 dark:text-gray-300 font-normal">({product.reviews})</span>
-                            )}
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-sky-600 bg-sky-50 dark:bg-sky-500/10 dark:text-sky-200">
-                            <Truck size={12} /> Fast ship
-                        </span>
-                    )}
-                </div>
-
-                <div className="relative mt-4">
-                    <div className="absolute inset-x-6 top-2 h-28 bg-gradient-to-br from-emerald-200/40 via-transparent to-transparent blur-3xl opacity-60 group-hover:opacity-90 transition" aria-hidden />
-                    <div className="relative h-40 rounded-2xl bg-gray-50 dark:bg-slate-700 flex items center justify-center overflow-hidden cursor-pointer" onClick={() => onClick(product)}>
-                        <OptimizedImage
-                            src={imageSrc}
-                            alt={product.name}
-                            width={420}
-                            height={420}
-                            placeholder="blur"
-                            className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition duration-500 group-hover:scale-110"
-                        />
-                    </div>
-                    {product.discount && (
-                        <span className="absolute top-4 left-6 bg-purple-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
-                            {product.discount}
-                        </span>
-                    )}
-                    <button className="absolute top-4 right-6 btn-wishlist bg-white/80 dark:bg-slate-800/70 shadow-md backdrop-blur-sm hover:scale-110 transition" aria-label="Save to wishlist">
-                        <Heart size={16} />
-                    </button>
-                </div>
-            </div>
-
-            <div className="p-4 flex-1 flex flex-col gap-3">
-                <div>
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 dark:text-gray-500 mb-1">{accentMeta}</p>
-                    <h3
-                        className="font-bold text-gray-900 dark:text-gray-100 text-base leading-tight cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-300 transition line-clamp-2"
-                        onClick={() => onClick(product)}
-                    >
-                        {product.name}
-                    </h3>
-                    {product.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{product.description}</p>
-                    )}
-                </div>
-
-                {product.colors && product.colors.length > 0 && (
-                    <div className="flex gap-1.5">
-                        {product.colors.slice(0, 4).map((c, i) => (
-                            <span key={i} className="w-3 h-3 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }}></span>
-                        ))}
-                        {product.colors.length > 4 && (
-                            <span className="text-[10px] text-gray-400">+{product.colors.length - 4}</span>
-                        )}
-                    </div>
-                )}
-
-                <div className="mt-auto flex items-end justify-between gap-3">
-                    <div>
-                        <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500">Starting at</p>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-black text-gray-900 dark:text-white">৳ {formattedPrice}</span>
-                            {formattedOriginalPrice && (
-                                <span className="text-xs text-gray-400 line-through">৳ {formattedOriginalPrice}</span>
-                            )}
-                        </div>
-                        <p className="text-[11px] text-emerald-600 dark:text-emerald-300 font-semibold">Instant confirmation</p>
-                    </div>
-
-                    <div className="flex flex-col gap-2 w-32">
-                        <button
-                            onClick={handleBuyNow}
-                            className="w-full btn-order py-2 rounded-xl font-bold text-sm"
-                        >
-                            অর্ডার করুন
-                        </button>
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onAddToCart?.(product);
-                            }}
-                            className="w-full rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-600 py-1.5 flex items-center justify-center gap-1 hover:bg-emerald-50 transition"
-                        >
-                            <ShoppingCart size={14} /> Add to cart
-                        </button>
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onQuickView) onQuickView(product);
-                                else onClick(product);
-                            }}
-                            className="inline-flex items-center justify-center gap-1 rounded-xl border border-gray-200 dark:border-slate-600 text-xs font-semibold text-gray-600 dark:text-gray-200 py-1.5 hover:border-emerald-400 hover:text-emerald-600 transition"
-                        >
-                            <Eye size={14} /> Quick view
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 };
 
 export default ProductCard;

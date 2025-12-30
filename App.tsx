@@ -610,6 +610,12 @@ const App = () => {
           break;
         case 'website':
           const websiteData = await DataService.getWebsiteConfig(tenantId);
+          // Check if AdminCustomization has unsaved changes
+          const hasUnsavedChanges = typeof window !== 'undefined' && (window as any).__adminCustomization_hasUnsavedChanges;
+          if (hasUnsavedChanges) {
+            console.warn('[DataRefresh] Skipping website config refresh - AdminCustomization has unsaved changes');
+            break;
+          }
           // Always update website config, but log if it's suspiciously empty
           if (!websiteData?.carouselItems && websiteConfig?.carouselItems?.length) {
             console.warn('[DataRefresh] New website config missing carousel items - this may be intentional or a data issue');

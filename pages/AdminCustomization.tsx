@@ -387,6 +387,14 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   // Track previous tenantId to reset state on tenant change ONLY
   const prevTenantIdRef = useRef<string>(tenantId);
   const hasLoadedInitialConfig = useRef(false);
+  const hasUnsavedChangesRef = useRef(false);
+  
+  // Expose unsaved changes flag to prevent data refresh overwrites
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__adminCustomization_hasUnsavedChanges = hasUnsavedChangesRef.current;
+    }
+  }, [websiteConfiguration]);
   
   useEffect(() => {
     // On tenant change, reload config from prop
@@ -398,6 +406,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       });
       prevTenantIdRef.current = tenantId;
       hasLoadedInitialConfig.current = false;
+      hasUnsavedChangesRef.current = false; // Reset on tenant change
       
       if (websiteConfig) {
         setWebsiteConfiguration({
@@ -434,6 +443,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         categorySectionStyle: websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
       });
       hasLoadedInitialConfig.current = true;
+      hasUnsavedChangesRef.current = false; // Clear on initial load
+    } else if (hasLoadedInitialConfig.current) {
+      // Mark as having unsaved changes when local state differs from props
+      hasUnsavedChangesRef.current = true;
     }
     // IMPORTANT: Do NOT sync from prop after initial load unless tenant changes
     // This prevents losing unsaved local changes when parent re-renders
@@ -704,6 +717,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
       toast.dismiss(loadingToast);
       setIsSaved(true);
+      hasUnsavedChangesRef.current = false; // Clear unsaved changes flag after successful save
       toast.success('Saved successfully!');
       setTimeout(() => setIsSaved(false), 2000);
     } catch (error) {

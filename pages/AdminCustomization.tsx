@@ -404,12 +404,17 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const hasLoadedInitialConfig = useRef(false);
   const hasUnsavedChangesRef = useRef(false);
   
-  // Expose unsaved changes flag to prevent data refresh overwrites
+  // Expose unsaved changes flag getter function to prevent data refresh overwrites
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).__adminCustomization_hasUnsavedChanges = hasUnsavedChangesRef.current;
+      (window as any).__getAdminCustomizationUnsavedChanges = () => hasUnsavedChangesRef.current;
     }
-  }, [websiteConfiguration]);
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).__getAdminCustomizationUnsavedChanges;
+      }
+    };
+  }, []);
   
   useEffect(() => {
     // On tenant change, reload config from prop
@@ -459,13 +464,18 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       });
       hasLoadedInitialConfig.current = true;
       hasUnsavedChangesRef.current = false; // Clear on initial load
-    } else if (hasLoadedInitialConfig.current) {
-      // Mark as having unsaved changes when local state differs from props
-      hasUnsavedChangesRef.current = true;
     }
     // IMPORTANT: Do NOT sync from prop after initial load unless tenant changes
     // This prevents losing unsaved local changes when parent re-renders
   }, [tenantId]); // ONLY depend on tenantId, NOT websiteConfig
+
+  // Track local changes to mark as unsaved
+  useEffect(() => {
+    if (hasLoadedInitialConfig.current) {
+      hasUnsavedChangesRef.current = true;
+      console.log('[AdminCustomization] Local changes detected, marking as unsaved');
+    }
+  }, [websiteConfiguration]);
 
   // Load popups from storage
   useEffect(() => {

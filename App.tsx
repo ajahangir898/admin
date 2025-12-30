@@ -611,7 +611,9 @@ const App = () => {
         case 'website':
           const websiteData = await DataService.getWebsiteConfig(tenantId);
           // Check if AdminCustomization has unsaved changes
-          const hasUnsavedChanges = typeof window !== 'undefined' && (window as any).__adminCustomization_hasUnsavedChanges;
+          const hasUnsavedChanges = typeof window !== 'undefined' && 
+            typeof (window as any).__getAdminCustomizationUnsavedChanges === 'function' && 
+            (window as any).__getAdminCustomizationUnsavedChanges();
           if (hasUnsavedChanges) {
             console.warn('[DataRefresh] Skipping website config refresh - AdminCustomization has unsaved changes');
             break;

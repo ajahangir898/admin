@@ -18,6 +18,11 @@ describe('CategorySectionMobile', () => {
     expect(screen.getByText('Mobile & Gadgets')).toBeInTheDocument();
   });
 
+  it('does not render duplicate initial categories', () => {
+    render(<CategorySectionMobile />);
+    expect(screen.getAllByText('Man Fashion')).toHaveLength(1);
+  });
+
   it('renders AI Guide floating button', () => {
     const { container } = render(<CategorySectionMobile />);
     const botButton = container.querySelector('button[class*="fixed"]');

@@ -1,4 +1,4 @@
-import { Product, Order, ChartData, GalleryItem, LandingPage, LandingPageTemplate, Tenant } from './types';
+import { Product, Order, ChartData, GalleryItem, LandingPage, LandingPageTemplate, Tenant, CarouselItem } from './types';
 
 // ===== TRUE CONSTANTS (These should remain static) =====
 export const DEFAULT_VARIANT_COLOR = 'Default';
@@ -19,6 +19,27 @@ export const RESERVED_TENANT_SLUGS = [
   'support',
   'cdn',
   'static'
+];
+
+export const DEFAULT_CAROUSEL_ITEMS: CarouselItem[] = [
+  {
+    id: 'default-carousel-1',
+    name: 'Default Carousel 1',
+    image: 'https://cdn.saleecom.com/upload/images/68bbf4248714966ad419dbef/11-a8bc.webp?resolution=7174_2454',
+    url: '#',
+    urlType: 'External',
+    serial: 1,
+    status: 'Publish'
+  },
+  {
+    id: 'default-carousel-2',
+    name: 'Default Carousel 2',
+    image: 'https://cdn.saleecom.com/upload/images/68bbf4248714966ad419dbef/12-eff3.webp',
+    url: '#',
+    urlType: 'External',
+    serial: 2,
+    status: 'Publish'
+  }
 ];
 
 // Categories - These can be managed from Admin Catalog

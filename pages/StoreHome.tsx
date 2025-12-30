@@ -16,6 +16,7 @@ import { CategoriesSection } from '../components/store/CategoriesSection';
 import { FlashSalesSection } from '../components/store/FlashSalesSection';
 import { ProductGridSection } from '../components/store/ProductGridSection';
 import CategorySectionMobile from '../components/store/CategorySectionMobile';
+import CategorySectionMobile2 from '../components/store/CategorySectionMobile2';
 
 // Below-the-fold - lazy loaded (only when needed)
 const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
@@ -686,6 +687,11 @@ const StoreHome = ({
             {websiteConfig?.categorySectionStyle !== 'style4' && (
               websiteConfig?.categorySectionStyle === 'mobile1' ? (
                 <CategorySectionMobile onCategoryClick={handleCategoryClick} />
+              ) : websiteConfig?.categorySectionStyle === 'mobile2' ? (
+                <CategorySectionMobile2 
+                  categories={categories} 
+                  onCategoryClick={handleCategoryClick} 
+                />
               ) : (
                 <CategoriesSection
                   style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | 'style3' | 'style4' | 'style5'}

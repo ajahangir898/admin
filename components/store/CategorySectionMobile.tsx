@@ -184,7 +184,7 @@ const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ onCategor
       {/* 2-Line Horizontal Scroll Grid */}
       <div 
         ref={scrollRef}
-        className="flex overflow-x-auto px-4 pb-2 no-scrollbar" 
+        className="flex overflow-x-auto px-0 pb-2 no-scrollbar" 
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         <div className="grid grid-rows-2 grid-flow-col gap-x-2 gap-y-2">

@@ -1395,15 +1395,26 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                     );
                   })}
                   {s.hasMobile && (
-                    <div className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-themeColors cursor-pointer ${(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
-                      <div className="flex items-center gap-3">
-                        <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1'} onChange={() => setWebsiteConfiguration(p => ({ ...p, [s.key]: 'mobile1' }))}/>
-                        <span className="font-semibold text-gray-700">Mobile Style 1 (AI-Powered)</span>
+                    <>
+                      <div className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-themeColors cursor-pointer ${(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
+                        <div className="flex items-center gap-3">
+                          <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1'} onChange={() => setWebsiteConfiguration(p => ({ ...p, [s.key]: 'mobile1' }))}/>
+                          <span className="font-semibold text-gray-700">Mobile Style 1 (AI-Powered)</span>
+                        </div>
+                        <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-themeColors">
+                          <Eye size={14}/>View demo
+                        </button>
                       </div>
-                      <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-themeColors">
-                        <Eye size={14}/>View demo
-                      </button>
-                    </div>
+                      <div className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-themeColors cursor-pointer ${(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile2' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
+                        <div className="flex items-center gap-3">
+                          <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile2'} onChange={() => setWebsiteConfiguration(p => ({ ...p, [s.key]: 'mobile2' }))}/>
+                          <span className="font-semibold text-gray-700">Mobile Style 2</span>
+                        </div>
+                        <button className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-themeColors">
+                          <Eye size={14}/>View demo
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

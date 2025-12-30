@@ -246,7 +246,8 @@ export function useTenant() {
 
   // For completing tenant switch after data loads
   const completeTenantSwitch = useCallback((loadError: Error | null) => {
-    if (tenantSwitchTargetRef.current === activeTenantId) {
+    // Only complete if we actually initiated a tenant switch
+    if (tenantSwitchTargetRef.current && tenantSwitchTargetRef.current === activeTenantId) {
       setIsTenantSwitching(false);
       if (loadError) {
         toast.error('Unable to switch tenants. Please try again.');

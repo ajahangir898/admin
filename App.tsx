@@ -265,6 +265,13 @@ const App = () => {
   const prevOrdersRef = useRef<Order[]>([]);
   const prevDeliveryConfigRef = useRef<DeliveryConfig[]>([]);
   const prevLandingPagesRef = useRef<LandingPage[]>([]);
+  const prevCategoriesRef = useRef<Category[]>([]);
+  const prevSubCategoriesRef = useRef<SubCategory[]>([]);
+  const prevChildCategoriesRef = useRef<ChildCategory[]>([]);
+  const prevBrandsRef = useRef<Brand[]>([]);
+  const prevTagsRef = useRef<Tag[]>([]);
+  const prevRolesRef = useRef<Role[]>([]);
+  const prevUsersRef = useRef<User[]>([]);
   const initialDataLoadedRef = useRef(false);
   const productsLoadedFromServerRef = useRef(false);
   const prevProductsRef = useRef<Product[]>([]);
@@ -302,7 +309,9 @@ const App = () => {
             setCurrentView('super-admin');
             return;
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error('Session restoration error:', e);
+        }
       }
       // Not logged in or not super_admin - show login
       setCurrentView('admin-login');
@@ -332,11 +341,11 @@ const App = () => {
         }
       }
     } catch (error) {
-      console.warn('Unable to restore session', error);
+      console.error('Unable to restore session', error);
       window.localStorage.removeItem(SESSION_STORAGE_KEY);
       window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
     }
-  }, [setActiveTenantId, setCurrentView]);
+  }, []); // Empty deps - only run once on mount
 
   // Persist user session
   useEffect(() => {
@@ -352,9 +361,10 @@ const App = () => {
   // Handle user role changes
   useEffect(() => {
     if (!user) {
-      if (currentViewRef.current.startsWith('admin')) {
-        // On admin subdomain, go to login; otherwise go to store
-        setCurrentView(isAdminSubdomain ? 'admin-login' : 'store');
+      // Only redirect to login if we're on admin subdomain AND actively in admin view
+      // Don't redirect during initial load/session restoration
+      if (currentViewRef.current.startsWith('admin') && isAdminSubdomain) {
+        setCurrentView('admin-login');
         setAdminSection('dashboard');
       }
       return;
@@ -461,10 +471,15 @@ const App = () => {
             prevLandingPagesRef.current = data.landingPages;
             setLandingPages(data.landingPages);
             
+            prevCategoriesRef.current = data.categories;
             setCategories(data.categories);
+            prevSubCategoriesRef.current = data.subcategories;
             setSubCategories(data.subcategories);
+            prevChildCategoriesRef.current = data.childcategories;
             setChildCategories(data.childcategories);
+            prevBrandsRef.current = data.brands;
             setBrands(data.brands);
+            prevTagsRef.current = data.tags;
             setTags(data.tags);
             catalogLoadedRef.current = true;
             console.log(`[Perf] Secondary data loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
@@ -512,15 +527,22 @@ const App = () => {
         DataService.getCatalog('brands', DEFAULT_BRANDS, activeTenantId),
         DataService.getCatalog('tags', DEFAULT_TAGS, activeTenantId)
       ]);
+      prevUsersRef.current = usersData;
       setUsers(usersData);
+      prevRolesRef.current = rolesData;
       setRoles(rolesData);
       setCourierConfig({ apiKey: courierData?.apiKey || '', secretKey: courierData?.secretKey || '', instruction: courierData?.instruction || '' });
       setFacebookPixelConfig(facebookPixelData);
       if (!catalogLoadedRef.current) {
+        prevCategoriesRef.current = categoriesData;
         setCategories(categoriesData);
+        prevSubCategoriesRef.current = subCategoriesData;
         setSubCategories(subCategoriesData);
+        prevChildCategoriesRef.current = childCategoriesData;
         setChildCategories(childCategoriesData);
+        prevBrandsRef.current = brandsData;
         setBrands(brandsData);
+        prevTagsRef.current = tagsData;
         setTags(tagsData);
         catalogLoadedRef.current = true;
       }
@@ -652,6 +674,13 @@ const App = () => {
     catalogLoadedRef.current = false;
     prevProductsRef.current = [];
     prevOrdersRef.current = [];
+    prevCategoriesRef.current = [];
+    prevSubCategoriesRef.current = [];
+    prevChildCategoriesRef.current = [];
+    prevBrandsRef.current = [];
+    prevTagsRef.current = [];
+    prevRolesRef.current = [];
+    prevUsersRef.current = [];
   }, [activeTenantId]);
 
   useEffect(() => { 
@@ -680,7 +709,18 @@ const App = () => {
     DataService.saveImmediate('products', products, activeTenantId); 
   }, [products, activeTenantId, isLoading, isTenantSwitching]);
 
-  useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && adminDataLoadedRef.current && roles.length > 0) DataService.save('roles', roles, activeTenantId); }, [roles, isLoading, isTenantSwitching, activeTenantId]);
+  useEffect(() => { 
+    if(!isLoading && !isTenantSwitching && activeTenantId && adminDataLoadedRef.current && roles.length > 0) {
+      if (JSON.stringify(roles) === JSON.stringify(prevRolesRef.current)) return;
+      if (isKeyFromSocket('roles', activeTenantId)) {
+        clearSocketFlag('roles', activeTenantId);
+        prevRolesRef.current = roles;
+        return;
+      }
+      prevRolesRef.current = roles;
+      DataService.save('roles', roles, activeTenantId);
+    }
+  }, [roles, isLoading, isTenantSwitching, activeTenantId]);
   useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && adminDataLoadedRef.current && users.length > 0) DataService.save('users', users, activeTenantId); }, [users, isLoading, isTenantSwitching, activeTenantId]);
   
   useEffect(() => {
@@ -724,6 +764,11 @@ const App = () => {
   useEffect(() => { 
     if(!isLoading && !isTenantSwitching && activeTenantId && deliveryConfig.length > 0) {
       if (JSON.stringify(deliveryConfig) === JSON.stringify(prevDeliveryConfigRef.current)) return;
+      if (isKeyFromSocket('delivery', activeTenantId)) {
+        clearSocketFlag('delivery', activeTenantId);
+        prevDeliveryConfigRef.current = deliveryConfig;
+        return;
+      }
       prevDeliveryConfigRef.current = deliveryConfig;
       DataService.save('delivery_config', deliveryConfig, activeTenantId);
     }
@@ -732,15 +777,75 @@ const App = () => {
   useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && adminDataLoadedRef.current) DataService.save('courier', courierConfig, activeTenantId); }, [courierConfig, isLoading, isTenantSwitching, activeTenantId]);
   useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && adminDataLoadedRef.current) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, isTenantSwitching, activeTenantId]);
   
-  useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && categories.length > 0) DataService.save('categories', categories, activeTenantId); }, [categories, isLoading, isTenantSwitching, activeTenantId]);
-  useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && subCategories.length > 0) DataService.save('subcategories', subCategories, activeTenantId); }, [subCategories, isLoading, isTenantSwitching, activeTenantId]);
-  useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && childCategories.length > 0) DataService.save('childcategories', childCategories, activeTenantId); }, [childCategories, isLoading, isTenantSwitching, activeTenantId]);
-  useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && brands.length > 0) DataService.save('brands', brands, activeTenantId); }, [brands, isLoading, isTenantSwitching, activeTenantId]);
-  useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && tags.length > 0) DataService.save('tags', tags, activeTenantId); }, [tags, isLoading, isTenantSwitching, activeTenantId]);
+  useEffect(() => { 
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && categories.length > 0) {
+      if (JSON.stringify(categories) === JSON.stringify(prevCategoriesRef.current)) return;
+      if (isKeyFromSocket('categories', activeTenantId)) {
+        clearSocketFlag('categories', activeTenantId);
+        prevCategoriesRef.current = categories;
+        return;
+      }
+      prevCategoriesRef.current = categories;
+      DataService.save('categories', categories, activeTenantId);
+    }
+  }, [categories, isLoading, isTenantSwitching, activeTenantId]);
+  useEffect(() => { 
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && subCategories.length > 0) {
+      if (JSON.stringify(subCategories) === JSON.stringify(prevSubCategoriesRef.current)) return;
+      if (isKeyFromSocket('subcategories', activeTenantId)) {
+        clearSocketFlag('subcategories', activeTenantId);
+        prevSubCategoriesRef.current = subCategories;
+        return;
+      }
+      prevSubCategoriesRef.current = subCategories;
+      DataService.save('subcategories', subCategories, activeTenantId);
+    }
+  }, [subCategories, isLoading, isTenantSwitching, activeTenantId]);
+  useEffect(() => { 
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && childCategories.length > 0) {
+      if (JSON.stringify(childCategories) === JSON.stringify(prevChildCategoriesRef.current)) return;
+      if (isKeyFromSocket('childcategories', activeTenantId)) {
+        clearSocketFlag('childcategories', activeTenantId);
+        prevChildCategoriesRef.current = childCategories;
+        return;
+      }
+      prevChildCategoriesRef.current = childCategories;
+      DataService.save('childcategories', childCategories, activeTenantId);
+    }
+  }, [childCategories, isLoading, isTenantSwitching, activeTenantId]);
+  useEffect(() => { 
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && brands.length > 0) {
+      if (JSON.stringify(brands) === JSON.stringify(prevBrandsRef.current)) return;
+      if (isKeyFromSocket('brands', activeTenantId)) {
+        clearSocketFlag('brands', activeTenantId);
+        prevBrandsRef.current = brands;
+        return;
+      }
+      prevBrandsRef.current = brands;
+      DataService.save('brands', brands, activeTenantId);
+    }
+  }, [brands, isLoading, isTenantSwitching, activeTenantId]);
+  useEffect(() => { 
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && tags.length > 0) {
+      if (JSON.stringify(tags) === JSON.stringify(prevTagsRef.current)) return;
+      if (isKeyFromSocket('tags', activeTenantId)) {
+        clearSocketFlag('tags', activeTenantId);
+        prevTagsRef.current = tags;
+        return;
+      }
+      prevTagsRef.current = tags;
+      DataService.save('tags', tags, activeTenantId);
+    }
+  }, [tags, isLoading, isTenantSwitching, activeTenantId]);
 
   useEffect(() => { 
     if(!isLoading && !isTenantSwitching && activeTenantId && initialDataLoadedRef.current && landingPages.length > 0) {
       if (JSON.stringify(landingPages) === JSON.stringify(prevLandingPagesRef.current)) return;
+      if (isKeyFromSocket('landing_pages', activeTenantId)) {
+        clearSocketFlag('landing_pages', activeTenantId);
+        prevLandingPagesRef.current = landingPages;
+        return;
+      }
       prevLandingPagesRef.current = landingPages;
       DataService.save('landing_pages', landingPages, activeTenantId);
     }

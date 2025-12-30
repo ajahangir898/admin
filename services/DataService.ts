@@ -59,10 +59,19 @@ const initSocket = (): Socket | null => {
   // Listen for data updates and notify listeners
   socket.on('data-update', (payload: { tenantId: string; key: string; data: unknown }) => {
     console.log('[Socket.IO] Data update received:', payload.tenantId, payload.key);
+    // Map server keys to frontend keys if needed
+    const keyMap: Record<string, string> = {
+      'theme_config': 'theme',
+      'website_config': 'website',
+      'delivery_config': 'delivery',
+      'landing_pages': 'landing_pages',
+      'chat_messages': 'chat_messages'
+    };
+    const mappedKey = keyMap[payload.key] || payload.key;
     // Invalidate cache for this key
     invalidateCache(payload.key, payload.tenantId);
     // Notify UI listeners - mark as from socket to prevent save loops
-    notifyDataRefresh(payload.key, payload.tenantId, true);
+    notifyDataRefresh(mappedKey, payload.tenantId, true);
   });
 
   // Listen for chat message updates
@@ -735,13 +744,22 @@ class DataServiceImpl {
   private async getCollection<T>(key: string, defaultValue: T[], tenantId?: string): Promise<T[]> {
     // Check cache first
     const cached = getCachedData<T[]>(key, tenantId);
-    if (cached) return this.filterByTenant(cached as Array<T & { tenantId?: string }>, tenantId);
+    if (cached && cached.length > 0) return this.filterByTenant(cached as Array<T & { tenantId?: string }>, tenantId);
     
     const remote = await this.fetchTenantDocument<T[]>(key, tenantId);
-    if (Array.isArray(remote) && remote.length) {
+    if (Array.isArray(remote) && remote.length > 0) {
       setCachedData(key, remote, tenantId);
       return this.filterByTenant(remote as Array<T & { tenantId?: string }>, tenantId);
     }
+    
+    // If remote is empty but we have cached data (even if expired), prefer cache over defaults
+    if (cached && cached.length > 0) {
+      console.warn(`[DataService] Remote ${key} is empty, using cached data`);
+      return this.filterByTenant(cached as Array<T & { tenantId?: string }>, tenantId);
+    }
+    
+    // Only return defaults if we have no cached data at all
+    console.info(`[DataService] No data for ${key}, using defaults`);
     return defaultValue;
   }
 
@@ -833,9 +851,29 @@ class DataServiceImpl {
   }
 
   async getCatalog(type: string, defaults: any[], tenantId?: string): Promise<any[]> {
+    // Check cache first to avoid unnecessary API calls
+    const cached = getCachedData<any[]>(type, tenantId);
+    if (cached && cached.length > 0) {
+      console.log(`[DataService] Using cached ${type}`);
+      return cached;
+    }
+    
     const remote = await this.get<any[]>(type, [], tenantId);
-    // Always return defaults if remote is empty - this auto-populates categories for new tenants
-    return remote.length ? remote : defaults;
+    
+    // If we got remote data, use it
+    if (remote && remote.length > 0) {
+      return remote;
+    }
+    
+    // If remote is empty but we have cached data, prefer cache
+    if (cached && cached.length > 0) {
+      console.warn(`[DataService] Remote ${type} is empty, preserving cached data`);
+      return cached;
+    }
+    
+    // Only use defaults if we have no data at all (new tenant)
+    console.info(`[DataService] No ${type} found, using defaults for new tenant`);
+    return defaults;
   }
 
   async save<T>(key: string, data: T, tenantId?: string): Promise<void> {

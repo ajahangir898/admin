@@ -66,10 +66,14 @@ export const setTenantData = async <T = unknown>(tenantId: string, key: string, 
       { tenantId, key },
       {
         $set: {
+          tenantId,  // CRITICAL: Always set tenantId to ensure tenant isolation
+          key,       // Also set key to prevent any inconsistencies
           data,
           updatedAt: now
         },
-        $setOnInsert: { tenantId, key }
+        $setOnInsert: {
+          createdAt: now  // Only set createdAt on insert
+        }
       },
       { upsert: true }
     );

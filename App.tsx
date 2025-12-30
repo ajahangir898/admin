@@ -279,6 +279,7 @@ const App = () => {
   const catalogLoadedRef = useRef(false);
   const adminDataLoadedRef = useRef(false);
   const userRef = useRef<User | null>(user);
+  const sessionRestoredRef = useRef(false); // Track if initial session restoration has completed
 
   useEffect(() => { userRef.current = user; }, [user]);
 
@@ -296,7 +297,10 @@ const App = () => {
 
   // === SESSION RESTORATION ===
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {
+      sessionRestoredRef.current = true;
+      return;
+    }
     
     // Check for superadmin subdomain - always show login if not logged in
     if (isSuperAdminSubdomain) {
@@ -307,6 +311,7 @@ const App = () => {
           if (parsed && parsed.role === 'super_admin') {
             setUser(parsed);
             setCurrentView('super-admin');
+            sessionRestoredRef.current = true;
             return;
           }
         } catch (e) {
@@ -315,6 +320,7 @@ const App = () => {
       }
       // Not logged in or not super_admin - show login
       setCurrentView('admin-login');
+      sessionRestoredRef.current = true;
       return;
     }
     
@@ -324,6 +330,7 @@ const App = () => {
       if (isAdminSubdomain) {
         setCurrentView('admin-login');
       }
+      sessionRestoredRef.current = true;
       return;
     }
     try {
@@ -344,6 +351,9 @@ const App = () => {
       console.error('Unable to restore session', error);
       window.localStorage.removeItem(SESSION_STORAGE_KEY);
       window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
+    } finally {
+      // Mark session restoration as complete
+      sessionRestoredRef.current = true;
     }
   }, []); // Empty deps - only run once on mount
 
@@ -361,9 +371,11 @@ const App = () => {
   // Handle user role changes
   useEffect(() => {
     if (!user) {
-      // Only redirect to login if we're on admin subdomain AND actively in admin view
-      // Don't redirect during initial load/session restoration
-      if (currentViewRef.current.startsWith('admin') && isAdminSubdomain) {
+      // Only redirect to login if:
+      // 1. Session restoration has completed (not during initial load)
+      // 2. We're on admin subdomain
+      // 3. Currently in admin view
+      if (sessionRestoredRef.current && currentViewRef.current.startsWith('admin') && isAdminSubdomain) {
         setCurrentView('admin-login');
         setAdminSection('dashboard');
       }

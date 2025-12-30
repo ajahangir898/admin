@@ -777,7 +777,7 @@ const App = () => {
   }, [websiteConfig, isLoading, isTenantSwitching, activeTenantId]);
   
   useEffect(() => { 
-    if(!isLoading && !isTenantSwitching && activeTenantId && deliveryConfig.length > 0) {
+    if(!isLoading && !isTenantSwitching && activeTenantId) {
       if (JSON.stringify(deliveryConfig) === JSON.stringify(prevDeliveryConfigRef.current)) return;
       if (isKeyFromSocket('delivery', activeTenantId)) {
         clearSocketFlag('delivery', activeTenantId);
@@ -793,7 +793,7 @@ const App = () => {
   useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && adminDataLoadedRef.current) DataService.save('facebook_pixel', facebookPixelConfig, activeTenantId); }, [facebookPixelConfig, isLoading, isTenantSwitching, activeTenantId]);
   
   useEffect(() => { 
-    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && categories.length > 0) {
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current) {
       if (JSON.stringify(categories) === JSON.stringify(prevCategoriesRef.current)) return;
       if (isKeyFromSocket('categories', activeTenantId)) {
         clearSocketFlag('categories', activeTenantId);
@@ -806,7 +806,7 @@ const App = () => {
     }
   }, [categories, isLoading, isTenantSwitching, activeTenantId]);
   useEffect(() => { 
-    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && subCategories.length > 0) {
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current) {
       if (JSON.stringify(subCategories) === JSON.stringify(prevSubCategoriesRef.current)) return;
       if (isKeyFromSocket('subcategories', activeTenantId)) {
         clearSocketFlag('subcategories', activeTenantId);
@@ -818,7 +818,7 @@ const App = () => {
     }
   }, [subCategories, isLoading, isTenantSwitching, activeTenantId]);
   useEffect(() => { 
-    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && childCategories.length > 0) {
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current) {
       if (JSON.stringify(childCategories) === JSON.stringify(prevChildCategoriesRef.current)) return;
       if (isKeyFromSocket('childcategories', activeTenantId)) {
         clearSocketFlag('childcategories', activeTenantId);
@@ -830,7 +830,7 @@ const App = () => {
     }
   }, [childCategories, isLoading, isTenantSwitching, activeTenantId]);
   useEffect(() => { 
-    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && brands.length > 0) {
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current) {
       if (JSON.stringify(brands) === JSON.stringify(prevBrandsRef.current)) return;
       if (isKeyFromSocket('brands', activeTenantId)) {
         clearSocketFlag('brands', activeTenantId);
@@ -842,7 +842,7 @@ const App = () => {
     }
   }, [brands, isLoading, isTenantSwitching, activeTenantId]);
   useEffect(() => { 
-    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current && tags.length > 0) {
+    if(!isLoading && !isTenantSwitching && activeTenantId && catalogLoadedRef.current) {
       if (JSON.stringify(tags) === JSON.stringify(prevTagsRef.current)) return;
       if (isKeyFromSocket('tags', activeTenantId)) {
         clearSocketFlag('tags', activeTenantId);

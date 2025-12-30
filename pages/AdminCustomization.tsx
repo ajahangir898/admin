@@ -748,12 +748,23 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     }
   };
 
-  const handleDeleteCarousel = (carouselId: string): void => {
+  const handleDeleteCarousel = async (carouselId: string): Promise<void> => {
     if (confirm('Delete carousel?')) {
-      setWebsiteConfiguration((prev) => ({
-        ...prev,
-        carouselItems: prev.carouselItems.filter((item) => item.id !== carouselId)
-      }));
+      const updatedConfig = {
+        ...websiteConfiguration,
+        carouselItems: websiteConfiguration.carouselItems.filter((item) => item.id !== carouselId)
+      };
+      setWebsiteConfiguration(updatedConfig);
+      
+      // Persist the deletion to the server
+      if (onUpdateWebsiteConfig) {
+        try {
+          await onUpdateWebsiteConfig(updatedConfig);
+          toast.success('Carousel deleted!');
+        } catch {
+          toast.error('Failed to delete carousel');
+        }
+      }
     }
   };
 

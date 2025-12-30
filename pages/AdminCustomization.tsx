@@ -468,7 +468,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     }
     // IMPORTANT: Do NOT sync from prop after initial load unless tenant changes
     // This prevents losing unsaved local changes when parent re-renders
-  }, [tenantId]); // ONLY depend on tenantId, NOT websiteConfig
+  }, [tenantId, websiteConfig]); // Include websiteConfig to hydrate defaults once it loads
 
   // Track local changes to mark as unsaved
   useEffect(() => {

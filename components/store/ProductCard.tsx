@@ -98,7 +98,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         );
     }
 
-    // Style 2 (Flash Sale - Pink/Blue)
+    // Style 2 (Flash Sale - Pink/Blue) - CART LEFT, BUY NOW RIGHT
     if (variant === 'style2') {
         return (
             <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition group relative overflow-hidden flex flex-col">
@@ -146,6 +146,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         </div>
                         
                         <div className="flex gap-1.5">
+                            <button 
+                                className="flex-1 btn-order py-1 text-xs"
+                                onClick={handleBuyNow}
+                            >
+                                Buy Now
+                            </button>
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -156,12 +162,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 aria-label="Add to cart"
                             >
                                 <ShoppingCart size={16} className="text-rose-500" />
-                            </button>
-                            <button 
-                                className="flex-1 btn-order py-1 text-xs"
-                                onClick={handleBuyNow}
-                            >
-                                Buy Now
                             </button>
                         </div>
                     </div>
@@ -341,7 +341,5 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </div>
         );
     }
-
 };
-
 export default ProductCard;

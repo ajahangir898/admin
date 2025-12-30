@@ -36,11 +36,12 @@ const initialCategories = [
 ];
 
 interface CategorySectionMobileProps {
+  categories?: Array<{ id: string; name: string; icon?: string; status?: string }>;
   onCategoryClick?: (categoryName: string) => void;
 }
 
-const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ onCategoryClick }) => {
-  const [categories, setCategories] = useState(initialCategories);
+const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ categories: propCategories, onCategoryClick }) => {
+  const [categories, setCategories] = useState(propCategories?.length ? propCategories : initialCategories);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
@@ -49,6 +50,13 @@ const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ onCategor
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Update categories when prop changes
+  React.useEffect(() => {
+    if (propCategories?.length) {
+      setCategories(propCategories);
+    }
+  }, [propCategories]);
 
   // --- Gemini API Helper ---
   const callGemini = async (prompt: string, systemPrompt = "", retries = 5, delay = 1000): Promise<string> => {
@@ -188,14 +196,20 @@ const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ onCategor
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         <div className="grid grid-rows-2 grid-flow-col gap-x-2 gap-y-2">
-          {categories.map((item) => (
+          {categories.filter(cat => cat.status === 'Active' || !cat.status).map((item) => (
             <div
               key={item.id}
               onClick={() => onCategoryClick?.(item.name)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8F9FA] border border-gray-100 rounded-full whitespace-nowrap shadow-sm active:scale-95 transition-all cursor-pointer min-w-[110px]"
             >
               <div className="flex items-center justify-center shrink-0">
-                {item.icon}
+                {typeof item.icon === 'string' && item.icon ? (
+                  item.icon.startsWith('http') ? (
+                    <img src={item.icon} alt="" className="w-3.5 h-3.5 object-contain" />
+                  ) : (
+                    <span className="text-[14px]">{item.icon}</span>
+                  )
+                ) : item.icon || '📦'}
               </div>
               <span className="text-[11px] font-semibold text-gray-700 truncate">
                 {item.name}

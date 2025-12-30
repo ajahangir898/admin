@@ -686,7 +686,10 @@ const StoreHome = ({
             {/* Categories - loaded eagerly (for non-style4 styles) */}
             {websiteConfig?.categorySectionStyle !== 'style4' && (
               websiteConfig?.categorySectionStyle === 'mobile1' ? (
-                <CategorySectionMobile onCategoryClick={handleCategoryClick} />
+                <CategorySectionMobile 
+                  categories={categories} 
+                  onCategoryClick={handleCategoryClick} 
+                />
               ) : websiteConfig?.categorySectionStyle === 'mobile2' ? (
                 <CategorySectionMobile2 
                   categories={categories} 

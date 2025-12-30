@@ -294,8 +294,15 @@ const isInvalidCategoryImageDataUrl = (value?: string | null): boolean => {
 };
 
 export const stripInvalidCategoryImages = <T extends { icon?: string; image?: string }>(categories: T[]): T[] => {
-  let mutated = false;
-  const cleaned = categories.map((category) => {
+  const hasInvalid = categories.some(
+    (category) => isInvalidCategoryImageDataUrl(category.icon) || isInvalidCategoryImageDataUrl(category.image)
+  );
+
+  if (!hasInvalid) {
+    return categories;
+  }
+
+  return categories.map((category) => {
     const iconIsInvalid = isInvalidCategoryImageDataUrl(category.icon);
     const imageIsInvalid = isInvalidCategoryImageDataUrl(category.image);
 
@@ -303,15 +310,12 @@ export const stripInvalidCategoryImages = <T extends { icon?: string; image?: st
       return category;
     }
 
-    mutated = true;
     return {
       ...category,
-      icon: iconIsInvalid ? '' : category.icon,
-      image: imageIsInvalid ? '' : category.image,
+      icon: iconIsInvalid ? undefined : category.icon,
+      image: imageIsInvalid ? undefined : category.image,
     };
   });
-
-  return mutated ? cleaned : categories;
 };
 
 const sanitizeCatalogItems = (

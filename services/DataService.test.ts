@@ -11,8 +11,8 @@ describe('stripInvalidCategoryImages', () => {
 
     const cleaned = stripInvalidCategoryImages(categories);
 
-    expect(cleaned[0].icon).toBe('');
-    expect(cleaned[1].image).toBe('');
+    expect(cleaned[0].icon).toBeUndefined();
+    expect(cleaned[1].image).toBeUndefined();
     expect(cleaned[2].icon).toBe('https://example.com/icon.png');
   });
 

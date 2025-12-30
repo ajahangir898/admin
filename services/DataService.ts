@@ -1,5 +1,5 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload, ChatMessage, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS } from '../constants';
+import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS, DEFAULT_CAROUSEL_ITEMS } from '../constants';
 import { getAuthHeader } from './authService';
 import { io, Socket } from 'socket.io-client';
 
@@ -572,7 +572,7 @@ class DataServiceImpl {
       hideCopyrightText: false,
       showPoweredBy: false,
       brandingText: '',
-      carouselItems: [],
+      carouselItems: DEFAULT_CAROUSEL_ITEMS.map(item => ({ ...item })),
       searchHints: '',
       orderLanguage: 'English',
       productCardStyle: 'style2',

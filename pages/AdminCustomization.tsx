@@ -46,6 +46,7 @@ import {
   isBase64Image,
   convertBase64ToUploadedUrl
 } from '../services/imageUploadService';
+import { DEFAULT_CAROUSEL_ITEMS } from '../constants';
 
 // ============================================================================
 // Types & Interfaces
@@ -127,7 +128,7 @@ const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   showPoweredBy: false,
   showFlashSaleCounter: true,
   brandingText: '',
-  carouselItems: [],
+  carouselItems: DEFAULT_CAROUSEL_ITEMS.map(item => ({ ...item })),
   campaigns: [],
   searchHints: '',
   orderLanguage: 'English',

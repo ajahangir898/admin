@@ -403,6 +403,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const prevTenantIdRef = useRef<string>(tenantId);
   const hasLoadedInitialConfig = useRef(false);
   const hasUnsavedChangesRef = useRef(false);
+  const prevWebsiteConfigRef = useRef<WebsiteConfig | null>(null);
   
   // Expose unsaved changes flag getter function to prevent data refresh overwrites
   useEffect(() => {
@@ -471,10 +472,19 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
   // Track local changes to mark as unsaved
   useEffect(() => {
-    if (hasLoadedInitialConfig.current) {
-      hasUnsavedChangesRef.current = true;
-      console.log('[AdminCustomization] Local changes detected, marking as unsaved');
+    // Only mark as unsaved if config has loaded AND config actually changed from previous value
+    if (hasLoadedInitialConfig.current && prevWebsiteConfigRef.current) {
+      const configChanged = JSON.stringify(websiteConfiguration) !== JSON.stringify(prevWebsiteConfigRef.current);
+      if (configChanged) {
+        hasUnsavedChangesRef.current = true;
+        console.log('[AdminCustomization] Local changes detected:', {
+          carouselCount: websiteConfiguration.carouselItems?.length,
+          prevCarouselCount: prevWebsiteConfigRef.current.carouselItems?.length
+        });
+      }
     }
+    // Always update prevWebsiteConfigRef to track latest state
+    prevWebsiteConfigRef.current = websiteConfiguration;
   }, [websiteConfiguration]);
 
   // Load popups from storage

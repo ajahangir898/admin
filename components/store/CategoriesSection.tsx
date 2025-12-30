@@ -77,10 +77,10 @@ export const CategoriesSection = memo(({ style = 'style1', categories, onCategor
   );
 
   if (style === 'style4') return (
-    <div ref={sectionRef} className="bg-[#F2F4F8] py-8 px-2">
-      <div className="max-w-6xl w-full mx-auto">
+    <div ref={sectionRef} className="bg-[#F2F4F8] py-6 px-2">
+      <div className="max-w-7xl w-full mx-auto">
         {/* Categories Grid */}
-        <div className="bg-white rounded-md shadow-sm overflow-hidden border-t border-l border-[#eee] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-[#e5e7eb] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-0">
           {processed.map((category, index) => {
             // Use custom image if available, otherwise use default style4 icons
             const displayImage = category.image || getStyle4DefaultIcon(index);
@@ -89,22 +89,22 @@ export const CategoriesSection = memo(({ style = 'style1', categories, onCategor
               <div
                 key={index}
                 onClick={() => onCategoryClick(category.name)}
-                className="group flex flex-col items-center justify-center p-3 py-6 border-r border-b border-[#eee] hover:bg-[#F2F4F8] transition-all duration-300 cursor-pointer bg-white"
+                className="group flex flex-col items-center justify-center p-4 py-5 border-r border-b border-[#e5e7eb] last:border-r-0 [&:nth-child(2n)]:border-r-0 sm:[&:nth-child(2n)]:border-r sm:[&:nth-child(4n)]:border-r-0 md:[&:nth-child(4n)]:border-r md:[&:nth-child(6n)]:border-r-0 lg:[&:nth-child(6n)]:border-r lg:[&:nth-child(8n)]:border-r-0 hover:bg-[#F9FAFB] transition-all duration-200 cursor-pointer bg-white relative"
               >
                 {/* Image Circle Container */}
-                <div className="w-16 h-16 flex items-center justify-center bg-[#F2F4F8] rounded-full mb-3 group-hover:bg-white transition-colors duration-300 overflow-hidden p-2">
+                <div className="w-14 h-14 flex items-center justify-center bg-[#F3F4F6] rounded-full mb-2.5 group-hover:bg-white transition-colors duration-200 overflow-hidden p-2 ring-1 ring-gray-100 group-hover:ring-[#ef4a23]/20">
                   <img 
                     src={displayImage} 
                     alt={category.name}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
                     onError={(e) => {
-                      e.currentTarget.src = `https://via.placeholder.com/64?text=${encodeURIComponent(category.name.charAt(0))}`;
+                      e.currentTarget.src = `https://via.placeholder.com/56?text=${encodeURIComponent(category.name.charAt(0))}`;
                     }}
                   />
                 </div>
 
                 {/* Category Label */}
-                <span className="text-[14px] font-semibold text-[#081621] group-hover:text-[#ef4a23] text-center leading-tight transition-colors duration-300 px-1">
+                <span className="text-[13px] font-semibold text-[#1F2937] group-hover:text-[#ef4a23] text-center leading-snug transition-colors duration-200 px-1 line-clamp-2">
                   {category.name}
                 </span>
               </div>

@@ -384,11 +384,19 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     setActiveTab(initialTab);
   }, [initialTab]);
 
-  // Sync website configuration with prop
+  // Track previous tenantId to reset state on tenant change
+  const prevTenantIdRef = useRef<string>(tenantId);
   useEffect(() => {
-    if (websiteConfig) {
-      setWebsiteConfiguration((prev) => ({
-        ...prev,
+    // Reset configuration when tenant changes
+    if (prevTenantIdRef.current !== tenantId && websiteConfig) {
+      console.log('[AdminCustomization] Tenant changed, reloading config:', {
+        oldTenant: prevTenantIdRef.current,
+        newTenant: tenantId,
+        carouselCount: websiteConfig.carouselItems?.length || 0
+      });
+      prevTenantIdRef.current = tenantId;
+      setWebsiteConfiguration({
+        ...DEFAULT_WEBSITE_CONFIG,
         ...websiteConfig,
         footerQuickLinks: websiteConfig.footerQuickLinks || [],
         footerUsefulLinks: websiteConfig.footerUsefulLinks || [],
@@ -397,11 +405,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         footerLogo: websiteConfig.footerLogo ?? null,
         campaigns: websiteConfig.campaigns || [],
         carouselItems: websiteConfig.carouselItems || [],
-        categorySectionStyle:
-          websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
-      }));
+        categorySectionStyle: websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
+      });
     }
-  }, [websiteConfig]);
+  }, [tenantId, websiteConfig]);
 
   // Load popups from storage
   useEffect(() => {
@@ -629,10 +636,17 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
     setIsSaving(true);
     setIsSaved(false);
+    const loadingToast = toast.loading('Saving changes...');
+    const startTime = Date.now();
 
     try {
       // Save website configuration
       if (onUpdateWebsiteConfig) {
+        console.log('[AdminCustomization] Saving config:', {
+          carouselCount: websiteConfiguration.carouselItems?.length || 0,
+          campaignCount: websiteConfiguration.campaigns?.length || 0,
+          categorySectionStyle: websiteConfiguration.categorySectionStyle
+        });
         await onUpdateWebsiteConfig(websiteConfiguration);
       }
 
@@ -653,11 +667,20 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         });
       }
 
+      // Ensure minimum 1 second loading time for better UX
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
+
+      toast.dismiss(loadingToast);
       setIsSaved(true);
-      toast.success('Saved!');
+      toast.success('Saved successfully!');
       setTimeout(() => setIsSaved(false), 2000);
-    } catch {
-      toast.error('Save failed.');
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Save failed:', error);
+      toast.error('Save failed. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -697,6 +720,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     }
 
     setIsCarouselSaving(true);
+    const startTime = Date.now();
 
     try {
       let desktopImage = carouselFormData.image || '';
@@ -704,13 +728,13 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
       // Upload base64 images if needed
       if (isBase64Image(desktopImage)) {
-        toast.loading('Uploading...', { id: 'carousel-handleImageUpload' });
+        toast.loading('Uploading desktop image...', { id: 'carousel-handleImageUpload' });
         desktopImage = await convertBase64ToUploadedUrl(desktopImage, tenantId, 'carousel');
         toast.dismiss('carousel-handleImageUpload');
       }
 
       if (mobileImage && isBase64Image(mobileImage)) {
-        toast.loading('Uploading mobile...', { id: 'carousel-mobile-handleImageUpload' });
+        toast.loading('Uploading mobile image...', { id: 'carousel-mobile-handleImageUpload' });
         mobileImage = await convertBase64ToUploadedUrl(mobileImage, tenantId, 'carousel');
         toast.dismiss('carousel-mobile-handleImageUpload');
       }
@@ -733,16 +757,28 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         : [...websiteConfiguration.carouselItems, carouselItem];
 
       const updatedConfig = { ...websiteConfiguration, carouselItems: updatedItems };
-      setWebsiteConfiguration(updatedConfig);
-
+      
+      toast.loading('Saving carousel...', { id: 'carousel-save' });
+      
       if (onUpdateWebsiteConfig) {
         await onUpdateWebsiteConfig(updatedConfig);
       }
 
-      toast.success(editingCarousel ? 'Updated!' : 'Added!');
+      // Update local state only after successful save
+      setWebsiteConfiguration(updatedConfig);
+
+      // Ensure minimum 1 second loading time
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
+
+      toast.dismiss('carousel-save');
+      toast.success(editingCarousel ? 'Carousel updated successfully!' : 'Carousel added successfully!');
       setIsCarouselModalOpen(false);
-    } catch {
-      toast.error('Failed.');
+    } catch (error) {
+      console.error('Carousel save failed:', error);
+      toast.error('Failed to save carousel. Please try again.');
     } finally {
       setIsCarouselSaving(false);
     }
@@ -750,20 +786,35 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
   const handleDeleteCarousel = async (carouselId: string): Promise<void> => {
     if (confirm('Delete carousel?')) {
-      const updatedConfig = {
-        ...websiteConfiguration,
-        carouselItems: websiteConfiguration.carouselItems.filter((item) => item.id !== carouselId)
-      };
-      setWebsiteConfiguration(updatedConfig);
+      const loadingToast = toast.loading('Deleting carousel...');
+      const startTime = Date.now();
       
-      // Persist the deletion to the server
-      if (onUpdateWebsiteConfig) {
-        try {
+      try {
+        const updatedConfig = {
+          ...websiteConfiguration,
+          carouselItems: websiteConfiguration.carouselItems.filter((item) => item.id !== carouselId)
+        };
+        
+        // Persist the deletion to the server
+        if (onUpdateWebsiteConfig) {
           await onUpdateWebsiteConfig(updatedConfig);
-          toast.success('Carousel deleted!');
-        } catch {
-          toast.error('Failed to delete carousel');
         }
+
+        // Update local state after successful save
+        setWebsiteConfiguration(updatedConfig);
+
+        // Ensure minimum 1 second loading time
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 1000) {
+          await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+        }
+
+        toast.dismiss(loadingToast);
+        toast.success('Carousel deleted successfully!');
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        console.error('Delete failed:', error);
+        toast.error('Failed to delete carousel');
       }
     }
   };
@@ -798,38 +849,87 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     setIsCampaignModalOpen(true);
   };
 
-  const handleSaveCampaign = (event: React.FormEvent): void => {
+  const handleSaveCampaign = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
 
-    const campaign: Campaign = {
-      id: editingCampaign?.id || Date.now().toString(),
-      name: campaignFormData.name || 'Untitled',
-      logo: campaignFormData.logo || '',
-      startDate: campaignFormData.startDate || new Date().toISOString(),
-      endDate: campaignFormData.endDate || new Date().toISOString(),
-      url: campaignFormData.url || '#',
-      serial: Number(campaignFormData.serial),
-      status: campaignFormData.status as 'Publish' | 'Draft'
-    };
+    const loadingToast = toast.loading('Saving campaign...');
+    const startTime = Date.now();
 
-    setWebsiteConfiguration((prev) => ({
-      ...prev,
-      campaigns: editingCampaign
-        ? (prev.campaigns || []).map((item) =>
-            item.id === editingCampaign.id ? campaign : item
-          )
-        : [...(prev.campaigns || []), campaign]
-    }));
+    try {
+      const campaign: Campaign = {
+        id: editingCampaign?.id || Date.now().toString(),
+        name: campaignFormData.name || 'Untitled',
+        logo: campaignFormData.logo || '',
+        startDate: campaignFormData.startDate || new Date().toISOString(),
+        endDate: campaignFormData.endDate || new Date().toISOString(),
+        url: campaignFormData.url || '#',
+        serial: Number(campaignFormData.serial),
+        status: campaignFormData.status as 'Publish' | 'Draft'
+      };
 
-    setIsCampaignModalOpen(false);
+      const updatedConfig = {
+        ...websiteConfiguration,
+        campaigns: editingCampaign
+          ? (websiteConfiguration.campaigns || []).map((item) =>
+              item.id === editingCampaign.id ? campaign : item
+            )
+          : [...(websiteConfiguration.campaigns || []), campaign]
+      };
+
+      if (onUpdateWebsiteConfig) {
+        await onUpdateWebsiteConfig(updatedConfig);
+      }
+
+      // Update local state after successful save
+      setWebsiteConfiguration(updatedConfig);
+
+      // Ensure minimum 1 second loading time
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
+
+      toast.dismiss(loadingToast);
+      toast.success(editingCampaign ? 'Campaign updated!' : 'Campaign added!');
+      setIsCampaignModalOpen(false);
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Campaign save failed:', error);
+      toast.error('Failed to save campaign.');
+    }
   };
 
-  const handleDeleteCampaign = (campaignId: string): void => {
+  const handleDeleteCampaign = async (campaignId: string): Promise<void> => {
     if (confirm('Delete campaign?')) {
-      setWebsiteConfiguration((prev) => ({
-        ...prev,
-        campaigns: (prev.campaigns || []).filter((item) => item.id !== campaignId)
-      }));
+      const loadingToast = toast.loading('Deleting campaign...');
+      const startTime = Date.now();
+      
+      try {
+        const updatedConfig = {
+          ...websiteConfiguration,
+          campaigns: (websiteConfiguration.campaigns || []).filter((item) => item.id !== campaignId)
+        };
+
+        if (onUpdateWebsiteConfig) {
+          await onUpdateWebsiteConfig(updatedConfig);
+        }
+
+        // Update local state after successful save
+        setWebsiteConfiguration(updatedConfig);
+
+        // Ensure minimum 1 second loading time
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 1000) {
+          await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+        }
+
+        toast.dismiss(loadingToast);
+        toast.success('Campaign deleted successfully!');
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        console.error('Delete failed:', error);
+        toast.error('Failed to delete campaign');
+      }
     }
   };
 
@@ -889,51 +989,105 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     event.preventDefault();
 
     if (!popupFormData.name || !popupFormData.image) {
-      alert('Fill required fields');
+      toast.error('Please fill all required fields');
       return;
     }
 
-    const updatedPopups = editingPopup
-      ? popupList.map((item) =>
-          item.id === editingPopup.id
-            ? { ...popupFormData, id: editingPopup.id, updatedAt: new Date().toISOString() } as Popup
-            : item
-        )
-      : [
-          ...popupList,
-          {
-            ...popupFormData,
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          } as Popup
-        ];
+    const loadingToast = toast.loading('Saving popup...');
+    const startTime = Date.now();
 
-    await DataService.save('popups', updatedPopups);
-    setPopupList(updatedPopups);
-    setIsPopupModalOpen(false);
+    try {
+      const updatedPopups = editingPopup
+        ? popupList.map((item) =>
+            item.id === editingPopup.id
+              ? { ...popupFormData, id: editingPopup.id, updatedAt: new Date().toISOString() } as Popup
+              : item
+          )
+        : [
+            ...popupList,
+            {
+              ...popupFormData,
+              id: Date.now(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            } as Popup
+          ];
+
+      await DataService.save('popups', updatedPopups);
+
+      // Ensure minimum 1 second loading time
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
+
+      setPopupList(updatedPopups);
+      toast.dismiss(loadingToast);
+      toast.success(editingPopup ? 'Popup updated successfully!' : 'Popup added successfully!');
+      setIsPopupModalOpen(false);
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Popup save failed:', error);
+      toast.error('Failed to save popup');
+    }
   };
 
   const handleDeletePopup = async (popupId: number): Promise<void> => {
     if (confirm('Delete popup?')) {
-      const updatedPopups = popupList.filter((item) => item.id !== popupId);
-      await DataService.save('popups', updatedPopups);
-      setPopupList(updatedPopups);
+      const loadingToast = toast.loading('Deleting popup...');
+      const startTime = Date.now();
+
+      try {
+        const updatedPopups = popupList.filter((item) => item.id !== popupId);
+        await DataService.save('popups', updatedPopups);
+
+        // Ensure minimum 1 second loading time
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 1000) {
+          await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+        }
+
+        setPopupList(updatedPopups);
+        toast.dismiss(loadingToast);
+        toast.success('Popup deleted successfully!');
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        console.error('Delete failed:', error);
+        toast.error('Failed to delete popup');
+      }
     }
   };
 
   const handleTogglePopupStatus = async (popup: Popup): Promise<void> => {
-    const updatedPopups = popupList.map((item) =>
-      item.id === popup.id
-        ? {
-            ...item,
-            status: item.status === 'Draft' ? 'Publish' : 'Draft',
-            updatedAt: new Date().toISOString()
-          }
-        : item
-    );
-    await DataService.save('popups', updatedPopups);
-    setPopupList(updatedPopups);
+    const loadingToast = toast.loading('Updating status...');
+    const startTime = Date.now();
+
+    try {
+      const updatedPopups = popupList.map((item) =>
+        item.id === popup.id
+          ? {
+              ...item,
+              status: item.status === 'Draft' ? 'Publish' : 'Draft',
+              updatedAt: new Date().toISOString()
+            }
+          : item
+      );
+      await DataService.save('popups', updatedPopups);
+
+      // Ensure minimum 1 second loading time
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
+      }
+
+      setPopupList(updatedPopups);
+      toast.dismiss(loadingToast);
+      toast.success('Status updated!');
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Status update failed:', error);
+      toast.error('Failed to update status');
+    }
   };
 
   // Filter popups based on status and search

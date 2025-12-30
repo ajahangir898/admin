@@ -119,7 +119,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
 
     useEffect(() => {
         if (items.length <= 1) return;
-        const timer = setInterval(() => setCurrentIndex(p => (p + 1) % items.length), 5000);
+        const timer = setInterval(() => setCurrentIndex(p => (p + 1) % items.length), 3500);
         return () => clearInterval(timer);
     }, [items.length]);
 
@@ -160,7 +160,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                             const hasMobileImg = isMobile && item.mobileImage;
                             return (
                                 <a key={item.id} href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
-                                   className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
+                                   className={`absolute inset-0 transition-transform duration-300 ease-in-out ${isActive ? 'translate-x-0 z-10' : index < currentIndex ? '-translate-x-full z-0' : 'translate-x-full z-0'}`}>
                                     {(loadedImages.has(index) || isActive) && (
                                         <OptimizedImage src={getImageSrc(item)} alt={item.name} width={hasMobileImg ? 800 : 1600} height={hasMobileImg ? 450 : 400}
                                             priority={index === 0} placeholder="blur" objectFit="cover" className="w-full h-full" onLoad={() => handleImageLoad(index)} />

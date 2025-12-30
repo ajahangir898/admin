@@ -1561,7 +1561,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         )}
         {activeTab === 'theme_view' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[{ title: 'Header Section', key: 'headerStyle', count: 5 }, { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 5 }, { title: 'Brand Section', key: 'brandSectionStyle', count: 5, hasNone: true }, { title: 'Category Section', key: 'categorySectionStyle', count: 5, hasNone: true, hasMobile: true }, { title: 'Product Section', key: 'productSectionStyle', count: 5 }, { title: 'Product Card', key: 'productCardStyle', count: 5 }, { title: 'Footer Section', key: 'footerStyle', count: 5 }, { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }].map(s => (
+            {[{ title: 'Header Section', key: 'headerStyle', count: 5 }, { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 5 }, { title: 'Brand Section', key: 'brandSectionStyle', count: 5, hasNone: true }, { title: 'Category Section', key: 'categorySectionStyle', count: 0, hasNone: true, hasMobile: true }, { title: 'Product Section', key: 'productSectionStyle', count: 5 }, { title: 'Product Card', key: 'productCardStyle', count: 5 }, { title: 'Footer Section', key: 'footerStyle', count: 5 }, { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }].map(s => (
               <div key={s.title} className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <h3 className="font-bold text-gray-800 text-lg border-b pb-2 mb-4">{s.title}</h3>
                 <div className="space-y-2">

@@ -11,7 +11,7 @@
  * - hooks/useFacebookPixel.ts - Facebook Pixel
  * - hooks/useNavigation.ts - URL routing and navigation
  */
-import { HeroSection } from './components/StoreProductComponents';
+
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import type { 
   Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, 
@@ -47,6 +47,24 @@ import {
   SESSION_STORAGE_KEY,
   ACTIVE_TENANT_STORAGE_KEY,
 } from './utils/appHelpers';
+
+// Default catalog data to prevent data loss during refresh
+const DEFAULT_CATEGORIES = [
+  { id: '1', name: 'Phones', icon: '', status: 'Active' as const },
+  { id: '2', name: 'Watches', icon: '', status: 'Active' as const }
+];
+const DEFAULT_SUB_CATEGORIES = [
+  { id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' as const },
+  { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' as const }
+];
+const DEFAULT_BRANDS = [
+  { id: '1', name: 'Apple', logo: '', status: 'Active' as const },
+  { id: '2', name: 'Samsung', logo: '', status: 'Active' as const }
+];
+const DEFAULT_TAGS = [
+  { id: '1', name: 'Flash Deal', status: 'Active' as const },
+  { id: '2', name: 'New Arrival', status: 'Active' as const }
+];
 
 // Check if we're on the admin subdomain
 const isAdminSubdomain = typeof window !== 'undefined' && 
@@ -488,11 +506,11 @@ const App = () => {
         DataService.getRoles(activeTenantId),
         DataService.get('courier', { apiKey: '', secretKey: '', instruction: '' }, activeTenantId),
         DataService.get<FacebookPixelConfig>('facebook_pixel', { pixelId: '', accessToken: '', enableTestEvent: false, isEnabled: false }, activeTenantId),
-        DataService.getCatalog('categories', [], activeTenantId),
-        DataService.getCatalog('subcategories', [], activeTenantId),
+        DataService.getCatalog('categories', DEFAULT_CATEGORIES, activeTenantId),
+        DataService.getCatalog('subcategories', DEFAULT_SUB_CATEGORIES, activeTenantId),
         DataService.getCatalog('childcategories', [], activeTenantId),
-        DataService.getCatalog('brands', [], activeTenantId),
-        DataService.getCatalog('tags', [], activeTenantId)
+        DataService.getCatalog('brands', DEFAULT_BRANDS, activeTenantId),
+        DataService.getCatalog('tags', DEFAULT_TAGS, activeTenantId)
       ]);
       setUsers(usersData);
       setRoles(rolesData);
@@ -535,9 +553,12 @@ const App = () => {
       switch (key) {
         case 'products':
           const productsData = await DataService.getProducts(tenantId);
+          // Only update if we have data or if current state is empty
           if (productsData.length > 0 || products.length === 0) {
             isFirstProductUpdateRef.current = true;
             setProducts(normalizeProductCollection(productsData, tenantId));
+          } else {
+            console.warn('[DataRefresh] Ignoring empty products refresh - preserving existing data');
           }
           break;
         case 'orders':
@@ -549,23 +570,27 @@ const App = () => {
           setLogo(logoData);
           break;
         case 'theme':
-        case 'theme_config':
           const themeData = await DataService.getThemeConfig(tenantId);
           setThemeConfig(themeData);
           break;
         case 'website':
-        case 'website_config':
           const websiteData = await DataService.getWebsiteConfig(tenantId);
+          // Always update website config, but log if it's suspiciously empty
+          if (!websiteData?.carouselItems && websiteConfig?.carouselItems?.length) {
+            console.warn('[DataRefresh] New website config missing carousel items - this may be intentional or a data issue');
+          }
           setWebsiteConfig(websiteData);
           break;
         case 'delivery':
-        case 'delivery_config':
           const deliveryData = await DataService.getDeliveryConfig(tenantId);
           setDeliveryConfig(deliveryData);
           break;
         case 'categories':
-          const categoriesData = await DataService.getCatalog('categories', [], tenantId);
-          setCategories(categoriesData);
+          const categoriesData = await DataService.getCatalog('categories', DEFAULT_CATEGORIES, tenantId);
+          // Only update if we have data or if current state is empty
+          if (categoriesData.length > 0 || categories.length === 0) {
+            setCategories(categoriesData);
+          }
           break;
         case 'landing_pages':
           const landingData = await DataService.getLandingPages(tenantId);
@@ -673,8 +698,8 @@ const App = () => {
   useEffect(() => {
     if (!activeTenantId || isLoading || isTenantSwitching) return;
     if (themeConfig === prevThemeConfigRef.current) return;
-    if (isKeyFromSocket('theme_config', activeTenantId)) {
-      clearSocketFlag('theme_config', activeTenantId);
+    if (isKeyFromSocket('theme', activeTenantId)) {
+      clearSocketFlag('theme', activeTenantId);
       prevThemeConfigRef.current = themeConfig;
       return;
     }
@@ -685,8 +710,8 @@ const App = () => {
   useEffect(() => {
     if (!activeTenantId || isLoading || isTenantSwitching) return;
     if (websiteConfig === prevWebsiteConfigRef.current) return;
-    if (isKeyFromSocket('website_config', activeTenantId)) {
-      clearSocketFlag('website_config', activeTenantId);
+    if (isKeyFromSocket('website', activeTenantId)) {
+      clearSocketFlag('website', activeTenantId);
       prevWebsiteConfigRef.current = websiteConfig;
       return;
     }

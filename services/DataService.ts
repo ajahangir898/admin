@@ -181,13 +181,13 @@ const SHOULD_LOG_SAVE_SKIP = Boolean(import.meta.env?.DEV);
 // Simple memory cache for frequently accessed data
 type CacheEntry<T> = { data: T; timestamp: number; tenantId?: string };
 const dataCache = new Map<string, CacheEntry<unknown>>();
-const CACHE_TTL_MS = 30000; // 30 seconds cache
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache - increased to prevent frequent resets
 
 const getCacheKey = (key: string, tenantId?: string) => `${tenantId || 'public'}::${key}`;
 
 // LocalStorage cache for instant loads
 const LOCAL_CACHE_PREFIX = 'ds_cache_';
-const LOCAL_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes for localStorage
+const LOCAL_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours for localStorage - user data should persist
 
 const getLocalCache = <T>(key: string, tenantId?: string): T | null => {
   if (typeof window === 'undefined') return null;

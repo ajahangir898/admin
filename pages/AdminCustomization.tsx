@@ -730,6 +730,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const handleSaveChanges = async (): Promise<void> => {
     if (isSaving) return;
 
+    alert('Save button clicked! Check console.');
     console.log('[AdminCustomization] ====== SAVE BUTTON CLICKED ======');
     console.log('[AdminCustomization] websiteConfiguration state:', {
       carouselCount: websiteConfiguration.carouselItems?.length || 0,

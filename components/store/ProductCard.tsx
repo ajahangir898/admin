@@ -289,8 +289,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             <Star 
                                 key={i} 
                                 size={14} 
-                                className="text-yellow-400" 
-                                fill="currentColor"
+                                className={i < Math.floor(product.rating || 5) ? "text-yellow-400" : "text-gray-300"}
+                                fill={i < Math.floor(product.rating || 5) ? "currentColor" : "none"}
                             />
                         ))}
                         <span className="text-xs text-gray-500 ml-1">

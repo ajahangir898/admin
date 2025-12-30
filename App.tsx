@@ -549,14 +549,17 @@ const App = () => {
           setLogo(logoData);
           break;
         case 'theme':
+        case 'theme_config':
           const themeData = await DataService.getThemeConfig(tenantId);
           setThemeConfig(themeData);
           break;
         case 'website':
+        case 'website_config':
           const websiteData = await DataService.getWebsiteConfig(tenantId);
           setWebsiteConfig(websiteData);
           break;
         case 'delivery':
+        case 'delivery_config':
           const deliveryData = await DataService.getDeliveryConfig(tenantId);
           setDeliveryConfig(deliveryData);
           break;
@@ -670,8 +673,8 @@ const App = () => {
   useEffect(() => {
     if (!activeTenantId || isLoading || isTenantSwitching) return;
     if (themeConfig === prevThemeConfigRef.current) return;
-    if (isKeyFromSocket('theme', activeTenantId)) {
-      clearSocketFlag('theme', activeTenantId);
+    if (isKeyFromSocket('theme_config', activeTenantId)) {
+      clearSocketFlag('theme_config', activeTenantId);
       prevThemeConfigRef.current = themeConfig;
       return;
     }
@@ -682,8 +685,8 @@ const App = () => {
   useEffect(() => {
     if (!activeTenantId || isLoading || isTenantSwitching) return;
     if (websiteConfig === prevWebsiteConfigRef.current) return;
-    if (isKeyFromSocket('website', activeTenantId)) {
-      clearSocketFlag('website', activeTenantId);
+    if (isKeyFromSocket('website_config', activeTenantId)) {
+      clearSocketFlag('website_config', activeTenantId);
       prevWebsiteConfigRef.current = websiteConfig;
       return;
     }

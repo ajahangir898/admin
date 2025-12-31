@@ -14,6 +14,7 @@ import { StoreHeader } from '../components/StoreHeader';
 import { HeroSection } from '../components/store/HeroSection';
 import { FlashSalesSection } from '../components/store/FlashSalesSection';
 import { ProductGridSection } from '../components/store/ProductGridSection';
+import { CategoriesSection } from '../components/store/CategoriesSection';
 
 // Below-the-fold - lazy loaded (only when needed)
 const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
@@ -239,6 +240,19 @@ const StoreHome = ({
   };
   const categoriesSectionRef = useRef<HTMLElement | null>(null);
   const productsSectionRef = useRef<HTMLElement | null>(null);
+
+  // Categories to display - use passed categories or fallback to defaults
+  const displayCategories = useMemo(() => {
+    if (categories && categories.length > 0) {
+      return categories;
+    }
+    // Fallback to default categories with proper structure
+    return CATEGORIES.map(c => ({ 
+      ...c, 
+      status: 'Active' as const,
+      id: Math.random() // Add a unique id
+    }));
+  }, [categories]);
 
   // Use passed products or fallback to initial constants
   // Filter only Active products for store display
@@ -686,6 +700,18 @@ const StoreHome = ({
       
       {/* Hero Section - loaded eagerly */}
       <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
+
+      {/* Categories Section - Auto-sliding modern category display */}
+      {displayCategories.length > 0 && (
+        <section ref={categoriesSectionRef} className="max-w-7xl mx-auto px-4 pt-4">
+          <CategoriesSection
+            style={(websiteConfig?.categorySectionStyle as any) || 'style6'}
+            categories={displayCategories}
+            onCategoryClick={handleCategoryClick}
+            categoryScrollRef={categoryScrollRef}
+          />
+        </section>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">
         {hasSearchQuery ? (

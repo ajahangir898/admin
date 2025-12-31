@@ -36,3 +36,4 @@ export const AddToCartSuccessModal = ({ product, onClose, onCheckout, variant, q
 );
 
 export default AddToCartSuccessModal;
+// RR

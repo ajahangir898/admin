@@ -1,5 +1,5 @@
-import { memo, useMemo, RefObject, ReactNode } from 'react';
-import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera } from 'lucide-react';
+import { memo, useMemo, useEffect, useRef, useState, RefObject, ReactNode } from 'react';
+import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Category } from '../../types';
 
 const SectionHeader = ({ title }: { title: string }) => (
@@ -44,21 +44,203 @@ const getStyle4DefaultIcon = (index: number): string => {
 };
 
 interface Props {
-  style?: 'style1' | 'style2' | 'style3' | 'style4' | 'style5';
+  style?: 'style1' | 'style2' | 'style3' | 'style4' | 'style5' | 'style6';
   categories?: Category[];
   onCategoryClick: (name: string) => void;
   categoryScrollRef?: RefObject<HTMLDivElement>;
   sectionRef?: RefObject<HTMLDivElement>;
 }
 
+// Modern Auto-Sliding Category Carousel Component
+const AutoSlidingCarousel = memo(({ 
+  categories, 
+  onCategoryClick 
+}: { 
+  categories: { name: string; icon: string; image?: string }[];
+  onCategoryClick: (name: string) => void;
+}) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Triple the categories for seamless infinite scroll
+  const extendedCategories = useMemo(() => 
+    [...categories, ...categories, ...categories], 
+    [categories]
+  );
+
+  // Auto-slide effect
+  useEffect(() => {
+    if (isPaused || categories.length <= 4) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex(prev => {
+        const next = prev + 1;
+        // Reset to middle section for seamless loop
+        if (next >= categories.length * 2) {
+          return categories.length;
+        }
+        return next;
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, categories.length]);
+
+  // Smooth scroll to current index
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    const itemWidth = 180; // Approximate width of each item
+    const scrollPosition = currentIndex * itemWidth;
+    
+    container.scrollTo({
+      left: scrollPosition,
+      behavior: 'smooth'
+    });
+  }, [currentIndex]);
+
+  const handlePrev = () => {
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex(prev => Math.min(extendedCategories.length - 5, prev + 1));
+  };
+
+  return (
+    <div 
+      className="relative group"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Navigation Arrows */}
+      <button 
+        onClick={handlePrev}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 hover:bg-white shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-x-2 group-hover:translate-x-0 border border-gray-200"
+        aria-label="Previous categories"
+      >
+        <ChevronLeft className="w-5 h-5 text-gray-700" />
+      </button>
+      
+      <button 
+        onClick={handleNext}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 hover:bg-white shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 border border-gray-200"
+        aria-label="Next categories"
+      >
+        <ChevronRight className="w-5 h-5 text-gray-700" />
+      </button>
+
+      {/* Gradient Overlays */}
+      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-[5] pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-[5] pointer-events-none" />
+
+      {/* Scrolling Container */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex gap-4 overflow-x-auto scrollbar-hide py-2 px-4 scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {extendedCategories.map((category, index) => {
+          const displayImage = category.image || getStyle4DefaultIcon(index % categories.length);
+          return (
+            <div
+              key={`${category.name}-${index}`}
+              onClick={() => onCategoryClick(category.name)}
+              className="flex-shrink-0 group/card cursor-pointer"
+            >
+              <div className="relative w-40 h-48 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-orange-200">
+                {/* Category Image */}
+                <div className="absolute inset-0 p-4 pb-12">
+                  <img
+                    src={displayImage}
+                    alt={category.name}
+                    className="w-full h-full object-contain transition-transform duration-500 group-hover/card:scale-110"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://via.placeholder.com/160?text=${encodeURIComponent(category.name.charAt(0))}`;
+                    }}
+                  />
+                </div>
+                
+                {/* Category Name Label */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-6 pb-3 px-3">
+                  <p className="text-sm font-semibold text-gray-800 text-center truncate group-hover/card:text-orange-600 transition-colors">
+                    {category.name}
+                  </p>
+                </div>
+
+                {/* Hover Overlay Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-orange-500/0 group-hover/card:from-orange-500/5 group-hover/card:to-orange-600/10 transition-all duration-300" />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Progress Indicator */}
+      <div className="flex justify-center gap-1.5 mt-4">
+        {categories.slice(0, Math.min(8, categories.length)).map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentIndex(idx + categories.length)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              Math.floor(currentIndex % categories.length) === idx 
+                ? 'w-6 bg-orange-500' 
+                : 'w-1.5 bg-gray-300 hover:bg-gray-400'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+AutoSlidingCarousel.displayName = 'AutoSlidingCarousel';
+
 export const CategoriesSection = memo(({ style = 'style5', categories, onCategoryClick, categoryScrollRef, sectionRef }: Props) => {
   const processed = useMemo(() => 
-    categories?.filter(c => c.status === 'Active').map(c => ({ name: c.name, icon: c.icon || 'smartphone', image: c.image })) || []
+    categories?.filter(c => !c.status || c.status === 'Active' || c.status?.toLowerCase() === 'active').map(c => ({ name: c.name, icon: c.icon || 'smartphone', image: c.image })) || []
   , [categories]);
 
   const rolling = useMemo(() => processed.length ? [...processed, ...processed, ...processed] : [], [processed]);
 
   if (!processed.length) return null;
+
+  // Style 6: Modern Auto-Sliding Carousel (Default)
+  if (style === 'style6' || !style) return (
+    <div ref={sectionRef} className="relative overflow-hidden rounded-3xl bg-white shadow-sm border border-gray-100">
+      {/* Header */}
+      <div className="px-6 pt-6 pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-200">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Shop by Category</h2>
+              <p className="text-sm text-gray-500">Explore our curated collections</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => onCategoryClick('__all__')}
+            className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-full transition-all duration-200"
+          >
+            View All
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Auto-Sliding Carousel */}
+      <div className="px-2 pb-6">
+        <AutoSlidingCarousel 
+          categories={processed} 
+          onCategoryClick={onCategoryClick} 
+        />
+      </div>
+    </div>
+  );
 
   if (style === 'style2') return (
     <div ref={sectionRef} className="mt-1 -mb-1">
@@ -162,18 +344,18 @@ export const CategoriesSection = memo(({ style = 'style5', categories, onCategor
     </div>
   );
 
-  return (
-    <div ref={sectionRef} className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <SectionHeader title="Categories" />
-      <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
-        {processed.map((cat, i) => (
-          <div key={i} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
-            <CategoryCircle name={cat.name} icon={getIcon(cat.icon, 32)} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  // return (
+  //   <div ref={sectionRef} className="mt-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+  //     <SectionHeader title="Categories" />
+  //     <div className="flex flex-wrap justify-center gap-x-8 gap-y-8 overflow-x-auto pb-4 pt-2 scrollbar-hide md:justify-between">
+  //       {processed.map((cat, i) => (
+  //         <div key={i} onClick={() => onCategoryClick(cat.name)} className="cursor-pointer">
+  //           <CategoryCircle name={cat.name} icon={getIcon(cat.icon, 32)} />
+  //         </div>
+  //       ))}
+  //     </div>
+  //   </div>
+  // );
 });
 
 CategoriesSection.displayName = 'CategoriesSection';

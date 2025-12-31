@@ -541,7 +541,8 @@ const SuperAdminDashboard: React.FC = () => {
     setIsTenantCreating(true);
     try {
       const newTenant = await DataService.seedTenant(payload);
-      const refreshed = await DataService.listTenants();
+      // Force refresh to get fresh tenant list from server (bypass cache)
+      const refreshed = await DataService.listTenants(true);
       setTenants(refreshed);
       toast.success(`${newTenant.name} created successfully`);
       return newTenant;
@@ -558,7 +559,8 @@ const SuperAdminDashboard: React.FC = () => {
     setDeletingTenantId(tenantId);
     try {
       await DataService.deleteTenant(tenantId);
-      const refreshed = await DataService.listTenants();
+      // Force refresh to get fresh tenant list from server (bypass cache)
+      const refreshed = await DataService.listTenants(true);
       setTenants(refreshed);
       toast.success('Tenant deleted successfully');
     } catch (error) {
@@ -572,7 +574,8 @@ const SuperAdminDashboard: React.FC = () => {
 
   const handleRefreshTenants = useCallback(async (): Promise<Tenant[]> => {
     try {
-      const data = await DataService.listTenants();
+      // Force refresh when manually refreshing
+      const data = await DataService.listTenants(true);
       setTenants(data);
       return data;
     } catch (error) {

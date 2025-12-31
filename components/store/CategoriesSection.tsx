@@ -84,7 +84,6 @@ export const CategoriesSection = memo(({ style = 'style5', categories, onCategor
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Fresh look</p>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Shop by category</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">Curated tiles with images and icons.</p>
           </div>
         </div>
         <div ref={categoryScrollRef} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

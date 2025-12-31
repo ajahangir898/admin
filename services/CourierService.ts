@@ -2,9 +2,14 @@ import { CourierConfig, Order } from '../types';
 
 // Use backend proxy to avoid CORS issues
 const getApiBaseUrl = () => {
-  if (typeof window !== 'undefined' && (window as any).__VITE_API_BASE_URL__) {
-    return (window as any).__VITE_API_BASE_URL__;
+  // In production, use the same origin (for proxy routing)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return window.location.origin;
+    }
   }
+  // Fallback for local development
   return import.meta?.env?.VITE_API_BASE_URL || 'http://localhost:5001';
 };
 

@@ -610,7 +610,7 @@ export const AdminHeader: React.FC<{
     </button>
 )}
 
-				<h2 className="text-lg font-bold tracking-tight hidden md:block flex-shrink-0 text-gray-800">Dashboard</h2>
+				{/* Tenant Switcher - Desktop */}
 				{canSwitchTenant && (
 					<div className="relative hidden sm:block flex-shrink-0" ref={tenantMenuRef}>
 						<button

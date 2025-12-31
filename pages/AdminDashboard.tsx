@@ -59,37 +59,36 @@ const ModernStatCard: React.FC<ModernStatCardProps> = ({
   const isPositive = change && change >= 0;
   
   return (
-    <div className={`relative p-5 rounded-2xl ${gradient} overflow-hidden`}>
+    <div className={`relative p-3 sm:p-5 rounded-2xl ${gradient} overflow-hidden min-h-[100px] sm:min-h-[140px]`}>
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-20 sm:w-32 h-20 sm:h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
       
       <div className="relative">
         <div className="flex items-start justify-between">
-          <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-lg`}>
-            <div className="text-white [&>svg]:w-6 [&>svg]:h-6">
+          <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl ${iconBg} flex items-center justify-center`}>
+            <div className="text-white [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
               {icon}
             </div>
           </div>
-          <button className="p-1 hover:bg-white/20 rounded-lg transition">
+          <button className="p-1 hover:bg-white/20 rounded-lg transition hidden sm:block">
             <MoreHorizontal className="w-5 h-5 text-white/70" />
           </button>
         </div>
         
-        <div className="mt-4">
-          <p className="text-white/80 text-sm font-medium">{title}</p>
-          <p className="text-white text-3xl font-bold mt-1">{value}</p>
+        <div className="mt-2 sm:mt-4">
+          <p className="text-white/80 text-xs sm:text-sm font-medium truncate">{title}</p>
+          <p className="text-white text-xl sm:text-3xl font-bold mt-0.5 sm:mt-1">{value}</p>
         </div>
         
         {change !== undefined && (
-          <div className="flex items-center gap-2 mt-3">
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+          <div className="flex items-center gap-1 sm:gap-2 mt-1.5 sm:mt-3">
+            <span className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${
               isPositive ? 'bg-green-500/20 text-green-100' : 'bg-red-500/20 text-red-100'
             }`}>
-              {isPositive ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+              {isPositive ? <ArrowUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : <ArrowDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
               {Math.abs(change)}%
             </span>
-            <span className="text-white/60 text-xs">{changeLabel}</span>
+            <span className="text-white/60 text-[10px] sm:text-xs hidden sm:inline">{changeLabel}</span>
           </div>
         )}
       </div>
@@ -739,8 +738,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      {/* Modern Stats Cards - Row 1 */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Modern Stats Cards - Row 1 (2x2 on mobile) */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         <ModernStatCard
           title="Total Orders"
           value={totalOrders.toLocaleString()}
@@ -776,8 +775,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         />
       </div>
 
-      {/* Order Status Cards - Row 2 */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      {/* Order Status Cards - Row 2 (Hidden on mobile, visible on tablet+) */}
+      <div className="hidden sm:grid grid-cols-3 gap-4 lg:grid-cols-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center">
@@ -852,34 +851,34 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Revenue Overview Chart - Takes 2 columns */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Revenue Overview</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Track your revenue performance</p>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900">Revenue Overview</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 hidden sm:block">Track your revenue performance</p>
             </div>
-            <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 text-xs sm:text-sm">
               {(['Last Week', 'Monthly', 'Yearly'] as const).map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setRevenueRange(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition ${
                     tab === revenueRange
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  {tab}
+                  {tab === 'Last Week' ? 'Week' : tab}
                 </button>
               ))}
             </div>
           </div>
           
           {/* Area Chart */}
-          <div className="h-72 relative">
+          <div className="h-48 sm:h-72 relative">
             <svg className="w-full h-full" viewBox="0 0 720 280" preserveAspectRatio="none">
               <defs>
                 <linearGradient id={`${gradientId}-area`} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -929,102 +928,81 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               ))}
             </svg>
             {/* X-axis labels */}
-            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
+            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-1 sm:px-2">
               {revenueData.map((item) => (
-                <span key={item.name} className="text-xs text-gray-400">{item.name}</span>
+                <span key={item.name} className="text-[10px] sm:text-xs text-gray-400">{item.name}</span>
               ))}
             </div>
           </div>
           
           {/* Legend */}
-          <div className="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-violet-500"></div>
-              <span className="text-sm text-gray-600">Revenue</span>
-              <span className="text-sm font-semibold text-gray-900">৳{totalRevenue.toLocaleString()}</span>
+          <div className="flex items-center justify-center gap-4 sm:gap-8 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-violet-500"></div>
+              <span className="text-xs sm:text-sm text-gray-600">Revenue</span>
+              <span className="text-xs sm:text-sm font-semibold text-gray-900">৳{totalRevenue.toLocaleString()}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              <span className="text-sm text-gray-600">Delivered</span>
-              <span className="text-sm font-semibold text-gray-900">৳{deliveredRevenue.toLocaleString()}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500"></div>
+              <span className="text-xs sm:text-sm text-gray-600">Delivered</span>
+              <span className="text-xs sm:text-sm font-semibold text-gray-900">৳{deliveredRevenue.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
-        {/* Device Traffic Donut */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Device Traffic</h3>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition">
-              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+        {/* Device Traffic - Bar Chart Style for Mobile */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900">Device Traffic</h3>
+            <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition">
+              <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             </button>
           </div>
           
-          {/* Donut Chart - Using stroke-based ring for better rendering */}
-          <div className="flex justify-center mb-6">
-            <div className="relative w-44 h-44">
-              <svg viewBox="0 0 36 36" className="w-full h-full" style={{ transform: 'rotate(-90deg)' }}>
-                {/* Background circle */}
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="15.915"
-                  fill="transparent"
-                  stroke="#f3f4f6"
-                  strokeWidth="3"
-                />
-                {/* Device segments */}
-                {(() => {
-                  let offset = 0;
-                  return deviceTraffic.map((entry, index) => {
-                    const circumference = 2 * Math.PI * 15.915;
-                    const segmentLength = (entry.percentage / 100) * circumference;
-                    const gapLength = circumference - segmentLength;
-                    const currentOffset = offset;
-                    offset += entry.percentage;
-                    
-                    return (
-                      <circle
-                        key={entry.name}
-                        cx="18"
-                        cy="18"
-                        r="15.915"
-                        fill="transparent"
-                        stroke={entry.color}
-                        strokeWidth="3"
-                        strokeDasharray={`${segmentLength} ${gapLength}`}
-                        strokeDashoffset={-((currentOffset / 100) * circumference)}
-                        className="transition-all duration-500"
-                        style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
-                      />
-                    );
-                  });
-                })()}
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900">{dateFilteredOrders.length}</span>
-                <span className="text-xs text-gray-500">Total</span>
-              </div>
+          {/* Bar Chart Style */}
+          <div className="flex items-end justify-center gap-3 sm:gap-6 h-32 sm:h-44 mb-4">
+            {deviceTraffic.map((item) => {
+              const maxVal = Math.max(...deviceTraffic.map(d => d.value), 1);
+              const heightPercent = (item.value / maxVal) * 100;
+              return (
+                <div key={item.name} className="flex flex-col items-center gap-2 flex-1 max-w-16 sm:max-w-20">
+                  <div className="w-full h-full flex items-end justify-center">
+                    <div 
+                      className="w-8 sm:w-12 rounded-t-lg transition-all duration-500"
+                      style={{ 
+                        height: `${Math.max(heightPercent, 10)}%`,
+                        backgroundColor: item.color
+                      }}
+                    />
+                  </div>
+                  <span className="text-[10px] sm:text-xs text-gray-500 text-center">{item.name}</span>
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Center Total */}
+          <div className="flex justify-center mb-4">
+            <div className="text-center px-4 py-2 bg-gray-50 rounded-xl">
+              <span className="text-xl sm:text-2xl font-bold text-gray-900">{dateFilteredOrders.length}</span>
+              <span className="text-xs text-gray-500 ml-1">Total</span>
             </div>
           </div>
           
           {/* Legend */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {deviceTraffic.map((item) => (
               <div key={item.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                  <div className="flex items-center gap-2">
-                    {item.name === 'Desktop' && <Monitor className="w-4 h-4 text-gray-400" />}
-                    {item.name === 'Mobile' && <Smartphone className="w-4 h-4 text-gray-400" />}
-                    {item.name === 'Tablet' && <Tablet className="w-4 h-4 text-gray-400" />}
-                    <span className="text-sm text-gray-600">{item.name}</span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    {item.name === 'Desktop' && <Monitor className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />}
+                    {item.name === 'Mobile' && <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />}
+                    {item.name === 'Tablet' && <Tablet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />}
+                    <span className="text-xs sm:text-sm text-gray-600">{item.name}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">{item.percentage}%</span>
-                  <span className="text-sm font-semibold text-gray-900 min-w-[24px] text-right">{item.value}</span>
-                </div>
+                <span className="text-xs sm:text-sm font-semibold text-gray-900">{item.value}</span>
               </div>
             ))}
           </div>
@@ -1032,28 +1010,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Sales by Category & Location Traffic */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Sales by Category */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Sales by Category</h3>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition">
-              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900">Sales by Category</h3>
+            <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition">
+              <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             </button>
           </div>
           
           {/* Horizontal Bar Chart */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {categoryData.length > 0 && categoryData[0].value > 0 ? categoryData.slice(0, 5).map((item, index) => {
               const maxValue = Math.max(...categoryData.map(d => d.value), 1);
               const percentage = (item.value / maxValue) * 100;
               return (
                 <div key={item.name}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700 truncate max-w-[150px]">{item.name}</span>
-                    <span className="text-sm font-semibold text-gray-900">৳{item.value.toLocaleString()}</span>
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span className="text-xs sm:text-sm font-medium text-gray-700 truncate max-w-[120px] sm:max-w-[150px]">{item.name}</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-900">৳{item.value.toLocaleString()}</span>
                   </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 sm:h-2.5 bg-gray-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-500"
                       style={{ 
@@ -1065,36 +1043,36 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               );
             }) : (
-              <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                <BarChart3 className="w-12 h-12 mb-2 opacity-50" />
-                <span className="text-sm">No category data yet</span>
+              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-gray-400">
+                <BarChart3 className="w-10 h-10 sm:w-12 sm:h-12 mb-2 opacity-50" />
+                <span className="text-xs sm:text-sm">No category data yet</span>
               </div>
             )}
           </div>
         </div>
 
         {/* Location Traffic */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Top Locations</h3>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition">
-              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900">Top Locations</h3>
+            <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition">
+              <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             </button>
           </div>
           
           {/* Location Bars */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {locationTraffic.length > 0 ? locationTraffic.map((item, index) => {
               const maxValue = Math.max(...locationTraffic.map(d => d.value), 1);
               const percentage = (item.value / maxValue) * 100;
               const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
               return (
                 <div key={item.name}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700 truncate max-w-[200px]">{item.name}</span>
-                    <span className="text-sm font-semibold text-gray-900">{item.value} orders</span>
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span className="text-xs sm:text-sm font-medium text-gray-700 truncate max-w-[150px] sm:max-w-[200px]">{item.name}</span>
+                    <span className="text-xs sm:text-sm font-semibold text-gray-900">{item.value}</span>
                   </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 sm:h-2.5 bg-gray-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-500"
                       style={{ 
@@ -1106,9 +1084,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               );
             }) : (
-              <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                <TrendingUp className="w-12 h-12 mb-2 opacity-50" />
-                <span className="text-sm">No location data available</span>
+              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-gray-400">
+                <TrendingUp className="w-10 h-10 sm:w-12 sm:h-12 mb-2 opacity-50" />
+                <span className="text-xs sm:text-sm">No location data available</span>
               </div>
             )}
           </div>
@@ -1116,20 +1094,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Recent Orders & Top Products */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Recent Orders */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-5 flex items-center justify-between border-b border-gray-100">
+          <div className="p-3 sm:p-5 flex items-center justify-between border-b border-gray-100">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Recent Orders</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Latest {Math.min(visibleOrders.length, 5)} orders</p>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900">Recent Orders</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Latest {Math.min(visibleOrders.length, 5)} orders</p>
             </div>
             <button 
               onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-violet-600 border border-violet-200 rounded-lg sm:rounded-xl hover:bg-violet-50 transition"
             >
-              <Download size={14} />
-              Export
+              <Download size={12} className="sm:hidden" />
+              <Download size={14} className="hidden sm:block" />
+              <span className="hidden sm:inline">Export</span>
             </button>
           </div>
           <div className="divide-y divide-gray-50">
@@ -1143,31 +1122,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 'Shipped': 'bg-violet-100 text-violet-700',
               };
               return (
-                <div key={order.id} className="p-4 flex items-center gap-4 hover:bg-gray-50/50 transition">
+                <div key={order.id} className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-4 hover:bg-gray-50/50 transition">
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
                       {product?.image && (
                         <img src={normalizeImageUrl(product.image)} alt="" className="w-full h-full object-cover" />
                       )}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm">#{order.id}</p>
-                    <p className="text-xs text-gray-500 truncate">{order.customer}</p>
+                    <p className="font-semibold text-gray-900 text-xs sm:text-sm">#{order.id}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 truncate">{order.customer}</p>
                   </div>
-                  <div className="text-right">
-                    <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-700'}`}>
+                  <div className="text-right flex-shrink-0">
+                    <span className={`inline-block px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-700'}`}>
                       {order.status}
                     </span>
-                    <p className="text-xs text-gray-400 mt-1">৳{order.amount.toLocaleString()}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">৳{order.amount.toLocaleString()}</p>
                   </div>
                 </div>
               );
             })}
             {!visibleOrders.length && (
-              <div className="p-8 text-center text-gray-500">
-                <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p>No recent orders</p>
+              <div className="p-6 sm:p-8 text-center text-gray-500">
+                <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3" />
+                <p className="text-sm">No recent orders</p>
               </div>
             )}
           </div>
@@ -1175,41 +1154,42 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* Top Products */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-5 flex items-center justify-between border-b border-gray-100">
+          <div className="p-3 sm:p-5 flex items-center justify-between border-b border-gray-100">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Top Products</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Best performing items</p>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900">Top Products</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Best performing items</p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition">
-              <BarChart3 size={14} />
-              Analytics
+            <button className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-violet-600 border border-violet-200 rounded-lg sm:rounded-xl hover:bg-violet-50 transition">
+              <BarChart3 size={12} className="sm:hidden" />
+              <BarChart3 size={14} className="hidden sm:block" />
+              <span className="hidden sm:inline">Analytics</span>
             </button>
           </div>
           <div className="divide-y divide-gray-50">
             {featuredProducts.slice(0, 5).map((product, index) => (
-              <div key={product.id} className="p-4 flex items-center gap-4 hover:bg-gray-50/50 transition">
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden">
+              <div key={product.id} className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-4 hover:bg-gray-50/50 transition">
+                <div className="relative flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gray-100 overflow-hidden">
                     <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
                   </div>
-                  <span className="absolute -top-1 -left-1 w-5 h-5 bg-gradient-to-br from-violet-600 to-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -left-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-violet-600 to-purple-600 text-white text-[8px] sm:text-[10px] font-bold rounded-full flex items-center justify-center">
                     {index + 1}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm truncate">{product.name}</p>
-                  <p className="text-xs text-gray-500">৳{product.price?.toLocaleString()}</p>
+                  <p className="font-medium text-gray-900 text-xs sm:text-sm truncate">{product.name}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500">৳{product.price?.toLocaleString()}</p>
                 </div>
-                <div className="flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg">
+                <div className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-semibold rounded-md sm:rounded-lg flex-shrink-0">
                   <span>{product.stock || 0}</span>
-                  <span className="text-emerald-500">in stock</span>
+                  <span className="text-emerald-500 hidden sm:inline">in stock</span>
                 </div>
               </div>
             ))}
             {!featuredProducts.length && (
-              <div className="p-8 text-center text-gray-500">
-                <LayoutGrid className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p>No products yet</p>
+              <div className="p-6 sm:p-8 text-center text-gray-500">
+                <LayoutGrid className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3" />
+                <p className="text-sm">No products yet</p>
               </div>
             )}
           </div>

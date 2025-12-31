@@ -180,9 +180,31 @@ export function useAuth({
     localStorage.removeItem('admin_auth_permissions');
     
     setUser(null);
-    setCurrentView('store');
     setSelectedVariant(null);
     setAdminSection('dashboard');
+    
+    // Check if on /admin path (tenant subdomain admin access)
+    const isOnAdminPath = typeof window !== 'undefined' && 
+      (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'));
+    
+    // Check if on admin.* or superadmin.* subdomain
+    const isAdminSubdomain = typeof window !== 'undefined' && 
+      (window.location.hostname === 'admin.systemnextit.com' || 
+       window.location.hostname.startsWith('admin.'));
+    const isSuperAdminSubdomain = typeof window !== 'undefined' && 
+      (window.location.hostname === 'superadmin.systemnextit.com' || 
+       window.location.hostname.startsWith('superadmin.'));
+    
+    if (isAdminSubdomain || isSuperAdminSubdomain) {
+      // On admin/superadmin subdomain, show login page
+      setCurrentView('admin-login');
+    } else if (isOnAdminPath) {
+      // On tenant subdomain with /admin path, redirect to store home
+      setCurrentView('store');
+      window.history.pushState({}, '', '/');
+    } else {
+      setCurrentView('store');
+    }
   }, [setUser, setCurrentView, setSelectedVariant, setAdminSection]);
 
   const handleUpdateProfile = useCallback((updatedUser: User) => {

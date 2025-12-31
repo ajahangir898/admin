@@ -4,12 +4,18 @@ import {
 	LayoutDashboard, ShoppingBag, Box, Settings, Sliders,
 	FileText, Star, Users, Image as ImageIcon, DollarSign,
 	Shield, LogOut, Bell, Menu, X, Globe, LogOut as LogOutIcon, ChevronDown, ChevronRight,
-	Layers, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock, Headphones
+	Layers, Boxes, MessageCircle, Loader2, Check, Target, ExternalLink, CheckCheck, Trash2, AlertCircle, Package, Clock, Headphones, Store
 } from 'lucide-react';
 import { StatCardProps, User, Tenant } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import type { Notification as AppNotification } from '../backend/src/services/NotificationService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
+
+// Check if we're on tenant subdomain with /admin path (not admin.* or superadmin.* subdomain)
+const isOnTenantAdminPath = typeof window !== 'undefined' && 
+	(window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) &&
+	!window.location.hostname.startsWith('admin.') &&
+	!window.location.hostname.startsWith('superadmin.');
 
 // Permission checking types
 type PermissionMap = Record<string, string[]>;
@@ -294,6 +300,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				)}
 
 				<div className="mt-8 pt-4 border-t border-gray-100"> 
+					{/* Back to Store - Only show on tenant subdomain with /admin path */}
+					{isOnTenantAdminPath && (
+						<a
+							href="/"
+							className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 mb-2"
+						>
+							<Store size={18} />
+							<span>Back to Store</span>
+						</a>
+					)}
 					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition text-sm text-gray-400 hover:text-gray-600">
 						<LogOut size={18} />
 						<span>More Options (Coming Soon)</span>

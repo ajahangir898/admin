@@ -342,8 +342,10 @@ const App = () => {
         if (parsedTenantId) {
           setActiveTenantId(parsedTenantId);
         }
-        // On admin subdomain, restore admin view for admin users (super admins included)
-        if (isAdminSubdomain && parsed.role && ['super_admin', 'admin', 'tenant_admin', 'staff'].includes(parsed.role)) {
+        // Check if on /admin path (for tenant subdomain admin access)
+        const isOnAdminPath = window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/');
+        // On admin subdomain OR /admin path, restore admin view for admin users
+        if ((isAdminSubdomain || isOnAdminPath) && parsed.role && ['super_admin', 'admin', 'tenant_admin', 'staff'].includes(parsed.role)) {
           setCurrentView('admin');
         }
       }
@@ -371,11 +373,14 @@ const App = () => {
   // Handle user role changes
   useEffect(() => {
     if (!user) {
+      // Check if on /admin path
+      const isOnAdminPath = typeof window !== 'undefined' && 
+        (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'));
       // Only redirect to login if:
       // 1. Session restoration has completed (not during initial load)
-      // 2. We're on admin subdomain
+      // 2. We're on admin subdomain OR /admin path
       // 3. Currently in admin view
-      if (sessionRestoredRef.current && currentViewRef.current.startsWith('admin') && isAdminSubdomain) {
+      if (sessionRestoredRef.current && currentViewRef.current.startsWith('admin') && (isAdminSubdomain || isOnAdminPath)) {
         setCurrentView('admin-login');
         setAdminSection('dashboard');
       }
@@ -387,8 +392,11 @@ const App = () => {
       setActiveTenantId(resolvedTenantId);
     }
 
-    // Only allow admin access on admin subdomain
-    if (isAdminRole(user.role) && !currentViewRef.current.startsWith('admin') && !currentViewRef.current.startsWith('super') && isAdminSubdomain) {
+    // Check if on /admin path
+    const isOnAdminPath = typeof window !== 'undefined' && 
+      (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/'));
+    // Allow admin access on admin subdomain OR /admin path
+    if (isAdminRole(user.role) && !currentViewRef.current.startsWith('admin') && !currentViewRef.current.startsWith('super') && (isAdminSubdomain || isOnAdminPath)) {
       // Set correct view based on role
       if (user.role === 'super_admin') {
         setCurrentView('super-admin');

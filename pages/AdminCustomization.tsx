@@ -1658,7 +1658,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         )}
         {activeTab === 'theme_view' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[{ title: 'Header Section', key: 'headerStyle', count: 5 }, { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 5 }, { title: 'Brand Section', key: 'brandSectionStyle', count: 5, hasNone: true }, { title: 'Category Section', key: 'categorySectionStyle', count: 0, hasNone: true, hasMobile: true }, { title: 'Product Section', key: 'productSectionStyle', count: 5 }, { title: 'Product Card', key: 'productCardStyle', count: 5 }, { title: 'Footer Section', key: 'footerStyle', count: 5 }, { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }].map(s => (
+            {[{ title: 'Header Section', key: 'headerStyle', count: 5 }, { title: 'Showcase Section', key: 'showcaseSectionStyle', count: 5 }, { title: 'Brand Section', key: 'brandSectionStyle', count: 5, hasNone: true }, { title: 'Category Section', key: 'categorySectionStyle', count: 0, hasNone: true }, { title: 'Product Section', key: 'productSectionStyle', count: 5 }, { title: 'Product Card', key: 'productCardStyle', count: 5 }, { title: 'Footer Section', key: 'footerStyle', count: 5 }, { title: 'Bottom Nav', key: 'bottomNavStyle', count: 5 }].map(s => (
               <div key={s.title} className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <h3 className="font-bold text-gray-800 text-lg border-b pb-2 mb-4">{s.title}</h3>
                 <div className="space-y-2">
@@ -1688,38 +1688,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
                       </div>
                     );
                   })}
-                  {s.hasMobile && (
-                    <>
-                      <div className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-themeColors cursor-pointer ${(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
-                        <div className="flex items-center gap-3">
-                          <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile1'} onChange={() => setWebsiteConfiguration(p => ({ ...p, [s.key]: 'mobile1' }))}/>
-                          <span className="font-semibold text-gray-700">Mobile Style 1 (AI-Powered)</span>
-                        </div>
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleShowDemo(s.key, 'mobile1', s.title);
-                          }}
-                          className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-themeColors">
-                          <Eye size={14}/>View demo
-                        </button>
-                      </div>
-                      <div className={`border rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white transition-themeColors cursor-pointer ${(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile2' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-300 bg-white'}`}>
-                        <div className="flex items-center gap-3">
-                          <input type="radio" name={s.title} className="w-5 h-5 text-green-600 cursor-pointer" checked={(websiteConfiguration[s.key as keyof WebsiteConfig] || 'style1') === 'mobile2'} onChange={() => setWebsiteConfiguration(p => ({ ...p, [s.key]: 'mobile2' }))}/>
-                          <span className="font-semibold text-gray-700">Mobile Style 2</span>
-                        </div>
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleShowDemo(s.key, 'mobile2', s.title);
-                          }}
-                          className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 hover:bg-green-700 transition-themeColors">
-                          <Eye size={14}/>View demo
-                        </button>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
             ))}

@@ -12,11 +12,8 @@ const getDataService = () => import('../services/DataService').then(m => m.DataS
 // Critical above-the-fold components - loaded EAGERLY for instant render
 import { StoreHeader } from '../components/StoreHeader';
 import { HeroSection } from '../components/store/HeroSection';
-import { CategoriesSection } from '../components/store/CategoriesSection';
 import { FlashSalesSection } from '../components/store/FlashSalesSection';
 import { ProductGridSection } from '../components/store/ProductGridSection';
-import CategorySectionMobile from '../components/store/CategorySectionMobile';
-import CategorySectionMobile2 from '../components/store/CategorySectionMobile2';
 
 // Below-the-fold - lazy loaded (only when needed)
 const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
@@ -690,17 +687,6 @@ const StoreHome = ({
       {/* Hero Section - loaded eagerly */}
       <HeroSection carouselItems={websiteConfig?.carouselItems} websiteConfig={websiteConfig} />
 
-      {/* Category Section - rendered outside main for style4 to allow full-width background */}
-      {!hasSearchQuery && websiteConfig?.categorySectionStyle === 'style4' && (
-        <CategoriesSection
-          style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | 'style3' | 'style4' | 'style5'}
-          categories={categories}
-          onCategoryClick={handleCategoryClick}
-          categoryScrollRef={categoryScrollRef}
-          sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
-        />
-      )}
-
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">
         {hasSearchQuery ? (
           <Suspense fallback={null}>
@@ -722,29 +708,6 @@ const StoreHome = ({
           </Suspense>
         ) : (
           <>
-            {/* Categories - loaded eagerly (for non-style4 styles) */}
-            {websiteConfig?.categorySectionStyle !== 'style4' && (
-              websiteConfig?.categorySectionStyle === 'mobile1' ? (
-                <CategorySectionMobile 
-                  categories={categories} 
-                  onCategoryClick={handleCategoryClick} 
-                />
-              ) : websiteConfig?.categorySectionStyle === 'mobile2' ? (
-                <CategorySectionMobile2 
-                  categories={categories} 
-                  onCategoryClick={handleCategoryClick} 
-                />
-              ) : (
-                <CategoriesSection
-                  style={websiteConfig?.categorySectionStyle as 'style1' | 'style2' | 'style3' | 'style4' | 'style5'}
-                  categories={categories}
-                  onCategoryClick={handleCategoryClick}
-                  categoryScrollRef={categoryScrollRef}
-                  sectionRef={categoriesSectionRef as React.RefObject<HTMLDivElement>}
-                />
-              )
-            )}
-
             {/* Flash Deals - loaded eagerly */}
             {flashSalesProducts.length > 0 && (
               <FlashSalesSection

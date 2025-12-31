@@ -319,7 +319,7 @@ const StoreHome = ({
   const flashSalesProducts = useMemo(
     () =>
       activeProducts.filter((p) =>
-        productMatchesAnyTag(p, ['flash', 'flash sale', 'flash sales', 'flash-sale', 'flashsales'])
+        productMatchesAnyTag(p, ['flash', 'flash sale', 'flash sales', 'flash-sale', 'flashsales', 'flash deal', 'flashdeal'])
       ),
     [activeProducts]
   );
@@ -790,6 +790,23 @@ const StoreHome = ({
                 accentColor="purple"
                 keyPrefix="pop"
                 maxProducts={10}
+                reverseOrder={false}
+                onProductClick={onProductClick}
+                onBuyNow={handleBuyNow}
+                onQuickView={setQuickViewProduct}
+                onAddToCart={handleAddProductToCartFromCard}
+                productCardStyle={websiteConfig?.productCardStyle}
+              />
+            )}
+
+            {/* All Products - Show all products if no tagged sections have content */}
+            {activeProducts.length > 0 && flashSalesProducts.length === 0 && bestSaleProducts.length === 0 && popularProducts.length === 0 && (
+              <ProductGridSection
+                title="Our Products"
+                products={activeProducts}
+                accentColor="green"
+                keyPrefix="all"
+                maxProducts={20}
                 reverseOrder={false}
                 onProductClick={onProductClick}
                 onBuyNow={handleBuyNow}

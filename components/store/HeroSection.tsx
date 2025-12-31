@@ -123,12 +123,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
         return () => clearInterval(timer);
     }, [items.length]);
 
-    // Preload first image for LCP
+    // Preload first image for LCP - use prefetch instead of preload to avoid console warnings
     useEffect(() => {
         if (!items[0]) return;
         const href = normalizeImageUrl(isMobile && items[0].mobileImage ? items[0].mobileImage : items[0].image);
         if (!href || href.startsWith('data:') || href.length > 2048) return;
-        const link = Object.assign(document.createElement('link'), { rel: 'preload', as: 'image', href, fetchPriority: 'high' });
+        // Use prefetch with high priority instead of preload to avoid "unused preload" warnings
+        const link = Object.assign(document.createElement('link'), { rel: 'prefetch', as: 'image', href });
         document.head.appendChild(link);
         return () => { link.parentNode?.removeChild(link); };
     }, [items, isMobile]);

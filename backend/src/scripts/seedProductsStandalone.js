@@ -10,9 +10,16 @@
 
 const { MongoClient } = require('mongodb');
 
-// MongoDB Configuration - Use environment variables or update these values
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://username:password@127.0.0.1:27017/dbname?authSource=admin';
+// MongoDB Configuration - REQUIRED: Set these environment variables before running
+const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'cws';
+
+if (!MONGODB_URI) {
+  console.error('❌ Error: MONGODB_URI environment variable is required');
+  console.error('Please set MONGODB_URI in your .env file or environment');
+  console.error('Example: MONGODB_URI=mongodb://username:password@127.0.0.1:27017/dbname?authSource=admin');
+  process.exit(1);
+}
 
 // Define 30 diverse products
 const PRODUCTS = [
@@ -647,9 +654,12 @@ async function seedProducts() {
     let tenantId;
     
     if (!faisalTenant) {
-      console.log('\n⚠️  Faisal tenant not found. Using the subdomain "faisal.systrmnextit.com" as tenant ID.');
-      console.log('Note: You may need to create the tenant first or use an existing tenant ID.');
-      tenantId = 'faisal.systrmnextit.com';
+      console.log('\n⚠️  Warning: Faisal tenant not found in database.');
+      console.log('Please choose one of the following options:');
+      console.log('1. Create a tenant with subdomain containing "faisal"');
+      console.log('2. Modify this script to use an existing tenant ID');
+      console.log('\nExiting without seeding products...\n');
+      return;
     } else {
       tenantId = faisalTenant._id.toString();
       console.log(`\n✅ Found Faisal tenant: ${faisalTenant.subdomain} (ID: ${tenantId})`);

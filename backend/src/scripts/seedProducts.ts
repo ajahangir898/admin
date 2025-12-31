@@ -630,9 +630,12 @@ async function seedProducts() {
     let tenantId: string;
     
     if (!faisalTenant) {
-      console.log('\n⚠️  Faisal tenant not found. Using the subdomain "faisal.systrmnextit.com" as tenant ID.');
-      console.log('Note: You may need to create the tenant first or use an existing tenant ID.');
-      tenantId = 'faisal.systrmnextit.com';
+      console.log('\n⚠️  Warning: Faisal tenant not found in database.');
+      console.log('Please choose one of the following options:');
+      console.log('1. Create a tenant with subdomain containing "faisal"');
+      console.log('2. Modify this script to use an existing tenant ID');
+      console.log('\nExiting without seeding products...\n');
+      return;
     } else {
       tenantId = faisalTenant._id.toString();
       console.log(`\n✅ Found Faisal tenant: ${faisalTenant.subdomain} (ID: ${tenantId})`);

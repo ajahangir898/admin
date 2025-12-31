@@ -2,7 +2,12 @@
 
 ## TL;DR - Just Run This Command
 
-If you have MongoDB running locally and want to quickly seed products:
+**Prerequisites**: 
+1. MongoDB must be running
+2. `.env` file in backend directory with `MONGODB_URI` configured
+3. A tenant with subdomain containing "faisal" must exist in the database
+
+If you meet these requirements, run:
 
 ```bash
 cd backend
@@ -50,10 +55,17 @@ Then re-run the script to update the database.
 **Can't connect to MongoDB?**
 - Make sure MongoDB is running
 - Check your .env file has the correct MONGODB_URI
+- Example: `MONGODB_URI=mongodb://username:password@host:port/dbname?authSource=admin`
+
+**Missing MONGODB_URI error?**
+- Create a `.env` file in the backend directory
+- Add your MongoDB connection string
+- See `backend/.env.example` for the template
 
 **Tenant not found?**
-- The script will still work, using "faisal.systrmnextit.com" as the tenant ID
-- You can create the tenant later or modify the script to use an existing tenant ID
+- The script requires a tenant with "faisal" in the subdomain
+- Create the tenant first through the admin panel
+- Or modify the script to use an existing tenant ID (see full documentation)
 
 **Need help?**
 See the full documentation: `backend/SEED_PRODUCTS_README.md`

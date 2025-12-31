@@ -40,12 +40,18 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
     CATEGORIES.map((c, i) => ({ id: String(i), name: c.name, icon: c.icon, image: undefined, status: 'Active' as const })), [categories]);
   const activeBrands = useMemo(() => brands?.filter(b => b.status === 'Active') || [], [brands]);
 
-  const filtered = useMemo(() => products.filter(p => {
+  // Filter products to show only Active status in store
+  const activeProducts = useMemo(() => 
+    products.filter(p => !p.status || p.status === 'Active'), 
+    [products]
+  );
+
+  const filtered = useMemo(() => activeProducts.filter(p => {
     const brandOk = !selectedBrand || eq(p.brand, selectedBrand);
     if (isAll) return brandOk;
     if (isBrandFilter) return eq(p.brand, brandFromUrl!) || brandOk;
     return eq(p.category, selectedCategory) && brandOk;
-  }), [products, selectedCategory, selectedBrand, isAll, isBrandFilter, brandFromUrl]);
+  }), [activeProducts, selectedCategory, selectedBrand, isAll, isBrandFilter, brandFromUrl]);
 
   const sorted = useMemo(() => {
     const s = [...filtered];
@@ -60,9 +66,9 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
 
   const catBrands = useMemo(() => {
     if (isAll) return activeBrands;
-    const names = new Set(products.filter(p => eq(p.category, selectedCategory)).map(p => p.brand).filter(Boolean));
+    const names = new Set(activeProducts.filter(p => eq(p.category, selectedCategory)).map(p => p.brand).filter(Boolean));
     return activeBrands.filter(b => names.has(b.name));
-  }, [products, selectedCategory, activeBrands, isAll]);
+  }, [activeProducts, selectedCategory, activeBrands, isAll]);
 
   const title = isAll ? 'All Products' : brandFromUrl || selectedCategory;
   const clearFilters = () => { setSelectedBrand(null); setSortOption('relevance'); };
@@ -103,7 +109,7 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Suspense fallback={null}>
-        <StoreHeader onTrackOrder={() => {}} onImageSearchClick={onImageSearchClick} productCatalog={products}
+        <StoreHeader onTrackOrder={() => {}} onImageSearchClick={onImageSearchClick} productCatalog={activeProducts}
           wishlistCount={wishlistCount} wishlist={wishlist} onToggleWishlist={onToggleWishlist} cart={cart}
           onToggleCart={onToggleCart} onCheckoutFromCart={onCheckoutFromCart} user={user} onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick} onProfileClick={onProfileClick} logo={logo} websiteConfig={websiteConfig}

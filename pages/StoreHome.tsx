@@ -244,7 +244,11 @@ const StoreHome = ({
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
   // Use passed products or fallback to initial constants
-  const displayProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
+  // Filter only Active products for store display
+  const displayProducts = useMemo(() => {
+    const allProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
+    return allProducts.filter(p => !p.status || p.status === 'Active');
+  }, [products]);
 
   const initialProductSlice = useMemo(() => {
     const total = displayProducts.length;

@@ -305,7 +305,11 @@ const StoreProductDetail = ({
 
   const additionalImages = galleryImages;
 
-  const catalogProducts = useMemo(() => (Array.isArray(productCatalog) && productCatalog.length ? productCatalog : PRODUCTS), [productCatalog]);
+  // Filter only Active products for store display
+  const catalogProducts = useMemo(() => {
+    const allProducts = Array.isArray(productCatalog) && productCatalog.length ? productCatalog : PRODUCTS;
+    return allProducts.filter(p => !p.status || p.status === 'Active');
+  }, [productCatalog]);
 
   const relatedProducts = useMemo(() => selectRelatedProducts(product, catalogProducts), [product, catalogProducts]);
 

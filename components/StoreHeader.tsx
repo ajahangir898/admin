@@ -77,7 +77,11 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
   const normalizedCart = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
   const normalizedWishlist = useMemo(() => (Array.isArray(wishlist) ? wishlist : []), [wishlist]);
   const catalogSource = useMemo(
-    () => (Array.isArray(productCatalog) && productCatalog.length ? productCatalog : PRODUCTS),
+    () => {
+      const allProducts = Array.isArray(productCatalog) && productCatalog.length ? productCatalog : PRODUCTS;
+      // Filter only Active products for store search
+      return allProducts.filter(p => !p.status || p.status === 'Active');
+    },
     [productCatalog]
   );
 

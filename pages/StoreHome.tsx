@@ -767,7 +767,7 @@ const StoreHome = ({
               <ProductGridSection
                 title="Our Products"
                 products={activeProducts}
-                accentColor="emerald"
+                accentColor="blue"
                 keyPrefix="all"
                 maxProducts={50}
                 reverseOrder={false}

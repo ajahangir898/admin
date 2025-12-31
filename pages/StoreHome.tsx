@@ -799,14 +799,14 @@ const StoreHome = ({
               />
             )}
 
-            {/* All Products - Show all products if no tagged sections have content */}
-            {activeProducts.length > 0 && flashSalesProducts.length === 0 && bestSaleProducts.length === 0 && popularProducts.length === 0 && (
+            {/* All Products - Always show all products */}
+            {activeProducts.length > 0 && (
               <ProductGridSection
                 title="Our Products"
                 products={activeProducts}
-                accentColor="green"
+                accentColor="emerald"
                 keyPrefix="all"
-                maxProducts={20}
+                maxProducts={50}
                 reverseOrder={false}
                 onProductClick={onProductClick}
                 onBuyNow={handleBuyNow}

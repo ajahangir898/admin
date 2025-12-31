@@ -10,21 +10,30 @@ This guide explains how to seed 30 default products into the database for faisal
 
 ## Running the Product Seed Script
 
-### Method 1: Using npm script (Recommended)
+### Method 1: Using standalone JavaScript (Easiest - No TypeScript required)
+
+```bash
+cd backend
+node src/scripts/seedProductsStandalone.js
+```
+
+This method works with just Node.js and doesn't require TypeScript compilation. Perfect for running directly on the server.
+
+### Method 2: Using npm script
 
 ```bash
 cd backend
 npm run seed:products
 ```
 
-### Method 2: Using ts-node directly
+### Method 3: Using ts-node directly
 
 ```bash
 cd backend
 npx ts-node src/scripts/seedProducts.ts
 ```
 
-### Method 3: Using compiled JavaScript
+### Method 4: Using compiled JavaScript
 
 ```bash
 cd backend

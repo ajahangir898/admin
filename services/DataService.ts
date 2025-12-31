@@ -530,12 +530,20 @@ class DataServiceImpl {
       const { products, theme_config, website_config } = responseData.data;
 
       // Cache the results for subsequent fast loads
-      if (products) setCachedData('products', products, tenantId);
+      // Only cache if we got actual data (not null/undefined)
+      if (products !== null && products !== undefined) setCachedData('products', products, tenantId);
       if (theme_config) setCachedData('theme_config', theme_config, tenantId);
       if (website_config) setCachedData('website_config', website_config, tenantId);
       
+      // Return products from server if we got a response (even empty array)
+      // Only fallback to demo PRODUCTS if server returned null/undefined
+      const hasProductsFromServer = products !== null && products !== undefined;
+      const finalProducts = hasProductsFromServer 
+        ? products.map((p, i) => ({ ...p, id: p.id ?? i + 1 }))
+        : this.filterByTenant(PRODUCTS, tenantId);
+      
       return {
-        products: products?.length ? products.map((p, i) => ({ ...p, id: p.id ?? i + 1 })) : this.filterByTenant(PRODUCTS, tenantId),
+        products: finalProducts,
         themeConfig: theme_config || null,
         websiteConfig: website_config ? { ...defaultWebsite, ...website_config } : defaultWebsite
       };
@@ -767,9 +775,11 @@ class DataServiceImpl {
   }
 
   async getProducts(tenantId?: string): Promise<Product[]> {
-    const fallback = this.filterByTenant(PRODUCTS, tenantId);
     const remote = await this.getCollection<Product>('products', [], tenantId);
-    const normalized = remote.length ? remote : fallback;
+    // Only use fallback if the collection returned an error (indicated by returning undefined or using the empty default)
+    // If the API successfully returned an empty array, that's valid - it means the tenant has no products yet
+    const normalized = remote.map((product, index) => ({ ...product, id: product.id ?? index + 1 }));
+    return normalized;
     return normalized.map((product, index) => ({ ...product, id: product.id ?? index + 1 }));
   }
 

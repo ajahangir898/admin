@@ -254,10 +254,10 @@ const StoreHome = ({
     }));
   }, [categories]);
 
-  // Use passed products or fallback to initial constants
+  // Use passed products - don't fallback to demo products to avoid showing wrong data
   // Filter only Active products for store display
   const displayProducts = useMemo(() => {
-    const allProducts = products && products.length > 0 ? products : INITIAL_PRODUCTS;
+    const allProducts = products || [];
     return allProducts.filter(p => !p.status || p.status === 'Active');
   }, [products]);
 

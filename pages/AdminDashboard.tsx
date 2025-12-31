@@ -1,7 +1,4 @@
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { DashboardStatCard } from '../components/AdminComponents';
-import { AdminProductManager } from '../components/AdminProductManager';
-import { MetricsSkeleton, TableSkeleton } from '../components/SkeletonLoaders';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import {
   ShoppingBag,
@@ -23,10 +20,82 @@ import {
   BarChart3,
   Calendar,
   ChevronDown,
-  DollarSign
+  DollarSign,
+  Eye,
+  Users,
+  UserCheck,
+  Activity,
+  Smartphone,
+  Monitor,
+  Tablet,
+  MoreHorizontal,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { REVENUE_DATA as DEFAULT_REVENUE_DATA, CATEGORY_DATA as DEFAULT_CATEGORY_DATA } from '../constants';
 import { Order, Product } from '../types';
+import { DashboardStatCard } from '@/components/AdminComponents';
+
+// Modern Stat Card Component
+interface ModernStatCardProps {
+  title: string;
+  value: string | number;
+  change?: number;
+  changeLabel?: string;
+  icon: React.ReactNode;
+  gradient: string;
+  iconBg: string;
+}
+
+const ModernStatCard: React.FC<ModernStatCardProps> = ({ 
+  title, 
+  value, 
+  change, 
+  changeLabel = 'than last week',
+  icon, 
+  gradient,
+  iconBg 
+}) => {
+  const isPositive = change && change >= 0;
+  
+  return (
+    <div className={`relative p-5 rounded-2xl ${gradient} overflow-hidden`}>
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+      
+      <div className="relative">
+        <div className="flex items-start justify-between">
+          <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shadow-lg`}>
+            <div className="text-white [&>svg]:w-6 [&>svg]:h-6">
+              {icon}
+            </div>
+          </div>
+          <button className="p-1 hover:bg-white/20 rounded-lg transition">
+            <MoreHorizontal className="w-5 h-5 text-white/70" />
+          </button>
+        </div>
+        
+        <div className="mt-4">
+          <p className="text-white/80 text-sm font-medium">{title}</p>
+          <p className="text-white text-3xl font-bold mt-1">{value}</p>
+        </div>
+        
+        {change !== undefined && (
+          <div className="flex items-center gap-2 mt-3">
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+              isPositive ? 'bg-green-500/20 text-green-100' : 'bg-red-500/20 text-red-100'
+            }`}>
+              {isPositive ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+              {Math.abs(change)}%
+            </span>
+            <span className="text-white/60 text-xs">{changeLabel}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 type RevenueRange = 'Yearly' | 'Monthly' | 'Last Week';
 
@@ -471,13 +540,57 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Calculate additional metrics for the modern cards
+  const weeklyChange = useMemo(() => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    
+    const thisWeekOrders = orders.filter(o => {
+      const d = parseOrderDate(o.date);
+      return d && d >= weekAgo;
+    }).length;
+    
+    const lastWeekOrders = orders.filter(o => {
+      const d = parseOrderDate(o.date);
+      return d && d >= twoWeeksAgo && d < weekAgo;
+    }).length;
+    
+    if (lastWeekOrders === 0) return thisWeekOrders > 0 ? 100 : 0;
+    return Math.round(((thisWeekOrders - lastWeekOrders) / lastWeekOrders) * 100);
+  }, [orders]);
+
+  // Device traffic data (simulated based on orders)
+  const deviceTraffic = useMemo(() => {
+    const total = dateFilteredOrders.length || 1;
+    return [
+      { name: 'Desktop', value: Math.round(total * 0.45), color: '#8b5cf6' },
+      { name: 'Mobile', value: Math.round(total * 0.40), color: '#06b6d4' },
+      { name: 'Tablet', value: Math.round(total * 0.15), color: '#f97316' },
+    ];
+  }, [dateFilteredOrders]);
+
+  // Location traffic data
+  const locationTraffic = useMemo(() => {
+    const locations: Record<string, number> = {};
+    dateFilteredOrders.forEach(order => {
+      const loc = order.location || 'Unknown';
+      locations[loc] = (locations[loc] || 0) + 1;
+    });
+    return Object.entries(locations)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, value]) => ({ name, value }));
+  }, [dateFilteredOrders]);
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <div className="w-16 h-1 bg-orange-400 rounded-full mt-1"></div>
+          <p className="text-gray-500 text-sm mt-1">Welcome back! Here's what's happening with your store.</p>
         </div>
         <div ref={headerControlsRef} className="relative flex items-center gap-3">
           {isDateFilterActive ? (
@@ -485,12 +598,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={clearDateFilter}
-                className="flex items-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-500 bg-white hover:bg-red-50 transition"
+                className="flex items-center gap-2 px-4 py-2.5 border border-red-200 rounded-xl text-sm font-medium text-red-500 bg-white hover:bg-red-50 transition shadow-sm"
               >
                 <XCircle size={16} />
-                Clear Filter
+                Clear
               </button>
-
               <button
                 type="button"
                 onClick={() => {
@@ -501,7 +613,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   setIsDatePickerOpen((prev) => !prev);
                   setIsQuickMenuOpen(false);
                 }}
-                className="flex items-center gap-2 px-4 py-2 border border-blue-200 rounded-lg text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 transition"
+                className="flex items-center gap-2 px-4 py-2.5 border border-violet-200 rounded-xl text-sm font-medium text-violet-600 bg-white hover:bg-violet-50 transition shadow-sm"
               >
                 <Calendar size={16} />
                 {formatRangeLabel(dateFilter.from, dateFilter.to)}
@@ -523,90 +635,92 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsDatePickerOpen((prev) => !prev);
                 setIsQuickMenuOpen(false);
               }}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm"
             >
               <Calendar size={16} />
-              Filter in Date
+              Filter by Date
             </button>
           )}
 
           <button
             type="button"
             onClick={() => setIsQuickMenuOpen((prev) => !prev)}
-            className="flex items-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-500 bg-white hover:bg-red-50 transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl text-sm font-medium text-white hover:from-violet-700 hover:to-purple-700 transition shadow-sm"
           >
             <ChevronDown size={16} />
-            Today
+            Quick Filter
           </button>
 
           {isQuickMenuOpen && (
-            <div className="absolute right-0 top-12 z-20 w-44 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
+            <div className="absolute right-0 top-14 z-20 w-48 rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden">
               <button
                 type="button"
                 onClick={setTodayFilter}
-                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
               >
+                <Calendar size={14} className="text-gray-400" />
                 Today
               </button>
               <button
                 type="button"
                 onClick={clearDateFilter}
-                className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"
+                className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-100"
               >
+                <XCircle size={14} />
                 All Time
               </button>
             </div>
           )}
 
           {isDatePickerOpen && (
-            <div className="absolute right-0 top-12 z-20 w-[340px] rounded-2xl border border-gray-200 bg-white shadow-lg p-4">
-              <div className="flex items-center justify-between mb-3">
+            <div className="absolute right-0 top-14 z-20 w-[340px] rounded-2xl border border-gray-200 bg-white shadow-xl p-5">
+              <div className="flex items-center justify-between mb-4">
                 <div className="font-semibold text-gray-900">Select date range</div>
                 <button
                   type="button"
                   onClick={() => setIsDatePickerOpen(false)}
-                  className="p-1 rounded hover:bg-gray-50 text-gray-500"
+                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition"
                   aria-label="Close"
                 >
                   <XCircle size={18} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-2">From</label>
                   <input
                     type="date"
                     value={dateDraft.from}
                     onChange={(e) => setDateDraft((prev) => ({ ...prev, from: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">To</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-2">To</label>
                   <input
                     type="date"
                     value={dateDraft.to}
                     onChange={(e) => setDateDraft((prev) => ({ ...prev, to: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 mt-4">
+              <div className="flex items-center justify-end gap-3 mt-5">
                 <button
                   type="button"
                   onClick={() => setIsDatePickerOpen(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
+                  className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={applyDateDraft}
-                  className="px-4 py-2 border border-blue-600 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition"
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 transition"
                 >
-                  Apply
+                  Apply Filter
                 </button>
               </div>
             </div>
@@ -614,39 +728,137 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      {/* Stats Grid - Row 1 */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <DashboardStatCard title="Today Orders:" value={todayOrders} icon={<ShoppingBag />} colorClass="pink" />
-        <DashboardStatCard title="Courier Orders:" value={courierOrders} icon={<Truck />} colorClass="orange" />
-        <DashboardStatCard title="Confirmed Orders:" value={confirmedOrders} icon={<CheckCircle />} colorClass="green" />
-        <DashboardStatCard title="Pending Orders:" value={pendingOrders} icon={<Clock />} colorClass="purple" />
-        <DashboardStatCard title="Hold Orders:" value={Math.max(0, Math.round(pendingOrders * 0.35))} icon={<PauseCircle />} colorClass="lavender" />
-        <DashboardStatCard title="Cancelled Orders:" value={cancelledOrders} icon={<XCircle />} colorClass="cyan" />
+      {/* Modern Stats Cards - Row 1 */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ModernStatCard
+          title="Total Orders"
+          value={totalOrders.toLocaleString()}
+          change={weeklyChange}
+          icon={<ShoppingBag />}
+          gradient="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700"
+          iconBg="bg-white/20"
+        />
+        <ModernStatCard
+          title="Today Orders"
+          value={todayOrders.toLocaleString()}
+          change={todayOrders > 0 ? 12 : 0}
+          icon={<Activity />}
+          gradient="bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-600"
+          iconBg="bg-white/20"
+        />
+        <ModernStatCard
+          title="Delivered"
+          value={deliveredOrders.toLocaleString()}
+          change={retentionRate}
+          changeLabel="delivery rate"
+          icon={<PackageCheck />}
+          gradient="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600"
+          iconBg="bg-white/20"
+        />
+        <ModernStatCard
+          title="Total Revenue"
+          value={`৳${totalRevenue.toLocaleString()}`}
+          change={weeklyChange}
+          icon={<Wallet />}
+          gradient="bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500"
+          iconBg="bg-white/20"
+        />
       </div>
 
-      {/* Stats Grid - Row 2 */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3">
-        <DashboardStatCard title="Delivered Orders:" value={deliveredOrders} icon={<PackageCheck />} colorClass="pink" />
-        <DashboardStatCard title="Return Orders:" value={returnsCount} icon={<ArchiveRestore />} colorClass="blue" />
-        <DashboardStatCard title={`Income (${visibleOrders.length} txns)`} value={`৳${totalRevenue.toLocaleString()}`} icon={<DollarSign />} colorClass="cyan" />
+      {/* Order Status Cards - Row 2 */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center">
+              <ShoppingBag className="w-5 h-5 text-pink-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Today</p>
+              <p className="text-xl font-bold text-gray-900">{todayOrders}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+              <Truck className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Courier</p>
+              <p className="text-xl font-bold text-gray-900">{courierOrders}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Confirmed</p>
+              <p className="text-xl font-bold text-gray-900">{confirmedOrders}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Pending</p>
+              <p className="text-xl font-bold text-gray-900">{pendingOrders}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+              <XCircle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Cancelled</p>
+              <p className="text-xl font-bold text-gray-900">{cancelledOrders}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+              <ArchiveRestore className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Returns</p>
+              <p className="text-xl font-bold text-gray-900">{returnsCount}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-        {/* Revenue Overview Chart */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Revenue Overview Chart - Takes 2 columns */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Revenue Overview</h3>
-            <div className="flex items-center gap-2">
-              {(['Yearly', 'Monthly', 'Last Week'] as const).map((tab) => (
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Revenue Overview</h3>
+              <p className="text-sm text-gray-500 mt-0.5">Track your revenue performance</p>
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+              {(['Last Week', 'Monthly', 'Yearly'] as const).map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setRevenueRange(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                     tab === revenueRange
-                      ? 'text-white border-gray-900'
-                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   {tab}
@@ -655,101 +867,218 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           </div>
           
-          {/* Bar Chart */}
-          <div className="h-72">
-            <div className="flex items-end justify-between h-full gap-2">
-              {revenueData.map((item, index) => {
-                const maxValue = Math.max(...revenueData.map(d => d.value), 1);
-                const heightPercent = (item.value / maxValue) * 100;
-                return (
-                  <div key={item.name} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full flex flex-col items-center justify-end h-56 relative group">
-                      {/* Revenue bar */}
-                      <div 
-                        className="w-full max-w-12 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg transition-all group-hover:from-blue-700 group-hover:to-blue-500"
-                        style={{ height: `${Math.max(heightPercent * 0.7, 4)}%` }}
-                      />
-                      {/* Profit bar (lighter, behind) */}
-                      <div 
-                        className="absolute bottom-0 w-full max-w-12 bg-blue-100 rounded-t-lg -z-10"
-                        style={{ height: `${Math.max(heightPercent * 0.9, 8)}%` }}
-                      />
-                      {/* Tooltip */}
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
-                        ৳{item.value.toLocaleString()}
-                      </div>
-                    </div>
-                    <span className="text-xs text-gray-500 font-medium">{item.name}</span>
-                  </div>
-                );
-              })}
+          {/* Area Chart */}
+          <div className="h-72 relative">
+            <svg className="w-full h-full" viewBox="0 0 720 280" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id={`${gradientId}-area`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.02" />
+                </linearGradient>
+              </defs>
+              {/* Grid lines */}
+              {[0, 1, 2, 3, 4].map((i) => (
+                <line
+                  key={i}
+                  x1="0"
+                  y1={56 * i + 24}
+                  x2="720"
+                  y2={56 * i + 24}
+                  stroke="#f3f4f6"
+                  strokeWidth="1"
+                />
+              ))}
+              {/* Area fill */}
+              <path
+                d={revenueGeometry.fillPath}
+                fill={`url(#${gradientId}-area)`}
+              />
+              {/* Line */}
+              <path
+                d={revenueGeometry.strokePath}
+                fill="none"
+                stroke="#8b5cf6"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* Points */}
+              {revenueGeometry.points.map((point, index) => (
+                <g key={index}>
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r="6"
+                    fill="white"
+                    stroke="#8b5cf6"
+                    strokeWidth="3"
+                    className="hover:r-8 transition-all cursor-pointer"
+                  />
+                </g>
+              ))}
+            </svg>
+            {/* X-axis labels */}
+            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-2">
+              {revenueData.map((item) => (
+                <span key={item.name} className="text-xs text-gray-400">{item.name}</span>
+              ))}
             </div>
           </div>
           
           {/* Legend */}
-          <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <div className="w-3 h-3 rounded-full bg-violet-500"></div>
               <span className="text-sm text-gray-600">Revenue</span>
+              <span className="text-sm font-semibold text-gray-900">৳{totalRevenue.toLocaleString()}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-200"></div>
-              <span className="text-sm text-gray-600">Profit</span>
+              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+              <span className="text-sm text-gray-600">Delivered</span>
+              <span className="text-sm font-semibold text-gray-900">৳{deliveredRevenue.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
-        {/* Sales by Category Donut */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Sales by Category</h3>
+        {/* Device Traffic Donut */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-gray-900">Device Traffic</h3>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition">
+              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
           
           {/* Donut Chart */}
           <div className="flex justify-center mb-6">
-            <div className="relative w-48 h-48">
+            <div className="relative w-44 h-44">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                 {(() => {
-                  const total = categoryData.reduce((sum, entry) => sum + entry.value, 0);
+                  const total = deviceTraffic.reduce((sum, entry) => sum + entry.value, 0);
                   let currentAngle = 0;
-                  return categoryData.map((entry, index) => {
+                  return deviceTraffic.map((entry) => {
                     const percentage = total > 0 ? (entry.value / total) * 100 : 0;
                     const angle = (percentage / 100) * 360;
                     const startAngle = currentAngle;
                     currentAngle += angle;
                     
-                    // Calculate SVG arc path
-                    const x1 = 50 + 40 * Math.cos((startAngle * Math.PI) / 180);
-                    const y1 = 50 + 40 * Math.sin((startAngle * Math.PI) / 180);
-                    const x2 = 50 + 40 * Math.cos(((startAngle + angle) * Math.PI) / 180);
-                    const y2 = 50 + 40 * Math.sin(((startAngle + angle) * Math.PI) / 180);
+                    const x1 = 50 + 42 * Math.cos((startAngle * Math.PI) / 180);
+                    const y1 = 50 + 42 * Math.sin((startAngle * Math.PI) / 180);
+                    const x2 = 50 + 42 * Math.cos(((startAngle + angle) * Math.PI) / 180);
+                    const y2 = 50 + 42 * Math.sin(((startAngle + angle) * Math.PI) / 180);
                     const largeArc = angle > 180 ? 1 : 0;
                     
                     return (
                       <path
                         key={entry.name}
-                        d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                        fill={PIE_COLORS[index % PIE_COLORS.length]}
+                        d={`M 50 50 L ${x1} ${y1} A 42 42 0 ${largeArc} 1 ${x2} ${y2} Z`}
+                        fill={entry.color}
                         className="hover:opacity-80 transition-opacity cursor-pointer"
                       />
                     );
                   });
                 })()}
-                {/* Center hole */}
-                <circle cx="50" cy="50" r="25" fill="white" />
+                <circle cx="50" cy="50" r="28" fill="white" />
               </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-gray-900">{dateFilteredOrders.length}</span>
+                <span className="text-xs text-gray-500">Total</span>
+              </div>
             </div>
           </div>
           
           {/* Legend */}
-          <div className="grid grid-cols-2 gap-2">
-            {categoryData.slice(0, 6).map((item, index) => (
-              <div key={item.name} className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full flex-shrink-0" 
-                  style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
-                />
-                <span className="text-xs text-gray-600 truncate">{item.name}</span>
+          <div className="space-y-3">
+            {deviceTraffic.map((item) => (
+              <div key={item.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <div className="flex items-center gap-2">
+                    {item.name === 'Desktop' && <Monitor className="w-4 h-4 text-gray-400" />}
+                    {item.name === 'Mobile' && <Smartphone className="w-4 h-4 text-gray-400" />}
+                    {item.name === 'Tablet' && <Tablet className="w-4 h-4 text-gray-400" />}
+                    <span className="text-sm text-gray-600">{item.name}</span>
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-gray-900">{item.value}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Sales by Category & Location Traffic */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Sales by Category */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-gray-900">Sales by Category</h3>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition">
+              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+          
+          {/* Horizontal Bar Chart */}
+          <div className="space-y-4">
+            {categoryData.slice(0, 5).map((item, index) => {
+              const maxValue = Math.max(...categoryData.map(d => d.value), 1);
+              const percentage = (item.value / maxValue) * 100;
+              return (
+                <div key={item.name}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                    <span className="text-sm font-semibold text-gray-900">৳{item.value.toLocaleString()}</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${percentage}%`,
+                        backgroundColor: PIE_COLORS[index % PIE_COLORS.length]
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Location Traffic */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-gray-900">Top Locations</h3>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition">
+              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+          
+          {/* Location Bars */}
+          <div className="space-y-4">
+            {locationTraffic.length > 0 ? locationTraffic.map((item, index) => {
+              const maxValue = Math.max(...locationTraffic.map(d => d.value), 1);
+              const percentage = (item.value / maxValue) * 100;
+              const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+              return (
+                <div key={item.name}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700 truncate max-w-[200px]">{item.name}</span>
+                    <span className="text-sm font-semibold text-gray-900">{item.value} orders</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${percentage}%`,
+                        backgroundColor: colors[index % colors.length]
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            }) : (
+              <div className="text-center py-8 text-gray-500">No location data available</div>
+            )}
           </div>
         </div>
       </div>
@@ -757,72 +1086,99 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Recent Orders & Top Products */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Orders */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-5 flex items-center justify-between border-b border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900">Recent Orders</h3>
-            <button className="px-4 py-2 text-sm font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
-              View Orders
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Recent Orders</h3>
+              <p className="text-sm text-gray-500 mt-0.5">Latest {Math.min(visibleOrders.length, 5)} orders</p>
+            </div>
+            <button 
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition"
+            >
+              <Download size={14} />
+              Export
             </button>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-50">
             {visibleOrders.slice(0, 5).map((order, index) => {
               const product = products.find(p => p.id === order.productId) || products[index % products.length];
+              const statusColors: Record<string, string> = {
+                'Pending': 'bg-amber-100 text-amber-700',
+                'Confirmed': 'bg-blue-100 text-blue-700',
+                'Delivered': 'bg-emerald-100 text-emerald-700',
+                'Cancelled': 'bg-red-100 text-red-700',
+                'Shipped': 'bg-violet-100 text-violet-700',
+              };
               return (
-                <div key={order.id} className="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
+                <div key={order.id} className="p-4 flex items-center gap-4 hover:bg-gray-50/50 transition">
                   <div className="relative">
-                    <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden border border-gray-200">
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden">
                       {product?.image && (
                         <img src={normalizeImageUrl(product.image)} alt="" className="w-full h-full object-cover" />
                       )}
                     </div>
-                    <span className="absolute -top-1 -left-1 w-5 h-5 bg-green-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                      {index + 1}
-                    </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900"># {order.id}</p>
-                    <p className="text-sm text-gray-600 truncate">{order.customer}</p>
-                    <p className="text-xs text-gray-400">{order.location || 'Unknown'}</p>
+                    <p className="font-semibold text-gray-900 text-sm">#{order.id}</p>
+                    <p className="text-xs text-gray-500 truncate">{order.customer}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">{order.date}</p>
+                    <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-700'}`}>
+                      {order.status}
+                    </span>
+                    <p className="text-xs text-gray-400 mt-1">৳{order.amount.toLocaleString()}</p>
                   </div>
                 </div>
               );
             })}
             {!visibleOrders.length && (
-              <div className="p-8 text-center text-gray-500">No recent orders</div>
+              <div className="p-8 text-center text-gray-500">
+                <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p>No recent orders</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Top Products */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-5 flex items-center justify-between border-b border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900">Top Products</h3>
-            <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
-              <ChevronDown size={14} />
-              December
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Top Products</h3>
+              <p className="text-sm text-gray-500 mt-0.5">Best performing items</p>
+            </div>
+            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 border border-violet-200 rounded-xl hover:bg-violet-50 transition">
+              <BarChart3 size={14} />
+              Analytics
             </button>
           </div>
-          <div className="divide-y divide-gray-100">
-            {featuredProducts.slice(0, 5).map((product) => (
-              <div key={product.id} className="p-4 flex items-center gap-4 hover:bg-gray-50 transition">
-                <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
-                  <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
+          <div className="divide-y divide-gray-50">
+            {featuredProducts.slice(0, 5).map((product, index) => (
+              <div key={product.id} className="p-4 flex items-center gap-4 hover:bg-gray-50/50 transition">
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden">
+                    <img src={normalizeImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
+                  </div>
+                  <span className="absolute -top-1 -left-1 w-5 h-5 bg-gradient-to-br from-violet-600 to-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {index + 1}
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{product.name}</p>
-                  <p className="text-sm text-gray-500">৳ {product.price?.toLocaleString()}</p>
+                  <p className="font-medium text-gray-900 text-sm truncate">{product.name}</p>
+                  <p className="text-xs text-gray-500">৳{product.price?.toLocaleString()}</p>
                 </div>
-                <div className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white text-xs font-bold rounded-lg">
-                  {product.stock || 1}
-                  <ArrowUpRight size={12} />
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg">
+                  <span>{product.stock || 0}</span>
+                  <span className="text-emerald-500">in stock</span>
                 </div>
               </div>
             ))}
             {!featuredProducts.length && (
-              <div className="p-8 text-center text-gray-500">No products yet</div>
+              <div className="p-8 text-center text-gray-500">
+                <LayoutGrid className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p>No products yet</p>
+              </div>
             )}
           </div>
         </div>
@@ -832,5 +1188,3 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 };
 
 export default AdminDashboard;
-
-             

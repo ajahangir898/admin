@@ -412,6 +412,9 @@ class DataServiceImpl {
     const scope = this.resolveTenantScope(tenantId);
     await this.requestTenantApi(`/api/tenant-data/${scope}/${key}`, {
       method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ data })
     });
   }

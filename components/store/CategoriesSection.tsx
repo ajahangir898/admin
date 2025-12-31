@@ -30,8 +30,8 @@ const STYLE4_DEFAULT_ICONS = [
   '/category-icons/category-4.webp',
   '/category-icons/category-5.webp',
   '/category-icons/category-6.webp',
-  'https://i.postimg.cc/Z5drVGCD/watches_6753_(1).webp',
-  'https://i.postimg.cc/pLFDqwmb/4_36f7.webp',
+  'https://i.postimg.cc/Z5drVGCD/watches_6753_(1).webp',  // category-7
+  'https://i.postimg.cc/pLFDqwmb/4_36f7.webp',  // category-8
 ];
 
 const getIcon = (name: string, size: number, stroke = 1.5) => {

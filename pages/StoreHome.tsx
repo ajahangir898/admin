@@ -301,6 +301,41 @@ const StoreHome = ({
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
+  const normalizeTagValue = (value?: string) => value?.trim().toLowerCase() || '';
+  const productMatchesAnyTag = (product: Product, accepted: string[]) => {
+    const acceptedSet = new Set(accepted.map((t) => normalizeTagValue(t)).filter(Boolean));
+    const primary = normalizeTagValue(product.tag);
+    if (primary && acceptedSet.has(primary)) return true;
+    if (product.tags && product.tags.length) {
+      return product.tags.some((t) => acceptedSet.has(normalizeTagValue(t)));
+    }
+    return false;
+  };
+
+  const flashSalesProducts = useMemo(
+    () =>
+      activeProducts.filter((p) =>
+        productMatchesAnyTag(p, ['flash', 'flash sale', 'flash sales', 'flash-sale', 'flashsales'])
+      ),
+    [activeProducts]
+  );
+
+  const bestSaleProducts = useMemo(
+    () =>
+      activeProducts.filter((p) =>
+        productMatchesAnyTag(p, ['best', 'best sale', 'best sale products', 'best-sale', 'bestsale'])
+      ),
+    [activeProducts]
+  );
+
+  const popularProducts = useMemo(
+    () =>
+      activeProducts.filter((p) =>
+        productMatchesAnyTag(p, ['popular', 'popular products', 'most popular', 'top', 'top products'])
+      ),
+    [activeProducts]
+  );
+
   const filteredProducts = useMemo(() => {
     if (!normalizedSearch) {
       return activeProducts;
@@ -707,32 +742,36 @@ const StoreHome = ({
             )}
 
             {/* Flash Deals - loaded eagerly */}
-            <FlashSalesSection
-              products={activeProducts}
-              showCounter={showFlashSaleCounter}
-              countdown={flashSaleCountdown}
-              onProductClick={onProductClick}
-              onBuyNow={handleBuyNow}
-              onQuickView={setQuickViewProduct}
-              onAddToCart={handleAddProductToCartFromCard}
-              productCardStyle={websiteConfig?.productCardStyle}
-              sectionRef={productsSectionRef}
-            />
+            {flashSalesProducts.length > 0 && (
+              <FlashSalesSection
+                products={flashSalesProducts}
+                showCounter={showFlashSaleCounter}
+                countdown={flashSaleCountdown}
+                onProductClick={onProductClick}
+                onBuyNow={handleBuyNow}
+                onQuickView={setQuickViewProduct}
+                onAddToCart={handleAddProductToCartFromCard}
+                productCardStyle={websiteConfig?.productCardStyle}
+                sectionRef={productsSectionRef}
+              />
+            )}
 
             {/* Best Sale Products - loaded eagerly */}
-            <ProductGridSection
-              title="Best Sale Products"
-              products={activeProducts}
-              accentColor="green"
-              keyPrefix="best"
-              maxProducts={10}
-              reverseOrder={true}
-              onProductClick={onProductClick}
-              onBuyNow={handleBuyNow}
-              onQuickView={setQuickViewProduct}
-              onAddToCart={handleAddProductToCartFromCard}
-              productCardStyle={websiteConfig?.productCardStyle}
-            />
+            {bestSaleProducts.length > 0 && (
+              <ProductGridSection
+                title="Best Sale Products"
+                products={bestSaleProducts}
+                accentColor="green"
+                keyPrefix="best"
+                maxProducts={10}
+                reverseOrder={true}
+                onProductClick={onProductClick}
+                onBuyNow={handleBuyNow}
+                onQuickView={setQuickViewProduct}
+                onAddToCart={handleAddProductToCartFromCard}
+                productCardStyle={websiteConfig?.productCardStyle}
+              />
+            )}
 
             {/* OMG Fashion Banner */}
             <Suspense fallback={null}>
@@ -740,19 +779,21 @@ const StoreHome = ({
             </Suspense>
 
             {/* Popular Products - loaded eagerly */}
-            <ProductGridSection
-              title="Popular products"
-              products={activeProducts}
-              accentColor="purple"
-              keyPrefix="pop"
-              maxProducts={10}
-              reverseOrder={false}
-              onProductClick={onProductClick}
-              onBuyNow={handleBuyNow}
-              onQuickView={setQuickViewProduct}
-              onAddToCart={handleAddProductToCartFromCard}
-              productCardStyle={websiteConfig?.productCardStyle}
-            />
+            {popularProducts.length > 0 && (
+              <ProductGridSection
+                title="Popular products"
+                products={popularProducts}
+                accentColor="purple"
+                keyPrefix="pop"
+                maxProducts={10}
+                reverseOrder={false}
+                onProductClick={onProductClick}
+                onBuyNow={handleBuyNow}
+                onQuickView={setQuickViewProduct}
+                onAddToCart={handleAddProductToCartFromCard}
+                productCardStyle={websiteConfig?.productCardStyle}
+              />
+            )}
           </>
         )}
       </main>

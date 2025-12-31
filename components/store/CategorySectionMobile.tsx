@@ -193,13 +193,30 @@ const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ categorie
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8F9FA] border border-gray-100 rounded-full whitespace-nowrap shadow-sm active:scale-95 transition-all cursor-pointer min-w-[110px]"
             >
               <div className="flex items-center justify-center shrink-0">
-                {typeof item.icon === 'string' && item.icon ? (
-                  item.icon.startsWith('http') ? (
-                    <img src={item.icon} alt="" className="w-3.5 h-3.5 object-contain" />
-                  ) : (
-                    <span className="text-[14px]">{item.icon}</span>
-                  )
-                ) : item.icon || '📦'}
+                {typeof item.icon === 'string' && item.icon ? (() => {
+                  const iconSrc = item.icon.trim();
+                  const isImageSrc =
+                    iconSrc.startsWith('http://') ||
+                    iconSrc.startsWith('https://') ||
+                    iconSrc.startsWith('data:image/') ||
+                    iconSrc.startsWith('blob:') ||
+                    iconSrc.startsWith('/');
+
+                  if (isImageSrc) {
+                    return (
+                      <img
+                        src={iconSrc}
+                        alt={item.name}
+                        className="w-3.5 h-3.5 object-contain"
+                        loading="lazy"
+                      />
+                    );
+                  }
+
+                  // Treat short strings as emoji/text icons; avoid rendering long strings.
+                  const safeTextIcon = iconSrc.length <= 8 ? iconSrc : '📦';
+                  return <span className="text-[14px]">{safeTextIcon}</span>;
+                })() : item.icon || '📦'}
               </div>
               <span className="text-[11px] font-semibold text-gray-700 truncate">
                 {item.name}

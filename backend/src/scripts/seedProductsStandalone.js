@@ -10,8 +10,8 @@
 
 const { MongoClient } = require('mongodb');
 
-// MongoDB Configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://webfaisalbd:R6fVp4V9hV33kYdZ@127.0.0.1:27017/cws?authSource=admin';
+// MongoDB Configuration - Use environment variables or update these values
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://username:password@127.0.0.1:27017/dbname?authSource=admin';
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'cws';
 
 // Define 30 diverse products

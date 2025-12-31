@@ -4,18 +4,6 @@ config();
 import { getDatabase } from '../db/mongo';
 import { disconnectMongo } from '../db/mongo';
 
-// Product categories
-const CATEGORIES = [
-  'Electronics',
-  'Fashion',
-  'Home & Living',
-  'Sports & Outdoors',
-  'Beauty & Health',
-  'Books & Stationery',
-  'Toys & Games',
-  'Food & Beverages'
-];
-
 // Define 30 diverse products
 const PRODUCTS = [
   // Electronics (1-5)

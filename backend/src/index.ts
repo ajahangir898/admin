@@ -119,6 +119,10 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Handle preflight OPTIONS requests explicitly for all routes
+app.options('*', cors(corsOptions));
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 app.use(compression() as any);
 app.use(express.json({ limit: '10mb' }));

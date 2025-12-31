@@ -418,7 +418,15 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     };
   }, []);
   
+  // Track if we're in the middle of saving to prevent loop
+  const isSavingRef = useRef(false);
+  
   useEffect(() => {
+    // Skip if we're currently saving - this prevents the loop
+    if (isSavingRef.current) {
+      return;
+    }
+    
     // On tenant change, reload config from prop
     if (prevTenantIdRef.current !== tenantId) {
       console.log('[AdminCustomization] Tenant changed, reloading config:', {
@@ -741,6 +749,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     });
 
     setIsSaving(true);
+    isSavingRef.current = true; // Set ref to prevent prop sync during save
     setIsSaved(false);
     const loadingToast = toast.loading('Saving changes...');
     const startTime = Date.now();
@@ -796,6 +805,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       toast.error('Save failed. Please try again.');
     } finally {
       setIsSaving(false);
+      // Clear saving ref after a delay to allow socket updates to settle
+      setTimeout(() => {
+        isSavingRef.current = false;
+      }, 2000);
     }
   };
 

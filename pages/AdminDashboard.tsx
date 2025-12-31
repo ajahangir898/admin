@@ -563,11 +563,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Device traffic data (simulated based on orders)
   const deviceTraffic = useMemo(() => {
-    const total = dateFilteredOrders.length || 1;
+    const total = dateFilteredOrders.length;
+    if (total === 0) {
+      // Show placeholder data when no orders
+      return [
+        { name: 'Desktop', value: 45, color: '#8b5cf6', percentage: 45 },
+        { name: 'Mobile', value: 40, color: '#06b6d4', percentage: 40 },
+        { name: 'Tablet', value: 15, color: '#f97316', percentage: 15 },
+      ];
+    }
+    const desktop = Math.round(total * 0.45);
+    const mobile = Math.round(total * 0.40);
+    const tablet = Math.max(1, total - desktop - mobile);
     return [
-      { name: 'Desktop', value: Math.round(total * 0.45), color: '#8b5cf6' },
-      { name: 'Mobile', value: Math.round(total * 0.40), color: '#06b6d4' },
-      { name: 'Tablet', value: Math.round(total * 0.15), color: '#f97316' },
+      { name: 'Desktop', value: desktop, color: '#8b5cf6', percentage: Math.round((desktop / total) * 100) },
+      { name: 'Mobile', value: mobile, color: '#06b6d4', percentage: Math.round((mobile / total) * 100) },
+      { name: 'Tablet', value: tablet, color: '#f97316', percentage: Math.round((tablet / total) * 100) },
     ];
   }, [dateFilteredOrders]);
 
@@ -949,36 +960,46 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
           </div>
           
-          {/* Donut Chart */}
+          {/* Donut Chart - Using stroke-based ring for better rendering */}
           <div className="flex justify-center mb-6">
             <div className="relative w-44 h-44">
-              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+              <svg viewBox="0 0 36 36" className="w-full h-full" style={{ transform: 'rotate(-90deg)' }}>
+                {/* Background circle */}
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.915"
+                  fill="transparent"
+                  stroke="#f3f4f6"
+                  strokeWidth="3"
+                />
+                {/* Device segments */}
                 {(() => {
-                  const total = deviceTraffic.reduce((sum, entry) => sum + entry.value, 0);
-                  let currentAngle = 0;
-                  return deviceTraffic.map((entry) => {
-                    const percentage = total > 0 ? (entry.value / total) * 100 : 0;
-                    const angle = (percentage / 100) * 360;
-                    const startAngle = currentAngle;
-                    currentAngle += angle;
-                    
-                    const x1 = 50 + 42 * Math.cos((startAngle * Math.PI) / 180);
-                    const y1 = 50 + 42 * Math.sin((startAngle * Math.PI) / 180);
-                    const x2 = 50 + 42 * Math.cos(((startAngle + angle) * Math.PI) / 180);
-                    const y2 = 50 + 42 * Math.sin(((startAngle + angle) * Math.PI) / 180);
-                    const largeArc = angle > 180 ? 1 : 0;
+                  let offset = 0;
+                  return deviceTraffic.map((entry, index) => {
+                    const circumference = 2 * Math.PI * 15.915;
+                    const segmentLength = (entry.percentage / 100) * circumference;
+                    const gapLength = circumference - segmentLength;
+                    const currentOffset = offset;
+                    offset += entry.percentage;
                     
                     return (
-                      <path
+                      <circle
                         key={entry.name}
-                        d={`M 50 50 L ${x1} ${y1} A 42 42 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                        fill={entry.color}
-                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                        cx="18"
+                        cy="18"
+                        r="15.915"
+                        fill="transparent"
+                        stroke={entry.color}
+                        strokeWidth="3"
+                        strokeDasharray={`${segmentLength} ${gapLength}`}
+                        strokeDashoffset={-((currentOffset / 100) * circumference)}
+                        className="transition-all duration-500"
+                        style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
                       />
                     );
                   });
                 })()}
-                <circle cx="50" cy="50" r="28" fill="white" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold text-gray-900">{dateFilteredOrders.length}</span>
@@ -992,7 +1013,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {deviceTraffic.map((item) => (
               <div key={item.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                   <div className="flex items-center gap-2">
                     {item.name === 'Desktop' && <Monitor className="w-4 h-4 text-gray-400" />}
                     {item.name === 'Mobile' && <Smartphone className="w-4 h-4 text-gray-400" />}
@@ -1000,7 +1021,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span className="text-sm text-gray-600">{item.name}</span>
                   </div>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">{item.value}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">{item.percentage}%</span>
+                  <span className="text-sm font-semibold text-gray-900 min-w-[24px] text-right">{item.value}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -1020,13 +1044,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           
           {/* Horizontal Bar Chart */}
           <div className="space-y-4">
-            {categoryData.slice(0, 5).map((item, index) => {
+            {categoryData.length > 0 && categoryData[0].value > 0 ? categoryData.slice(0, 5).map((item, index) => {
               const maxValue = Math.max(...categoryData.map(d => d.value), 1);
               const percentage = (item.value / maxValue) * 100;
               return (
                 <div key={item.name}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                    <span className="text-sm font-medium text-gray-700 truncate max-w-[150px]">{item.name}</span>
                     <span className="text-sm font-semibold text-gray-900">৳{item.value.toLocaleString()}</span>
                   </div>
                   <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
@@ -1040,7 +1064,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                 </div>
               );
-            })}
+            }) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                <BarChart3 className="w-12 h-12 mb-2 opacity-50" />
+                <span className="text-sm">No category data yet</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1077,7 +1106,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               );
             }) : (
-              <div className="text-center py-8 text-gray-500">No location data available</div>
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                <TrendingUp className="w-12 h-12 mb-2 opacity-50" />
+                <span className="text-sm">No location data available</span>
+              </div>
             )}
           </div>
         </div>

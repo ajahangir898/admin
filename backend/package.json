@@ -7,7 +7,8 @@
     "build": "tsc --project tsconfig.json",
     "start": "node dist/index.js",
     "seed": "ts-node src/scripts/seed.ts",
-    "seed:subscriptions": "ts-node src/scripts/seedSubscriptions.ts"
+    "seed:subscriptions": "ts-node src/scripts/seedSubscriptions.ts",
+    "seed:products": "ts-node src/scripts/seedProducts.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

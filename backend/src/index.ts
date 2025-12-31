@@ -85,37 +85,14 @@ io.on('connection', (socket) => {
   });
 });
 
-// Dynamic CORS to allow all subdomains of systemnextit.com
+// CORS - Allow all origins for now (wildcard) to support all subdomains
 const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    // Check if origin matches allowed origins from env
-    if (env.allowedOrigins.length && env.allowedOrigins.includes(origin)) {
-      return callback(null, origin);
-    }
-    
-    // Allow any subdomain of systemnextit.com
-    const subdomainPattern = /^https?:\/\/([a-z0-9-]+\.)?systemnextit\.com$/i;
-    if (subdomainPattern.test(origin)) {
-      return callback(null, origin);
-    }
-    
-    // Allow localhost for development
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return callback(null, origin);
-    }
-    
-    // Reject other origins
-    console.warn(`[CORS] Blocked origin: ${origin}`);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-subdomain'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-subdomain', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Length', 'X-Request-Id'],
+  maxAge: 86400, // 24 hours - cache preflight
 };
 
 app.use(cors(corsOptions));

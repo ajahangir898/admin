@@ -101,53 +101,83 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     // Style 2 (Flash Sale - Pink/Blue) - CART LEFT, BUY NOW RIGHT
     if (variant === 'style2') {
         return (
-            <div className="bg-white rounded-xl border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 group relative overflow-hidden flex flex-col">
-                <div className="relative aspect-square p-3 bg-gradient-to-br from-gray-50 to-white cursor-pointer" onClick={() => onClick(product)}>
+            <div className="bg-white rounded-2xl border border-gray-100 hover:shadow-2xl hover:border-theme-primary/20 transition-all duration-300 group relative overflow-hidden flex flex-col">
+                {/* Image Section */}
+                <div className="relative aspect-square p-3 bg-gradient-to-br from-gray-50 via-white to-gray-50 cursor-pointer overflow-hidden" onClick={() => onClick(product)}>
                     <OptimizedImage
                         src={imageSrc}
                         alt={product.name}
                         width={420}
                         height={420}
                         placeholder="blur"
-                        className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
+                        className="w-full h-full object-contain mix-blend-multiply transition-all duration-500 group-hover:scale-110"
                     />
+                    
+                    {/* Discount Badge */}
                     {product.discount && (
-                        <span className="absolute top-2 left-2 bg-gradient-to-r from-theme-primary to-theme-secondary text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">
+                        <span className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg animate-pulse">
                             {product.discount}
                         </span>
                     )}
-                    <button className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-md hover:bg-white hover:scale-110 transition-all" onClick={(e) => e.stopPropagation()}>
-                        <Heart size={14} className="text-gray-500 hover:text-red-500 transition-colors" />
+                    
+                    {/* Wishlist Button */}
+                    <button 
+                        className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-red-50 hover:scale-110 transition-all opacity-0 group-hover:opacity-100" 
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Heart size={16} className="text-gray-400 hover:text-red-500 transition-colors" />
+                    </button>
+
+                    {/* Quick View Button */}
+                    <button 
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] font-medium px-4 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-black flex items-center gap-1"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onQuickView?.(product);
+                        }}
+                    >
+                        <Eye size={12} /> Quick View
                     </button>
                 </div>
                 
-                <div className="px-3 py-2.5 flex-1 flex flex-col border-t border-gray-50">
-                    {/* Rating */}
-                    <div className="flex items-center gap-1 text-yellow-400 text-xs mb-1">
-                        <Star size={12} fill="currentColor" />
-                        <span className="text-gray-500 text-[10px]">({product.reviews || 0})</span>
-                        <span className="text-gray-400 text-[10px] ml-1">| 0 Sold</span>
+                {/* Details Section */}
+                <div className="px-3 py-3 flex-1 flex flex-col border-t border-gray-100">
+                    {/* Rating & Sold */}
+                    <div className="flex items-center gap-2 mb-1.5">
+                        <div className="flex items-center gap-0.5">
+                            <Star size={12} fill="#facc15" className="text-yellow-400" />
+                            <span className="text-[11px] font-medium text-gray-700">({product.reviews || 0})</span>
+                        </div>
+                        <span className="text-gray-300">|</span>
+                        <span className="text-[11px] text-gray-500">{product.soldCount || 0} Sold</span>
                     </div>
 
+                    {/* Product Name */}
                     <h3 
-                        className="font-semibold text-gray-800 text-xs leading-tight line-clamp-2 min-h-[32px] cursor-pointer hover:text-theme-primary transition-colors"
+                        className="font-semibold text-gray-800 text-[13px] leading-snug line-clamp-2 min-h-[36px] cursor-pointer hover:text-theme-primary transition-colors"
                         onClick={() => onClick(product)}
                     >
                         {product.name}
                     </h3>
 
+                    {/* Price & Coins */}
                     <div className="mt-auto pt-2">
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <span className="text-theme-primary font-bold text-sm">৳{product.price}</span>
-                            {product.originalPrice && (
-                                <span className="text-gray-400 text-[10px] line-through">{product.originalPrice}</span>
-                            )}
-                            <span className="ml-auto text-[9px] text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded">+50 Coins</span>
+                        <div className="flex items-center justify-between mb-2.5">
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-bold text-theme-primary">৳{product.price}</span>
+                                {product.originalPrice && (
+                                    <span className="text-xs text-gray-400 line-through">৳{product.originalPrice}</span>
+                                )}
+                            </div>
+                            <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
+                                Get {product.coins || 50} Coins
+                            </span>
                         </div>
                         
-                        <div className="flex gap-1.5">
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
                             <button 
-                                className="flex-1 btn-order py-2 text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95"
+                                className="flex-1 btn-order py-2.5 text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
                                 onClick={handleBuyNow}
                             >
                                 Buy Now
@@ -158,10 +188,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     e.stopPropagation();
                                     onAddToCart?.(product);
                                 }}
-                                className="bg-gray-100 hover:bg-gray-200 px-3 rounded-lg transition-colors active:scale-95"
+                                className="bg-gray-100 hover:bg-theme-primary/10 px-3.5 rounded-xl transition-all active:scale-95 border border-gray-200 hover:border-theme-primary/30"
                                 aria-label="Add to cart"
                             >
-                                <ShoppingCart size={16} className="text-theme-primary" />
+                                <ShoppingCart size={18} className="text-theme-primary" />
                             </button>
                         </div>
                     </div>

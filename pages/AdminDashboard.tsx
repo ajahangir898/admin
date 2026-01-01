@@ -972,22 +972,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           
           {/* Bar Chart Style */}
-          <div className="flex items-end justify-center gap-3 sm:gap-6 h-32 sm:h-44 mb-4">
+          <div className="flex items-end justify-center gap-4 sm:gap-8 h-36 sm:h-48 mb-6">
             {deviceTraffic.map((item) => {
               const maxVal = Math.max(...deviceTraffic.map(d => d.value), 1);
               const heightPercent = (item.value / maxVal) * 100;
               return (
-                <div key={item.name} className="flex flex-col items-center gap-2 flex-1 max-w-16 sm:max-w-20">
-                  <div className="w-full h-full flex items-end justify-center">
+                <div key={item.name} className="flex flex-col items-center gap-2">
+                  <div className="h-28 sm:h-40 flex items-end">
                     <div 
-                      className="w-8 sm:w-12 rounded-t-lg transition-all duration-500"
+                      className="w-10 sm:w-14 rounded-t-xl transition-all duration-500 shadow-sm"
                       style={{ 
-                        height: `${Math.max(heightPercent, 10)}%`,
-                        backgroundColor: item.color
+                        height: `${Math.max(heightPercent, 15)}%`,
+                        backgroundColor: item.color,
+                        minHeight: '20px'
                       }}
                     />
                   </div>
-                  <span className="text-[10px] sm:text-xs text-gray-500 text-center">{item.name}</span>
+                  <span className="text-[10px] sm:text-xs text-gray-500 font-medium">{item.name}</span>
                 </div>
               );
             })}

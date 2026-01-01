@@ -828,20 +828,22 @@ class DataServiceImpl {
     isBackground = false
   ) {
     try {
-      const response = await this.requestTenantApi<{
-        data: {
-          orders: Order[] | null;
-          logo: string | null;
-          delivery_config: DeliveryConfig[] | null;
-          chat_messages: ChatMessage[] | null;
-          landing_pages: LandingPage[] | null;
-          categories: Category[] | null;
-          subcategories: SubCategory[] | null;
-          childcategories: ChildCategory[] | null;
-          brands: Brand[] | null;
-          tags: Tag[] | null;
-        };
-      }>(`/api/tenant-data/${scope}/secondary`);
+      const response = await deduplicateRequest(`tenant_secondary_bundle`, scope === 'public' ? undefined : scope, () =>
+        this.requestTenantApi<{
+          data: {
+            orders: Order[] | null;
+            logo: string | null;
+            delivery_config: DeliveryConfig[] | null;
+            chat_messages: ChatMessage[] | null;
+            landing_pages: LandingPage[] | null;
+            categories: Category[] | null;
+            subcategories: SubCategory[] | null;
+            childcategories: ChildCategory[] | null;
+            brands: Brand[] | null;
+            tags: Tag[] | null;
+          };
+        }>(`/api/tenant-data/${scope}/secondary`)
+      );
 
       const data = response.data;
 

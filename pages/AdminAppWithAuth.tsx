@@ -21,6 +21,7 @@ interface AdminAppWithAuthProps {
   courierConfig: CourierConfig;
   facebookPixelConfig: FacebookPixelConfig;
   chatMessages: ChatMessage[];
+  parentUser?: User | null; // User from parent App.tsx - syncs profile updates
   onLogout: () => void;
   onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
   onAddProduct: (product: Product) => void;
@@ -46,6 +47,13 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
   const [user, setUser] = useState<User | null>(null);
   const [userPermissions, setUserPermissions] = useState<PermissionMap>({});
   const [isValidating, setIsValidating] = useState(true);
+
+  // Sync user when parentUser changes (e.g., profile update from Settings)
+  useEffect(() => {
+    if (props.parentUser && props.parentUser.image !== user?.image) {
+      setUser(props.parentUser);
+    }
+  }, [props.parentUser]);
 
   // Validate session on mount
   useEffect(() => {

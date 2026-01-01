@@ -1165,6 +1165,7 @@ const App = () => {
                 courierConfig={courierConfig}
                 facebookPixelConfig={facebookPixelConfig}
                 chatMessages={chatMessages}
+                parentUser={user}
                 onLogout={handleLogout}
                 onUpdateOrder={handleUpdateOrder}
                 onAddProduct={handleAddProduct}

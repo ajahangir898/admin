@@ -35,7 +35,7 @@ const OptimizedImage = memo(({ src, alt, className = '', width, height, priority
 
   useEffect(() => {
     if (priority || inView) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } }, { rootMargin: '200px' });
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } }, { rootMargin: '400px' }); // Increased margin for smoother scrolling
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
   }, [priority, inView]);

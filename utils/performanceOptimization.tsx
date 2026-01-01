@@ -347,7 +347,7 @@ export const LazyImage: React.FC<{
   const imgRef = useRef<HTMLDivElement>(null);
   const [shouldRender, setShouldRender] = useState(priority);
 
-  // Simple intersection observer - just trigger load when near viewport
+  // Simple intersection observer - trigger load well before viewport for smooth UX
   useEffect(() => {
     if (priority || shouldRender) return;
     const el = imgRef.current;
@@ -360,7 +360,7 @@ export const LazyImage: React.FC<{
           observer.disconnect();
         }
       },
-      { rootMargin: '100px', threshold: 0 }
+      { rootMargin: '300px', threshold: 0 } // Increased for smoother scrolling
     );
     observer.observe(el);
     return () => observer.disconnect();

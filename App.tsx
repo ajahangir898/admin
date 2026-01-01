@@ -124,17 +124,18 @@ import { SuperAdminDashboardSkeleton } from './components/SkeletonLoaders';
 // Preload non-critical chunks during idle time (after initial render)
 if (typeof window !== 'undefined') {
   const preload = () => {
-    // Only preload after user has interacted or after 5s
+    // Only preload components likely to be used soon
     Promise.all([
       import('./components/store/MobileBottomNav'),
+      import('./components/store/StoreChatModal'),
     ]).catch(() => {});
   };
   
-  // Delay preloading to prioritize initial render
+  // Delay preloading to prioritize initial render - use longer timeout
   if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(preload, { timeout: 5000 });
+    (window as any).requestIdleCallback(preload, { timeout: 8000 });
   } else {
-    setTimeout(preload, 100);
+    setTimeout(preload, 3000);
   }
 }
 
@@ -295,12 +296,12 @@ const App = () => {
   // === SOCKET ROOM MANAGEMENT (heavily deferred - not critical for initial render) ===
   useEffect(() => {
     if (!activeTenantId) return;
-    // Defer socket initialization 2s after initial render - real-time updates aren't critical initially
+    // Defer socket initialization 3.5s after initial render - prioritize content over real-time
     const timer = setTimeout(() => {
       import('./services/DataService').then(({ joinTenantRoom }) => {
         joinTenantRoom(activeTenantId);
       });
-    }, 2000);
+    }, 3500);
     return () => {
       clearTimeout(timer);
       import('./services/DataService').then(({ leaveTenantRoom }) => {

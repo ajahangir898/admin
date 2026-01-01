@@ -322,6 +322,8 @@ export default defineConfig(({ mode, isSsrBuild }) => {
         sourcemap: false,
         // Remove unused code
         reportCompressedSize: false,
+        // Optimize assets
+        assetsInlineLimit: 4096, // Inline assets < 4KB
         rollupOptions: {
           input: isSsrBuild ? './entry-server.tsx' : './index.html',
           output: {
@@ -331,11 +333,15 @@ export default defineConfig(({ mode, isSsrBuild }) => {
             entryFileNames: 'assets/[name]-[hash].js',
             assetFileNames: 'assets/[name]-[hash].[ext]',
             // Compact output
-            compact: true
+            compact: true,
+            // Hoist transitive imports for better parallelization
+            hoistTransitiveImports: true
           },
           treeshake: {
             moduleSideEffects: false,
-            propertyReadSideEffects: false
+            propertyReadSideEffects: false,
+            // More aggressive tree shaking
+            preset: 'smallest'
           }
         }
       }

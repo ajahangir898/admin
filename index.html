@@ -18,6 +18,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <link rel="dns-prefetch" href="https://i.postimg.cc">
+    <link rel="preconnect" href="https://i.postimg.cc" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <script>
@@ -31,13 +33,12 @@
         }
         if(s){
           var api='https://api.systemnextit.com';
-          // Use preconnect + fetch for fastest possible data loading
-          var xhr=new XMLHttpRequest();
-          xhr.open('GET',api+'/api/tenant-data/'+s+'/bootstrap',true);
-          xhr.withCredentials=true;
-          xhr.responseType='json';
-          xhr.onload=function(){if(xhr.status===200)window.__BOOTSTRAP_DATA__=xhr.response;};
-          xhr.send();
+          // Use fetch with priority hint for fastest possible data loading
+          fetch(api+'/api/tenant-data/'+s+'/bootstrap',{
+            credentials:'include',
+            headers:{'Accept':'application/json'},
+            priority:'high'
+          }).then(function(r){return r.ok?r.json():null;}).then(function(d){if(d)window.__BOOTSTRAP_DATA__=d;}).catch(function(){});
         }
       })();
     </script>

@@ -123,13 +123,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
         return () => clearInterval(timer);
     }, [items.length]);
 
-    // Preload first image for LCP - use prefetch instead of preload to avoid console warnings
+    // Preload first image for LCP - critical for Largest Contentful Paint
     useEffect(() => {
         if (!items[0]) return;
         const href = normalizeImageUrl(isMobile && items[0].mobileImage ? items[0].mobileImage : items[0].image);
         if (!href || href.startsWith('data:') || href.length > 2048) return;
-        // Use prefetch with high priority instead of preload to avoid "unused preload" warnings
-        const link = Object.assign(document.createElement('link'), { rel: 'prefetch', as: 'image', href });
+        // Use preload with high priority for LCP image - improves LCP metric
+        const link = Object.assign(document.createElement('link'), { 
+            rel: 'preload', 
+            as: 'image', 
+            href,
+            fetchPriority: 'high',
+            crossOrigin: 'anonymous'
+        });
         document.head.appendChild(link);
         return () => { link.parentNode?.removeChild(link); };
     }, [items, isMobile]);

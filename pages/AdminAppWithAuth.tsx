@@ -1,10 +1,11 @@
 // AdminAppWithAuth.tsx - Wrapper component that integrates authentication with AdminApp
-import React, { useState, useEffect, useCallback } from 'react';
-import AdminApp, { preloadAdminChunks } from './AdminApp';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 
 import * as authService from '../services/authService';
 import { User, Tenant, Order, Product, ThemeConfig, WebsiteConfig, DeliveryConfig, CourierConfig, FacebookPixelConfig, ChatMessage } from '../types';
 import { Loader2 } from 'lucide-react';
+
+const AdminApp = lazy(() => import('./AdminApp'));
 
 // Permission map type
 type PermissionMap = Record<string, string[]>;
@@ -57,9 +58,6 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
 
   // Validate session on mount
   useEffect(() => {
-    // Start preloading admin chunks
-    preloadAdminChunks();
-    
     const validateSession = async () => {
       try {
         // First check stored user - prioritize this over token validation
@@ -157,12 +155,20 @@ const AdminAppWithAuth: React.FC<AdminAppWithAuthProps> = (props) => {
 
   // Show admin app with authenticated user
   return (
-    <AdminApp
-      {...props}
-      user={user}
-      userPermissions={userPermissions}
-      onLogout={handleLogout}
-    />
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-slate-900">
+          <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+        </div>
+      }
+    >
+      <AdminApp
+        {...props}
+        user={user}
+        userPermissions={userPermissions}
+        onLogout={handleLogout}
+      />
+    </Suspense>
   );
 };
 

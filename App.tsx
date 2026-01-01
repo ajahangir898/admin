@@ -109,10 +109,7 @@ export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
 const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 
-const AdminAppWithAuth = lazy(() => {
-  import('./pages/AdminApp').then(m => m.preloadAdminChunks?.());
-  return import('./pages/AdminAppWithAuth');
-});
+const AdminAppWithAuth = lazy(() => import('./pages/AdminAppWithAuth'));
 
 // Store components - lazy loaded
 const LoginModal = lazy(() => import('./components/store/LoginModal').then(m => ({ default: m.LoginModal })));

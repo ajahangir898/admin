@@ -210,7 +210,17 @@ export function useAuth({
   const handleUpdateProfile = useCallback((updatedUser: User) => {
     const userWithTenant = { ...updatedUser, tenantId: updatedUser.tenantId || activeTenantId };
     setUser(userWithTenant);
-    setUsers(prev => prev.map(u => u.email === updatedUser.email ? userWithTenant : u));
+    setUsers(prev => {
+      // Check if user exists in array
+      const exists = prev.some(u => u.email === updatedUser.email);
+      if (exists) {
+        // Update existing user
+        return prev.map(u => u.email === updatedUser.email ? userWithTenant : u);
+      } else {
+        // Add user if they don't exist (e.g., tenant_admin created from tenant credentials)
+        return [...prev, userWithTenant];
+      }
+    });
   }, [activeTenantId, setUser, setUsers]);
 
   return {

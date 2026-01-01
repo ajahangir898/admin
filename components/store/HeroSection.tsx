@@ -179,7 +179,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                  onMouseLeave={() => setIsPaused(false)}>
                 <div className="flex-1 min-w-0">
                     {/* Hero carousel with fixed min-height for mobile compatibility */}
-                    <div className="relative w-full rounded-2xl overflow-hidden shadow-xl group bg-gray-100" style={{ minHeight: '280px', aspectRatio: '2.5/1' }}>
+                    <div className="relative w-full rounded-2xl overflow-hidden shadow-xl group" style={{ minHeight: '280px', aspectRatio: '16/6' }}>
                         {items.map((item, index) => {
                             const isActive = index === currentIndex;
                             const { href, isExternal } = getCarouselHref(item);
@@ -190,7 +190,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                                     <img 
                                         src={imgSrc} 
                                         alt={item.name || 'Banner'} 
-                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         onError={(e) => {
                                             console.log('[HeroSection] Image load error for:', imgSrc);
                                         }}

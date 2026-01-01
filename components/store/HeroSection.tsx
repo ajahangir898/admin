@@ -174,24 +174,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
 
     return (
         <section className="max-w-7xl mx-auto px-4 pt-4 pb-2">
-            <div className={`flex gap-4 ${showSkeleton ? 'hidden' : ''}`}
+            <div className="flex gap-4"
                  onMouseEnter={() => setIsPaused(true)} 
                  onMouseLeave={() => setIsPaused(false)}>
                 <div className="flex-1 min-w-0">
-                    <div className={`relative w-full ${isMobile && items.some(i => i.mobileImage) ? 'aspect-[16/9]' : 'aspect-[2.5/1] sm:aspect-[2.8/1] md:aspect-[3/1] lg:aspect-[3.5/1]'} rounded-2xl overflow-hidden shadow-xl group bg-gradient-to-br from-gray-100 to-gray-200`}>
+                    <div className="relative w-full aspect-[2.5/1] sm:aspect-[2.8/1] md:aspect-[3/1] rounded-2xl overflow-hidden shadow-xl group bg-gray-200">
                         {items.map((item, index) => {
                             const isActive = index === currentIndex;
                             const { href, isExternal } = getCarouselHref(item);
+                            const imgSrc = item.image || '';
                             return (
-                                <a key={item.id} href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
-                                   className={`absolute inset-0 transition-all duration-500 ease-out ${isActive ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'}`}>
+                                <a key={item.id || index} href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
+                                   className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                                     <img 
-                                        src={getImageSrc(item)} 
+                                        src={imgSrc} 
                                         alt={item.name || 'Banner'} 
                                         className="w-full h-full object-cover"
-                                        loading={index === 0 ? 'eager' : 'lazy'}
-                                        onLoad={() => handleImageLoad(index)}
-                                        onError={(e) => console.log('[HeroSection] Image error:', e, getImageSrc(item))}
+                                        onError={(e) => {
+                                            console.log('[HeroSection] Image load error for:', imgSrc);
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
                                     />
                                 </a>
                             );

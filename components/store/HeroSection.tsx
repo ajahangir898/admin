@@ -182,14 +182,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                         {items.map((item, index) => {
                             const isActive = index === currentIndex;
                             const { href, isExternal } = getCarouselHref(item);
-                            const hasMobileImg = isMobile && item.mobileImage;
                             return (
                                 <a key={item.id} href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
                                    className={`absolute inset-0 transition-all duration-500 ease-out ${isActive ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'}`}>
-                                    {(loadedImages.has(index) || isActive) && (
-                                        <OptimizedImage src={getImageSrc(item)} alt={item.name || 'Banner'} width={hasMobileImg ? 800 : 1600} height={hasMobileImg ? 450 : 400}
-                                            priority={index === 0} placeholder="blur" objectFit="cover" className="w-full h-full" onLoad={() => handleImageLoad(index)} />
-                                    )}
+                                    <img 
+                                        src={getImageSrc(item)} 
+                                        alt={item.name || 'Banner'} 
+                                        className="w-full h-full object-cover"
+                                        loading={index === 0 ? 'eager' : 'lazy'}
+                                        onLoad={() => handleImageLoad(index)}
+                                        onError={(e) => console.log('[HeroSection] Image error:', e, getImageSrc(item))}
+                                    />
                                 </a>
                             );
                         })}

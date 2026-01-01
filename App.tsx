@@ -12,7 +12,7 @@
  * - hooks/useFacebookPixel.ts - Facebook Pixel
  * - hooks/useNavigation.ts - URL routing and navigation
  */
-
+import { CarouselItem } from './types';
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import type { 
   Product, Order, User, ThemeConfig, WebsiteConfig, DeliveryConfig, 
@@ -56,6 +56,9 @@ import {
   SESSION_STORAGE_KEY,
   ACTIVE_TENANT_STORAGE_KEY,
 } from './utils/appHelpers';
+
+
+
 
 // Default catalog data to prevent data loss during refresh
 const DEFAULT_CATEGORIES = [

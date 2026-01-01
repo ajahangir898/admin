@@ -11,8 +11,8 @@ const DEFAULT_CAROUSEL_ITEMS = [
   {
     id: 'default-carousel-1',
     name: 'Default Carousel 1',
-    image: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/carousel-fixed-1767292533515.webp',
-    mobileImage: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/carousel-fixed-1767292533515.webp',
+    image: 'https://hdnfltv.com/image/nitimages/hero1.webp',
+    mobileImage: 'https://hdnfltv.com/image/nitimages/hero1.webp',
     url: '#',
     urlType: 'External',
     serial: 1,
@@ -21,11 +21,21 @@ const DEFAULT_CAROUSEL_ITEMS = [
   {
     id: 'default-carousel-2',
     name: 'Default Carousel 2',
-    image: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/8ffc6044-dbf1-45e9-b19d-e34b7a8f2723.webp',
-    mobileImage: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/8ffc6044-dbf1-45e9-b19d-e34b7a8f2723.webp',
+    image: 'https://hdnfltv.com/image/nitimages/hero2.webp',
+    mobileImage: 'https://hdnfltv.com/image/nitimages/hero2.webp',
     url: '#',
     urlType: 'External',
     serial: 2,
+    status: 'Publish'
+  },
+  {
+    id: 'default-carousel-3',
+    name: 'Default Carousel 3',
+    image: 'https://hdnfltv.com/image/nitimages/hero3.webp',
+    mobileImage: 'https://hdnfltv.com/image/nitimages/hero3.webp',
+    url: '#',
+    urlType: 'External',
+    serial: 3,
     status: 'Publish'
   }
 ];

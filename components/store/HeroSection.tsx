@@ -148,9 +148,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
 
     useEffect(() => { setCurrentIndex(p => p >= items.length ? 0 : p); }, [items.length]);
 
-    const handleImageLoad = useCallback((i: number) => setLoadedImages(p => new Set([...p, i])), []);
-    const getImageSrc = (item: CarouselItem) =>
-        normalizeImageUrl(isMobile && item.mobileImage ? item.mobileImage : item.image, { disableCDN: true });
+    const handleImageLoad = useCallback((i: number) => {
+        console.log('[HeroSection] Image loaded:', i);
+        setLoadedImages(p => new Set([...p, i]));
+    }, []);
+    const getImageSrc = (item: CarouselItem) => {
+        const src = isMobile && item.mobileImage ? item.mobileImage : item.image;
+        console.log('[HeroSection] Image src:', src);
+        return src; // Don't normalize - use direct URL
+    };
     const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + items.length) % items.length); };
 
     if (!items.length) {
@@ -162,7 +168,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
         return null;
     }
 
-    const showSkeleton = !loadedImages.size;
+    // Always show carousel - don't wait for image load
+    const showSkeleton = false;
     const hasCampaigns = websiteConfig?.campaigns?.some(c => normalizeStatus(c.status) === 'publish');
 
     return (

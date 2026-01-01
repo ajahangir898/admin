@@ -141,6 +141,10 @@ const OptimizedImage = memo(
     return (
       <div className={`relative overflow-hidden ${className}`} ref={ref}>
         {!loaded && placeholder === 'blur' && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse" aria-hidden="true" />
+        )}
+
+        {!loaded && placeholder === 'blur' && (
           <img
             src={phSrc}
             alt=""

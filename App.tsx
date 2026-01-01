@@ -767,7 +767,7 @@ const App = () => {
   useEffect(() => { if(!isLoading && !isTenantSwitching && activeTenantId && adminDataLoadedRef.current && users.length > 0) DataService.save('users', users, activeTenantId); }, [users, isLoading, isTenantSwitching, activeTenantId]);
   
   useEffect(() => {
-    if (!activeTenantId || isLoading || isTenantSwitching) return;
+    if (!activeTenantId || isLoading || isTenantSwitching || !initialDataLoadedRef.current) return;
     if (logo === prevLogoRef.current) return;
     if (isKeyFromSocket('logo', activeTenantId)) {
       clearSocketFlag('logo', activeTenantId);
@@ -787,7 +787,6 @@ const App = () => {
       return;
     }
     prevThemeConfigRef.current = themeConfig;
-    console.log('[Save] Saving theme_config for tenant:', activeTenantId);
     DataService.saveImmediate('theme_config', themeConfig, activeTenantId);
   }, [themeConfig, isLoading, isTenantSwitching, activeTenantId]);
 
@@ -801,7 +800,6 @@ const App = () => {
     }
     prevWebsiteConfigRef.current = websiteConfig;
     if (websiteConfig) {
-      console.log('[Save] Saving website_config for tenant:', activeTenantId);
       DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
     }
   }, [websiteConfig, isLoading, isTenantSwitching, activeTenantId]);
@@ -831,7 +829,6 @@ const App = () => {
         return;
       }
       prevCategoriesRef.current = categories;
-      console.log('[Save] Saving categories for tenant:', activeTenantId);
       DataService.save('categories', categories, activeTenantId);
     }
   }, [categories, isLoading, isTenantSwitching, activeTenantId]);

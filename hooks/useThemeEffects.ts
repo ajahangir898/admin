@@ -74,48 +74,22 @@ export function useThemeEffects({
       else root.classList.remove('dark');
     }
     
-    // Only save to server AFTER initial data has loaded and NOT during tenant switch
-    if(!isLoading && !isTenantSwitching && themeLoadedRef.current) {
-      if (isKeyFromSocket('theme_config', activeTenantId)) {
-        clearSocketFlag('theme_config', activeTenantId);
-        lastSavedThemeRef.current = JSON.stringify(themeConfig);
-        return;
-      }
-      
-      const currentThemeStr = JSON.stringify(themeConfig);
-      if (currentThemeStr !== lastSavedThemeRef.current) {
-        lastSavedThemeRef.current = currentThemeStr;
-        DataService.saveImmediate('theme_config', themeConfig, activeTenantId);
-      }
-    }
-    
+    // Track when theme is loaded (saves are handled by App.tsx)
     if(!isLoading && !isTenantSwitching && !themeLoadedRef.current) {
       themeLoadedRef.current = true;
       lastSavedThemeRef.current = JSON.stringify(themeConfig);
     }
   }, [themeConfig, isLoading, isTenantSwitching, activeTenantId, currentView]);
 
-  // Website config persistence & favicon
+  // Website config - only handle favicon (saves are handled by App.tsx)
   useEffect(() => { 
     if(!isLoading && !isTenantSwitching && websiteConfig && activeTenantId) {
-      if (websiteConfigLoadedRef.current) {
-        if (isKeyFromSocket('website_config', activeTenantId)) {
-          clearSocketFlag('website_config', activeTenantId);
-          lastSavedWebsiteConfigRef.current = JSON.stringify(websiteConfig);
-        } else {
-          const currentConfigStr = JSON.stringify(websiteConfig);
-          if (currentConfigStr !== lastSavedWebsiteConfigRef.current) {
-            lastSavedWebsiteConfigRef.current = currentConfigStr;
-            DataService.saveImmediate('website_config', websiteConfig, activeTenantId);
-          }
-        }
-      }
-      
       if (!websiteConfigLoadedRef.current) {
         websiteConfigLoadedRef.current = true;
         lastSavedWebsiteConfigRef.current = JSON.stringify(websiteConfig);
       }
       
+      // Apply favicon
       if (websiteConfig.favicon) {
         let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
         if (!link) {

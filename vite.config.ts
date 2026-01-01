@@ -48,7 +48,7 @@ function criticalPreloadPlugin(): Plugin {
       const allJsChunks: string[] = [];
 
       // Find critical assets from the bundle
-      for (const [fileName, chunk] of Object.entries(ctx.bundle)) {
+      for (const [fileName, chunk] of Object.entries(ctx.bundle) as [string, { type: string; code?: string }][]) {
         // Collect main CSS files
         if (fileName.endsWith('.css')) {
           const matchedPattern = CRITICAL_CSS_PATTERNS.find(p => fileName.includes(p.pattern));

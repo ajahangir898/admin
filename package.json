@@ -51,7 +51,7 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^22.14.0",
     "@types/socket.io": "^3.0.1",
-    "@vitejs/plugin-react": "^5.0.0",
+    "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.20",
     "cssnano": "^7.1.2",
     "jsdom": "^26.0.0",

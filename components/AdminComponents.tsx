@@ -10,6 +10,7 @@ import { StatCardProps, User, Tenant } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import type { Notification as AppNotification } from '../backend/src/services/NotificationService';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
+import CacheMonitor from './CacheMonitor';
 
 // Check if we're on tenant subdomain with /admin path (not admin.* or superadmin.* subdomain)
 const isOnTenantAdminPath = typeof window !== 'undefined' && 
@@ -69,6 +70,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management', resource: 'inventory' },
 		{ id: 'customers_reviews', icon: <Users size={18} />, label: 'Customers & Reviews', resource: 'customers' },
 		{ id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery', resource: 'gallery' },
+	];
+
+	// System monitoring items (only for super admin or admin)
+	const systemItems = [
+		{ id: 'cache_monitor', icon: <Target size={18} />, label: 'Cache Monitor', resource: 'system' },
 	];
 
 	// Filter menu items based on permissions
@@ -242,9 +248,28 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				)}
 
 				{/* System Section */}
-				{(canSeeSettings || canSeeAdminControl) && (
+				{(canSeeSettings || canSeeAdminControl || userRole === 'super_admin' || userRole === 'admin') && (
 					<>
 						<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-6 text-gray-400">System</div>
+						
+						{/* Cache Monitor - Only for admin/super_admin */}
+						{(userRole === 'super_admin' || userRole === 'admin') && (
+							<div
+								onClick={() => { onNavigate && onNavigate('cache_monitor'); onClose && onClose(); }}
+								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'cache_monitor' ? 'font-semibold' : ''}`}
+								style={activePage === 'cache_monitor' ? {
+									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
+									color: 'white',
+									boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
+								} : {
+									color: '#4b5563'
+								}}
+							>
+								<Target size={18} />
+								<span>Cache Monitor</span>
+							</div>
+						)}
+						
 						{canSeeSettings && (
 							<div
 								onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
@@ -351,8 +376,9 @@ export const AdminHeader: React.FC<{
 	onTenantChange?: (tenantId: string) => void,
 	isTenantSwitching?: boolean,
 	onOpenChatCenter?: () => void,
-	hasUnreadChat?: boolean
-}> = ({ onSwitchView, user, onLogout, logo, onMenuClick, tenants, activeTenantId, onTenantChange, isTenantSwitching, onOpenChatCenter, hasUnreadChat }) => {
+	hasUnreadChat?: boolean,
+	showCacheMonitor?: boolean
+}> = ({ onSwitchView, user, onLogout, logo, onMenuClick, tenants, activeTenantId, onTenantChange, isTenantSwitching, onOpenChatCenter, hasUnreadChat, showCacheMonitor = false }) => {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isTenantMenuOpen, setIsTenantMenuOpen] = useState(false);
 	const [isNotificationOpen, setIsNotificationOpen] = useState(false);

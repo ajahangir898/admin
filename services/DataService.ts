@@ -1,9 +1,84 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload, ChatMessage, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS, DEFAULT_CAROUSEL_ITEMS } from '../constants';
 import { getAuthHeader } from './authService';
+import { getCached, setCached, deleteCached, CacheKeys, setCachedByType, clearTenantCache } from './RedisService';
 import type { Socket } from 'socket.io-client';
 
+// API base URL from environment variable
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+/**
+ * Cache-aware API fetch function
+ * Checks cache first, then fetches from API and caches response
+ */
+const cachedFetch = async <T>(
+  endpoint: string,
+  options: RequestInit = {},
+  cacheKey?: string,
+  cacheTTL: 'api' | 'user' | 'tenant' | 'chat' | 'session' = 'api'
+): Promise<T> => {
+  // Generate cache key if not provided
+  const key = cacheKey || CacheKeys.apiResponse(endpoint, JSON.stringify(options));
+  
+  // Check cache first
+  const cached = await getCached<T>(key);
+  if (cached !== null) {
+    console.log(`[Cache] Hit for ${endpoint}`);
+    return cached;
+  }
+  
+  // Fetch from API
+  console.log(`[Cache] Miss for ${endpoint}, fetching...`);
+  const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
+    ...options,
+    headers: {
+      ...getAuthHeader(),
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  
+  // Cache the response
+  await setCachedByType(key, data, cacheTTL);
+  
+  return data;
+};
+
+// Clear cache when socket data updates are received
+export const invalidateDataCache = async (tenantId: string, dataType?: string): Promise<void> => {
+  if (dataType) {
+    // Invalidate specific data type
+    await deleteCached(CacheKeys.tenantBootstrap(tenantId));
+    
+    switch (dataType) {
+      case 'products':
+        await deleteCached(CacheKeys.tenantProducts(tenantId));
+        break;
+      case 'orders':
+        // Clear order cache
+        const orderCacheKey = CacheKeys.tenantOrders(tenantId);
+        await deleteCached(orderCacheKey);
+        break;
+      case 'chat_messages':
+        await deleteCached(CacheKeys.chatMessages(tenantId));
+        break;
+    }
+  } else {
+    // Clear all cache for tenant
+    await clearTenantCache(tenantId);
+  }
+  
+  console.log(`[Cache] Invalidated cache for tenant ${tenantId}, type: ${dataType || 'all'}`);
+};
+
+// Mark fetch API usage for socket updates
+const socketUpdateFlags = new Set<string>();
 
 // Socket.IO connection for real-time updates - lazy loaded
 let socket: Socket | null = null;
@@ -78,8 +153,13 @@ const initSocket = async (): Promise<Socket | null> => {
       'chat_messages': 'chat_messages'
     };
     const mappedKey = keyMap[payload.key] || payload.key;
-    // Invalidate cache for this key
+    
+    // Invalidate both localStorage and Redis cache for this key
     invalidateCache(payload.key, payload.tenantId);
+    invalidateDataCache(payload.tenantId, payload.key).catch(err => 
+      console.warn('[Cache] Redis invalidation failed:', err)
+    );
+    
     // Notify UI listeners - mark as from socket to prevent save loops
     notifyDataRefresh(mappedKey, payload.tenantId, true);
   });
@@ -461,7 +541,25 @@ class DataServiceImpl {
     const scope = this.resolveTenantScope(tenantId);
     const defaultWebsite = this.getDefaultWebsiteConfig();
 
-    // Serve cached data instantly to avoid blocking paint, then revalidate in background
+    // Check Redis cache first for ultra-fast response
+    const cacheKey = CacheKeys.tenantBootstrap(scope);
+    const cachedBootstrap = await getCached<{
+      products: Product[];
+      themeConfig: ThemeConfig | null;
+      websiteConfig: WebsiteConfig;
+    }>(cacheKey);
+    
+    if (cachedBootstrap && cachedBootstrap.products.length > 0) {
+      console.log(`[Redis] Bootstrap cache hit for tenant: ${scope}`);
+      
+      // Background revalidation to keep cache fresh
+      this.revalidateBootstrap(scope, tenantId, defaultWebsite, cachedBootstrap.products)
+        .catch(err => console.warn('[DataService] Bootstrap revalidation failed', err));
+      
+      return cachedBootstrap;
+    }
+
+    // Fallback to legacy localStorage cache
     const cachedProducts = getCachedData<Product[]>('products', tenantId);
     const cachedTheme = getCachedData<ThemeConfig | null>('theme_config', tenantId);
     const cachedWebsite = getCachedData<WebsiteConfig>('website_config', tenantId);
@@ -486,6 +584,14 @@ class DataServiceImpl {
     // If no product cache but have other cached data, still fetch fresh but use other caches
     if (hasOtherCache) {
       const freshData = await this.fetchFreshBootstrap(scope, tenantId, defaultWebsite);
+      
+      // Cache in Redis for next request
+      await setCachedByType(cacheKey, {
+        products: freshData.products,
+        themeConfig: freshData.themeConfig,
+        websiteConfig: freshData.websiteConfig
+      }, 'tenant');
+      
       return {
         products: freshData.products,
         themeConfig: freshData.themeConfig ?? cachedTheme ?? null,
@@ -493,7 +599,17 @@ class DataServiceImpl {
       };
     }
 
-    return this.fetchFreshBootstrap(scope, tenantId, defaultWebsite);
+    // No cache available - fetch fresh data
+    const freshData = await this.fetchFreshBootstrap(scope, tenantId, defaultWebsite);
+    
+    // Cache in Redis for next request
+    await setCachedByType(cacheKey, {
+      products: freshData.products,
+      themeConfig: freshData.themeConfig,
+      websiteConfig: freshData.websiteConfig
+    }, 'tenant');
+    
+    return freshData;
   }
 
   private async revalidateBootstrap(scope: string, tenantId: string | undefined, defaultWebsite: WebsiteConfig, cachedProducts?: Product[]) {
@@ -799,13 +915,27 @@ class DataServiceImpl {
     // If the API successfully returned an empty array, that's valid - it means the tenant has no products yet
     const normalized = remote.map((product, index) => ({ ...product, id: product.id ?? index + 1 }));
     return normalized;
-    return normalized.map((product, index) => ({ ...product, id: product.id ?? index + 1 }));
   }
 
   async getOrders(tenantId?: string): Promise<Order[]> {
+    const cacheKey = CacheKeys.tenantOrders(tenantId || 'default');
+    
+    // Check Redis cache first
+    const cachedOrders = await getCached<Order[]>(cacheKey);
+    if (cachedOrders) {
+      console.log(`[Redis] Orders cache hit for tenant: ${tenantId}`);
+      return cachedOrders;
+    }
+    
+    // Fetch from API and cache
     const fallback = this.filterByTenant(RECENT_ORDERS, tenantId);
     const remote = await this.getCollection<Order>('orders', [], tenantId);
-    return remote.length ? remote : fallback;
+    const result = remote.length ? remote : fallback;
+    
+    // Cache the result
+    await setCachedByType(cacheKey, result, 'api');
+    
+    return result;
   }
 
   async getLandingPages(tenantId?: string): Promise<LandingPage[]> {

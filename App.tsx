@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * App.tsx - Main Application Component (Refactored)
  * 

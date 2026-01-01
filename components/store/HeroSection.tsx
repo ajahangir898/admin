@@ -107,12 +107,21 @@ const UpcomingCampaigns: React.FC<{ campaigns?: Campaign[] }> = ({ campaigns }) 
 };
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, websiteConfig }) => {
+    // Debug: Log carousel items
+    console.log('[HeroSection] carouselItems received:', carouselItems?.length, carouselItems);
+    
     const items = (
         carouselItems
-            ?.filter(i => normalizeStatus(i.status) === 'publish')
+            ?.filter(i => {
+                const status = normalizeStatus(i.status);
+                console.log('[HeroSection] Item status:', i.status, '-> normalized:', status, '-> match:', status === 'publish');
+                return status === 'publish';
+            })
             .sort((a, b) => Number(a.serial ?? 0) - Number(b.serial ?? 0)) ||
         []
     ).slice(0, MAX_CAROUSEL_ITEMS);
+    
+    console.log('[HeroSection] Filtered items:', items.length);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
     const [isMobile, setIsMobile] = useState(false);

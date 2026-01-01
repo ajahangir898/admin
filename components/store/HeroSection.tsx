@@ -12,6 +12,8 @@ export interface HeroSectionProps {
 
 const MAX_CAROUSEL_ITEMS = 10;
 
+const normalizeStatus = (value: unknown): string => String(value ?? '').trim().toLowerCase();
+
 const ensureProtocol = (url: string) => /^https?:\/\//i.test(url) ? url : `https://${url.replace(/^\/*/, '')}`;
 
 const buildInternalHref = (url: string): string => {
@@ -85,7 +87,7 @@ const CampaignCard: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
 };
 
 const UpcomingCampaigns: React.FC<{ campaigns?: Campaign[] }> = ({ campaigns }) => {
-    const upcomingCampaigns = campaigns?.filter(c => c.status === 'Publish')
+    const upcomingCampaigns = campaigns?.filter(c => normalizeStatus(c.status) === 'publish')
         .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
         .slice(0, 3) || [];
 
@@ -104,7 +106,12 @@ const UpcomingCampaigns: React.FC<{ campaigns?: Campaign[] }> = ({ campaigns }) 
 };
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, websiteConfig }) => {
-    const items = (carouselItems?.filter(i => i.status === 'Publish').sort((a, b) => a.serial - b.serial) || []).slice(0, MAX_CAROUSEL_ITEMS);
+    const items = (
+        carouselItems
+            ?.filter(i => normalizeStatus(i.status) === 'publish')
+            .sort((a, b) => Number(a.serial ?? 0) - Number(b.serial ?? 0)) ||
+        []
+    ).slice(0, MAX_CAROUSEL_ITEMS);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
     const [isMobile, setIsMobile] = useState(false);
@@ -153,7 +160,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     if (!items.length) return null;
 
     const showSkeleton = !loadedImages.size;
-    const hasCampaigns = websiteConfig?.campaigns?.some(c => c.status === 'Publish');
+    const hasCampaigns = websiteConfig?.campaigns?.some(c => normalizeStatus(c.status) === 'publish');
 
     return (
         <div className="max-w-7xl mx-auto px-4 mt-4">

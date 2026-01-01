@@ -159,8 +159,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, vari
   );
 };
 
+const normalizeCarouselStatus = (value: unknown): string => String(value ?? '').trim().toLowerCase();
+
 export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConfig?: WebsiteConfig }> = ({ carouselItems }) => {
-  const items = carouselItems?.filter(i => i.status === 'Publish').sort((a, b) => a.serial - b.serial) || [];
+  const items = carouselItems
+    ?.filter(i => normalizeCarouselStatus(i.status) === 'publish')
+    .sort((a, b) => Number(a.serial ?? 0) - Number(b.serial ?? 0)) || [];
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {

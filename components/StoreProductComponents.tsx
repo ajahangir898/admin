@@ -49,13 +49,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
 
       {/* Product Image */}
       <div 
-        className="relative aspect-[4/3] p-3 pt-6 cursor-pointer bg-white" 
+        className="relative aspect-[4/3] cursor-pointer bg-gray-50" 
         onClick={() => onClick(product)}
       >
         <LazyImage 
           src={getImage(product)} 
           alt={product.name} 
-          className="w-full h-full object-contain" 
+          className="w-full h-full object-cover" 
         />
       </div>
 

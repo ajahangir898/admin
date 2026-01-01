@@ -25,7 +25,8 @@ export const DEFAULT_CAROUSEL_ITEMS: CarouselItem[] = [
   {
     id: 'default-carousel-1',
     name: 'Default Carousel 1',
-    image: '',
+    image: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/carousel-fixed-1767292533515.webp',
+    mobileImage: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/carousel-fixed-1767292533515.webp',
     url: '#',
     urlType: 'External',
     serial: 1,
@@ -34,7 +35,8 @@ export const DEFAULT_CAROUSEL_ITEMS: CarouselItem[] = [
   {
     id: 'default-carousel-2',
     name: 'Default Carousel 2',
-    image: '',
+    image: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/8ffc6044-dbf1-45e9-b19d-e34b7a8f2723.webp',
+    mobileImage: 'https://systemnextit.com/uploads/images/carousel/695571846e28640aa9476090/8ffc6044-dbf1-45e9-b19d-e34b7a8f2723.webp',
     url: '#',
     urlType: 'External',
     serial: 2,

@@ -266,9 +266,10 @@ const App = () => {
   useFacebookPixel(facebookPixelConfig);
 
   // === REFS FOR PERSISTENCE ===
-  const prevLogoRef = useRef<string | null>(null);
-  const prevThemeConfigRef = useRef<ThemeConfig | null>(null);
-  const prevWebsiteConfigRef = useRef<WebsiteConfig | undefined>(undefined);
+  // Initialize prev refs with cached data to prevent saves on initial load
+  const prevLogoRef = useRef<string | null>(getInitialCachedData('logo', null));
+  const prevThemeConfigRef = useRef<ThemeConfig | null>(getInitialCachedData('theme_config', null));
+  const prevWebsiteConfigRef = useRef<WebsiteConfig | undefined>(getInitialCachedData('website_config', undefined));
   const ordersLoadedRef = useRef(false);
   const prevOrdersRef = useRef<Order[]>([]);
   const prevDeliveryConfigRef = useRef<DeliveryConfig[]>([]);
@@ -291,15 +292,15 @@ const App = () => {
 
   useEffect(() => { userRef.current = user; }, [user]);
 
-  // === SOCKET ROOM MANAGEMENT (deferred to avoid blocking initial render) ===
+  // === SOCKET ROOM MANAGEMENT (heavily deferred - not critical for initial render) ===
   useEffect(() => {
     if (!activeTenantId) return;
-    // Defer socket initialization to after initial render
+    // Defer socket initialization 2s after initial render - real-time updates aren't critical initially
     const timer = setTimeout(() => {
-      import('./services/DataService').then(({ joinTenantRoom, leaveTenantRoom }) => {
+      import('./services/DataService').then(({ joinTenantRoom }) => {
         joinTenantRoom(activeTenantId);
       });
-    }, 100);
+    }, 2000);
     return () => {
       clearTimeout(timer);
       import('./services/DataService').then(({ leaveTenantRoom }) => {
@@ -778,7 +779,7 @@ const App = () => {
   }, [logo, isLoading, isTenantSwitching, activeTenantId]);
 
   useEffect(() => {
-    if (!activeTenantId || isLoading || isTenantSwitching) return;
+    if (!activeTenantId || isLoading || isTenantSwitching || !initialDataLoadedRef.current) return;
     if (themeConfig === prevThemeConfigRef.current) return;
     if (isKeyFromSocket('theme', activeTenantId)) {
       clearSocketFlag('theme', activeTenantId);
@@ -791,7 +792,7 @@ const App = () => {
   }, [themeConfig, isLoading, isTenantSwitching, activeTenantId]);
 
   useEffect(() => {
-    if (!activeTenantId || isLoading || isTenantSwitching) return;
+    if (!activeTenantId || isLoading || isTenantSwitching || !initialDataLoadedRef.current) return;
     if (websiteConfig === prevWebsiteConfigRef.current) return;
     if (isKeyFromSocket('website', activeTenantId)) {
       clearSocketFlag('website', activeTenantId);

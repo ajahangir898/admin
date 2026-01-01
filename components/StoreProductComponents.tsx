@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Heart, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, CarouselItem, WebsiteConfig } from '../types';
 import { LazyImage } from '../utils/performanceOptimization';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
@@ -19,70 +19,87 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
   const handleBuyNow = (e?: React.MouseEvent) => { e?.stopPropagation(); onBuyNow ? onBuyNow(product) : onClick(product); };
   const handleCart = (e: React.MouseEvent) => { e.stopPropagation(); onAddToCart?.(product); };
 
-  const discountPercent = product.originalPrice && product.price 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : null;
-
   return (
-    <div 
-      className="bg-white rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative"
-      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
-    >
-      {/* Discount Badge */}
-      {(product.discount || discountPercent) && (
-        <div className="absolute top-2.5 left-2.5 z-10">
+    <div className="bg-white rounded-xl overflow-hidden flex flex-col relative shadow-sm hover:shadow-lg transition-shadow duration-300">
+      {/* Purple gradient top bar */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-1 z-10"
+        style={{ background: 'linear-gradient(to right, #8b5cf6, #ec4899)' }}
+      />
+      
+      {/* Wishlist button */}
+      <button 
+        className="absolute top-3 left-3 z-10 text-pink-400 hover:text-pink-500 transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Heart size={20} />
+      </button>
+
+      {/* Sale badge */}
+      {product.discount && (
+        <div className="absolute top-3 right-3 z-10">
           <span 
-            className="inline-flex items-center text-white text-[11px] font-bold px-2.5 py-1 rounded-md"
-            style={{ background: 'linear-gradient(to right, #ef4444, #f97316)' }}
+            className="text-white text-[10px] font-bold px-2.5 py-1 rounded"
+            style={{ background: 'linear-gradient(to right, #8b5cf6, #a855f7)' }}
           >
-            {product.discount || `-${discountPercent}%`}
+            SALE
           </span>
         </div>
       )}
 
       {/* Product Image */}
       <div 
-        className="relative aspect-square p-4 cursor-pointer overflow-hidden" 
-        style={{ background: 'linear-gradient(to bottom, #f9fafb, #ffffff)' }}
+        className="relative aspect-square p-4 pt-8 cursor-pointer bg-white" 
         onClick={() => onClick(product)}
       >
         <LazyImage 
           src={getImage(product)} 
           alt={product.name} 
-          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" 
+          className="w-full h-full object-contain" 
         />
       </div>
 
       {/* Product Details */}
-      <div className="px-3.5 pb-3.5 pt-2 flex-1 flex flex-col border-t border-gray-100">
+      <div className="px-3 pb-3 pt-2 flex-1 flex flex-col">
+        {/* Rating & Sold */}
+        <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1.5">
+          <Star size={12} className="text-yellow-400" fill="#facc15" />
+          <span className="text-gray-600">({product.reviews || 0})</span>
+          <span className="text-gray-300">|</span>
+          <span>{product.soldCount || 0} Sold</span>
+        </div>
+
+        {/* Product Name */}
         <h3 
-          className="font-semibold text-gray-800 text-[13px] leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-orange-500 transition-colors"
-          style={{ minHeight: '36px' }}
+          className="font-semibold text-gray-800 text-sm leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-cyan-600 transition-colors"
+          style={{ minHeight: '40px' }}
           onClick={() => onClick(product)}
         >
           {product.name}
         </h3>
 
+        {/* Price */}
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-lg font-bold text-orange-500">৳{product.price?.toLocaleString()}</span>
           {product.originalPrice && (
             <span className="text-xs text-gray-400 line-through">৳{product.originalPrice?.toLocaleString()}</span>
           )}
+          <span className="text-base font-bold text-cyan-600">৳{product.price?.toLocaleString()}</span>
         </div>
 
+        {/* Buttons */}
         <div className="flex gap-2 mt-auto">
           <button 
-            className="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:border-orange-300 hover:text-orange-500 hover:bg-orange-50 transition-all"
-            onClick={handleCart}
-          >
-            <ShoppingCart size={16} /> Cart
-          </button>
-          <button 
-            className="flex-1 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(to right, #f97316, #fb923c)' }}
+            className="flex-1 text-white text-sm font-bold py-2.5 rounded-lg transition-all hover:opacity-90"
+            style={{ background: 'linear-gradient(to right, #06b6d4, #22d3ee)' }}
             onClick={handleBuyNow}
           >
             Buy Now
+          </button>
+          <button 
+            className="flex items-center justify-center w-11 border-2 border-cyan-400 text-cyan-500 rounded-lg hover:bg-cyan-50 transition-all"
+            onClick={handleCart}
+          >
+            <ShoppingCart size={18} />
           </button>
         </div>
       </div>

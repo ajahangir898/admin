@@ -10,7 +10,7 @@
     "build": "npm run build:client && npm run build:server && npm run copy:html",
     "build:client": "vite build --outDir dist/client",
     "build:server": "vite build --ssr entry-server.tsx --outDir dist/server",
-    "copy:html": "cp dist/client/index.html dist/client/index.html.bak 2>/dev/null || true",
+    "copy:html": "node scripts/copy-html-backup.js",
     "start": "NODE_ENV=production node server.js",
     "preview": "vite preview",
     "test": "vitest run",

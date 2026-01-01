@@ -182,8 +182,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                     <div 
                         className="relative w-full rounded-2xl overflow-hidden shadow-xl group"
                         style={{ 
-                            minHeight: isMobile ? '180px' : '280px', 
-                            aspectRatio: isMobile ? '16/9' : '16/6' 
+                            minHeight: isMobile ? '180px' : '320px', 
+                            aspectRatio: isMobile ? '16/9' : '1260/482' 
                         }}
                     >
                         {items.map((item, index) => {

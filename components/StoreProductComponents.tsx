@@ -49,7 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
 
       {/* Product Image */}
       <div 
-        className="relative aspect-square p-4 pt-8 cursor-pointer bg-white" 
+        className="relative aspect-[4/3] p-3 pt-6 cursor-pointer bg-white" 
         onClick={() => onClick(product)}
       >
         <LazyImage 
@@ -60,10 +60,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
       </div>
 
       {/* Product Details */}
-      <div className="px-3 pb-3 pt-2 flex-1 flex flex-col">
+      <div className="px-2.5 pb-2.5 pt-1.5 flex-1 flex flex-col">
         {/* Rating & Sold */}
-        <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1.5">
-          <Star size={12} className="text-yellow-400" fill="#facc15" />
+        <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-1">
+          <Star size={10} className="text-yellow-400" fill="#facc15" />
           <span className="text-gray-600">({product.reviews || 0})</span>
           <span className="text-gray-300">|</span>
           <span>{product.soldCount || 0} Sold</span>
@@ -71,35 +71,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
 
         {/* Product Name */}
         <h3 
-          className="font-semibold text-gray-800 text-sm leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-cyan-600 transition-colors"
-          style={{ minHeight: '40px' }}
+          className="font-semibold text-gray-800 text-xs leading-tight mb-1.5 line-clamp-2 cursor-pointer hover:text-cyan-600 transition-colors"
           onClick={() => onClick(product)}
         >
           {product.name}
         </h3>
 
         {/* Price */}
-        <div className="flex items-baseline gap-2 mb-3">
+        <div className="flex items-baseline gap-1.5 mb-2">
           {product.originalPrice && (
-            <span className="text-xs text-gray-400 line-through">৳{product.originalPrice?.toLocaleString()}</span>
+            <span className="text-[10px] text-gray-400 line-through">৳{product.originalPrice?.toLocaleString()}</span>
           )}
-          <span className="text-base font-bold text-cyan-600">৳{product.price?.toLocaleString()}</span>
+          <span className="text-sm font-bold text-cyan-600">৳{product.price?.toLocaleString()}</span>
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-2 mt-auto">
+        <div className="flex gap-1.5 mt-auto">
           <button 
-            className="flex-1 text-white text-sm font-bold py-2.5 rounded-lg transition-all hover:opacity-90"
+            className="flex-1 text-white text-xs font-bold py-2 rounded-lg transition-all hover:opacity-90"
             style={{ background: 'linear-gradient(to right, #06b6d4, #22d3ee)' }}
             onClick={handleBuyNow}
           >
             Buy Now
           </button>
           <button 
-            className="flex items-center justify-center w-11 border-2 border-cyan-400 text-cyan-500 rounded-lg hover:bg-cyan-50 transition-all"
+            className="flex items-center justify-center w-9 border-2 border-cyan-400 text-cyan-500 rounded-lg hover:bg-cyan-50 transition-all"
             onClick={handleCart}
           >
-            <ShoppingCart size={18} />
+            <ShoppingCart size={16} />
           </button>
         </div>
       </div>

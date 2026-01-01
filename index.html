@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-title" content="OPBD">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-    <!-- Preconnect to API server - critical for fast data loading -->
+    <!-- Early prefetch bootstrap API - critical for fast data loading -->
     <link rel="preconnect" href="https://api.systemnextit.com" crossorigin>
     <link rel="dns-prefetch" href="https://api.systemnextit.com">
     <!-- Preconnect to critical origins -->
@@ -24,7 +24,29 @@
     <!-- Load fonts async - not render blocking -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-    <style>
+    <!-- Prefetch bootstrap data as early as possible -->
+    <script>
+      // Start fetching data before any JS loads
+      (function(){
+        var h=location.hostname,p=h.split('.'),s='public';
+        if(!h.startsWith('admin.')&&!h.startsWith('superadmin.')&&p.length>=3&&p[0]!=='www'){
+          var sub=p[0].toLowerCase().replace(/[^a-z0-9-]/g,'');
+          try{var c=localStorage.getItem('tenant_id_'+sub);if(c)s=c;}catch(e){}
+        }else{
+          try{var t=localStorage.getItem('activeTenant');if(t)s=t;}catch(e){}
+        }
+        if(s){
+          var api='https://api.systemnextit.com';
+          var link=document.createElement('link');
+          link.rel='prefetch';
+          link.href=api+'/api/tenant-data/'+s+'/bootstrap';
+          link.as='fetch';
+          link.crossOrigin='use-credentials';
+          document.head.appendChild(link);
+        }
+      })();
+    </script>
+    <!-- <style>
       /* Critical CSS - inlined for instant first paint */
       *,*::before,*::after{box-sizing:border-box}
       body{margin:0;background:#fff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
@@ -115,7 +137,7 @@
       /* Product grid fade-in */
       .grid>*{animation:fadeIn 0.2s ease-out}
       @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-    </style>
+    </style> -->
   </head>
   <body>
     <!-- Instant loading skeleton - removed by React on hydration -->

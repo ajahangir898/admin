@@ -20,12 +20,14 @@ import type {
 } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 
-// Core services - defer socket initialization
-import { DataService, joinTenantRoom, leaveTenantRoom, isKeyFromSocket, clearSocketFlag } from './services/DataService';
+// Core services - socket join/leave deferred, but sync functions needed for effects
+import { DataService, isKeyFromSocket, clearSocketFlag } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { DEFAULT_TENANT_ID } from './constants';
-import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
+
+// Defer Toaster import - not critical for initial render
+const Toaster = lazy(() => import('react-hot-toast').then(m => ({ default: m.Toaster })));
 
 // Lazy load toast to reduce initial bundle
 const toast = {
@@ -283,15 +285,20 @@ const App = () => {
 
   useEffect(() => { userRef.current = user; }, [user]);
 
-  // === SOCKET ROOM MANAGEMENT ===
+  // === SOCKET ROOM MANAGEMENT (deferred to avoid blocking initial render) ===
   useEffect(() => {
-    if (activeTenantId) {
-      joinTenantRoom(activeTenantId);
-    }
+    if (!activeTenantId) return;
+    // Defer socket initialization to after initial render
+    const timer = setTimeout(() => {
+      import('./services/DataService').then(({ joinTenantRoom, leaveTenantRoom }) => {
+        joinTenantRoom(activeTenantId);
+      });
+    }, 100);
     return () => {
-      if (activeTenantId) {
+      clearTimeout(timer);
+      import('./services/DataService').then(({ leaveTenantRoom }) => {
         leaveTenantRoom(activeTenantId);
-      }
+      });
     };
   }, [activeTenantId]);
 

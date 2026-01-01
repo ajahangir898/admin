@@ -17,9 +17,10 @@ const CRITICAL_JS_CHUNKS = [
   // Store page critical path (only above-the-fold)
   'page-storehome',
   'store-herosection',
+  'store-categoriessection',
+  'store-productgridsection',
   'cmp-storeheader',
-  // UI library chunks frequently used
-  'icons-chunk'
+  'cmp-storeproductcomponents'
 ];
 
 // Critical CSS patterns for preloading (ordered by priority)

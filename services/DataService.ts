@@ -1,16 +1,25 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload, ChatMessage, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
 import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS, DEFAULT_CAROUSEL_ITEMS } from '../constants';
 import { getAuthHeader } from './authService';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-// Socket.IO connection for real-time updates
+// Socket.IO connection for real-time updates - lazy loaded
 let socket: Socket | null = null;
 let socketInitAttempted = false;
 let pendingTenantJoin: string | null = null;
+let socketModule: typeof import('socket.io-client') | null = null;
 
-const initSocket = (): Socket | null => {
+// Lazy load socket.io-client only when needed
+const getSocketIO = async () => {
+  if (!socketModule) {
+    socketModule = await import('socket.io-client');
+  }
+  return socketModule;
+};
+
+const initSocket = async (): Promise<Socket | null> => {
   if (typeof window === 'undefined') return null;
   if (socket?.connected) return socket;
   
@@ -29,6 +38,7 @@ const initSocket = (): Socket | null => {
   console.log('[Socket.IO] Initializing connection to:', socketUrl);
   
   try {
+    const { io } = await getSocketIO();
     socket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -102,9 +112,9 @@ const initSocket = (): Socket | null => {
 };
 
 // Join tenant room for targeted updates
-export const joinTenantRoom = (tenantId: string) => {
+export const joinTenantRoom = async (tenantId: string) => {
   pendingTenantJoin = tenantId; // Store for reconnection
-  const s = initSocket();
+  const s = await initSocket();
   if (s?.connected) {
     s.emit('join-tenant', tenantId);
     console.log('[Socket.IO] Joined tenant room:', tenantId);
@@ -114,7 +124,8 @@ export const joinTenantRoom = (tenantId: string) => {
 };
 
 // Leave tenant room
-export const leaveTenantRoom = (tenantId: string) => {
+export const leaveTenantRoom = async (tenantId: string) => {
+  // Use cached socket if available (don't init just to leave)
   if (socket?.connected) {
     socket.emit('leave-tenant', tenantId);
   }

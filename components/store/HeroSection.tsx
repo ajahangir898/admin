@@ -178,21 +178,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                  onMouseEnter={() => setIsPaused(true)} 
                  onMouseLeave={() => setIsPaused(false)}>
                 <div className="flex-1 min-w-0">
-                    <div className="relative w-full aspect-[2.5/1] sm:aspect-[2.8/1] md:aspect-[3/1] rounded-2xl overflow-hidden shadow-xl group bg-gray-200">
+                    {/* Hero carousel with fixed min-height for mobile compatibility */}
+                    <div className="relative w-full rounded-2xl overflow-hidden shadow-xl group bg-gray-200" style={{ minHeight: '200px', aspectRatio: '3/1' }}>
                         {items.map((item, index) => {
                             const isActive = index === currentIndex;
                             const { href, isExternal } = getCarouselHref(item);
                             const imgSrc = item.image || '';
                             return (
                                 <a key={item.id || index} href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
-                                   className={`absolute inset-0 transition-opacity duration-500 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
+                                   style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: isActive ? 1 : 0, zIndex: isActive ? 10 : 0, transition: 'opacity 0.5s ease' }}>
                                     <img 
                                         src={imgSrc} 
                                         alt={item.name || 'Banner'} 
-                                        className="w-full h-full object-cover"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         onError={(e) => {
                                             console.log('[HeroSection] Image load error for:', imgSrc);
-                                            (e.target as HTMLImageElement).style.display = 'none';
                                         }}
                                     />
                                 </a>

@@ -143,7 +143,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     useEffect(() => { setCurrentIndex(p => p >= items.length ? 0 : p); }, [items.length]);
 
     const handleImageLoad = useCallback((i: number) => setLoadedImages(p => new Set([...p, i])), []);
-    const getImageSrc = (item: CarouselItem) => normalizeImageUrl(isMobile && item.mobileImage ? item.mobileImage : item.image);
+    const getImageSrc = (item: CarouselItem) =>
+        normalizeImageUrl(isMobile && item.mobileImage ? item.mobileImage : item.image, { disableCDN: true });
     const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + items.length) % items.length); };
 
     if (!items.length) return null;

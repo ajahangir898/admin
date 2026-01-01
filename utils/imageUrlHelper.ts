@@ -59,7 +59,15 @@ const normalizeDataUrl = (value: string): string => {
   return v;
 };
 
-export const normalizeImageUrl = (url: string | undefined | null): string => {
+export interface NormalizeImageUrlOptions {
+  /**
+   * When true, skips CDN rewriting and returns an origin/relative URL.
+   * Useful when a component has its own CDN/fallback logic.
+   */
+  disableCDN?: boolean;
+}
+
+export const normalizeImageUrl = (url: string | undefined | null, options?: NormalizeImageUrlOptions): string => {
   if (!url) return '';
 
   const cleaned = stripWrappingQuotes(url);
@@ -69,8 +77,10 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
   if (cleaned.toLowerCase().startsWith('data:')) return normalizeDataUrl(cleaned);
   if (cleaned.toLowerCase().startsWith('blob:')) return cleaned;
 
+  const cdnAllowed = !options?.disableCDN;
+
   // If CDN is enabled, prefer CDN URLs and avoid downgrading them back to origin.
-  if (isCDNEnabled()) {
+  if (cdnAllowed && isCDNEnabled()) {
     // If it's already a CDN URL, keep it.
     if (cleaned.includes('cdn.systemnextit.com') || cleaned.includes('images.systemnextit.com') || cleaned.includes('static.systemnextit.com')) {
       return cleaned;
@@ -91,9 +101,9 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
     }
   }
 
-  // CDN disabled: Convert cdn.systemnextit.com URLs to production URL (fallback if CDN doesn't have files)
+  // CDN disabled (or disabled for this call): Convert cdn.systemnextit.com URLs to production URL (fallback if CDN doesn't have files)
   if (cleaned.includes('cdn.systemnextit.com')) {
-    return cleaned.replace('https://cdn.systemnextit.com', PRODUCTION_URL);
+    return cleaned.replace(/^https?:\/\/cdn\.systemnextit\.com/i, PRODUCTION_URL);
   }
 
   // If it's already a full URL with systemnextit.com, keep it
@@ -161,7 +171,7 @@ export const getOptimizedImageUrl = (
  */
 export const normalizeImageUrls = (urls: (string | undefined | null)[] | undefined): string[] => {
   if (!urls || !Array.isArray(urls)) return [];
-  return urls.map(normalizeImageUrl).filter(Boolean);
+  return urls.map(url => normalizeImageUrl(url)).filter(Boolean);
 };
 
 /**

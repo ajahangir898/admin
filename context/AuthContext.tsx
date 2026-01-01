@@ -150,13 +150,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // Update stored data with fresh data
               localStorage.setItem(USER_KEY, JSON.stringify(data.user));
               localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(data.permissions));
-            } else {
-              // Token is invalid, clear storage
+            } else if (response.status === 401) {
+              // Token is definitively invalid (expired/revoked), clear storage
+              console.warn('[Auth] Token invalid (401), clearing session');
               clearStorage();
               setState(prev => ({ ...prev, isLoading: false }));
+            } else {
+              // Other errors (500, network issues) - keep cached session
+              console.warn('[Auth] Token validation failed with status:', response.status, '- using cached session');
+              setState({
+                user,
+                token: storedToken,
+                permissions,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null
+              });
             }
           } catch (error) {
-            // Network error, use stored data but mark as potentially stale
+            // Network error, use stored data - don't logout user
+            console.warn('[Auth] Network error during token validation, using cached session');
             setState({
               user,
               token: storedToken,

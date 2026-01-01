@@ -28,8 +28,7 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
       <div className="relative p-6 space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Fresh look</p>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Shop by category</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Shop by category</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

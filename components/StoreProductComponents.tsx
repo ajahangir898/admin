@@ -22,10 +22,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
   return (
     <div className="bg-white rounded-xl overflow-hidden flex flex-col relative shadow-sm hover:shadow-lg transition-shadow duration-300">
       {/* Gradient top bar - uses theme colors */}
-      <div 
-        className="absolute top-0 left-0 right-0 h-1 z-10"
-        style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-      />
+      <div className="absolute top-0 left-0 right-0 h-1 z-10 bg-gradient-to-r from-theme-primary to-theme-secondary" />
       
       {/* Wishlist button */}
       <button 
@@ -38,10 +35,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
       {/* Sale badge */}
       {product.discount && (
         <div className="absolute top-3 right-3 z-10">
-          <span 
-            className="text-white text-[10px] font-bold px-2.5 py-1 rounded"
-            style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-          >
+          <span className="text-white text-[10px] font-bold px-2.5 py-1 rounded bg-gradient-to-r from-theme-primary to-theme-secondary">
             SALE
           </span>
         </div>
@@ -89,16 +83,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
         {/* Buttons */}
         <div className="flex gap-2 mt-auto">
           <button 
-            className="flex-1 text-white text-sm font-bold py-2.5 rounded-lg transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }}
-            onClick={handleBuyNow}
+            className="flex-1 text-white text-sm font-bold py-2.5 rounded-lg transition-all hover:opacity-90 btn-order"
+            onClick={handleCart}
           >
-            Buy Now
+            Add to Cart
           </button>
           <button 
-            className="flex items-center justify-center w-11 border-2 rounded-lg hover:opacity-80 transition-all"
-            style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}
-            onClick={handleCart}
+            className="flex items-center justify-center w-11 border-2 border-theme-primary text-theme-primary rounded-lg hover:bg-theme-primary/10 transition-all"
+            onClick={handleBuyNow}
           >
             <ShoppingCart size={18} />
           </button>

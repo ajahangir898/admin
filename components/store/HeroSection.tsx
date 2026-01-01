@@ -107,21 +107,13 @@ const UpcomingCampaigns: React.FC<{ campaigns?: Campaign[] }> = ({ campaigns }) 
 };
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, websiteConfig }) => {
-    // Debug: Log carousel items
-    console.log('[HeroSection] carouselItems received:', carouselItems?.length, carouselItems);
-    
     const items = (
         carouselItems
-            ?.filter(i => {
-                const status = normalizeStatus(i.status);
-                console.log('[HeroSection] Item status:', i.status, '-> normalized:', status, '-> match:', status === 'publish');
-                return status === 'publish';
-            })
+            ?.filter(i => normalizeStatus(i.status) === 'publish')
             .sort((a, b) => Number(a.serial ?? 0) - Number(b.serial ?? 0)) ||
         []
     ).slice(0, MAX_CAROUSEL_ITEMS);
-    
-    console.log('[HeroSection] Filtered items:', items.length);
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
     const [isMobile, setIsMobile] = useState(false);
@@ -149,24 +141,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     useEffect(() => { setCurrentIndex(p => p >= items.length ? 0 : p); }, [items.length]);
 
     const handleImageLoad = useCallback((i: number) => {
-        console.log('[HeroSection] Image loaded:', i);
         setLoadedImages(p => new Set([...p, i]));
     }, []);
-    const getImageSrc = (item: CarouselItem) => {
-        const src = isMobile && item.mobileImage ? item.mobileImage : item.image;
-        console.log('[HeroSection] Image src:', src);
-        return src; // Don't normalize - use direct URL
-    };
+    const getImageSrc = (item: CarouselItem) => isMobile && item.mobileImage ? item.mobileImage : item.image;
     const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + items.length) % items.length); };
 
-    if (!items.length) {
-        console.log('[HeroSection] No items to display, returning null');
-        // Debug: Show what we received
-        if (typeof window !== 'undefined') {
-            console.log('[HeroSection] carouselItems was:', carouselItems);
-        }
-        return null;
-    }
+    if (!items.length) return null;
 
     // Always show carousel - don't wait for image load
     const showSkeleton = false;
@@ -200,9 +180,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                                         src={imgSrc} 
                                         alt={item.name || 'Banner'} 
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        onError={(e) => {
-                                            console.log('[HeroSection] Image load error for:', imgSrc);
-                                        }}
+                                        onError={() => {}}
                                     />
                                 </a>
                             );

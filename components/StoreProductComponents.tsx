@@ -21,12 +21,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
 
   return (
     <div className="bg-white rounded-xl overflow-hidden flex flex-col relative shadow-sm hover:shadow-lg transition-shadow duration-300">
-      {/* Gradient top bar - uses theme colors */}
-      <div className="absolute top-0 left-0 right-0 h-1 z-10 bg-gradient-to-r from-theme-primary to-theme-secondary" />
+      {/* Purple gradient top bar */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-1 z-10"
+        style={{ background: 'linear-gradient(to right, #8b5cf6, #ec4899)' }}
+      />
       
       {/* Wishlist button */}
       <button 
-        className="absolute top-3 left-3 z-10 text-theme-secondary hover:opacity-80 transition-colors"
+        className="absolute top-3 left-3 z-10 text-pink-400 hover:text-pink-500 transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         <Heart size={20} />
@@ -35,7 +38,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
       {/* Sale badge */}
       {product.discount && (
         <div className="absolute top-3 right-3 z-10">
-          <span className="text-white text-[10px] font-bold px-2.5 py-1 rounded bg-gradient-to-r from-theme-primary to-theme-secondary">
+          <span 
+            className="text-white text-[10px] font-bold px-2.5 py-1 rounded"
+            style={{ background: 'linear-gradient(to right, #8b5cf6, #a855f7)' }}
+          >
             SALE
           </span>
         </div>
@@ -65,7 +71,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
 
         {/* Product Name */}
         <h3 
-          className="font-semibold text-gray-800 text-sm leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-theme-primary transition-colors"
+          className="font-semibold text-gray-800 text-sm leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-cyan-600 transition-colors"
           style={{ minHeight: '40px' }}
           onClick={() => onClick(product)}
         >
@@ -77,20 +83,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
           {product.originalPrice && (
             <span className="text-xs text-gray-400 line-through">৳{product.originalPrice?.toLocaleString()}</span>
           )}
-          <span className="text-base font-bold text-theme-primary">৳{product.price?.toLocaleString()}</span>
+          <span className="text-base font-bold text-cyan-600">৳{product.price?.toLocaleString()}</span>
         </div>
 
         {/* Buttons */}
         <div className="flex gap-2 mt-auto">
           <button 
-            className="flex-1 text-white text-sm font-bold py-2.5 rounded-lg transition-all hover:opacity-90 btn-order"
-            onClick={handleCart}
+            className="flex-1 text-white text-sm font-bold py-2.5 rounded-lg transition-all hover:opacity-90"
+            style={{ background: 'linear-gradient(to right, #06b6d4, #22d3ee)' }}
+            onClick={handleBuyNow}
           >
-            Add to Cart
+            Buy Now
           </button>
           <button 
-            className="flex items-center justify-center w-11 border-2 border-theme-primary text-theme-primary rounded-lg hover:bg-theme-primary/10 transition-all"
-            onClick={handleBuyNow}
+            className="flex items-center justify-center w-11 border-2 border-cyan-400 text-cyan-500 rounded-lg hover:bg-cyan-50 transition-all"
+            onClick={handleCart}
           >
             <ShoppingCart size={18} />
           </button>

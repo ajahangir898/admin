@@ -786,7 +786,8 @@ const App = () => {
 
   useEffect(() => {
     if (!activeTenantId || isLoading || isTenantSwitching || !initialDataLoadedRef.current) return;
-    if (themeConfig === prevThemeConfigRef.current) return;
+    // Use JSON comparison - object references will differ even if values are the same
+    if (JSON.stringify(themeConfig) === JSON.stringify(prevThemeConfigRef.current)) return;
     if (isKeyFromSocket('theme', activeTenantId)) {
       clearSocketFlag('theme', activeTenantId);
       prevThemeConfigRef.current = themeConfig;
@@ -798,7 +799,8 @@ const App = () => {
 
   useEffect(() => {
     if (!activeTenantId || isLoading || isTenantSwitching || !initialDataLoadedRef.current) return;
-    if (websiteConfig === prevWebsiteConfigRef.current) return;
+    // Use JSON comparison - object references will differ even if values are the same
+    if (JSON.stringify(websiteConfig) === JSON.stringify(prevWebsiteConfigRef.current)) return;
     if (isKeyFromSocket('website', activeTenantId)) {
       clearSocketFlag('website', activeTenantId);
       prevWebsiteConfigRef.current = websiteConfig;

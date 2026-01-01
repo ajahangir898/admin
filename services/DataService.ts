@@ -978,14 +978,15 @@ class DataServiceImpl {
       }
     }
     
-    console.log(`[DataService] Saving ${key} for tenant ${scope}`, Array.isArray(data) ? `(${data.length} items)` : data);
+    // Don't log full data objects - they may contain large base64 images
+    console.log(`[DataService] Saving ${key} for tenant ${scope}`, Array.isArray(data) ? `(${data.length} items)` : '(object)');
     try {
       await this.persistTenantDocument(key, data, tenantId);
       // Update cache with new data
       setCachedData(key, data, tenantId);
       // NOTE: Don't call notifyDataRefresh here - the server will emit a socket event
       // that triggers the refresh. Calling it here causes infinite save loops.
-      console.log(`[DataService] Successfully saved ${key} for tenant ${scope}`);
+      console.log(`[DataService] Saved ${key}`);
     } catch (error) {
       console.error(`Failed to persist ${key}`, error);
     }

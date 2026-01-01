@@ -131,21 +131,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
         return () => clearInterval(timer);
     }, [items.length]);
 
-    // Preload first image for LCP - critical for Largest Contentful Paint
-    useEffect(() => {
-        if (!items[0]) return;
-        const href = normalizeImageUrl(isMobile && items[0].mobileImage ? items[0].mobileImage : items[0].image);
-        if (!href || href.startsWith('data:') || href.length > 2048) return;
-        // Use preload with high priority for LCP image - improves LCP metric
-        const link = Object.assign(document.createElement('link'), { 
-            rel: 'preload', 
-            as: 'image', 
-            href,
-            fetchPriority: 'high'
-        });
-        document.head.appendChild(link);
-        return () => { link.parentNode?.removeChild(link); };
-    }, [items, isMobile]);
+    // Note: we intentionally do NOT inject <link rel="preload" as="image"> here.
+    // React effects run after paint (often after window load), which can cause Chrome
+    // warnings like "preloaded but not used". We rely on the <img> fetchpriority instead.
 
     // Preload next & reset index
     useEffect(() => {

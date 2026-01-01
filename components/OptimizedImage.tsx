@@ -188,7 +188,7 @@ const OptimizedImage = memo(
             className={`w-full h-full transition-opacity duration-300 ${
               objectFit === 'contain' ? 'object-contain' : 'object-cover'
             } ${loaded ? 'opacity-100' : 'opacity-0'}`}
-            {...(priority ? { fetchPriority: 'high' as const } : {})}
+            {...(priority ? ({ fetchpriority: 'high' } as any) : {})}
           />
         )}
       </div>

@@ -133,8 +133,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
             rel: 'preload', 
             as: 'image', 
             href,
-            fetchPriority: 'high',
-            crossOrigin: 'anonymous'
+            fetchPriority: 'high'
         });
         document.head.appendChild(link);
         return () => { link.parentNode?.removeChild(link); };

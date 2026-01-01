@@ -266,10 +266,10 @@ const App = () => {
   useFacebookPixel(facebookPixelConfig);
 
   // === REFS FOR PERSISTENCE ===
-  // Initialize prev refs with cached data to prevent saves on initial load
-  const prevLogoRef = useRef<string | null>(getInitialCachedData('logo', null));
-  const prevThemeConfigRef = useRef<ThemeConfig | null>(getInitialCachedData('theme_config', null));
-  const prevWebsiteConfigRef = useRef<WebsiteConfig | undefined>(getInitialCachedData('website_config', undefined));
+  // These get updated when data loads (before setState) to prevent save triggers
+  const prevLogoRef = useRef<string | null>(null);
+  const prevThemeConfigRef = useRef<ThemeConfig | null>(null);
+  const prevWebsiteConfigRef = useRef<WebsiteConfig | undefined>(undefined);
   const ordersLoadedRef = useRef(false);
   const prevOrdersRef = useRef<Order[]>([]);
   const prevDeliveryConfigRef = useRef<DeliveryConfig[]>([]);
@@ -482,6 +482,12 @@ const App = () => {
         
         const normalizedProducts = normalizeProductCollection(bootstrapData.products, resolvedTenantId);
         setProducts(normalizedProducts);
+        
+        // Update prev refs BEFORE setting state to prevent save triggers
+        prevThemeConfigRef.current = bootstrapData.themeConfig;
+        prevWebsiteConfigRef.current = bootstrapData.websiteConfig;
+        prevProductsRef.current = normalizedProducts;
+        
         setThemeConfig(bootstrapData.themeConfig);
         setWebsiteConfig(bootstrapData.websiteConfig);
 

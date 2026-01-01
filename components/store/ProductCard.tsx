@@ -29,11 +29,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         : null;
 
     return (
-        <div className="bg-white rounded-xl border border-gray-100 hover:border-orange-200 hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative">
+        <div 
+            className="bg-white rounded-xl border border-gray-100 hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col relative"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
+        >
             {/* Discount Badge */}
             {(product.discount || discountPercent) && (
                 <div className="absolute top-2.5 left-2.5 z-10">
-                    <span className="inline-flex items-center bg-gradient-to-r from-red-500 to-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
+                    <span 
+                        className="inline-flex items-center text-white text-[11px] font-bold px-2.5 py-1 rounded-md"
+                        style={{ background: 'linear-gradient(to right, #ef4444, #f97316)' }}
+                    >
                         {product.discount || `-${discountPercent}%`}
                     </span>
                 </div>
@@ -41,7 +47,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Product Image */}
             <div 
-                className="relative aspect-square p-4 bg-gradient-to-b from-gray-50 to-white cursor-pointer overflow-hidden" 
+                className="relative aspect-square p-4 cursor-pointer overflow-hidden" 
+                style={{ background: 'linear-gradient(to bottom, #f9fafb, #ffffff)' }}
                 onClick={() => onClick(product)}
             >
                 <OptimizedImage
@@ -55,9 +62,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </div>
 
             {/* Product Details */}
-            <div className="px-3.5 pb-3.5 pt-1 flex-1 flex flex-col border-t border-gray-50">
+            <div className="px-3.5 pb-3.5 pt-2 flex-1 flex flex-col border-t border-gray-100">
                 <h3 
-                    className="font-semibold text-gray-800 text-[13px] leading-tight mb-2 line-clamp-2 min-h-[36px] cursor-pointer hover:text-orange-500 transition-colors"
+                    className="font-semibold text-gray-800 text-[13px] leading-tight mb-2 line-clamp-2 cursor-pointer hover:text-orange-500 transition-colors"
+                    style={{ minHeight: '36px' }}
                     onClick={() => onClick(product)}
                 >
                     {product.name}
@@ -78,7 +86,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         <ShoppingCart size={16} /> Cart
                     </button>
                     <button 
-                        className="flex-1 bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow-sm hover:shadow-md transition-all"
+                        className="flex-1 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all hover:opacity-90"
+                        style={{ background: 'linear-gradient(to right, #f97316, #fb923c)' }}
                         onClick={handleBuyNow}
                     >
                         Buy Now

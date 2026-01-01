@@ -3,9 +3,9 @@ import { HeroSection } from './store/HeroSection';
 import { CarouselItem } from '../types';
 
 const mockItems: CarouselItem[] = [
-  { id: '1', name: 'Hero 1', image: '/uploads/images/carousel/test/hero2.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 1 },
-  { id: '2', name: 'Hero 2', image: '/uploads/images/carousel/test/hero2.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 2 },
-  { id: '3', name: 'Draft Item', image: '/uploads/images/carousel/test/draft.webp', url: '#', urlType: 'Internal', status: 'Draft', serial: 3 },
+  { id: '1', name: 'Hero 1', image: '/uploads/images/carousel/hero1.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 1 },
+  { id: '2', name: 'Hero 2', image: '/uploads/images/carousel/hero2.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 2 },
+  { id: '3', name: 'Draft Item', image: '/uploads/images/carousel/draft.webp', url: '#', urlType: 'Internal', status: 'Draft', serial: 3 },
 ];
 
 describe('HeroSection', () => {
@@ -21,7 +21,7 @@ describe('HeroSection', () => {
           {
             id: '4',
             name: 'Lowercase Publish',
-            image: '/uploads/images/carousel/test/lower.webp',
+            image: '/uploads/images/carousel/lower.webp',
             url: '#',
             urlType: 'Internal',
             status: 'publish' as any,
@@ -41,7 +41,7 @@ describe('HeroSection', () => {
           {
             id: 'x',
             name: 'External Lowercase',
-            image: '/uploads/images/carousel/test/ext.webp',
+            image: '/uploads/images/carousel/ext.webp',
             url: 'example.com',
             urlType: 'external' as any,
             status: 'Publish',

@@ -264,7 +264,7 @@ const StoreProductDetail = ({
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, [product.id]);
-  const galleryImages = product.galleryImages && product.galleryImages.length ? product.galleryImages.map(normalizeImageUrl) : [normalizeImageUrl(product.image)];
+  const galleryImages = product.galleryImages && product.galleryImages.length ? product.galleryImages.map(url => normalizeImageUrl(url)) : [normalizeImageUrl(product.image)];
   const [selectedImage, setSelectedImage] = useState(galleryImages[0]);
   const fallbackColor = product.variantDefaults?.color || 'Default';
   const fallbackSize = product.variantDefaults?.size || 'Standard';
@@ -280,7 +280,7 @@ const StoreProductDetail = ({
   const shareUrl = `${shareBase}/${product.slug || `product-${product.id}`}`;
 
   useEffect(() => {
-    const refreshGallery = product.galleryImages && product.galleryImages.length ? product.galleryImages.map(normalizeImageUrl) : [normalizeImageUrl(product.image)];
+    const refreshGallery = product.galleryImages && product.galleryImages.length ? product.galleryImages.map(url => normalizeImageUrl(url)) : [normalizeImageUrl(product.image)];
     setSelectedImage(refreshGallery[0]);
     setSelectedImageIndex(0);
     setSelectedColor(colorOptions[0]);

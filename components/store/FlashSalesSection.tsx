@@ -1,4 +1,5 @@
 import { useState, useEffect, RefObject } from 'react';
+import { Zap } from 'lucide-react';
 import { Product } from '../../types';
 import { ProductCard } from '../StoreProductComponents';
 import { SectionHeader } from '../StoreComponents';
@@ -17,17 +18,36 @@ export const FlashSalesSection = ({ products, showCounter, countdown, onProductC
   }, [products.length, visible]);
 
   return (
-    <section ref={sectionRef}>
-      <div className="mb-1 flex items-center gap-3">
-        <SectionHeader title="⚡Flash Sales" className="text-xl text-red-600" />
-        {showCounter && <div className="inline-flex items-center gap-2 rounded-full bg-theme-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-theme-font">
-          <div className="flex items-center gap-1 text-theme-primary">
-            {countdown.map(s => <span key={s.label} className="flex min-w-[44px] flex-col items-center justify-center rounded-md border border-theme-primary/30 bg-white px-2 py-0.5 text-theme-primary shadow-sm leading-tight"><span className="text-[11px] font-black">{s.value}</span><span className="text-[7px] font-semibold uppercase tracking-tight text-theme-primary/70">{s.label}</span></span>)}
+    <section ref={sectionRef} className="py-2">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-2 rounded-lg">
+            <Zap size={20} fill="currentColor" />
+          </span>
+          <SectionHeader title="Flash Sales" className="text-xl md:text-2xl text-gray-900" />
+        </div>
+        {showCounter && (
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-theme-primary/10 to-theme-secondary/10 px-4 py-2 ml-auto">
+            <span className="text-xs font-semibold text-gray-600 hidden sm:inline">Ends in:</span>
+            <div className="flex items-center gap-1">
+              {countdown.map((s, idx) => (
+                <div key={s.label} className="flex items-center">
+                  <span className="flex flex-col items-center justify-center rounded-lg border border-theme-primary/20 bg-white px-2.5 py-1 shadow-sm min-w-[42px]">
+                    <span className="text-sm font-black text-theme-primary">{s.value}</span>
+                    <span className="text-[8px] font-semibold uppercase tracking-tight text-gray-500">{s.label}</span>
+                  </span>
+                  {idx < countdown.length - 1 && <span className="text-theme-primary font-bold mx-0.5">:</span>}
+                </div>
+              ))}
+            </div>
+            <span className="relative flex h-2.5 w-2.5 ml-1">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+            </span>
           </div>
-          <span className="relative flex items-center gap-2 text-theme-primary"><span className="h-2 w-2 animate-ping rounded-full bg-theme-primary"/></span>
-        </div>}
+        )}
       </div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {products.slice(0, visible).map(p => <ProductCard key={`flash-${p.id}`} product={p} onClick={onProductClick} onBuyNow={onBuyNow} variant={productCardStyle} onQuickView={onQuickView} onAddToCart={onAddToCart}/>)}
       </div>
     </section>

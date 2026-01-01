@@ -116,6 +116,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
     const [isMobile, setIsMobile] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
     // Detect mobile & auto-advance
     useEffect(() => {
@@ -126,14 +127,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     }, []);
 
     useEffect(() => {
-        if (items.length <= 1) return;
-        const timer = setInterval(() => setCurrentIndex(p => (p + 1) % items.length), 3500);
+        if (items.length <= 1 || isPaused) return;
+        const timer = setInterval(() => setCurrentIndex(p => (p + 1) % items.length), 4500);
         return () => clearInterval(timer);
-    }, [items.length]);
-
-    // Note: we intentionally do NOT inject <link rel="preload" as="image"> here.
-    // React effects run after paint (often after window load), which can cause Chrome
-    // warnings like "preloaded but not used". We rely on the <img> fetchpriority instead.
+    }, [items.length, isPaused]);
 
     // Preload next & reset index
     useEffect(() => {
@@ -153,36 +150,43 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     const hasCampaigns = websiteConfig?.campaigns?.some(c => normalizeStatus(c.status) === 'publish');
 
     return (
-        <div className="max-w-7xl mx-auto px-4 mt-4">
-            <div className={`flex gap-4 ${showSkeleton ? 'hidden' : ''}`}>
+        <section className="max-w-7xl mx-auto px-4 pt-4 pb-2">
+            <div className={`flex gap-4 ${showSkeleton ? 'hidden' : ''}`}
+                 onMouseEnter={() => setIsPaused(true)} 
+                 onMouseLeave={() => setIsPaused(false)}>
                 <div className="flex-1 min-w-0">
-                    <div className={`relative w-full ${isMobile && items.some(i => i.mobileImage) ? 'aspect-[16/9]' : 'aspect-[3/1] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1]'} rounded-xl overflow-hidden shadow-lg group bg-gray-100`}>
+                    <div className={`relative w-full ${isMobile && items.some(i => i.mobileImage) ? 'aspect-[16/9]' : 'aspect-[2.5/1] sm:aspect-[2.8/1] md:aspect-[3/1] lg:aspect-[3.5/1]'} rounded-2xl overflow-hidden shadow-xl group bg-gradient-to-br from-gray-100 to-gray-200`}>
                         {items.map((item, index) => {
                             const isActive = index === currentIndex;
                             const { href, isExternal } = getCarouselHref(item);
                             const hasMobileImg = isMobile && item.mobileImage;
                             return (
                                 <a key={item.id} href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
-                                   className={`absolute inset-0 transition-transform duration-300 ease-in-out ${isActive ? 'translate-x-0 z-10' : index < currentIndex ? '-translate-x-full z-0' : 'translate-x-full z-0'}`}>
+                                   className={`absolute inset-0 transition-all duration-500 ease-out ${isActive ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'}`}>
                                     {(loadedImages.has(index) || isActive) && (
-                                        <OptimizedImage src={getImageSrc(item)} alt={item.name} width={hasMobileImg ? 800 : 1600} height={hasMobileImg ? 450 : 400}
+                                        <OptimizedImage src={getImageSrc(item)} alt={item.name || 'Banner'} width={hasMobileImg ? 800 : 1600} height={hasMobileImg ? 450 : 400}
                                             priority={index === 0} placeholder="blur" objectFit="cover" className="w-full h-full" onLoad={() => handleImageLoad(index)} />
                                     )}
                                 </a>
                             );
                         })}
+                        
+                        {/* Gradient overlays for better nav visibility */}
+                        <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black/20 to-transparent z-15 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-black/20 to-transparent z-15 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                        
                         {items.length > 1 && (
                             <>
-                                <button onClick={navigate(-1)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110">
-                                    <ChevronLeft size={20} />
+                                <button onClick={navigate(-1)} aria-label="Previous slide" className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white text-gray-700 w-10 h-10 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110 backdrop-blur-sm">
+                                    <ChevronLeft size={22} strokeWidth={2.5} />
                                 </button>
-                                <button onClick={navigate(1)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110">
-                                    <ChevronRight size={20} />
+                                <button onClick={navigate(1)} aria-label="Next slide" className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white text-gray-700 w-10 h-10 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110 backdrop-blur-sm">
+                                    <ChevronRight size={22} strokeWidth={2.5} />
                                 </button>
-                                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
+                                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
                                     {items.map((_, i) => (
-                                        <button key={i} onClick={e => { e.preventDefault(); setCurrentIndex(i); }}
-                                            className={`h-2 rounded-full transition-all duration-300 shadow-sm ${i === currentIndex ? 'bg-white w-6' : 'bg-white/50 w-2 hover:bg-white/80'}`} />
+                                        <button key={i} onClick={e => { e.preventDefault(); setCurrentIndex(i); }} aria-label={`Go to slide ${i + 1}`}
+                                            className={`h-2.5 rounded-full transition-all duration-300 shadow-md ${i === currentIndex ? 'bg-white w-8' : 'bg-white/60 w-2.5 hover:bg-white/90 hover:w-3'}`} />
                                     ))}
                                 </div>
                             </>
@@ -192,7 +196,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                 {hasCampaigns && <UpcomingCampaigns campaigns={websiteConfig?.campaigns} />}
             </div>
             {showSkeleton && <HeroSkeleton />}
-        </div>
+        </section>
     );
 };
 

@@ -27,9 +27,9 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
   onAccountClick,
   searchProps
 }) => (
-  <div className="md:hidden bg-white px-3 py-2.5 border-b border-gray-100 shadow-sm sticky top-0 z-40">
+  <header className="md:hidden bg-white px-3 py-3 border-b border-gray-100 shadow-sm sticky top-0 z-50">
     {/* Top Row: Logo Left, Icons Right */}
-    <div className="flex items-center justify-between gap-2 mb-2.5">
+    <div className="flex items-center justify-between gap-3 mb-3">
       {/* Left: Logo */}
       <button type="button" className="flex items-center" onClick={onHomeClick}>
         {resolvedHeaderLogo ? (
@@ -37,53 +37,56 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
             key={logoKey}
             src={normalizeImageUrl(resolvedHeaderLogo)}
             alt="Store logo"
-            className="h-8 max-w-[120px] object-contain"
+            className="h-9 max-w-[130px] object-contain"
           />
         ) : (
-          <h1 className="text-lg font-bold tracking-tight">
-            <span className="text-green-900">YOUR</span>
-            <span className="text-theme-primary">SHOP</span>
+          <h1 className="text-xl font-black tracking-tight">
+            <span className="text-theme-primary">YOUR</span>
+            <span className="text-gray-800">SHOP</span>
           </h1>
         )}
       </button>
 
       {/* Right: Action Icons */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-1">
         <button 
           type="button" 
-          className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 transition-colors" 
+          className="relative w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors" 
           onClick={onWishlistOpen}
+          aria-label="Wishlist"
         >
-          <Heart size={20} />
+          <Heart size={21} />
           {wishlistBadgeCount > 0 && (
-            <span className="absolute top-0.5 right-0.5 bg-theme-primary text-white text-[9px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center">
-              {wishlistBadgeCount}
+            <span className="absolute top-1 right-1 bg-theme-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center shadow-sm">
+              {wishlistBadgeCount > 9 ? '9+' : wishlistBadgeCount}
             </span>
           )}
         </button>
         <button 
           type="button" 
-          className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 transition-colors" 
+          className="relative w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors" 
           onClick={onCartOpen}
+          aria-label="Cart"
         >
-          <ShoppingCart size={20} />
+          <ShoppingCart size={21} />
           {cartBadgeCount > 0 && (
-            <span className="absolute top-0.5 right-0.5 bg-theme-primary text-white text-[9px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center">
-              {cartBadgeCount}
+            <span className="absolute top-1 right-1 bg-theme-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center shadow-sm">
+              {cartBadgeCount > 9 ? '9+' : cartBadgeCount}
             </span>
           )}
         </button>
         <button 
           type="button" 
-          className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 transition-colors" 
+          className="relative w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors" 
           onClick={onAccountClick}
+          aria-label="Account"
         >
-          <User size={20} />
+          <User size={21} />
         </button>
       </div>
     </div>
 
     {/* Bottom Row: Search Bar */}
     <MobileSearchBar {...searchProps} />
-  </div>
+  </header>
 );

@@ -817,7 +817,7 @@ export const AdminHeader: React.FC<{
 							onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 						>
 							<div className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0 shadow-sm">
-								<img src={user?.image || ''} alt="User Avatar" className="w-full h-full object-cover" />	
+								{/* <img src={user?.image || ''} alt="User Avatar" className="w-full h-full object-cover" />	 */}
 							</div>
 						</div>
 

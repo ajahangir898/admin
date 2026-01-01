@@ -23,7 +23,7 @@ const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m 
 const ProductQuickViewModal = lazy(() => import('../components/store/ProductQuickViewModal').then(m => ({ default: m.ProductQuickViewModal })));
 const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
 const StoreCategoryProducts = lazy(() => import('../components/StoreCategoryProducts'));
-const PromoBanner = lazy(() => import('../components/store/PromoBanner').then(m => ({ default: m.PromoBanner })));
+// const PromoBanner = lazy(() => import('../components/store/PromoBanner').then(m => ({ default: m.PromoBanner })));
 const SearchResultsSection = lazy(() => import('../components/store/SearchResultsSection').then(m => ({ default: m.SearchResultsSection })));
 
 const LOCAL_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -788,7 +788,7 @@ const StoreHome = ({
 
             {/* OMG Fashion Banner */}
             <Suspense fallback={null}>
-              <PromoBanner />
+              {/* <PromoBanner /> */}
             </Suspense>
 
             {/* Popular Products - loaded eagerly */}

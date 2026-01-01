@@ -20,7 +20,6 @@ export { ProductGridSection } from './ProductGridSection';
 export { PromoBanner } from './PromoBanner';
 export { CategoriesSection } from './CategoriesSection';
 export { SearchResultsSection } from './SearchResultsSection';
-export { default as CategorySectionMobile } from './CategorySectionMobile';
 
 // Helper components from HeroSection (not lazy, small)
 export { CategoryCircle, CategoryPill, SectionHeader } from './HeroSection';

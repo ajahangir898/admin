@@ -6,6 +6,7 @@ const toPosixPath = (id: string) => id.split('\\').join('/');
 
 // Critical chunks that should be modulepreloaded for parallel loading
 // Priority order matters - these will load in parallel instead of sequentially
+// Keep this list MINIMAL - only truly critical above-the-fold chunks
 const CRITICAL_JS_CHUNKS = [
   // Core React chunks - required for any rendering
   'react-dom',
@@ -14,13 +15,11 @@ const CRITICAL_JS_CHUNKS = [
   'react-jsx-runtime',
   // App entry chunks
   'index-',
-  // Store page critical path (only above-the-fold)
+  // Store page critical path - ONLY above-the-fold
   'page-storehome',
   'store-herosection',
-  'store-categoriessection',
-  'store-productgridsection',
-  'cmp-storeheader',
-  'cmp-storeproductcomponents'
+  'cmp-storeheader'
+  // Note: icons-chunk, categoriessection, productgrid deferred to reduce initial load
 ];
 
 // Critical CSS patterns for preloading (ordered by priority)

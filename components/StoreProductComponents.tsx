@@ -88,17 +88,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
         {/* Buttons */}
         <div className="flex gap-1.5 mt-auto">
           <button 
+            className="flex items-center justify-center w-9 border-2 border-cyan-400 text-cyan-500 rounded-lg hover:bg-cyan-50 transition-all"
+            onClick={handleCart}
+          >
+            <ShoppingCart size={16} />
+          </button>
+          <button 
             className="flex-1 text-white text-xs font-bold py-2 rounded-lg transition-all hover:opacity-90"
             style={{ background: 'linear-gradient(to right, #06b6d4, #22d3ee)' }}
             onClick={handleBuyNow}
           >
             Buy Now
-          </button>
-          <button 
-            className="flex items-center justify-center w-9 border-2 border-cyan-400 text-cyan-500 rounded-lg hover:bg-cyan-50 transition-all"
-            onClick={handleCart}
-          >
-            <ShoppingCart size={16} />
           </button>
         </div>
       </div>

@@ -12,7 +12,28 @@ interface AdminDeliverySettingsProps {
 
 const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, onSave, onBack }) => {
   const [activeTab, setActiveTab] = useState<'Regular' | 'Express' | 'Free'>('Regular');
-  const [localConfigs, setLocalConfigs] = useState<DeliveryConfig[]>(configs);
+  
+  // Default delivery config
+  const defaultConfig: DeliveryConfig = {
+    type: 'Regular',
+    isEnabled: false,
+    division: 'Dhaka',
+    insideCharge: 60,
+    outsideCharge: 120,
+    freeThreshold: 0,
+    note: ''
+  };
+  
+  // Ensure we always have all 3 config types
+  const ensureAllConfigs = (inputConfigs: DeliveryConfig[]): DeliveryConfig[] => {
+    const types = ['Regular', 'Express', 'Free'] as const;
+    return types.map(type => {
+      const existing = inputConfigs?.find(c => c.type === type);
+      return existing || { ...defaultConfig, type };
+    });
+  };
+  
+  const [localConfigs, setLocalConfigs] = useState<DeliveryConfig[]>(ensureAllConfigs(configs));
   const [isFormVisible, setIsFormVisible] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -20,10 +41,10 @@ const AdminDeliverySettings: React.FC<AdminDeliverySettingsProps> = ({ configs, 
 
   // Sync with props if they change externally
   useEffect(() => {
-    setLocalConfigs(configs);
+    setLocalConfigs(ensureAllConfigs(configs));
   }, [configs]);
 
-  const activeConfig = localConfigs.find(c => c.type === activeTab) || localConfigs[0];
+  const activeConfig = localConfigs.find(c => c.type === activeTab) || defaultConfig;
 
   const handleUpdateConfig = (field: keyof DeliveryConfig, value: any) => {
     const updated = localConfigs.map(c => 

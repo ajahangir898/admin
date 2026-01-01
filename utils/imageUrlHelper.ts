@@ -2,6 +2,8 @@
  * Normalizes image URLs to use current domain or production domain
  * Fixes legacy localhost URLs from development
  */
+import { getCDNImageUrl, isCDNEnabled } from '../config/cdnConfig';
+
 const getBaseUrl = (): string => {
   // In browser, use current origin for uploads to avoid CORS issues
   if (typeof window !== 'undefined') {
@@ -38,12 +40,34 @@ export const normalizeImageUrl = (url: string | undefined | null): string => {
   if (url.startsWith('data:')) {
     return url;
   }
-  
-  // Convert cdn.systemnextit.com URLs to production URL (CDN may not have the files)
+
+  // If CDN is enabled, prefer CDN URLs and avoid downgrading them back to origin.
+  if (isCDNEnabled()) {
+    // If it's already a CDN URL, keep it.
+    if (url.includes('cdn.systemnextit.com') || url.includes('images.systemnextit.com') || url.includes('static.systemnextit.com')) {
+      return url;
+    }
+
+    // If it's a systemnextit.com upload URL, CDN-ify it.
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      if (url.includes('systemnextit.com') && url.includes('/uploads')) {
+        return getCDNImageUrl(url);
+      }
+      // External URL
+      return url;
+    }
+
+    // Relative upload paths should go through CDN.
+    if (url.startsWith('/uploads') || url.startsWith('uploads/')) {
+      return getCDNImageUrl(url);
+    }
+  }
+
+  // CDN disabled: Convert cdn.systemnextit.com URLs to production URL (fallback if CDN doesn't have files)
   if (url.includes('cdn.systemnextit.com')) {
     return url.replace('https://cdn.systemnextit.com', PRODUCTION_URL);
   }
-  
+
   // If it's already a full URL with systemnextit.com, keep it
   if (url.includes('systemnextit.com')) {
     return url;

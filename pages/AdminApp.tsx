@@ -46,16 +46,7 @@ let adminChunksPreloaded = false;
 export const preloadAdminChunks = () => {
   if (adminChunksPreloaded) return;
   adminChunksPreloaded = true;
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(() => {
-      import('./AdminDashboard');
-    }, { timeout: 3000 });
-  } else {
-    // Fallback for browsers without requestIdleCallback
-    setTimeout(() => {
-      import('./AdminDashboard');
-    }, 100);
-  }
+  // Preloading disabled to avoid long-pending chunk requests on initial load.
 };
 
 // Simple loading fallback for lazy-loaded sections

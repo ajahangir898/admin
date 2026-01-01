@@ -35,9 +35,15 @@ const CRITICAL_CSS_PATTERNS = [
  * This dramatically reduces sequential loading waterfall
  */
 function criticalPreloadPlugin(): Plugin {
+  let resolvedBase = '/';
+
   return {
     name: 'critical-preload',
     enforce: 'post',
+    configResolved(config) {
+      const base = config.base || '/';
+      resolvedBase = base.endsWith('/') ? base : `${base}/`;
+    },
     transformIndexHtml(html, ctx) {
       // Only process in build mode
       if (!ctx.bundle) return html;
@@ -65,7 +71,7 @@ function criticalPreloadPlugin(): Plugin {
           allJsChunks.push(fileName);
           if (CRITICAL_JS_CHUNKS.some(name => fileName.includes(name))) {
             // Add fetchpriority="high" for critical chunks
-            modulepreloadLinks.push(`<link rel="modulepreload" href="/${fileName}" fetchpriority="high" />`);
+            modulepreloadLinks.push(`<link rel="modulepreload" href="${resolvedBase}${fileName}" fetchpriority="high" crossorigin />`);
           }
         }
       }
@@ -75,7 +81,7 @@ function criticalPreloadPlugin(): Plugin {
 
       // Create preload hints for CSS with crossorigin for subdomain support
       const cssPreloads = cssFiles.map(({ fileName }) => 
-        `<link rel="preload" href="/${fileName}" as="style" fetchpriority="high" />`
+        `<link rel="preload" href="${resolvedBase}${fileName}" as="style" fetchpriority="high" crossorigin />`
       ).join('\n    ');
 
       const allPreloads = [cssPreloads, ...modulepreloadLinks].filter(Boolean).join('\n    ');
@@ -235,7 +241,11 @@ export default defineConfig(({ mode, isSsrBuild }) => {
     // When VITE_CDN_ENABLED is true and VITE_CDN_STATIC_URL is set, use it as base URL for assets
     const cdnEnabled = env.VITE_CDN_ENABLED === 'true';
     const cdnStaticUrl = env.VITE_CDN_STATIC_URL || env.VITE_CDN_BASE_URL || '';
-    const baseUrl = (mode === 'production' && cdnEnabled && cdnStaticUrl) ? cdnStaticUrl : '/';
+    const normalizeBase = (value: string) => {
+      if (!value || value === '/') return '/';
+      return value.endsWith('/') ? value : `${value}/`;
+    };
+    const baseUrl = (mode === 'production' && cdnEnabled && cdnStaticUrl) ? normalizeBase(cdnStaticUrl) : '/';
     
     return {
       // Set base URL for all assets (CDN in production if configured)

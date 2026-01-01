@@ -55,6 +55,39 @@ async function createServer() {
   // Use aggressive compression for faster responses
   app.use(compression({ level: 6, threshold: 0 }));
 
+  // Allow static assets to be requested cross-origin (e.g., static.* CDN subdomain)
+  // This is required for ES module scripts when Vite `base` points to a different origin.
+  app.use((req, res, next) => {
+    const url = (req.url || '').toLowerCase();
+    const isAssetRequest =
+      url.startsWith('/assets/') ||
+      url.endsWith('.js') ||
+      url.endsWith('.css') ||
+      url.endsWith('.woff') ||
+      url.endsWith('.woff2') ||
+      url.endsWith('.ttf') ||
+      url.endsWith('.eot') ||
+      url.endsWith('.svg') ||
+      url.endsWith('.png') ||
+      url.endsWith('.jpg') ||
+      url.endsWith('.jpeg') ||
+      url.endsWith('.webp') ||
+      url.endsWith('.gif');
+
+    if (isAssetRequest) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
+      res.setHeader('Timing-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+      if (req.method === 'OPTIONS') {
+        return res.status(204).end();
+      }
+    }
+
+    next();
+  });
+
   // Block access to sensitive files and directories
   app.use((req, res, next) => {
     const blocked = ['.git', '.env', '.htaccess', '.svn', 'wp-admin', 'wp-login', 'phpinfo', '.DS_Store'];

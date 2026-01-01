@@ -1197,7 +1197,8 @@ const App = () => {
                   <>
                     <StoreHome 
                       products={products} 
-                      orders={orders} 
+                      orders={orders}
+                      tenantId={activeTenantId}
                       onProductClick={handleProductClick} 
                       onQuickCheckout={(product, quantity, variant) => handleCheckoutStart(product, quantity, variant)} 
                       wishlistCount={wishlist.length} 
@@ -1243,7 +1244,8 @@ const App = () => {
                 <Suspense fallback={null}>
                   <StoreProductDetail 
                     product={selectedProduct} 
-                    orders={orders} 
+                    orders={orders}
+                    tenantId={activeTenantId}
                     onBack={() => setCurrentView('store')} 
                     onProductClick={handleProductClick} 
                     wishlistCount={wishlist.length} 

@@ -8,6 +8,7 @@ import { getInitialCachedData } from '../utils/appHelpers';
 // Lazy load utilities - only import when needed
 const getSlugify = () => import('../services/slugify').then(m => m.slugify);
 const getDataService = () => import('../services/DataService').then(m => m.DataService);
+const getTrackPageView = () => import('../hooks/useVisitorStats').then(m => m.trackPageView);
 
 // Critical above-the-fold components - loaded EAGERLY for instant render
 import { StoreHeader } from '../components/StoreHeader';
@@ -51,6 +52,7 @@ const slugify = (text: string) => text?.toLowerCase().replace(/[^a-z0-9]+/g, '-'
 interface StoreHomeProps {
   products?: Product[];
   orders?: Order[];
+  tenantId?: string;
   onProductClick: (p: Product) => void;
   onQuickCheckout?: (p: Product, quantity: number, variant: ProductVariantSelection) => void;
   wishlistCount: number;
@@ -83,6 +85,7 @@ interface StoreHomeProps {
 const StoreHome = ({ 
   products,
   orders,
+  tenantId,
   onProductClick, 
   onQuickCheckout,
   wishlistCount, 
@@ -124,6 +127,23 @@ const StoreHome = ({
   
   // Category view state - shows category products page when a category is selected
   const [selectedCategoryView, setSelectedCategoryView] = useState<string | null>(null);
+
+  // Track page view for visitor analytics
+  useEffect(() => {
+    if (!tenantId) return;
+    const trackVisit = async () => {
+      try {
+        const trackPageView = await getTrackPageView();
+        const page = selectedCategoryView 
+          ? `/category/${selectedCategoryView}` 
+          : window.location.pathname || '/';
+        trackPageView(tenantId, page);
+      } catch (err) {
+        console.warn('Failed to track page view:', err);
+      }
+    };
+    trackVisit();
+  }, [tenantId, selectedCategoryView]);
 
   // Sync category view with URL filter
   useEffect(() => {

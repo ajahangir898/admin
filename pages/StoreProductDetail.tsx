@@ -8,6 +8,9 @@ const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m 
 const AddToCartSuccessModal = lazy(() => import('../components/store/AddToCartSuccessModal').then(m => ({ default: m.AddToCartSuccessModal })));
 const MobileBottomNav = lazy(() => import('../components/store/MobileBottomNav').then(m => ({ default: m.MobileBottomNav })));
 
+// Lazy load visitor tracking
+const getTrackPageView = () => import('../hooks/useVisitorStats').then(m => m.trackPageView);
+
 // Skeleton loaders removed for faster initial render
 
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -176,6 +179,7 @@ const selectRelatedProducts = (current: Product, catalog: Product[]): RelatedPro
 interface StoreProductDetailProps {
   product: Product;
   orders?: Order[];
+  tenantId?: string;
   onBack: () => void;
   onProductClick: (p: Product) => void;
   wishlistCount: number;
@@ -204,6 +208,7 @@ interface StoreProductDetailProps {
 const StoreProductDetail = ({ 
   product, 
   orders,
+  tenantId,
   onBack, 
   onProductClick, 
   wishlistCount, 
@@ -238,6 +243,21 @@ const StoreProductDetail = ({
   const [isLoading, setIsLoading] = useState(true);
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  // Track product page view
+  useEffect(() => {
+    if (!tenantId || !product) return;
+    const trackVisit = async () => {
+      try {
+        const trackPageView = await getTrackPageView();
+        const page = `/product/${product.slug || product.id}`;
+        trackPageView(tenantId, page);
+      } catch (err) {
+        console.warn('Failed to track page view:', err);
+      }
+    };
+    trackVisit();
+  }, [tenantId, product?.id]);
 
   // Simulate initial data loading
   useEffect(() => {

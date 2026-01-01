@@ -25,7 +25,7 @@ export const DEFAULT_CAROUSEL_ITEMS: CarouselItem[] = [
   {
     id: 'default-carousel-1',
     name: 'Default Carousel 1',
-    image: 'https://cdn.saleecom.com/upload/images/68bbf4248714966ad419dbef/11-a8bc.webp?resolution=7174_2454',
+    image: '',
     url: '#',
     urlType: 'External',
     serial: 1,
@@ -34,7 +34,7 @@ export const DEFAULT_CAROUSEL_ITEMS: CarouselItem[] = [
   {
     id: 'default-carousel-2',
     name: 'Default Carousel 2',
-    image: 'https://cdn.saleecom.com/upload/images/68bbf4248714966ad419dbef/12-eff3.webp',
+    image: '',
     url: '#',
     urlType: 'External',
     serial: 2,

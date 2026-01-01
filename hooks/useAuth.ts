@@ -40,7 +40,12 @@ export function useAuth({
       (tenant) => tenant.adminEmail?.toLowerCase() === formattedEmailLower && tenant.adminPassword === formattedPass
     );
     if (tenantAdmin) {
-      const adminUser: User = {
+      // Check if this tenant_admin exists in users array (with saved profile data)
+      const existingUser = users.find(u => u.email?.toLowerCase() === formattedEmailLower);
+      const adminUser: User = existingUser ? {
+        ...existingUser,
+        tenantId: tenantAdmin.id
+      } : {
         name: `${tenantAdmin.name} Admin`,
         email: formattedEmail,
         role: 'tenant_admin',

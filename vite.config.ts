@@ -123,6 +123,9 @@ const vendorChunkMatchers = [
   { name: 'react-jsx-runtime', matcher: /node_modules\/react\/jsx-runtime/ },
   { name: 'react-core', matcher: /node_modules\/react\// },
   { name: 'scheduler', matcher: /node_modules\/scheduler\// },
+  // Split heavy dependencies into separate chunks for better caching
+  { name: 'pkg-toast', matcher: /node_modules\/react-hot-toast\// },
+  { name: 'pkg-socket', matcher: /node_modules\/socket\.io/ },
   { name: 'icons-chunk', matcher: /node_modules\/lucide-react\// }
 ];
 

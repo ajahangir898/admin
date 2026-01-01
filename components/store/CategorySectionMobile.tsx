@@ -3,7 +3,12 @@ import {
   ChevronRight, Shirt, Monitor, Home, ShoppingCart, 
   Sparkles, Smartphone, Heart, Gift, Loader2, Send, Bot, X 
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+
+// Lazy load toast to avoid including in initial bundle
+const showToast = {
+  success: (msg: string) => import('react-hot-toast').then(m => m.default.success(msg)),
+  error: (msg: string) => import('react-hot-toast').then(m => m.default.error(msg)),
+};
 
 // --- Gemini API Configuration ---
 // TODO: Move API key to environment variables for production
@@ -84,7 +89,7 @@ const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ categorie
   // Feature 1: ✨ AI Category Suggestion
   const handleAiSuggest = async () => {
     if (!API_URL) {
-      toast.error('AI features require API key configuration');
+      showToast.error('AI features require API key configuration');
       return;
     }
     
@@ -119,11 +124,11 @@ const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ categorie
       
       setCategories(prev => [newCat, ...prev]);
       if (scrollRef.current) scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-      toast.success('New category added!');
+      showToast.success('New category added!');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get AI suggestion';
       console.error("AI Suggestion failed:", err);
-      toast.error(errorMessage.includes('API key') ? 'API key not configured' : 'AI suggestion failed. Please try again.');
+      showToast.error(errorMessage.includes('API key') ? 'API key not configured' : 'AI suggestion failed. Please try again.');
     } finally {
       setIsSuggesting(false);
     }
@@ -133,7 +138,7 @@ const CategorySectionMobile: React.FC<CategorySectionMobileProps> = ({ categorie
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
     if (!API_URL) {
-      toast.error('AI chat requires API key configuration');
+      showToast.error('AI chat requires API key configuration');
       return;
     }
     

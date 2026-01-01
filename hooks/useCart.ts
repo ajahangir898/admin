@@ -1,8 +1,20 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Product, User, ProductVariantSelection } from '../types';
 import { DataService } from '../services/DataService';
-import { toast } from 'react-hot-toast';
 import { CART_STORAGE_KEY, ensureVariantSelection } from '../utils/appHelpers';
+
+// Lazy load toast to avoid including 20KB in initial bundle
+let toastModule: typeof import('react-hot-toast') | null = null;
+const getToast = async () => {
+  if (toastModule) return toastModule;
+  toastModule = await import('react-hot-toast');
+  return toastModule;
+};
+const showToast = {
+  success: (msg: string) => getToast().then(m => m.toast.success(msg)),
+  error: (msg: string) => getToast().then(m => m.toast.error(msg)),
+  info: (msg: string) => getToast().then(m => m.toast(msg)),
+};
 
 interface Options { user: User | null; products: Product[]; tenantId?: string; }
 
@@ -28,22 +40,22 @@ export function useCart({ user, products, tenantId }: Options) {
   const handleCartToggle = useCallback((id: number, opts?: { silent?: boolean }) => {
     setCart(p => {
       const has = p.includes(id), next = has ? p.filter(x => x !== id) : [...p, id];
-      if (!opts?.silent) toast[has ? 'success' : 'success'](has ? 'Removed from cart' : 'Added to cart');
+      if (!opts?.silent) showToast.success(has ? 'Removed from cart' : 'Added to cart');
       return next;
     });
   }, []);
 
   const handleAddProductToCart = useCallback((p: Product, qty = 1, v?: ProductVariantSelection | null, opts?: { silent?: boolean }) => {
     setCart(prev => {
-      if (prev.includes(p.id)) { if (!opts?.silent) toast('Already in cart'); return prev; }
-      if (!opts?.silent) toast.success(`${p.name} added to cart`);
+      if (prev.includes(p.id)) { if (!opts?.silent) showToast.info('Already in cart'); return prev; }
+      if (!opts?.silent) showToast.success(`${p.name} added to cart`);
       return [...prev, p.id];
     });
   }, []);
 
   const handleCheckoutFromCart = useCallback((id: number, onCheckout: (p: Product, q: number, v: ProductVariantSelection) => void) => {
     const p = products.find(x => x.id === id);
-    if (!p) { toast.error('Product unavailable'); return; }
+    if (!p) { showToast.error('Product unavailable'); return; }
     onCheckout(p, 1, ensureVariantSelection(p));
   }, [products]);
 

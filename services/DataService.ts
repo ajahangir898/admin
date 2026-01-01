@@ -511,20 +511,28 @@ class DataServiceImpl {
     console.log(`[DataService] Bootstrap loading for tenant: ${scope}${isBackground ? ' (background)' : ''}`);
 
     try {
-      // Check if we have prefetched data from entry-client.tsx
+      // Check if we have prefetched data from index.html XHR (fastest)
       let responseData: { data: { products: Product[] | null; theme_config: ThemeConfig | null; website_config: WebsiteConfig | null } } | null = null;
       
-      if (!isBackground && typeof window !== 'undefined' && (window as any).__PREFETCHED_BOOTSTRAP__) {
-        try {
-          const prefetched = await (window as any).__PREFETCHED_BOOTSTRAP__;
-          if (prefetched?.data) {
-            console.log('[DataService] Using prefetched bootstrap data');
-            responseData = prefetched;
-            // Clear prefetch to avoid reuse
-            delete (window as any).__PREFETCHED_BOOTSTRAP__;
+      if (!isBackground && typeof window !== 'undefined') {
+        // First check XHR prefetch from index.html (synchronous, already loaded)
+        if ((window as any).__BOOTSTRAP_DATA__?.data) {
+          console.log('[DataService] Using XHR prefetched bootstrap data (instant)');
+          responseData = (window as any).__BOOTSTRAP_DATA__;
+          delete (window as any).__BOOTSTRAP_DATA__;
+        }
+        // Fallback to entry-client.tsx prefetch
+        else if ((window as any).__PREFETCHED_BOOTSTRAP__) {
+          try {
+            const prefetched = await (window as any).__PREFETCHED_BOOTSTRAP__;
+            if (prefetched?.data) {
+              console.log('[DataService] Using prefetched bootstrap data');
+              responseData = prefetched;
+              delete (window as any).__PREFETCHED_BOOTSTRAP__;
+            }
+          } catch (e) {
+            console.warn('[DataService] Prefetch failed, fetching fresh');
           }
-        } catch (e) {
-          console.warn('[DataService] Prefetch failed, fetching fresh');
         }
       }
       

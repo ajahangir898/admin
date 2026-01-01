@@ -1,13 +1,18 @@
 // StoreHeader orchestrates layout, state, and async modals for the storefront header.
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Product, User as UserType, WebsiteConfig } from '../types';
-import { toast } from 'react-hot-toast';
 import { PRODUCTS } from '../constants';
 import { AdminNoticeTicker } from './store/header/AdminNoticeTicker';
 import { MobileHeaderBar } from './store/header/MobileHeaderBar';
 import { DesktopHeaderBar } from './store/header/DesktopHeaderBar';
 import { StoreHeaderModals } from './store/header/StoreHeaderModals';
 import type { CatalogGroup, HeaderSearchProps } from './store/header/headerTypes';
+
+// Lazy load toast - avoid sync import of heavy dependency
+const showToast = {
+  error: (msg: string) => import('react-hot-toast').then(m => m.toast.error(msg)),
+  success: (msg: string) => import('react-hot-toast').then(m => m.toast.success(msg)),
+};
 
 export interface StoreHeaderProps {
   onTrackOrder?: () => void;
@@ -207,7 +212,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
       if (onToggleCart) {
         onToggleCart(productId);
       } else {
-        toast.error('Cart unavailable right now');
+        showToast.error('Cart unavailable right now');
       }
     },
     [onToggleCart]
@@ -218,7 +223,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
       if (onToggleWishlist) {
         onToggleWishlist(productId);
       } else {
-        toast.error('Wishlist unavailable right now');
+        showToast.error('Wishlist unavailable right now');
       }
     },
     [onToggleWishlist]
@@ -230,7 +235,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
         onCheckoutFromCart(productId);
         setIsCartDrawerOpen(false);
       } else {
-        toast.error('Checkout unavailable right now');
+        showToast.error('Checkout unavailable right now');
       }
     },
     [onCheckoutFromCart]
@@ -250,7 +255,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
   );
 
   const notifyVoiceSearchIssue = useCallback((message: string) => {
-    if (message) toast.error(message);
+    if (message) showToast.error(message);
   }, []);
 
   const buildRecognition = useCallback(() => {

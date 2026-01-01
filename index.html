@@ -31,12 +31,13 @@
         }
         if(s){
           var api='https://api.systemnextit.com';
-          var link=document.createElement('link');
-          link.rel='prefetch';
-          link.href=api+'/api/tenant-data/'+s+'/bootstrap';
-          link.as='fetch';
-          link.crossOrigin='use-credentials';
-          document.head.appendChild(link);
+          // Use preconnect + fetch for fastest possible data loading
+          var xhr=new XMLHttpRequest();
+          xhr.open('GET',api+'/api/tenant-data/'+s+'/bootstrap',true);
+          xhr.withCredentials=true;
+          xhr.responseType='json';
+          xhr.onload=function(){if(xhr.status===200)window.__BOOTSTRAP_DATA__=xhr.response;};
+          xhr.send();
         }
       })();
     </script>

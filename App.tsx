@@ -26,13 +26,19 @@ import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { DEFAULT_TENANT_ID } from './constants';
 import { ThemeProvider } from './context/ThemeContext';
 
-// Defer Toaster import - not critical for initial render
+// Defer Toaster import - not critical for initial render (loads ~20KB)
 const Toaster = lazy(() => import('react-hot-toast').then(m => ({ default: m.Toaster })));
 
-// Lazy load toast to reduce initial bundle
+// Lazy load toast - cached after first use for instant subsequent calls
+let toastModule: typeof import('react-hot-toast') | null = null;
+const getToast = async () => {
+  if (toastModule) return toastModule;
+  toastModule = await import('react-hot-toast');
+  return toastModule;
+};
 const toast = {
-  success: (msg: string) => import('react-hot-toast').then(m => m.toast.success(msg)),
-  error: (msg: string) => import('react-hot-toast').then(m => m.toast.error(msg)),
+  success: (msg: string) => getToast().then(m => m.toast.success(msg)),
+  error: (msg: string) => getToast().then(m => m.toast.error(msg)),
 };
 
 // Extracted utilities and hooks
@@ -115,18 +121,18 @@ const StoreChatModal = lazy(() => import('./components/store/StoreChatModal').th
 // Skeleton loaders for better UX
 import { SuperAdminDashboardSkeleton } from './components/SkeletonLoaders';
 
-// Preload critical chunks during idle time
+// Preload non-critical chunks during idle time (after initial render)
 if (typeof window !== 'undefined') {
   const preload = () => {
+    // Only preload after user has interacted or after 5s
     Promise.all([
-      import('./pages/StoreHome'),
       import('./components/store/MobileBottomNav'),
-      import('./pages/StoreCheckout'), // Preload checkout
     ]).catch(() => {});
   };
   
+  // Delay preloading to prioritize initial render
   if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(preload, { timeout: 2000 });
+    (window as any).requestIdleCallback(preload, { timeout: 5000 });
   } else {
     setTimeout(preload, 100);
   }

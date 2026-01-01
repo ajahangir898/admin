@@ -45,7 +45,7 @@ const AdminDailyTarget: React.FC = () => {
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          {/* <h2 className="text-2xl font-bold text-gray-800">Daily Target</h2> */}
+       
           <p className="text-sm text-gray-500">Set and track your daily revenue targets with ease.</p>
         </div>
         <div className="flex items-center gap-2 text-sm bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm">

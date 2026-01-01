@@ -6,7 +6,6 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { Tenant, User, CreateTenantPayload } from '../types';
 import { DEFAULT_TENANT_ID } from '../constants';
 import { DataService } from '../services/DataService';
-import { toast } from 'react-hot-toast';
 import { 
   sanitizeSubdomainSlug, 
   getHostTenantSlug, 
@@ -15,6 +14,18 @@ import {
   ACTIVE_TENANT_STORAGE_KEY,
   DEFAULT_TENANT_SLUG 
 } from '../utils/appHelpers';
+
+// Lazy load toast to avoid including in initial bundle
+let toastModule: typeof import('react-hot-toast') | null = null;
+const getToast = async () => {
+  if (toastModule) return toastModule;
+  toastModule = await import('react-hot-toast');
+  return toastModule;
+};
+const showToast = {
+  success: (msg: string) => getToast().then(m => m.toast.success(msg)),
+  error: (msg: string) => getToast().then(m => m.toast.error(msg)),
+};
 
 export function useTenant() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -96,7 +107,7 @@ export function useTenant() {
     setHostTenantId(matchedTenant ? matchedTenant.id : null);
 
     if (desiredSlug && !matchedTenant && !hostTenantWarningRef.current) {
-      toast.error(`No storefront configured for ${desiredSlug}.`);
+      showToast.error(`No storefront configured for ${desiredSlug}.`);
       hostTenantWarningRef.current = true;
     }
 
@@ -150,7 +161,7 @@ export function useTenant() {
   ) => {
     if (!tenantId || tenantId === activeTenantId) return;
     if (hostTenantId && tenantId !== hostTenantId) {
-      toast.error('This subdomain is locked to its storefront. Use the primary admin domain to switch tenants.');
+      showToast.error('This subdomain is locked to its storefront. Use the primary admin domain to switch tenants.');
       return;
     }
     tenantSwitchTargetRef.current = tenantId;
@@ -192,12 +203,12 @@ export function useTenant() {
         onTenantChange(resolvedTenant.id);
       }
 
-      toast.success(`${resolvedTenant.name} is ready`);
+      showToast.success(`${resolvedTenant.name} is ready`);
       return resolvedTenant;
     } catch (error) {
       console.error('Failed to create tenant', error);
       const message = error instanceof Error ? error.message : 'Unable to create tenant';
-      toast.error(message);
+      showToast.error(message);
       throw error;
     } finally {
       setIsTenantSeeding(false);
@@ -234,10 +245,10 @@ export function useTenant() {
           setActiveTenantId(DEFAULT_TENANT_ID);
         }
       }
-      toast.success('Tenant removed');
+      showToast.success('Tenant removed');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to delete tenant';
-      toast.error(message);
+      showToast.error(message);
       throw error;
     } finally {
       setDeletingTenantId(null);
@@ -250,10 +261,10 @@ export function useTenant() {
     if (tenantSwitchTargetRef.current && tenantSwitchTargetRef.current === activeTenantId) {
       setIsTenantSwitching(false);
       if (loadError) {
-        toast.error('Unable to switch tenants. Please try again.');
+        showToast.error('Unable to switch tenants. Please try again.');
       } else {
         const switchedTenant = tenantsRef.current.find((tenant) => tenant.id === activeTenantId);
-        toast.success(`Now viewing ${switchedTenant?.name || 'selected tenant'}`);
+        showToast.success(`Now viewing ${switchedTenant?.name || 'selected tenant'}`);
       }
       tenantSwitchTargetRef.current = null;
     }

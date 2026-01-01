@@ -51,24 +51,30 @@ if (typeof window !== 'undefined' && tenantScope) {
 
 const container = document.getElementById('root')!;
 
-// Load CSS first (critical), then App (can use prefetched data)
-import('./styles/tailwind.css').then(() => {
-  import('./App').then(({ default: App }) => {
-    // Render immediately - don't wait for prefetch (it's a background optimization)
-    if (container.hasChildNodes()) {
-      hydrateRoot(container, <App />);
-    } else {
-      createRoot(container).render(<App />);
+// Load CSS and App in PARALLEL (not sequential) for faster startup
+// CSS is non-blocking, React can render while CSS loads
+const cssPromise = import('./styles/tailwind.css');
+const appPromise = import('./App');
+
+// Start rendering as soon as App loads - don't wait for CSS
+appPromise.then(({ default: App }) => {
+  // Render immediately - CSS will apply when ready
+  if (container.hasChildNodes()) {
+    hydrateRoot(container, <App />);
+  } else {
+    createRoot(container).render(<App />);
+  }
+  
+  // Remove skeleton after React has rendered first frame
+  requestAnimationFrame(() => {
+    const initialLoader = document.getElementById('initial-loader');
+    if (initialLoader) {
+      initialLoader.style.opacity = '0';
+      initialLoader.style.transition = 'opacity 150ms ease-out';
+      setTimeout(() => initialLoader.remove(), 150);
     }
-    
-    // Remove skeleton after React has rendered first frame
-    requestAnimationFrame(() => {
-      const initialLoader = document.getElementById('initial-loader');
-      if (initialLoader) {
-        initialLoader.style.opacity = '0';
-        initialLoader.style.transition = 'opacity 150ms ease-out';
-        setTimeout(() => initialLoader.remove(), 150);
-      }
-    });
   });
 });
+
+// Ensure CSS is loaded (for error handling)
+cssPromise.catch(e => console.warn('CSS load failed:', e));

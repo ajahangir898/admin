@@ -944,7 +944,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500"></div>
-              <span className="text-xs sm:text-sm text-gray-600">Delivered</span>
+              {/* <span className="text-xs sm:text-sm text-gray-600">Delivered</span> */}
               <span className="text-xs sm:text-sm font-semibold text-gray-900">৳{deliveredRevenue.toLocaleString()}</span>
             </div>
           </div>

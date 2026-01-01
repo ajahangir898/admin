@@ -64,7 +64,6 @@ const RESOURCES: { id: ResourceType; label: string; group: string }[] = [
   { id: 'profit_loss', label: 'Profit/Loss', group: 'Finance' },
   { id: 'notes', label: 'Notes', group: 'Finance' },
   // Reports
-  { id: 'daily_target', label: 'Daily Target', group: 'Reports' },
   { id: 'business_report', label: 'Business Report', group: 'Reports' },
   // System
   { id: 'customization', label: 'Customization', group: 'System' },

@@ -69,7 +69,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 		{ id: 'inventory', icon: <Boxes size={18} />, label: 'Inventory Management', resource: 'inventory' },
 		{ id: 'customers', icon: <Users size={18} />, label: 'Customers', resource: 'customers' },
 		{ id: 'reviews', icon: <MessageCircle size={18} />, label: 'Reviews', resource: 'reviews' },
-		{ id: 'daily_target', icon: <Target size={18} />, label: 'Daily Target', resource: 'daily_target' },
 		{ id: 'gallery', icon: <ImageIcon size={18} />, label: 'Gallery', resource: 'gallery' },
 	];
 

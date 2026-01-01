@@ -25,7 +25,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 group overflow-hidden flex flex-col">
+        <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 group overflow-hidden flex flex-col relative">
             {/* Discount Badge */}
             {product.discount && (
                 <div className="absolute top-2 left-2 z-10">

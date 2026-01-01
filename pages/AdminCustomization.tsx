@@ -18,7 +18,8 @@ import {
   Loader2,
   CheckCircle2,
   MessageCircle,
-  CalendarDays
+  CalendarDays,
+  FolderOpen
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -47,6 +48,7 @@ import {
   convertBase64ToUploadedUrl
 } from '../services/imageUploadService';
 import { DEFAULT_CAROUSEL_ITEMS } from '../constants';
+import { GalleryPicker } from '../components/GalleryPicker';
 
 // ============================================================================
 // Types & Interfaces
@@ -390,6 +392,45 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [demoImage, setDemoImage] = useState<string>('');
   const [demoTitle, setDemoTitle] = useState<string>('');
+
+  // ---------------------------------------------------------------------------
+  // Gallery Picker State
+  // ---------------------------------------------------------------------------
+  const [isGalleryPickerOpen, setIsGalleryPickerOpen] = useState(false);
+  const [galleryPickerTarget, setGalleryPickerTarget] = useState<ImageUploadType | null>(null);
+
+  const openGalleryPicker = (target: ImageUploadType) => {
+    setGalleryPickerTarget(target);
+    setIsGalleryPickerOpen(true);
+  };
+
+  const handleGallerySelect = (imageUrl: string) => {
+    if (!galleryPickerTarget) return;
+    
+    switch (galleryPickerTarget) {
+      case 'carousel':
+        setCarouselFormData(p => ({ ...p, image: imageUrl }));
+        break;
+      case 'carouselMobile':
+        setCarouselFormData(p => ({ ...p, mobileImage: imageUrl }));
+        break;
+      case 'popup':
+        setPopupFormData(p => ({ ...p, image: imageUrl }));
+        break;
+      case 'logo':
+        setWebsiteConfiguration(p => ({ ...p, headerLogo: imageUrl }));
+        break;
+      case 'headerLogo':
+        setWebsiteConfiguration(p => ({ ...p, headerLogo: imageUrl }));
+        break;
+      case 'footerLogo':
+        setWebsiteConfiguration(p => ({ ...p, footerLogo: imageUrl }));
+        break;
+      case 'favicon':
+        setWebsiteConfiguration(p => ({ ...p, favicon: imageUrl }));
+        break;
+    }
+  };
 
   // ---------------------------------------------------------------------------
   // Effects
@@ -1707,8 +1748,34 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b bg-gray-50 flex justify-between items-center sticky top-0"><h3 className="font-bold text-gray-800">{editingCarousel ? 'Edit Carousel' : 'Add New Carousel'}</h3><button onClick={() => setIsCarouselModalOpen(false)}><X size={20} className="text-gray-500"/></button></div>
             <form onSubmit={handleSaveCarousel} className="p-6 space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Desktop Banner*</label><p className="text-xs text-gray-500 mb-2">{CAROUSEL_WIDTH}×{CAROUSEL_HEIGHT}px (4:1). Auto WebP.</p><input type="file" ref={carouselDesktopInputRef} onChange={e => handleImageUpload(e, 'carousel')} className="hidden" accept="image/*"/><div onClick={() => carouselDesktopInputRef.current?.click()} className="border-2 border-dashed rounded-lg p-2 text-center cursor-pointer hover:bg-gray-50 h-28">{carouselFormData.image ? <img src={normalizeImageUrl(carouselFormData.image)} alt="" className="w-full h-full object-cover rounded"/> : <div className="text-gray-400 flex flex-col items-center justify-center h-full"><Upload size={32} className="mb-2"/><p className="text-sm">Click to upload</p></div>}</div></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Mobile Banner</label><p className="text-xs text-gray-500 mb-2">{CAROUSEL_MOBILE_WIDTH}×{CAROUSEL_MOBILE_HEIGHT}px (16:9).</p><input type="file" ref={carouselMobileInputRef} onChange={e => handleImageUpload(e, 'carouselMobile')} className="hidden" accept="image/*"/><div onClick={() => carouselMobileInputRef.current?.click()} className="border-2 border-dashed border-blue-300 rounded-lg p-2 text-center cursor-pointer hover:bg-blue-50 h-28">{carouselFormData.mobileImage ? <div className="relative w-full h-full"><img src={normalizeImageUrl(carouselFormData.mobileImage)} alt="" className="w-full h-full object-cover rounded"/><button type="button" onClick={e => { e.stopPropagation(); setCarouselFormData(p => ({ ...p, mobileImage: '' })); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"><X size={14}/></button></div> : <div className="text-blue-400 flex flex-col items-center justify-center h-full"><Upload size={32} className="mb-2"/><p className="text-sm">Click to upload</p></div>}</div></div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Desktop Banner*</label>
+                <p className="text-xs text-gray-500 mb-2">{CAROUSEL_WIDTH}×{CAROUSEL_HEIGHT}px (4:1). Auto WebP.</p>
+                <input type="file" ref={carouselDesktopInputRef} onChange={e => handleImageUpload(e, 'carousel')} className="hidden" accept="image/*"/>
+                <div className="flex gap-2">
+                  <div onClick={() => carouselDesktopInputRef.current?.click()} className="flex-1 border-2 border-dashed rounded-lg p-2 text-center cursor-pointer hover:bg-gray-50 h-28">
+                    {carouselFormData.image ? <img src={normalizeImageUrl(carouselFormData.image)} alt="" className="w-full h-full object-cover rounded"/> : <div className="text-gray-400 flex flex-col items-center justify-center h-full"><Upload size={32} className="mb-2"/><p className="text-sm">Upload</p></div>}
+                  </div>
+                  <button type="button" onClick={() => openGalleryPicker('carousel')} className="w-24 border-2 border-dashed border-indigo-300 rounded-lg flex flex-col items-center justify-center text-indigo-600 hover:bg-indigo-50 transition">
+                    <FolderOpen size={24} className="mb-1"/>
+                    <span className="text-xs font-medium">Gallery</span>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Banner</label>
+                <p className="text-xs text-gray-500 mb-2">{CAROUSEL_MOBILE_WIDTH}×{CAROUSEL_MOBILE_HEIGHT}px (16:9).</p>
+                <input type="file" ref={carouselMobileInputRef} onChange={e => handleImageUpload(e, 'carouselMobile')} className="hidden" accept="image/*"/>
+                <div className="flex gap-2">
+                  <div onClick={() => carouselMobileInputRef.current?.click()} className="flex-1 border-2 border-dashed border-blue-300 rounded-lg p-2 text-center cursor-pointer hover:bg-blue-50 h-28">
+                    {carouselFormData.mobileImage ? <div className="relative w-full h-full"><img src={normalizeImageUrl(carouselFormData.mobileImage)} alt="" className="w-full h-full object-cover rounded"/><button type="button" onClick={e => { e.stopPropagation(); setCarouselFormData(p => ({ ...p, mobileImage: '' })); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"><X size={14}/></button></div> : <div className="text-blue-400 flex flex-col items-center justify-center h-full"><Upload size={32} className="mb-2"/><p className="text-sm">Upload</p></div>}
+                  </div>
+                  <button type="button" onClick={() => openGalleryPicker('carouselMobile')} className="w-24 border-2 border-dashed border-indigo-300 rounded-lg flex flex-col items-center justify-center text-indigo-600 hover:bg-indigo-50 transition">
+                    <FolderOpen size={24} className="mb-1"/>
+                    <span className="text-xs font-medium">Gallery</span>
+                  </button>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-gray-700 mb-1">Name</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.name} onChange={e => setCarouselFormData({ ...carouselFormData, name: e.target.value })} required/></div><div><label className="block text-sm font-medium text-gray-700 mb-1">Serial</label><input type="number" className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.serial} onChange={e => setCarouselFormData({ ...carouselFormData, serial: Number(e.target.value) })} required/></div></div>
               <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-gray-700 mb-1">Url</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.url} onChange={e => setCarouselFormData({ ...carouselFormData, url: e.target.value })}/></div><div><label className="block text-sm font-medium text-gray-700 mb-1">Url Type</label><select className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.urlType} onChange={e => setCarouselFormData({ ...carouselFormData, urlType: e.target.value as any })}><option value="Internal">Internal</option><option value="External">External</option></select></div></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label><select className="w-full px-3 py-2 border rounded-lg text-sm" value={carouselFormData.status} onChange={e => setCarouselFormData({ ...carouselFormData, status: e.target.value as any })}><option value="Publish">Publish</option><option value="Draft">Draft</option></select></div>
@@ -1722,7 +1789,19 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="p-4 border-b bg-gray-50 flex justify-between items-center"><h3 className="font-bold text-gray-800">{editingPopup ? 'Edit Popup' : 'Add New Popup'}</h3><button onClick={() => setIsPopupModalOpen(false)}><X size={20} className="text-gray-500"/></button></div>
             <form onSubmit={handleSavePopup} className="p-6 space-y-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Upload Image*</label><input type="file" ref={popupImageInputRef} onChange={e => handleImageUpload(e, 'popup')} className="hidden" accept="image/*"/><div onClick={() => popupImageInputRef.current?.click()} className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50">{popupFormData.image ? <img src={normalizeImageUrl(popupFormData.image)} alt="" className="h-32 mx-auto object-contain"/> : <div className="text-gray-400"><Upload size={32} className="mx-auto mb-2"/><p className="text-sm">Click to upload</p></div>}</div></div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Popup Image*</label>
+                <input type="file" ref={popupImageInputRef} onChange={e => handleImageUpload(e, 'popup')} className="hidden" accept="image/*"/>
+                <div className="flex gap-2">
+                  <div onClick={() => popupImageInputRef.current?.click()} className="flex-1 border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50">
+                    {popupFormData.image ? <img src={normalizeImageUrl(popupFormData.image)} alt="" className="h-28 mx-auto object-contain"/> : <div className="text-gray-400"><Upload size={32} className="mx-auto mb-2"/><p className="text-sm">Upload</p></div>}
+                  </div>
+                  <button type="button" onClick={() => openGalleryPicker('popup')} className="w-24 border-2 border-dashed border-indigo-300 rounded-lg flex flex-col items-center justify-center text-indigo-600 hover:bg-indigo-50 transition">
+                    <FolderOpen size={24} className="mb-1"/>
+                    <span className="text-xs font-medium">Gallery</span>
+                  </button>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-gray-700 mb-1">Name*</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.name} onChange={e => setPopupFormData({ ...popupFormData, name: e.target.value })} required/></div><div><label className="block text-sm font-medium text-gray-700 mb-1">Priority</label><input type="number" className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.priority} onChange={e => setPopupFormData({ ...popupFormData, priority: Number(e.target.value) })}/></div></div>
               <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-gray-700 mb-1">URL</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.url} onChange={e => setPopupFormData({ ...popupFormData, url: e.target.value })}/></div><div><label className="block text-sm font-medium text-gray-700 mb-1">URL Type</label><select className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.urlType} onChange={e => setPopupFormData({ ...popupFormData, urlType: e.target.value as any })}><option value="Internal">Internal</option><option value="External">External</option></select></div></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label><select className="w-full px-3 py-2 border rounded-lg text-sm" value={popupFormData.status} onChange={e => setPopupFormData({ ...popupFormData, status: e.target.value as any })}><option value="Publish">Publish</option><option value="Draft">Draft</option></select></div>
@@ -1767,6 +1846,17 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           </div>
         </div>
       )}
+
+      {/* Gallery Picker Modal */}
+      <GalleryPicker
+        isOpen={isGalleryPickerOpen}
+        onClose={() => {
+          setIsGalleryPickerOpen(false);
+          setGalleryPickerTarget(null);
+        }}
+        onSelect={handleGallerySelect}
+        title={`Choose ${galleryPickerTarget === 'carousel' ? 'Desktop Banner' : galleryPickerTarget === 'carouselMobile' ? 'Mobile Banner' : galleryPickerTarget === 'popup' ? 'Popup Image' : 'Image'} from Gallery`}
+      />
     </div>
   );
 };

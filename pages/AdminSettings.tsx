@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Truck, Lock, CheckCircle, AlertCircle, Facebook, Settings, 
-  Camera, Shield, Clock3, UserCircle, Phone, Mail, MapPin, Loader2, AtSign, ArrowRight, Code
+  Camera, Shield, Clock3, UserCircle, Phone, Mail, MapPin, Loader2, AtSign, ArrowRight, Code, FolderOpen
 } from 'lucide-react';
 import { CourierConfig, User } from '../types';
 import { convertFileToWebP } from '../services/imageUtils';
+import { GalleryPicker } from '../components/GalleryPicker';
 
 interface AdminSettingsProps {
   courierConfig: CourierConfig;
@@ -68,6 +69,8 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryTarget, setGalleryTarget] = useState<'avatar' | 'shopLogo' | null>(null);
   const [shopLogoLoading, setShopLogoLoading] = useState(false);
   const [pwModal, setPwModal] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
@@ -124,6 +127,26 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
     e.target.value = '';
   };
 
+  const openGallery = (target: 'avatar' | 'shopLogo') => {
+    setGalleryTarget(target);
+    setIsGalleryOpen(true);
+  };
+
+  const handleGallerySelect = (imageUrl: string) => {
+    if (galleryTarget === 'avatar') {
+      setAvatar(imageUrl);
+      showStatus('success', 'Photo selected - save to apply');
+    } else if (galleryTarget === 'shopLogo') {
+      setShopLogo(imageUrl);
+      if (onUpdateLogo) {
+        onUpdateLogo(imageUrl);
+        showStatus('success', 'Shop logo updated!');
+      }
+    }
+    setIsGalleryOpen(false);
+    setGalleryTarget(null);
+  };
+
   const handlePassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !onUpdateProfile) return setPwStatus({ type: 'error', msg: 'No session' });
@@ -151,9 +174,14 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-4">
                 <img src={avatar} alt="Avatar" className="w-24 h-24 rounded-2xl object-cover border-2 border-gray-100 bg-gray-50" />
-                <button onClick={() => fileRef.current?.click()} className="absolute -bottom-2 -right-2 bg-white border border-gray-200 text-gray-600 rounded-full p-2 shadow-sm hover:scale-105 transition">
-                  {avatarLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                </button>
+                <div className="absolute -bottom-2 -right-2 flex gap-1">
+                  <button onClick={() => openGallery('avatar')} className="bg-white border border-gray-200 text-gray-600 rounded-full p-2 shadow-sm hover:scale-105 transition" title="Choose from Gallery">
+                    <FolderOpen size={14} />
+                  </button>
+                  <button onClick={() => fileRef.current?.click()} className="bg-white border border-gray-200 text-gray-600 rounded-full p-2 shadow-sm hover:scale-105 transition" title="Upload new">
+                    {avatarLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                  </button>
+                </div>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </div>
               <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{formatRole(user?.role)}</p>
@@ -188,9 +216,14 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
                     <Camera size={32} className="text-gray-300" />
                   </div>
                 )}
-                <button onClick={() => shopLogoRef.current?.click()} className="absolute -bottom-2 -right-2 bg-emerald-500 text-white rounded-full p-2 shadow-sm hover:bg-emerald-600 hover:scale-105 transition">
-                  {shopLogoLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                </button>
+                <div className="absolute -bottom-2 -right-2 flex gap-1">
+                  <button onClick={() => openGallery('shopLogo')} className="bg-emerald-500 text-white rounded-full p-2 shadow-sm hover:bg-emerald-600 hover:scale-105 transition" title="Choose from Gallery">
+                    <FolderOpen size={14} />
+                  </button>
+                  <button onClick={() => shopLogoRef.current?.click()} className="bg-emerald-500 text-white rounded-full p-2 shadow-sm hover:bg-emerald-600 hover:scale-105 transition" title="Upload new">
+                    {shopLogoLoading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                  </button>
+                </div>
                 <input ref={shopLogoRef} type="file" accept="image/*" className="hidden" onChange={handleShopLogo} />
               </div>
               <p className="text-sm font-medium text-gray-800">{activeTenant?.name || 'My Shop'}</p>
@@ -276,6 +309,14 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
           </div>
         </div>
       )}
+
+      {/* Gallery Picker */}
+      <GalleryPicker
+        isOpen={isGalleryOpen}
+        onClose={() => { setIsGalleryOpen(false); setGalleryTarget(null); }}
+        onSelect={handleGallerySelect}
+        title={galleryTarget === 'avatar' ? 'Select Profile Photo' : 'Select Shop Logo'}
+      />
     </div>
   );
 };

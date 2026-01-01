@@ -169,7 +169,8 @@ export type ResourceType =
   | 'dashboard' | 'orders' | 'products' | 'customers' | 'inventory'
   | 'catalog' | 'landing_pages' | 'gallery' | 'reviews' | 'daily_target'
   | 'business_report' | 'expenses' | 'income' | 'due_book' | 'profit_loss'
-  | 'notes' | 'customization' | 'settings' | 'admin_control' | 'tenants';
+  | 'notes' | 'customization' | 'settings' | 'admin_control' | 'tenants'
+  | 'customers_reviews';
 
 export type ActionType = 'read' | 'write' | 'edit' | 'delete';
 

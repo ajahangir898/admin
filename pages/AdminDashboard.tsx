@@ -30,11 +30,14 @@ import {
   Tablet,
   MoreHorizontal,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Globe,
+  Wifi
 } from 'lucide-react';
 import { REVENUE_DATA as DEFAULT_REVENUE_DATA, CATEGORY_DATA as DEFAULT_CATEGORY_DATA } from '../constants';
 import { Order, Product } from '../types';
 import { DashboardStatCard } from '@/components/AdminComponents';
+import { useVisitorStats } from '../hooks/useVisitorStats';
 
 // Modern Stat Card Component
 interface ModernStatCardProps {
@@ -315,6 +318,7 @@ const exportOrdersToCsv = (orders: Order[]) => {
 interface AdminDashboardProps {
   orders: Order[];
   products: Product[];
+  tenantId?: string;
   onManageBalance?: () => void;
   onExportData?: (orders: Order[]) => void;
   onCreatePayment?: () => void;
@@ -324,6 +328,7 @@ interface AdminDashboardProps {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({
   orders,
   products,
+  tenantId,
   onManageBalance,
   onExportData,
   onCreatePayment,
@@ -332,6 +337,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const gradientId = useId();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Visitor stats
+  const { stats: visitorStats, isLoading: visitorLoading } = useVisitorStats({ 
+    tenantId, 
+    period: '7d',
+    refreshInterval: 30000 // refresh every 30 seconds
+  });
 
   const [revenueRange, setRevenueRange] = useState<RevenueRange>('Last Week');
 
@@ -1009,6 +1021,89 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
+      {/* Visitor Statistics */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+        {/* Total Visitors Card */}
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <Globe className="w-6 h-6 text-white" />
+              </div>
+              {visitorLoading && (
+                <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+              )}
+            </div>
+            <div className="mt-4">
+              <p className="text-white/80 text-sm font-medium">Total Visitors</p>
+              <p className="text-white text-3xl font-bold mt-1">
+                {visitorStats?.totalVisitors?.toLocaleString() || '0'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-white/70 text-xs">
+                {visitorStats?.totalPageViews?.toLocaleString() || '0'} page views
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Today's Visitors Card */}
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <p className="text-white/80 text-sm font-medium">Today's Visitors</p>
+              <p className="text-white text-3xl font-bold mt-1">
+                {visitorStats?.todayVisitors?.toLocaleString() || '0'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-white/70 text-xs">
+                Last 7 days: {visitorStats?.periodVisitors?.toLocaleString() || '0'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Online Now Card */}
+        <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <Wifi className="w-6 h-6 text-white" />
+              </div>
+              {/* Live indicator */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/20 rounded-full">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                </span>
+                <span className="text-white text-xs font-medium">Live</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <p className="text-white/80 text-sm font-medium">Online Now</p>
+              <p className="text-white text-3xl font-bold mt-1">
+                {visitorStats?.onlineNow?.toLocaleString() || '0'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-white/70 text-xs">
+                Active visitors on site
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Sales by Category & Location Traffic */}
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Sales by Category */}
@@ -1020,35 +1115,79 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
           </div>
           
-          {/* Horizontal Bar Chart */}
-          <div className="space-y-3 sm:space-y-4">
-            {categoryData.length > 0 && categoryData[0].value > 0 ? categoryData.slice(0, 5).map((item, index) => {
-              const maxValue = Math.max(...categoryData.map(d => d.value), 1);
-              const percentage = (item.value / maxValue) * 100;
-              return (
-                <div key={item.name}>
-                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <span className="text-xs sm:text-sm font-medium text-gray-700 truncate max-w-[120px] sm:max-w-[150px]">{item.name}</span>
-                    <span className="text-xs sm:text-sm font-semibold text-gray-900">৳{item.value.toLocaleString()}</span>
-                  </div>
-                  <div className="h-2 sm:h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${percentage}%`,
-                        backgroundColor: PIE_COLORS[index % PIE_COLORS.length]
-                      }}
-                    />
-                  </div>
+          {categoryData.length > 0 && categoryData[0].value > 0 ? (
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              {/* Donut Chart */}
+              <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0">
+                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                  {(() => {
+                    const total = categoryData.reduce((sum, d) => sum + d.value, 0);
+                    let cumulativePercent = 0;
+                    return categoryData.slice(0, 5).map((item, index) => {
+                      const percent = (item.value / total) * 100;
+                      const dashArray = `${percent} ${100 - percent}`;
+                      const dashOffset = -cumulativePercent;
+                      cumulativePercent += percent;
+                      return (
+                        <circle
+                          key={item.name}
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="none"
+                          stroke={PIE_COLORS[index % PIE_COLORS.length]}
+                          strokeWidth="16"
+                          strokeDasharray={dashArray}
+                          strokeDashoffset={dashOffset}
+                          pathLength="100"
+                          className="transition-all duration-500"
+                        />
+                      );
+                    });
+                  })()}
+                </svg>
+                {/* Center Text */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-lg sm:text-xl font-bold text-gray-900">
+                    ৳{categoryData.reduce((sum, d) => sum + d.value, 0).toLocaleString()}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-gray-500">Total</span>
                 </div>
-              );
-            }) : (
-              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-gray-400">
-                <BarChart3 className="w-10 h-10 sm:w-12 sm:h-12 mb-2 opacity-50" />
-                <span className="text-xs sm:text-sm">No category data yet</span>
               </div>
-            )}
-          </div>
+              
+              {/* Legend */}
+              <div className="flex-1 space-y-2 sm:space-y-3 w-full">
+                {categoryData.slice(0, 5).map((item, index) => {
+                  const total = categoryData.reduce((sum, d) => sum + d.value, 0);
+                  const percent = total > 0 ? Math.round((item.value / total) * 100) : 0;
+                  return (
+                    <div key={item.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                        />
+                        <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[100px] sm:max-w-[120px]">
+                          {item.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">{percent}%</span>
+                        <span className="text-xs sm:text-sm font-semibold text-gray-900">
+                          ৳{item.value.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-gray-400">
+              <BarChart3 className="w-10 h-10 sm:w-12 sm:h-12 mb-2 opacity-50" />
+              <span className="text-xs sm:text-sm">No category data yet</span>
+            </div>
+          )}
         </div>
 
         {/* Location Traffic */}

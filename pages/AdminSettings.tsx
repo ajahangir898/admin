@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Truck, Lock, CheckCircle, AlertCircle, Facebook, Settings, 
-  Camera, Shield, Clock3, UserCircle, Phone, Mail, MapPin, Loader2, AtSign, ArrowRight
+  Camera, Shield, Clock3, UserCircle, Phone, Mail, MapPin, Loader2, AtSign, ArrowRight, Code
 } from 'lucide-react';
 import { CourierConfig, User } from '../types';
 import { convertFileToWebP } from '../services/imageUtils';
@@ -242,10 +242,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
           <h3 className="text-lg font-bold text-gray-800">System Settings</h3>
           <p className="text-sm text-gray-500">Configure your store settings</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <SettingsCard title="Delivery Charge" icon={<Truck size={22} className="text-blue-600" />} color="bg-blue-50 border-blue-100 hover:border-blue-300" onClick={() => onNavigate('settings_delivery')} />
           <SettingsCard title="Courier API" icon={<Settings size={22} className="text-purple-600" />} color="bg-purple-50 border-purple-100 hover:border-purple-300" onClick={() => onNavigate('settings_courier')} />
           <SettingsCard title="Facebook Pixel" icon={<Facebook size={22} className="text-blue-700" />} color="bg-blue-50 border-blue-100 hover:border-blue-300" onClick={() => onNavigate('settings_facebook_pixel')} />
+          <SettingsCard title="Google Tag Manager" icon={<Code size={22} className="text-blue-500" />} color="bg-sky-50 border-sky-100 hover:border-sky-300" onClick={() => onNavigate('settings_gtm')} />
         </div>
       </section>
 

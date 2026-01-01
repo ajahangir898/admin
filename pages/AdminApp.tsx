@@ -24,6 +24,7 @@ const AdminDeliverySettings = lazy(() => import(/* webpackChunkName: "admin-deli
 const AdminCourierSettings = lazy(() => import(/* webpackChunkName: "admin-courier" */ './AdminCourierSettings'));
 const AdminInventory = lazy(() => import(/* webpackChunkName: "admin-inventory" */ './AdminInventory'));
 const AdminReviews = lazy(() => import(/* webpackChunkName: "admin-reviews" */ './AdminReviews'));
+const AdminCustomers = lazy(() => import(/* webpackChunkName: "admin-customers" */ './AdminCustomers'));
 const AdminDailyTarget = lazy(() => import(/* webpackChunkName: "admin-target" */ './AdminDailyTarget'));
 const AdminGallery = lazy(() => import(/* webpackChunkName: "admin-gallery" */ './AdminGallery'));
 const AdminExpenses = lazy(() => import(/* webpackChunkName: "admin-expenses" */ './AdminExpenses'));
@@ -32,6 +33,7 @@ const AdminProfitLoss = lazy(() => import(/* webpackChunkName: "admin-profitloss
 const AdminIncome = lazy(() => import(/* webpackChunkName: "admin-income" */ './AdminIncome'));
 const AdminNote = lazy(() => import(/* webpackChunkName: "admin-note" */ './AdminNote'));
 const AdminFacebookPixel = lazy(() => import(/* webpackChunkName: "admin-pixel" */ './AdminFacebookPixel'));
+const AdminGTM = lazy(() => import(/* webpackChunkName: "admin-gtm" */ './AdminGTM'));
 const AdminLandingPage = lazy(() => import(/* webpackChunkName: "admin-landing" */ './AdminLandingPage'));
 const AdminTenantManagement = lazy(() => import(/* webpackChunkName: "admin-tenant" */ './AdminTenantManagement'));
 const AdminDueList = lazy(() => import(/* webpackChunkName: "admin-duelist" */ './AdminDueList'));
@@ -223,6 +225,7 @@ const canAccessPage = (page: string, user?: User | null, permissions?: Permissio
         'settings_delivery': 'settings',
         'settings_courier': 'settings',
         'settings_facebook_pixel': 'settings',
+        'settings_gtm': 'settings',
         'admin': 'admin_control',
         'carousel': 'customization',
         'banner': 'customization',
@@ -542,16 +545,15 @@ const AdminApp: React.FC<AdminAppProps> = ({
       userPermissions={userPermissions}
     >
       <Suspense fallback={<PageLoadingFallback />}>
-        {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} /> :
+        {adminSection === 'dashboard' ? <AdminDashboard orders={orders} products={products} tenantId={activeTenantId} /> :
          adminSection === 'orders' ? <AdminOrders orders={orders} courierConfig={courierConfig} onUpdateOrder={onUpdateOrder} /> :
          adminSection === 'products' ? <AdminProducts products={products} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} onBulkDelete={onBulkDeleteProducts} onBulkUpdate={onBulkUpdateProducts} tenantId={activeTenantId} /> :
          adminSection === 'landing_pages' ? <AdminLandingPage products={products} landingPages={landingPages} onCreateLandingPage={handleCreateLandingPage} onUpdateLandingPage={handleUpsertLandingPage} onTogglePublish={handleToggleLandingPublish} onPreviewLandingPage={handlePreviewLandingPage} /> :
          adminSection === 'due_list' ? <AdminDueList user={user} onLogout={onLogout} /> :
-         adminSection === 'inventory' ? <AdminInventory products={products} /> :
+         adminSection === 'inventory' ? <AdminInventory products={products} tenantId={activeTenantId} /> :
          adminSection === 'expenses' ? <AdminExpenses /> :
          adminSection === 'popups' ? <AdminPopups onBack={() => setAdminSection('dashboard')} /> :
-         adminSection === 'customers' ? <AdminReviews /> :
-         adminSection === 'reviews' ? <AdminReviews /> :
+         adminSection === 'customers_reviews' ? <AdminCustomers orders={orders} products={products} /> :
          adminSection === 'daily_target' ? <AdminDailyTarget /> :
          adminSection === 'gallery' ? <AdminGallery /> :
          adminSection === 'settings' ? <AdminSettings courierConfig={courierConfig} onUpdateCourierConfig={onUpdateCourierConfig} onNavigate={setAdminSection} user={user} onUpdateProfile={onUpdateProfile} activeTenant={selectedTenantRecord} logo={logo} onUpdateLogo={onUpdateLogo} /> :
@@ -559,6 +561,7 @@ const AdminApp: React.FC<AdminAppProps> = ({
          adminSection === 'settings_delivery' ? <AdminDeliverySettings configs={deliveryConfig} onSave={onUpdateDeliveryConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_courier' ? <AdminCourierSettings config={courierConfig} onSave={onUpdateCourierConfig} onBack={() => setAdminSection('settings')} /> :
          adminSection === 'settings_facebook_pixel' ? <AdminFacebookPixel config={facebookPixelConfig} onSave={(cfg) => onUpdateCourierConfig(cfg)} onBack={() => setAdminSection('settings')} /> :
+         adminSection === 'settings_gtm' ? <AdminGTM onBack={() => setAdminSection('settings')} tenantId={activeTenantId} /> :
          adminSection === 'admin' ? <AdminControlNew users={users} roles={roles} onAddUser={handleAddUser} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} onAddRole={handleAddRole} onUpdateRole={handleUpdateRole} onDeleteRole={handleDeleteRole} onUpdateUserRole={handleUpdateUserRole} currentUser={user} tenantId={activeTenantId} userPermissions={userPermissions} /> :
          adminSection.startsWith('catalog_') ? <AdminCatalog view={adminSection} onNavigate={setAdminSection} categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} onAddCategory={catHandlers.add} onUpdateCategory={catHandlers.update} onDeleteCategory={catHandlers.delete} onAddSubCategory={subCatHandlers.add} onUpdateSubCategory={subCatHandlers.update} onDeleteSubCategory={subCatHandlers.delete} onAddChildCategory={childCatHandlers.add} onUpdateChildCategory={childCatHandlers.update} onDeleteChildCategory={childCatHandlers.delete} onAddBrand={brandHandlers.add} onUpdateBrand={brandHandlers.update} onDeleteBrand={brandHandlers.delete} onAddTag={tagHandlers.add} onUpdateTag={tagHandlers.update} onDeleteTag={tagHandlers.delete} /> :
          adminSection.startsWith('business_report_') ? <AdminBusinessReport initialTab={adminSection} orders={orders} products={products} user={user} onLogout={onLogout} tenantId={activeTenantId} /> :

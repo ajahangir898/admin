@@ -129,6 +129,11 @@ app.use('/api/courier', courierRouter);
 app.use('/api/support', supportRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api', dueListRoutes);
+
+// Visitors tracking (import at top of file)
+import { visitorsRouter } from './routes/visitors';
+app.use('/api/visitors', visitorsRouter);
+
 app.use('/', uploadRouter);
 
 app.use(errorHandler);

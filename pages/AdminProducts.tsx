@@ -1248,8 +1248,8 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
       {/* Product List */}
       {viewMode === 'details' ? (
         /* Table View for Details Mode */
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-20">
-          <div className="overflow-x-auto">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-20">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -1369,7 +1369,7 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                           </button>
                           
                           {openActionDropdown === productKey && (
-                            <div className="absolute right-0 top-8 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                            <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] py-1 animate-in fade-in slide-in-from-bottom-2 duration-150">
                               <button
                                 type="button"
                                 onClick={(e) => {

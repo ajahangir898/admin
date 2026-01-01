@@ -1,18 +1,59 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Boxes, AlertTriangle, Package, TrendingUp, Search, ShieldCheck } from 'lucide-react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { Boxes, AlertTriangle, Package, TrendingUp, Search, ShieldCheck, Settings, X, Loader2 } from 'lucide-react';
 import { Product } from '../types';
 import { formatCurrency } from '../utils/format';
 import { MetricsSkeleton, TableSkeleton } from '../components/SkeletonLoaders';
+import { DataService } from '../services/DataService';
+
+const dataService = DataService;
+
+interface InventorySettings {
+  lowStockThreshold: number;
+}
 
 interface AdminInventoryProps {
   products: Product[];
   lowStockThreshold?: number;
+  tenantId?: string;
 }
 
-const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThreshold = 5 }) => {
+const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThreshold: defaultThreshold = 5, tenantId }) => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'stock' | 'name'>('stock');
   const [isLoading, setIsLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lowStockThreshold, setLowStockThreshold] = useState(defaultThreshold);
+  const [tempThreshold, setTempThreshold] = useState(defaultThreshold);
+
+  // Load settings from database on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await dataService.get<InventorySettings>('inventory_settings', { lowStockThreshold: defaultThreshold }, tenantId);
+        if (settings?.lowStockThreshold) {
+          setLowStockThreshold(settings.lowStockThreshold);
+          setTempThreshold(settings.lowStockThreshold);
+        }
+      } catch (error) {
+        console.warn('Failed to load inventory settings:', error);
+      }
+    };
+    loadSettings();
+  }, [tenantId, defaultThreshold]);
+
+  const handleSaveThreshold = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      await dataService.save<InventorySettings>('inventory_settings', { lowStockThreshold: tempThreshold }, tenantId);
+      setLowStockThreshold(tempThreshold);
+      setShowSettings(false);
+    } catch (error) {
+      console.error('Failed to save inventory settings:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [tempThreshold, tenantId]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 600);
@@ -28,10 +69,11 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
     }).length;
     const outStockCount = products.filter((product) => (product.stock ?? 0) <= 0).length;
     const totalValue = products.reduce((sum, product) => sum + (product.stock ?? 0) * (product.costPrice ?? 0), 0);
+    const totalSaleValue = products.reduce((sum, product) => sum + (product.stock ?? 0) * (product.price ?? 0), 0);
     const penalty = lowStockCount * 3 + outStockCount * 6;
     const healthScore = Math.max(0, Math.min(100, Math.round(100 - penalty / Math.max(1, totalSkus))));
 
-    return { totalSkus, totalUnits, lowStockCount, outStockCount, totalValue, healthScore };
+    return { totalSkus, totalUnits, lowStockCount, outStockCount, totalValue, totalSaleValue, healthScore };
   }, [products, lowStockThreshold]);
 
   const alerts = useMemo(() => (
@@ -87,9 +129,9 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
       </div>
 
       {isLoading ? (
-        <MetricsSkeleton count={4} />
+        <MetricsSkeleton count={5} />
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>Products</span>
@@ -106,13 +148,70 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
           <p className="mt-3 text-3xl font-black text-gray-800">{stats.totalUnits.toLocaleString()}</p>
           <p className="text-xs text-gray-400 mt-1">Across entire shop</p>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm relative">
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>Low Stock Warning</span>
-            <AlertTriangle size={18} className="text-amber-500" />
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => { setTempThreshold(lowStockThreshold); setShowSettings(true); }}
+                className="p-1 hover:bg-gray-100 rounded-full transition" 
+                title="Configure threshold"
+              >
+                <Settings size={14} className="text-gray-400 hover:text-gray-600" />
+              </button>
+              <AlertTriangle size={18} className="text-amber-500" />
+            </div>
           </div>
           <p className="mt-3 text-3xl font-black text-gray-800">{stats.lowStockCount + stats.outStockCount}</p>
-          <p className="text-xs text-gray-400 mt-1">{stats.outStockCount} out / {stats.lowStockCount} low</p>
+          <p className="text-xs text-gray-400 mt-1">{stats.outStockCount} out / {stats.lowStockCount} low (≤{lowStockThreshold})</p>
+          
+          {/* Settings Modal */}
+          {showSettings && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowSettings(false)}>
+              <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-800">Low Stock Settings</h3>
+                  <button onClick={() => setShowSettings(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                    <X size={20} className="text-gray-500" />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Low Stock Threshold
+                    </label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Products with stock at or below this number will be marked as "Low Stock"
+                    </p>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={tempThreshold}
+                      onChange={(e) => setTempThreshold(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400 text-lg font-semibold"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => setShowSettings(false)}
+                      disabled={isSaving}
+                      className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 font-medium disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveThreshold}
+                      disabled={isSaving}
+                      className="flex-1 px-4 py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isSaving ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between text-sm text-gray-500">
@@ -121,6 +220,14 @@ const AdminInventory: React.FC<AdminInventoryProps> = ({ products, lowStockThres
           </div>
           <p className="mt-3 text-3xl font-black text-gray-800">৳ {stats.totalValue.toLocaleString()}</p>
           <p className="text-xs text-gray-400 mt-1">Reserve Price</p>
+        </div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <span>Inventory Sale Value</span>
+            <TrendingUp size={18} className="text-emerald-500" />
+          </div>
+          <p className="mt-3 text-3xl font-black text-gray-800">৳ {stats.totalSaleValue.toLocaleString()}</p>
+          <p className="text-xs text-gray-400 mt-1">Selling Price</p>
         </div>
       </div>
       )}

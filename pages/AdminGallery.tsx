@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, FolderOpen, Upload, CheckCircle, Smartphone } from 'lucide-react';
+import { Search, FolderOpen, Upload, CheckCircle, Smartphone, Copy, Download, Check } from 'lucide-react';
 import { GALLERY_IMAGES } from '../constants';
 import { GalleryItem } from '../types';
 import { DataService } from '../services/DataService';
@@ -13,7 +13,40 @@ const AdminGallery: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
    const [images, setImages] = useState<GalleryItem[]>(GALLERY_IMAGES);
    const [isLoaded, setIsLoaded] = useState(false);
+   const [copiedId, setCopiedId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCopyUrl = async (e: React.MouseEvent, imageUrl: string, id: number) => {
+    e.stopPropagation();
+    const fullUrl = normalizeImageUrl(imageUrl);
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleDownload = async (e: React.MouseEvent, imageUrl: string, title: string) => {
+    e.stopPropagation();
+    const fullUrl = normalizeImageUrl(imageUrl);
+    try {
+      const response = await fetch(fullUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title}.${blob.type.split('/')[1] || 'png'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      // Fallback: open in new tab
+      window.open(fullUrl, '_blank');
+    }
+  };
 
    useEffect(() => {
       let mounted = true;
@@ -128,7 +161,28 @@ const AdminGallery: React.FC = () => {
                         <img src={normalizeImageUrl(item.imageUrl)} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                         
                         {/* Overlay on Hover */}
-                        <div className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-200 ${selectedIds.includes(item.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                        <div className={`absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-3 transition-opacity duration-200 ${selectedIds.includes(item.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                           {/* Action Buttons */}
+                           <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => handleCopyUrl(e, item.imageUrl, item.id)}
+                                className="bg-white hover:bg-gray-100 text-gray-700 rounded-lg px-3 py-2 shadow-lg flex items-center gap-1.5 text-xs font-medium transition"
+                                title="Copy image URL"
+                              >
+                                {copiedId === item.id ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                                {copiedId === item.id ? 'Copied!' : 'Copy URL'}
+                              </button>
+                              <button
+                                onClick={(e) => handleDownload(e, item.imageUrl, item.title)}
+                                className="bg-white hover:bg-gray-100 text-gray-700 rounded-lg px-3 py-2 shadow-lg flex items-center gap-1.5 text-xs font-medium transition"
+                                title="Download image"
+                              >
+                                <Download size={14} />
+                                Download
+                              </button>
+                           </div>
+                           
+                           {/* Selection indicator */}
                            {selectedIds.includes(item.id) && (
                               <div className="bg-purple-600 text-white rounded-full p-2 shadow-lg">
                                  <CheckCircle size={24} />

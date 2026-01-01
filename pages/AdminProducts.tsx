@@ -1358,84 +1358,27 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="relative" data-action-dropdown>
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setOpenActionDropdown(openActionDropdown === productKey ? null : productKey);
+                              handleOpenModal(product as any);
                             }}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 transition"
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
                           >
-                            <MoreVertical size={18} className="text-gray-500" />
+                            Edit
                           </button>
-                          
-                          {openActionDropdown === productKey && (
-                            <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] py-1 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenModal(product as any);
-                                  setOpenActionDropdown(null);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <Edit size={14} /> Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toast.success(`Product details: ${product.name}`);
-                                  setOpenActionDropdown(null);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <Eye size={14} /> Details
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const productUrl = `${shareOrigin}/product/${product.slug || product.id}`;
-                                  window.open(productUrl, '_blank');
-                                  setOpenActionDropdown(null);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <ExternalLink size={14} /> Details in website
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (!isDraftProduct) {
-                                    handleCloneProduct(product);
-                                  } else {
-                                    toast.error("Can't clone draft products");
-                                  }
-                                  setOpenActionDropdown(null);
-                                }}
-                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${isDraftProduct ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'}`}
-                                disabled={isDraftProduct}
-                              >
-                                <Copy size={14} /> Clone
-                              </button>
-                              <div className="border-t border-gray-100 my-1"></div>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(product.id, isDraftProduct, draftId);
-                                  setOpenActionDropdown(null);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                              >
-                                <Trash2 size={14} /> Delete
-                              </button>
-                            </div>
-                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(product.id, isDraftProduct, draftId);
+                            }}
+                            className="px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>

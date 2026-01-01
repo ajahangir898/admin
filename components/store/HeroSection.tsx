@@ -182,14 +182,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                     <div 
                         className="relative w-full rounded-2xl overflow-hidden shadow-xl group"
                         style={{ 
-                            minHeight: isMobile ? '180px' : '320px', 
-                            aspectRatio: isMobile ? '16/9' : '1260/482' 
+                            minHeight: isMobile ? '180px' : '280px', 
+                            aspectRatio: isMobile ? '800/450' : '1280/330' 
                         }}
                     >
                         {items.map((item, index) => {
                             const isActive = index === currentIndex;
                             const { href, isExternal } = getCarouselHref(item);
-                            const imgSrc = isMobile && item.mobileImage ? item.mobileImage : (item.image || '');
+                            // Use mobileImage for mobile, fallback to desktop image
+                            const imgSrc = isMobile 
+                                ? (item.mobileImage || item.image || '') 
+                                : (item.image || '');
                             return (
                                 <a key={item.id || index} href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
                                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: isActive ? 1 : 0, zIndex: isActive ? 10 : 0, transition: 'opacity 0.5s ease' }}>

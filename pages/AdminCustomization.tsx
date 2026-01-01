@@ -450,7 +450,16 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   // Expose unsaved changes flag getter function to prevent data refresh overwrites
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).__getAdminCustomizationUnsavedChanges = () => hasUnsavedChangesRef.current;
+      // Return true if there are unsaved changes OR if we just saved (within protection window)
+      (window as any).__getAdminCustomizationUnsavedChanges = () => {
+        const timeSinceLastSave = Date.now() - lastSaveTimestampRef.current;
+        const isWithinProtectionWindow = timeSinceLastSave < SAVE_PROTECTION_MS;
+        if (isWithinProtectionWindow) {
+          console.log('[AdminCustomization] Within save protection window, blocking refresh');
+          return true;
+        }
+        return hasUnsavedChangesRef.current;
+      };
     }
     return () => {
       if (typeof window !== 'undefined') {
@@ -461,6 +470,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   
   // Track if we're in the middle of saving to prevent loop
   const isSavingRef = useRef(false);
+  
+  // Track last save timestamp to prevent socket refresh from overwriting just-saved data
+  const lastSaveTimestampRef = useRef<number>(0);
+  const SAVE_PROTECTION_MS = 3000; // Protect for 3 seconds after save
   
   useEffect(() => {
     // Skip if we're currently saving - this prevents the loop
@@ -836,6 +849,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       setIsSaved(true);
       hasUnsavedChangesRef.current = false; // Clear unsaved changes flag after successful save
       prevWebsiteConfigRef.current = websiteConfiguration; // Sync prev ref to saved state
+      lastSaveTimestampRef.current = Date.now(); // Set save protection timestamp
       console.log('[AdminCustomization] ====== SAVE COMPLETED SUCCESSFULLY ======');
       toast.success('Saved successfully!');
       setTimeout(() => setIsSaved(false), 2000);
@@ -944,9 +958,9 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       // Mark as saved - do NOT trigger unsaved changes
       hasUnsavedChangesRef.current = false;
       prevWebsiteConfigRef.current = updatedConfig;
-      // Do NOT mark as unsaved since we just saved
-      hasUnsavedChangesRef.current = false;
-      prevWebsiteConfigRef.current = updatedConfig;
+      // Record save timestamp to prevent socket refresh from overwriting
+      lastSaveTimestampRef.current = Date.now();
+      console.log('[Carousel Save] Set save protection timestamp');
 
       // Ensure minimum 1 second loading time
       const elapsed = Date.now() - startTime;
@@ -983,6 +997,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
         // Update local state after successful save
         setWebsiteConfiguration(updatedConfig);
+        // Mark as saved and set protection timestamp
+        hasUnsavedChangesRef.current = false;
+        prevWebsiteConfigRef.current = updatedConfig;
+        lastSaveTimestampRef.current = Date.now();
 
         // Ensure minimum 1 second loading time
         const elapsed = Date.now() - startTime;
@@ -1063,6 +1081,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
       // Update local state after successful save
       setWebsiteConfiguration(updatedConfig);
+      // Mark as saved and set protection timestamp
+      hasUnsavedChangesRef.current = false;
+      prevWebsiteConfigRef.current = updatedConfig;
+      lastSaveTimestampRef.current = Date.now();
 
       // Ensure minimum 1 second loading time
       const elapsed = Date.now() - startTime;
@@ -1097,6 +1119,10 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
 
         // Update local state after successful save
         setWebsiteConfiguration(updatedConfig);
+        // Mark as saved and set protection timestamp
+        hasUnsavedChangesRef.current = false;
+        prevWebsiteConfigRef.current = updatedConfig;
+        lastSaveTimestampRef.current = Date.now();
 
         // Ensure minimum 1 second loading time
         const elapsed = Date.now() - startTime;

@@ -50,7 +50,7 @@ export const DesktopSearchBar: React.FC<HeaderSearchProps> = ({
     />
     <input
       type="text"
-      placeholder="Search products..."
+      placeholder={activeHint ? '' : 'Search products...'}
       value={activeSearchValue}
       onChange={(event) => onInputChange(event.target.value)}
       className="w-full border-2 border-gray-200 hover:border-theme-primary focus:border-theme-primary rounded-full py-2.5 pl-5 pr-36 focus:outline-none focus:ring-4 focus:ring-theme-primary/10 placeholder-gray-400 transition-all bg-gray-50 focus:bg-white"
@@ -97,7 +97,7 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
     />
     <input
       type="text"
-      placeholder="Search products..."
+      placeholder={activeHint ? '' : 'Search products...'}
       value={activeSearchValue}
       onChange={(event) => onInputChange(event.target.value)}
       className="w-full border-2 border-gray-200 focus:border-theme-primary rounded-full py-3 pl-4 pr-28 text-sm focus:outline-none focus:ring-4 focus:ring-theme-primary/10 bg-gray-50 focus:bg-white transition-all"

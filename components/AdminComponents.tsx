@@ -817,7 +817,15 @@ export const AdminHeader: React.FC<{
 							onClick={() => setIsDropdownOpen(!isDropdownOpen)}
 						>
 							<div className="w-7 h-7 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0 shadow-sm">
-								{/* <img src={user?.image || ''} alt="User Avatar" className="w-full h-full object-cover" />	 */}
+									{logo ? (
+					<img src={normalizeImageUrl(logo)} alt="Admin Logo" className="h-8 md:h-10 object-contain" />
+				) : (
+					<h2 className="text-xl font-bold tracking-tight">
+						<span className="text-gray-900">Your</span>
+						<span className="text-red-600">Shop</span>
+					</h2>
+				)}
+							
 							</div>
 						</div>
 

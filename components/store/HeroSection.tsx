@@ -153,7 +153,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
         normalizeImageUrl(isMobile && item.mobileImage ? item.mobileImage : item.image, { disableCDN: true });
     const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + items.length) % items.length); };
 
-    if (!items.length) return null;
+    if (!items.length) {
+        console.log('[HeroSection] No items to display, returning null');
+        // Debug: Show what we received
+        if (typeof window !== 'undefined') {
+            console.log('[HeroSection] carouselItems was:', carouselItems);
+        }
+        return null;
+    }
 
     const showSkeleton = !loadedImages.size;
     const hasCampaigns = websiteConfig?.campaigns?.some(c => normalizeStatus(c.status) === 'publish');

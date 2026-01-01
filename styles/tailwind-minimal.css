@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary-rgb: 100, 116, 139;
+  --color-secondary-rgb: 71, 85, 105;
+  --color-tertiary-rgb: 100, 116, 139;
+  --color-font-rgb: 15, 23, 42;
+  --color-hover-rgb: 100, 116, 139;
+  --color-surface-rgb: 241, 245, 249;
+}
+
+/* Essential theme utilities only */
+.text-theme-primary { color: rgb(var(--color-primary-rgb)); }
+.text-theme-font { color: rgb(var(--color-font-rgb)); }
+.bg-theme-primary { background-color: rgb(var(--color-primary-rgb)); }
+
+/* Selection */
+::selection {
+  background-color: rgb(var(--color-primary-rgb) / 0.25);
+  color: #fff;
+}
+
+/* Minimal utilities */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

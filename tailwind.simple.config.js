@@ -11,6 +11,19 @@ module.exports = {
     './types.ts'
   ],
   darkMode: 'class',
+  safelist: [
+    // Grid columns for dynamic layouts
+    'grid-cols-2', 'grid-cols-3', 'grid-cols-4', 'grid-cols-5', 'grid-cols-6',
+    // Status badge colors
+    'bg-green-100', 'bg-green-500', 'text-green-800',
+    'bg-red-100', 'bg-red-500', 'text-red-800',
+    'bg-yellow-100', 'bg-yellow-500', 'text-yellow-800',
+    'bg-blue-100', 'bg-blue-500', 'text-blue-800',
+    // Dynamic spacing
+    'p-2', 'p-4', 'p-6', 'm-2', 'm-4', 'm-6',
+    // Common animations and transitions
+    'transition-all', 'duration-300', 'ease-in-out'
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -18,8 +31,14 @@ module.exports = {
       },
       keyframes: {
         'slide-in-right': {
-          '0%': { opacity: '0', transform: 'translateX(100px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' }
+          '0%': { 
+            opacity: '0',
+            transform: 'translateX(100px)'
+          },
+          '100%': { 
+            opacity: '1',
+            transform: 'translateX(0)'
+          }
         },
         'fade-in': {
           '0%': { opacity: '0' },
@@ -36,14 +55,15 @@ module.exports = {
         'marquee': 'marquee 12s linear infinite'
       },
       colors: {
-        // Simplified theme colors for smaller bundle
+        // Semantic theme colors for easier usage
         primary: 'rgb(var(--color-primary-rgb))',
         secondary: 'rgb(var(--color-secondary-rgb))',
         tertiary: 'rgb(var(--color-tertiary-rgb))',
         accent: 'rgb(var(--color-hover-rgb))',
         surface: 'rgb(var(--color-surface-rgb))',
-        'theme-font': 'rgb(var(--color-font-rgb))',
-        'theme-primary': 'rgb(var(--color-primary-rgb))'
+        
+        // Font color utility
+        'theme-font': 'rgb(var(--color-font-rgb))'
       }
     }
   },
@@ -68,29 +88,15 @@ module.exports = {
     invert: false,
     saturate: false,
     sepia: false,
+    // Keep scroll utilities minimal  
     scrollMargin: false,
     scrollPadding: false,
+    // Keep ring utilities minimal
     ringColor: false,
     ringOffsetColor: false,
     ringOffsetWidth: false,
     ringOpacity: false,
-    ringWidth: false,
-    columns: false,
-    breakAfter: false,
-    breakBefore: false,
-    breakInside: false,
-    caretColor: false,
-    aspectRatio: false,
-    touchAction: false,
-    userSelect: false,
-    resize: false,
-    listStyleImage: false,
-    listStylePosition: false,
-    listStyleType: false,
-    appearance: false,
-    cursor: false,
-    willChange: false,
-    content: false
+    ringWidth: false
   },
   plugins: []
 };

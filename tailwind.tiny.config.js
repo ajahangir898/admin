@@ -1,54 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
+    // MINIMAL CONTENT - only scan essential files
     './index.html',
-    './App.tsx',
-    './index.tsx',
-    './components/**/*.{ts,tsx,js,jsx}',
-    './pages/**/*.{ts,tsx,js,jsx}',
-    './services/**/*.{ts,tsx,js,jsx}',
-    './constants.ts',
-    './types.ts'
+    './App.tsx'
   ],
   darkMode: 'class',
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
-      },
-      keyframes: {
-        'slide-in-right': {
-          '0%': { opacity: '0', transform: 'translateX(100px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' }
-        },
-        'fade-in': {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' }
-        },
-        'marquee': {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-33.33%)' }
-        }
-      },
-      animation: {
-        'slide-in-right': 'slide-in-right 0.5s ease-out forwards',
-        'fade-in': 'fade-in 0.4s ease-in-out forwards',
-        'marquee': 'marquee 12s linear infinite'
-      },
       colors: {
-        // Simplified theme colors for smaller bundle
         primary: 'rgb(var(--color-primary-rgb))',
         secondary: 'rgb(var(--color-secondary-rgb))',
-        tertiary: 'rgb(var(--color-tertiary-rgb))',
-        accent: 'rgb(var(--color-hover-rgb))',
-        surface: 'rgb(var(--color-surface-rgb))',
         'theme-font': 'rgb(var(--color-font-rgb))',
         'theme-primary': 'rgb(var(--color-primary-rgb))'
       }
     }
   },
   corePlugins: {
-    // Disable utilities not used in the project for smaller bundle
+    // Aggressively disable unused utilities 
     backdropBlur: false,
     backdropBrightness: false,
     backdropContrast: false,
@@ -79,18 +48,31 @@ module.exports = {
     breakAfter: false,
     breakBefore: false,
     breakInside: false,
+    boxDecorationBreak: false,
     caretColor: false,
+    accentColor: false,
     aspectRatio: false,
+    scrollSnapAlign: false,
+    scrollSnapStop: false,
+    scrollSnapType: false,
     touchAction: false,
     userSelect: false,
     resize: false,
+    scrollBehavior: false,
     listStyleImage: false,
     listStylePosition: false,
     listStyleType: false,
     appearance: false,
     cursor: false,
+    pointerEvents: false,
     willChange: false,
-    content: false
+    content: false,
+    // Disable spacing utilities we don't need
+    space: false,
+    divideWidth: false,
+    divideColor: false,
+    divideOpacity: false,
+    divideStyle: false
   },
   plugins: []
 };

@@ -613,6 +613,10 @@ class DataServiceImpl {
   }
 
   private async revalidateBootstrap(scope: string, tenantId: string | undefined, defaultWebsite: WebsiteConfig, cachedProducts?: Product[]) {
+    // Capture cached values BEFORE revalidation fetch updates local cache
+    const prevWebsite = getCachedData<WebsiteConfig>('website_config', tenantId);
+    const prevTheme = getCachedData<ThemeConfig | null>('theme_config', tenantId);
+
     const freshData = await this.fetchFreshBootstrap(scope, tenantId, defaultWebsite, true);
     
     // If fresh data has different products than cached, notify UI to refresh
@@ -620,6 +624,34 @@ class DataServiceImpl {
         JSON.stringify(freshData.products.map(p => p.id).sort()) !== JSON.stringify((cachedProducts || []).map(p => p.id).sort())) {
       console.log('[DataService] Background revalidation found new products, notifying UI');
       notifyDataRefresh('products', tenantId, false);
+    }
+
+    // Notify UI if website config changed (carousel, campaigns, branding, etc.)
+    try {
+      const prevCarouselLen = prevWebsite?.carouselItems?.length ?? 0;
+      const freshCarouselLen = freshData.websiteConfig?.carouselItems?.length ?? 0;
+      const websiteChanged =
+        prevCarouselLen !== freshCarouselLen ||
+        JSON.stringify(prevWebsite?.carouselItems ?? []) !== JSON.stringify(freshData.websiteConfig?.carouselItems ?? []) ||
+        JSON.stringify(prevWebsite?.campaigns ?? []) !== JSON.stringify(freshData.websiteConfig?.campaigns ?? []) ||
+        (prevWebsite?.websiteName ?? '') !== (freshData.websiteConfig?.websiteName ?? '');
+
+      if (websiteChanged) {
+        console.log('[DataService] Background revalidation found updated website config, notifying UI');
+        notifyDataRefresh('website', tenantId, false);
+      }
+    } catch {
+      // Ignore comparison failures
+    }
+
+    // Notify UI if theme config changed
+    try {
+      if (JSON.stringify(prevTheme ?? null) !== JSON.stringify(freshData.themeConfig ?? null)) {
+        console.log('[DataService] Background revalidation found updated theme config, notifying UI');
+        notifyDataRefresh('theme', tenantId, false);
+      }
+    } catch {
+      // Ignore comparison failures
     }
   }
 

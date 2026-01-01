@@ -11,22 +11,16 @@
     <meta name="apple-mobile-web-app-title" content="OPBD">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-    <!-- Early prefetch bootstrap API - critical for fast data loading -->
     <link rel="preconnect" href="https://api.systemnextit.com" crossorigin>
     <link rel="dns-prefetch" href="https://api.systemnextit.com">
-    <!-- Preconnect to critical origins -->
     <link rel="preconnect" href="https://systemnextit.com" crossorigin>
     <link rel="dns-prefetch" href="https://systemnextit.com">
-    <!-- Defer non-critical preconnects -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <!-- Load fonts async - not render blocking -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-    <!-- Prefetch bootstrap data as early as possible -->
     <script>
-      // Start fetching data before any JS loads
       (function(){
         var h=location.hostname,p=h.split('.'),s='public';
         if(!h.startsWith('admin.')&&!h.startsWith('superadmin.')&&p.length>=3&&p[0]!=='www'){
@@ -47,7 +41,6 @@
       })();
     </script>
     <style>
-      /* Simple skeleton loading - critical CSS */
       *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f9fafb}
       @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
       .sk{position:fixed;inset:0;background:#f9fafb;z-index:9999;display:flex;flex-direction:column}
@@ -69,22 +62,15 @@
     </style>
   </head>
   <body>
-    <!-- Instant loading skeleton - removed by React on hydration -->
-    <div id="initial-loader" class="initial-skeleton">
-      <div class="skel-header">
-        <div class="skel-logo"></div>
-        <div class="skel-search"></div>
-      </div>
-      <div class="skel-hero"><div class="skel-hero-inner"></div></div>
-      <div class="skel-cats">
-        <div class="skel-cat"></div><div class="skel-cat"></div><div class="skel-cat"></div>
-        <div class="skel-cat"></div><div class="skel-cat"></div><div class="skel-cat"></div>
-      </div>
-      <div class="skel-grid">
-        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
-        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
-        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
-        <div class="skel-card"><div class="skel-card-img"></div><div class="skel-card-body"><div class="skel-card-title"></div><div class="skel-card-price"></div></div></div>
+    <div id="initial-loader" class="sk">
+      <div class="sk-h"><div class="sk-logo"></div><div class="sk-search"></div></div>
+      <div class="sk-hero"><div class="sk-banner"></div></div>
+      <div class="sk-cats"><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div></div>
+      <div class="sk-grid">
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
       </div>
     </div>
     <div id="root"></div>

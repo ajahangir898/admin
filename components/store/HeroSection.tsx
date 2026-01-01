@@ -27,7 +27,8 @@ const buildInternalHref = (url: string): string => {
 const getCarouselHref = (item: CarouselItem) => {
     const rawUrl = item.url?.trim() || '';
     if (!rawUrl) return { href: '#', isExternal: false };
-    return item.urlType === 'External' 
+    const isExternal = String((item as any).urlType ?? '').trim().toLowerCase() === 'external';
+    return isExternal 
         ? { href: ensureProtocol(rawUrl), isExternal: true }
         : { href: buildInternalHref(rawUrl), isExternal: false };
 };

@@ -3,7 +3,7 @@ import { HeroSection } from './store/HeroSection';
 import { CarouselItem } from '../types';
 
 const mockItems: CarouselItem[] = [
-  { id: '1', name: 'Hero 1', image: '/uploads/images/carousel/695571846e28640aa9476090/61099bc4-aabc-4f89-ab02-6d899de11ff6.webp?w=20&q=10', url: '#', urlType: 'Internal', status: 'Publish', serial: 1 },
+  { id: '1', name: 'Hero 1', image: '/uploads/images/carousel/test/hero2.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 1 },
   { id: '2', name: 'Hero 2', image: '/uploads/images/carousel/test/hero2.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 2 },
   { id: '3', name: 'Draft Item', image: '/uploads/images/carousel/test/draft.webp', url: '#', urlType: 'Internal', status: 'Draft', serial: 3 },
 ];
@@ -15,12 +15,45 @@ describe('HeroSection', () => {
   });
 
   it('treats publish status case-insensitively', () => {
-    const mixedCaseItems = [
-      ...(mockItems as any),
-      { id: '4', name: 'Lowercase Publish', image: '/uploads/images/carousel/test/lower.webp', url: '#', urlType: 'Internal', status: 'publish', serial: 4 },
-    ];
-    render(<HeroSection carouselItems={mixedCaseItems as any} />);
-    expect(screen.queryByAltText('Lowercase Publish')).toBeInTheDocument();
+    render(
+      <HeroSection
+        carouselItems={[
+          {
+            id: '4',
+            name: 'Lowercase Publish',
+            image: '/uploads/images/carousel/test/lower.webp',
+            url: '#',
+            urlType: 'Internal',
+            status: 'publish' as any,
+            serial: 1,
+          } as any,
+        ]}
+      />
+    );
+
+    expect(screen.getByRole('img', { name: 'Lowercase Publish' })).toBeInTheDocument();
+  });
+
+  it('treats urlType case-insensitively for external links', () => {
+    render(
+      <HeroSection
+        carouselItems={[
+          {
+            id: 'x',
+            name: 'External Lowercase',
+            image: '/uploads/images/carousel/test/ext.webp',
+            url: 'example.com',
+            urlType: 'external' as any,
+            status: 'Publish',
+            serial: 1,
+          } as any,
+        ]}
+      />
+    );
+
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', 'https://example.com');
+    expect(link).toHaveAttribute('target', '_blank');
   });
 
   it('returns null when empty', () => {

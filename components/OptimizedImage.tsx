@@ -19,9 +19,25 @@ interface Props {
 const EMPTY =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-const supportsWebP =
-  typeof window !== 'undefined' &&
-  document.createElement('canvas').toDataURL('image/webp').includes('data:image/webp');
+const supportsWebP = (() => {
+  if (typeof window === 'undefined') return false;
+
+  // Vitest runs in JSDOM where canvas.toDataURL may be unimplemented/noisy.
+  // WebP support detection is a runtime optimization only; disable in tests.
+  try {
+    if ((import.meta as any)?.env?.MODE === 'test') return false;
+  } catch {
+    // ignore
+  }
+
+  try {
+    const canvas = document.createElement('canvas');
+    const dataUrl = canvas.toDataURL('image/webp');
+    return typeof dataUrl === 'string' && dataUrl.includes('data:image/webp');
+  } catch {
+    return false;
+  }
+})();
 
 const generateBlurPlaceholder = (s: string): string => {
   if (s.startsWith('data:')) return s;

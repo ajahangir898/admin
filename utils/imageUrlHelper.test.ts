@@ -37,6 +37,12 @@ describe('imageUrlHelper', () => {
       expect(normalizeImageUrl(dataUrl)).toBe(dataUrl);
     });
 
+    test('trims and normalizes base64 data URIs with whitespace', async () => {
+      const messy = "  'data:image/webp;base64,QUJD\nREVG\t'  ";
+      const { normalizeImageUrl } = await loadHelper(false);
+      expect(normalizeImageUrl(messy)).toBe('data:image/webp;base64,QUJDREVG');
+    });
+
     test('handles relative URLs starting with /uploads', async () => {
       const relativeUrl = '/uploads/images/carousel/tenant1/image.webp';
       const { normalizeImageUrl } = await loadHelper(false);

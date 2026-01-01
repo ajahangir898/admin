@@ -19,6 +19,12 @@ interface Props {
 const EMPTY =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
+const isDataUrl = (value: string | undefined | null): boolean =>
+  !!value && value.trim().toLowerCase().startsWith('data:');
+
+const isBlobUrl = (value: string | undefined | null): boolean =>
+  !!value && value.trim().toLowerCase().startsWith('blob:');
+
 const supportsWebP = (() => {
   if (typeof window === 'undefined') return false;
 
@@ -40,7 +46,7 @@ const supportsWebP = (() => {
 })();
 
 const generateBlurPlaceholder = (s: string): string => {
-  if (s.startsWith('data:')) return s;
+  if (isDataUrl(s) || isBlobUrl(s)) return s.trim();
   if (s.includes('unsplash.com')) return s.replace(/w=\d+/, 'w=20').replace(/q=\d+/, 'q=10');
   if (s.includes('systemnextit.com')) return `${s}${s.includes('?') ? '&' : '?'}w=20&q=10`;
   return EMPTY;
@@ -57,7 +63,8 @@ const applyCDN = (url: string, w?: number) =>
     : url;
 
 const getOptimizedUrl = (src: string, w?: number): string => {
-  if (!src || src.startsWith('data:')) return src || EMPTY;
+  if (!src) return EMPTY;
+  if (isDataUrl(src) || isBlobUrl(src)) return src.trim();
   const tw = w || 640;
 
   if (src.includes('unsplash.com')) {
@@ -77,7 +84,8 @@ const getOptimizedUrl = (src: string, w?: number): string => {
 
 const generateSrcSet = (s: string): string =>
   !s ||
-  s.startsWith('data:') ||
+  isDataUrl(s) ||
+  isBlobUrl(s) ||
   (!s.includes('unsplash.com') && !s.includes('systemnextit.com'))
     ? ''
     : [320, 640, 960, 1280, 1920].map(w => `${getOptimizedUrl(s, w)} ${w}w`).join(', ');
@@ -131,7 +139,7 @@ const OptimizedImage = memo(
     };
 
     const handleError = () => {
-      if (!fallback && src && !src.startsWith('data:')) {
+      if (!fallback && src && !isDataUrl(src) && !isBlobUrl(src)) {
         setFallback(true);
         return;
       }
@@ -139,9 +147,10 @@ const OptimizedImage = memo(
       onError?.();
     };
 
-    const optSrc = fallback ? src : getOptimizedUrl(src, width);
-    const srcSet = fallback ? '' : generateSrcSet(src);
-    const phSrc = placeholder === 'blur' ? generateBlurPlaceholder(src) : EMPTY;
+    const rawSrc = src?.trim() || '';
+    const optSrc = fallback ? rawSrc : getOptimizedUrl(rawSrc, width);
+    const srcSet = fallback ? '' : generateSrcSet(rawSrc);
+    const phSrc = placeholder === 'blur' ? generateBlurPlaceholder(rawSrc) : EMPTY;
     const sizes = width
       ? `(max-width: ${width}px) 100vw, ${width}px`
       : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';

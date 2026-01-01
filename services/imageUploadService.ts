@@ -68,7 +68,35 @@ export const uploadPreparedImageToServer = async (
  * Check if a string is a base64 data URL
  */
 export const isBase64Image = (str: string): boolean => {
-  return str?.startsWith('data:image/');
+  if (!str) return false;
+  const s = str.trim();
+  const unquoted =
+    (s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))
+      ? s.slice(1, -1).trim()
+      : s;
+  const lower = unquoted.toLowerCase();
+  return lower.startsWith('data:image/') && lower.includes(';base64,');
+};
+
+const normalizeBase64DataUrl = (value: string): string => {
+  const s = value.trim();
+  const unquoted =
+    (s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))
+      ? s.slice(1, -1).trim()
+      : s;
+
+  const lower = unquoted.toLowerCase();
+  if (!lower.startsWith('data:')) return unquoted;
+
+  const commaIndex = unquoted.indexOf(',');
+  if (commaIndex === -1) return unquoted;
+
+  const meta = unquoted.slice(0, commaIndex);
+  const data = unquoted.slice(commaIndex + 1);
+
+  if (!/;base64$/i.test(meta) && !/;base64/i.test(meta)) return unquoted;
+
+  return `${meta},${data.replace(/\s+/g, '')}`;
 };
 
 /**
@@ -82,10 +110,12 @@ export const convertBase64ToUploadedUrl = async (
   folder?: 'carousel'
 ): Promise<string> => {
   try {
+    const normalizedBase64Data = normalizeBase64DataUrl(base64Data);
+
     const response = await fetch(`${API_BASE_URL}/api/upload/fix-base64`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ base64Data, tenantId, folder, filename: `carousel-fixed-${Date.now()}.webp` }),
+      body: JSON.stringify({ base64Data: normalizedBase64Data, tenantId, folder, filename: `carousel-fixed-${Date.now()}.webp` }),
     });
 
     const responseText = await response.text();

@@ -33,69 +33,97 @@ const IMAGE_SIZES: Record<ImageSize, { width: number; quality: number }> = {
   full: { width: 1200, quality: 85 },   // For hero images
 };
 
+const stripWrappingQuotes = (value: string): string => {
+  const v = value.trim();
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    return v.slice(1, -1).trim();
+  }
+  return v;
+};
+
+const normalizeDataUrl = (value: string): string => {
+  // Keep non-data URLs untouched.
+  const v = stripWrappingQuotes(value);
+  if (!v.toLowerCase().startsWith('data:')) return v;
+
+  // data:[<mediatype>][;base64],<data>
+  // If base64, strip whitespace/newlines from the data payload.
+  const match = v.match(/^data:([^,]*),(.*)$/s);
+  if (!match) return v;
+
+  const meta = match[1];
+  const data = match[2];
+  if (/;base64/i.test(meta)) {
+    return `data:${meta},${data.replace(/\s+/g, '')}`;
+  }
+  return v;
+};
+
 export const normalizeImageUrl = (url: string | undefined | null): string => {
   if (!url) return '';
-  
-  // Data URIs are already complete - return as-is
-  if (url.startsWith('data:')) {
-    return url;
-  }
+
+  const cleaned = stripWrappingQuotes(url);
+  if (!cleaned) return '';
+
+  // Data URIs and blob URLs should not be rewritten.
+  if (cleaned.toLowerCase().startsWith('data:')) return normalizeDataUrl(cleaned);
+  if (cleaned.toLowerCase().startsWith('blob:')) return cleaned;
 
   // If CDN is enabled, prefer CDN URLs and avoid downgrading them back to origin.
   if (isCDNEnabled()) {
     // If it's already a CDN URL, keep it.
-    if (url.includes('cdn.systemnextit.com') || url.includes('images.systemnextit.com') || url.includes('static.systemnextit.com')) {
-      return url;
+    if (cleaned.includes('cdn.systemnextit.com') || cleaned.includes('images.systemnextit.com') || cleaned.includes('static.systemnextit.com')) {
+      return cleaned;
     }
 
     // If it's a systemnextit.com upload URL, CDN-ify it.
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      if (url.includes('systemnextit.com') && url.includes('/uploads')) {
-        return getCDNImageUrl(url);
+    if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
+      if (cleaned.includes('systemnextit.com') && cleaned.includes('/uploads')) {
+        return getCDNImageUrl(cleaned);
       }
       // External URL
-      return url;
+      return cleaned;
     }
 
     // Relative upload paths should go through CDN.
-    if (url.startsWith('/uploads') || url.startsWith('uploads/')) {
-      return getCDNImageUrl(url);
+    if (cleaned.startsWith('/uploads') || cleaned.startsWith('uploads/')) {
+      return getCDNImageUrl(cleaned);
     }
   }
 
   // CDN disabled: Convert cdn.systemnextit.com URLs to production URL (fallback if CDN doesn't have files)
-  if (url.includes('cdn.systemnextit.com')) {
-    return url.replace('https://cdn.systemnextit.com', PRODUCTION_URL);
+  if (cleaned.includes('cdn.systemnextit.com')) {
+    return cleaned.replace('https://cdn.systemnextit.com', PRODUCTION_URL);
   }
 
   // If it's already a full URL with systemnextit.com, keep it
-  if (url.includes('systemnextit.com')) {
-    return url;
+  if (cleaned.includes('systemnextit.com')) {
+    return cleaned;
   }
   
   // If it's a relative URL (starts with /uploads), prepend the base URL
-  if (url.startsWith('/uploads')) {
-    return `${getBaseUrl()}${url}`;
+  if (cleaned.startsWith('/uploads')) {
+    return `${getBaseUrl()}${cleaned}`;
   }
   
   // Handle relative URLs without leading slash (e.g., uploads/...)
-  if (url.startsWith('uploads/')) {
-    return `${getBaseUrl()}/${url}`;
+  if (cleaned.startsWith('uploads/')) {
+    return `${getBaseUrl()}/${cleaned}`;
   }
   
   // If it's a localhost URL, replace with current origin or production
-  if (url.includes('localhost') || url.includes('127.0.0.1')) {
+  if (cleaned.includes('localhost') || cleaned.includes('127.0.0.1')) {
     const baseUrl = getBaseUrl();
-    return url.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, baseUrl);
+    return cleaned.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, baseUrl);
   }
   
   // If it's already a full URL (http:// or https://), return as-is
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
+  if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
+    return cleaned;
   }
   
   // Return as-is if it doesn't match any pattern
-  return url;
+  return cleaned;
 };
 
 /**

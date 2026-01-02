@@ -658,6 +658,7 @@ const StoreHome = ({
             }
           }}
           onBack={handleClearCategoryFilter}
+          onHome={handleClearCategoryFilter}
           onProductClick={onProductClick}
           onBuyNow={handleBuyNow}
           onQuickView={setQuickViewProduct}

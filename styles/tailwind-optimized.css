@@ -13,6 +13,15 @@
   color: #000;
 }
 
+/* Seamless marquee animation */
+@keyframes marquee-seamless {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee-seamless {
+  animation: marquee-seamless 15s linear infinite;
+}
+
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;

@@ -13,7 +13,7 @@ const TrackOrderModal = lazy(() => import('./store/TrackOrderModal').then(m => (
 interface Props {
   products: Product[]; categories?: Category[]; subCategories?: any[]; childCategories?: any[];
   brands?: Brand[]; tags?: any[]; selectedCategory: string; websiteConfig?: WebsiteConfig;
-  onCategoryChange: (c: string | null) => void; onBack: () => void; onProductClick: (p: Product) => void;
+  onCategoryChange: (c: string | null) => void; onBack: () => void; onHome?: () => void; onProductClick: (p: Product) => void;
   onBuyNow?: (p: Product) => void; onQuickView?: (p: Product) => void; onAddToCart?: (p: Product) => void;
   logo?: string | null; user?: User | null; wishlistCount?: number; wishlist?: number[]; cart?: number[];
   onToggleWishlist?: (id: number) => void; onToggleCart?: (id: number) => void;
@@ -24,7 +24,7 @@ interface Props {
 const eq = (a?: string, b?: string) => a?.toLowerCase() === b?.toLowerCase();
 
 export const StoreCategoryProducts = ({ products, categories, subCategories, childCategories, brands, tags,
-  selectedCategory, onCategoryChange, onBack, onProductClick, onBuyNow, onQuickView, onAddToCart, websiteConfig,
+  selectedCategory, onCategoryChange, onBack, onHome, onProductClick, onBuyNow, onQuickView, onAddToCart, websiteConfig,
   logo, user, wishlistCount = 0, wishlist = [], onToggleWishlist, cart = [], onToggleCart, onCheckoutFromCart,
   onLoginClick, onLogoutClick, onProfileClick, onOpenChat, onImageSearchClick, orders = [] }: Props) => {
   
@@ -110,7 +110,7 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Suspense fallback={null}>
-        <StoreHeader onTrackOrder={() => setIsTrackOrderOpen(true)} onImageSearchClick={onImageSearchClick} productCatalog={activeProducts}
+        <StoreHeader onTrackOrder={() => setIsTrackOrderOpen(true)} onHomeClick={onHome || onBack} onImageSearchClick={onImageSearchClick} productCatalog={activeProducts}
           wishlistCount={wishlistCount} wishlist={wishlist} onToggleWishlist={onToggleWishlist} cart={cart}
           onToggleCart={onToggleCart} onCheckoutFromCart={onCheckoutFromCart} user={user} onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick} onProfileClick={onProfileClick} logo={logo} websiteConfig={websiteConfig}

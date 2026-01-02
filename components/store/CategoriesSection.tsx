@@ -86,6 +86,9 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
 
   return (
     <div ref={sectionRef} className="relative py-3 overflow-hidden">
+      {/* Gradient line above categories */}
+      <div className="h-1 w-24 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 mb-3"></div>
+      
       <div 
         className="marquee-container"
         onMouseEnter={() => setIsPaused(true)}

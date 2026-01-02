@@ -741,7 +741,7 @@ const StoreHome = ({
 
       {/* Categories Section - Auto-sliding modern category display */}
       {displayCategories.length > 0 && (
-        <section ref={categoriesSectionRef} className="max-w-7xl mx-auto px-4 pt-4">
+        <section ref={categoriesSectionRef} className="max-w-7xl mx-auto px-4 pt-1">
           <CategoriesSection
             style={(websiteConfig?.categorySectionStyle as any) || 'style6'}
             categories={displayCategories}

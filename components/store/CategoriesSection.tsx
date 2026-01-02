@@ -1,4 +1,4 @@
-import { memo, useMemo, RefObject, useRef, useState, useEffect } from 'react';
+import { memo, useMemo, RefObject, useRef, useState } from 'react';
 import { Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, Grid, Baby, Dog, BookOpen, Package, Shirt, Utensils, Heart, ChevronLeft, ChevronRight, ShoppingBag, Sparkles, Gift, Home, Car, Dumbbell, Palette, Music, Coffee, Leaf, Star } from 'lucide-react';
 import { Category } from '../../types';
 
@@ -50,9 +50,8 @@ interface Props {
 }
 
 export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef }: Props) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   const processed = useMemo(() => 
     categories?.filter(c => !c.status || c.status === 'Active' || c.status?.toLowerCase() === 'active').map(c => ({ 
@@ -63,93 +62,70 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
     })) || []
   , [categories]);
 
-  const checkScroll = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  useEffect(() => {
-    checkScroll();
-    const el = scrollRef.current;
-    if (el) {
-      el.addEventListener('scroll', checkScroll);
-      return () => el.removeEventListener('scroll', checkScroll);
-    }
-  }, [processed]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = 200;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   if (!processed.length) return null;
 
+  // Duplicate items for seamless loop
+  const duplicatedItems = [...processed, ...processed];
+
+  const CategoryButton = ({ category }: { category: typeof processed[0] }) => (
+    <button
+      onClick={() => onCategoryClick(category.slug || category.name)}
+      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-cyan-400 bg-white hover:bg-cyan-50 transition-all duration-200 hover:shadow-md hover:border-cyan-500 group"
+    >
+      <div className="w-6 h-6 flex items-center justify-center text-cyan-600 group-hover:text-cyan-700 transition-colors">
+        {isImageUrl(category.icon) ? (
+          <img src={category.icon} alt={category.name} className="w-5 h-5 object-contain" />
+        ) : (
+          getIcon(category.icon, 18, 2)
+        )}
+      </div>
+      <span className="text-sm font-medium text-gray-700 whitespace-nowrap group-hover:text-gray-900">
+        {category.name}
+      </span>
+    </button>
+  );
+
   return (
-    <div ref={sectionRef} className="relative py-3">
-      {/* Left Arrow */}
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-all border border-gray-200"
-        >
-          <ChevronLeft size={18} className="text-gray-600" />
-        </button>
-      )}
-
-      {/* Right Arrow */}
-      {canScrollRight && (
-        <button
-          onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-all border border-gray-200"
-        >
-          <ChevronRight size={18} className="text-gray-600" />
-        </button>
-      )}
-
-      {/* Scrollable Categories */}
-      <div
-        ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide px-2"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+    <div ref={sectionRef} className="relative py-3 overflow-hidden">
+      {/* Auto-scrolling marquee */}
+      <div 
+        ref={containerRef}
+        className="marquee-container"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
-        {processed.map((category, index) => (
-          <button
-            key={category.name}
-            onClick={() => onCategoryClick(category.slug || category.name)}
-            className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-cyan-400 bg-white hover:bg-cyan-50 transition-all duration-200 hover:shadow-md hover:border-cyan-500 group"
-          >
-            {/* Icon */}
-            <div className="w-6 h-6 flex items-center justify-center text-cyan-600 group-hover:text-cyan-700 transition-colors">
-              {isImageUrl(category.icon) ? (
-                <img 
-                  src={category.icon} 
-                  alt={category.name} 
-                  className="w-5 h-5 object-contain"
-                />
-              ) : (
-                getIcon(category.icon, 18, 2)
-              )}
-            </div>
-            {/* Name */}
-            <span className="text-sm font-medium text-gray-700 whitespace-nowrap group-hover:text-gray-900">
-              {category.name}
-            </span>
-          </button>
-        ))}
+        <div className={`marquee-content ${isPaused ? 'paused' : ''}`}>
+          {duplicatedItems.map((category, index) => (
+            <CategoryButton key={`${category.name}-${index}`} category={category} />
+          ))}
+        </div>
       </div>
 
-      {/* Hide scrollbar CSS */}
+      {/* Right Arrow for manual scroll hint */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full shadow-lg flex items-center justify-center border border-gray-200 pointer-events-none">
+        <ChevronRight size={18} className="text-gray-400" />
+      </div>
+
+      {/* CSS for marquee animation */}
       <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+        .marquee-container {
+          overflow: hidden;
+          mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 40px), transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 40px), transparent);
+        }
+        .marquee-content {
+          display: flex;
+          gap: 0.75rem;
+          width: max-content;
+          animation: marquee 30s linear infinite;
+          padding: 0 0.5rem;
+        }
+        .marquee-content.paused {
+          animation-play-state: paused;
+        }
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
       `}</style>
     </div>

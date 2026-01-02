@@ -34,9 +34,12 @@ const CategoryButton = memo(({
   return (
     <button
       onClick={handleClick}
-      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-cyan-400 bg-white hover:bg-cyan-50 transition-colors duration-150 hover:border-cyan-500 group"
+      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-transparent bg-white hover:bg-purple-50 transition-colors duration-150 group"
+      style={{ 
+        background: 'linear-gradient(white, white) padding-box, linear-gradient(to right, #a855f7, #d946ef, #ec4899) border-box' 
+      }}
     >
-      <div className="w-6 h-6 flex items-center justify-center text-cyan-600">
+      <div className="w-6 h-6 flex items-center justify-center text-fuchsia-600">
         {isImageUrl(category.icon) ? (
           <img 
             src={category.icon} 

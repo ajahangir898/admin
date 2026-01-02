@@ -233,72 +233,75 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
         </div>
 
+        {/* Top Tenants - Desktop Table / Mobile Cards */}
         <div className="overflow-x-auto">
-          <table className="w-full">
+          {/* Desktop Table */}
+          <table className="w-full hidden md:table">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tenant</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Plan</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Orders</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Revenue</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Users</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Active</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tenant</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Plan</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Orders</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Revenue</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Users</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden xl:table-cell">Last Active</th>
+                <th className="px-4 lg:px-6 py-3 lg:py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {topTenants.map((tenant) => (
                 <tr key={tenant.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                    <div className="flex items-center gap-2 lg:gap-3">
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
                         {tenant.name.charAt(0)}
                       </div>
-                      <div>
-                        <p className="font-medium text-slate-900">{tenant.name}</p>
-                        <p className="text-sm text-slate-500">{tenant.subdomain}.systemnextit.com</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-slate-900 text-sm lg:text-base truncate">{tenant.name}</p>
+                        <p className="text-xs lg:text-sm text-slate-500 truncate">{tenant.subdomain}.systemnextit.com</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${getPlanBadge(tenant.plan)}`}>
+                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                    <span className={`inline-flex items-center gap-1 lg:gap-1.5 px-2 lg:px-3 py-1 rounded-full text-xs font-medium ${getPlanBadge(tenant.plan)}`}>
                       {tenant.plan === 'enterprise' && <Crown className="w-3 h-3" />}
                       {tenant.plan === 'growth' && <Rocket className="w-3 h-3" />}
-                      {tenant.plan.charAt(0).toUpperCase() + tenant.plan.slice(1)}
+                      <span className="hidden lg:inline">{tenant.plan.charAt(0).toUpperCase() + tenant.plan.slice(1)}</span>
+                      <span className="lg:hidden">{tenant.plan.charAt(0).toUpperCase()}</span>
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(tenant.status)}`}>
+                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                    <span className={`inline-flex items-center gap-1 lg:gap-1.5 px-2 lg:px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(tenant.status)}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${tenant.status === 'active' ? 'bg-emerald-500' : tenant.status === 'trialing' ? 'bg-amber-500' : 'bg-red-500'}`}></span>
-                      {tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1)}
+                      <span className="hidden lg:inline">{tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1)}</span>
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-slate-900">{tenant.totalOrders.toLocaleString()}</span>
+                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                    <span className="text-xs lg:text-sm font-medium text-slate-900">{tenant.totalOrders.toLocaleString()}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
                     <span className="text-sm font-semibold text-emerald-600">{formatCurrency(tenant.totalRevenue)}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-slate-400" />
                       <span className="text-sm text-slate-600">{tenant.activeUsers}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
                     <span className="text-sm text-slate-500">{tenant.lastActivity}</span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
-                        <Eye className="w-4 h-4" />
+                  <td className="px-4 lg:px-6 py-3 lg:py-4 text-right">
+                    <div className="flex items-center justify-end gap-1 lg:gap-2">
+                      <button className="p-1.5 lg:p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
+                        <Eye className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                       </button>
-                      <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
-                        <Edit className="w-4 h-4" />
+                      <button className="p-1.5 lg:p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
+                        <Edit className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                       </button>
-                      <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
-                        <ExternalLink className="w-4 h-4" />
+                      <button className="p-1.5 lg:p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
+                        <ExternalLink className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                       </button>
                     </div>
                   </td>
@@ -306,10 +309,74 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               ))}
             </tbody>
           </table>
+
+          {/* Mobile Card Layout */}
+          <div className="md:hidden divide-y divide-slate-200">
+            {topTenants.map((tenant) => (
+              <div key={tenant.id} className="p-4 hover:bg-slate-50 transition-colors">
+                {/* Tenant Info */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      {tenant.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-900 text-sm truncate">{tenant.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{tenant.subdomain}.systemnextit.com</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2">
+                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Plan</p>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getPlanBadge(tenant.plan)}`}>
+                      {tenant.plan === 'enterprise' && <Crown className="w-3 h-3" />}
+                      {tenant.plan === 'growth' && <Rocket className="w-3 h-3" />}
+                      {tenant.plan.charAt(0).toUpperCase() + tenant.plan.slice(1)}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Status</p>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusBadge(tenant.status)}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${tenant.status === 'active' ? 'bg-emerald-500' : tenant.status === 'trialing' ? 'bg-amber-500' : 'bg-red-500'}`}></span>
+                      {tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1)}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Orders</p>
+                    <p className="text-sm font-semibold text-slate-900">{tenant.totalOrders.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Revenue</p>
+                    <p className="text-sm font-semibold text-emerald-600">{formatCurrency(tenant.totalRevenue)}</p>
+                  </div>
+                </div>
+
+                {/* Footer Info */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>{tenant.activeUsers} users</span>
+                  </div>
+                  <span className="text-xs text-slate-400">{tenant.lastActivity}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="p-3 sm:p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs sm:text-sm text-slate-500">Showing 5 of {systemStats.totalTenants} tenants</p>
+          <p className="text-xs sm:text-sm text-slate-500">Showing {topTenants.length} of {systemStats.totalTenants} tenants</p>
           <button 
             onClick={onViewAllTenants}
             className="text-xs sm:text-sm font-medium text-emerald-600 hover:text-emerald-700"

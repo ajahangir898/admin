@@ -92,25 +92,7 @@ const defaultChatConfig: ChatConfig = {
   offlineMessage: 'We\'re currently offline. Please leave a message and we\'ll respond during business hours.'
 };
 
-// Mock data for top tenants - replace with real API calls
-const mockTopTenants: TenantStats[] = [
-  { id: '1', name: 'OPBD Fashion', subdomain: 'opbd', plan: 'enterprise', status: 'active', totalOrders: 2450, totalRevenue: 485000, activeUsers: 45, lastActivity: '2 min ago' },
-  { id: '2', name: 'StyleHub BD', subdomain: 'stylehub', plan: 'growth', status: 'active', totalOrders: 1820, totalRevenue: 320000, activeUsers: 32, lastActivity: '5 min ago' },
-  { id: '3', name: 'TechMart Online', subdomain: 'techmart', plan: 'enterprise', status: 'active', totalOrders: 1560, totalRevenue: 890000, activeUsers: 28, lastActivity: '12 min ago' },
-  { id: '4', name: 'FoodieExpress', subdomain: 'foodie', plan: 'starter', status: 'trialing', totalOrders: 245, totalRevenue: 45000, activeUsers: 8, lastActivity: '1 hour ago' },
-  { id: '5', name: 'HomeDecor Plus', subdomain: 'homedecor', plan: 'growth', status: 'active', totalOrders: 980, totalRevenue: 210000, activeUsers: 15, lastActivity: '30 min ago' },
-];
-
-// Mock recent activities
-const mockRecentActivities: Activity[] = [
-  { id: 1, type: 'new_tenant', message: 'New tenant "FashionBD" registered', time: '5 min ago', icon: Building2 },
-  { id: 2, type: 'payment', message: 'Payment received from StyleHub BD - ৳15,000', time: '12 min ago', icon: CreditCard },
-  { id: 3, type: 'alert', message: 'High traffic detected on opbd.systemnextit.com', time: '25 min ago', icon: AlertTriangle },
-  { id: 4, type: 'upgrade', message: 'TechMart upgraded to Enterprise plan', time: '1 hour ago', icon: Rocket },
-  { id: 5, type: 'support', message: 'New support ticket from HomeDecor Plus', time: '2 hours ago', icon: MessageSquare },
-];
-
-// Mock announcements
+// Mock announcements - will be replaced with API calls in future
 const mockAnnouncements: BulkAnnouncement[] = [
   {
     id: '1',
@@ -151,196 +133,6 @@ const mockAnnouncements: BulkAnnouncement[] = [
   }
 ];
 
-// Mock support tickets
-const mockSupportTickets: SupportTicket[] = [
-  {
-    id: '1',
-    tenantId: '1',
-    tenantName: 'OPBD Fashion',
-    tenantSubdomain: 'opbd',
-    subject: 'Payment gateway not working',
-    description: 'Customers are unable to complete payments through bKash. Getting error code 500.',
-    category: 'bug',
-    priority: 'urgent',
-    status: 'in_progress',
-    assignedTo: 'Support Team',
-    createdAt: '2 hours ago',
-    updatedAt: '30 min ago',
-    messages: [
-      { id: 'm1', senderId: 'tenant1', senderName: 'OPBD Admin', senderType: 'merchant', message: 'This is urgent, we are losing sales!', createdAt: '2 hours ago' },
-      { id: 'm2', senderId: 'support', senderName: 'Support Team', senderType: 'support', message: 'We are investigating this issue. Can you provide the error logs?', createdAt: '1 hour ago' }
-    ]
-  },
-  {
-    id: '2',
-    tenantId: '3',
-    tenantName: 'TechMart Online',
-    tenantSubdomain: 'techmart',
-    subject: 'Request: Bulk product import from CSV',
-    description: 'We have 500+ products to add. Need ability to import from CSV file.',
-    category: 'feature_request',
-    priority: 'medium',
-    status: 'open',
-    createdAt: '1 day ago',
-    updatedAt: '1 day ago',
-    messages: [
-      { id: 'm3', senderId: 'tenant3', senderName: 'TechMart Admin', senderType: 'merchant', message: 'Adding products one by one is very time consuming. Please add CSV import.', createdAt: '1 day ago' }
-    ],
-    tags: ['enhancement', 'products']
-  },
-  {
-    id: '3',
-    tenantId: '5',
-    tenantName: 'HomeDecor Plus',
-    tenantSubdomain: 'homedecor',
-    subject: 'Billing question - discount not applied',
-    description: 'I signed up with a 20% discount code but my invoice shows full price.',
-    category: 'billing',
-    priority: 'high',
-    status: 'waiting_response',
-    assignedTo: 'Billing Team',
-    createdAt: '5 hours ago',
-    updatedAt: '3 hours ago',
-    messages: [
-      { id: 'm4', senderId: 'tenant5', senderName: 'HomeDecor Admin', senderType: 'merchant', message: 'The code was HOLIDAY20. Please check.', createdAt: '5 hours ago' },
-      { id: 'm5', senderId: 'support', senderName: 'Billing Team', senderType: 'support', message: 'We\'ve applied the discount. Please confirm on your next invoice.', createdAt: '3 hours ago' }
-    ]
-  }
-];
-
-// Mock merchant health data
-const mockMerchantHealth: MerchantHealth[] = [
-  {
-    tenantId: '1',
-    tenantName: 'OPBD Fashion',
-    tenantSubdomain: 'opbd',
-    plan: 'enterprise',
-    healthScore: 92,
-    riskLevel: 'healthy',
-    lastLoginAt: '2025-12-28T10:30:00',
-    daysSinceLastLogin: 0,
-    salesTrend: 'growing',
-    salesChangePercent: 15,
-    currentMonthRevenue: 485000,
-    previousMonthRevenue: 421000,
-    totalOrders30Days: 245,
-    totalOrdersPrevious30Days: 210,
-    activeProducts: 156,
-    supportTicketsOpen: 1,
-    alerts: []
-  },
-  {
-    tenantId: '2',
-    tenantName: 'StyleHub BD',
-    tenantSubdomain: 'stylehub',
-    plan: 'growth',
-    healthScore: 78,
-    riskLevel: 'healthy',
-    lastLoginAt: '2025-12-27T14:20:00',
-    daysSinceLastLogin: 1,
-    salesTrend: 'stable',
-    salesChangePercent: 3,
-    currentMonthRevenue: 320000,
-    previousMonthRevenue: 310000,
-    totalOrders30Days: 182,
-    totalOrdersPrevious30Days: 175,
-    activeProducts: 89,
-    supportTicketsOpen: 0,
-    alerts: []
-  },
-  {
-    tenantId: '3',
-    tenantName: 'TechMart Online',
-    tenantSubdomain: 'techmart',
-    plan: 'enterprise',
-    healthScore: 45,
-    riskLevel: 'at_risk',
-    lastLoginAt: '2025-12-20T09:00:00',
-    daysSinceLastLogin: 8,
-    salesTrend: 'declining',
-    salesChangePercent: -35,
-    currentMonthRevenue: 578000,
-    previousMonthRevenue: 890000,
-    totalOrders30Days: 98,
-    totalOrdersPrevious30Days: 156,
-    activeProducts: 234,
-    supportTicketsOpen: 1,
-    alerts: [
-      { id: 'a1', type: 'sales_drop', severity: 'critical', message: 'Sales dropped 35% compared to last month', triggeredAt: '3 days ago', acknowledged: false },
-      { id: 'a2', type: 'no_login', severity: 'warning', message: 'No login for 8 days', triggeredAt: '1 day ago', acknowledged: false }
-    ]
-  },
-  {
-    tenantId: '4',
-    tenantName: 'FoodieExpress',
-    tenantSubdomain: 'foodie',
-    plan: 'starter',
-    healthScore: 28,
-    riskLevel: 'critical',
-    lastLoginAt: '2025-12-10T11:45:00',
-    daysSinceLastLogin: 18,
-    salesTrend: 'inactive',
-    salesChangePercent: -80,
-    currentMonthRevenue: 9000,
-    previousMonthRevenue: 45000,
-    totalOrders30Days: 12,
-    totalOrdersPrevious30Days: 58,
-    activeProducts: 23,
-    supportTicketsOpen: 0,
-    alerts: [
-      { id: 'a3', type: 'no_login', severity: 'critical', message: 'No login for 18 days', triggeredAt: '4 days ago', acknowledged: false },
-      { id: 'a4', type: 'sales_drop', severity: 'critical', message: 'Sales dropped 80% - merchant may be churning', triggeredAt: '5 days ago', acknowledged: false },
-      { id: 'a5', type: 'subscription_expiring', severity: 'warning', message: 'Trial expires in 5 days', triggeredAt: '2 days ago', acknowledged: false }
-    ]
-  },
-  {
-    tenantId: '5',
-    tenantName: 'HomeDecor Plus',
-    tenantSubdomain: 'homedecor',
-    plan: 'growth',
-    healthScore: 65,
-    riskLevel: 'at_risk',
-    lastLoginAt: '2025-12-25T16:00:00',
-    daysSinceLastLogin: 3,
-    salesTrend: 'declining',
-    salesChangePercent: -20,
-    currentMonthRevenue: 168000,
-    previousMonthRevenue: 210000,
-    totalOrders30Days: 78,
-    totalOrdersPrevious30Days: 98,
-    activeProducts: 67,
-    supportTicketsOpen: 1,
-    alerts: [
-      { id: 'a6', type: 'sales_drop', severity: 'warning', message: 'Sales declined 20% this month', triggeredAt: '1 week ago', acknowledged: true }
-    ]
-  }
-];
-
-// Mock at-risk merchants
-const mockAtRiskMerchants: AtRiskMerchant[] = [
-  {
-    tenantId: '4',
-    tenantName: 'FoodieExpress',
-    tenantSubdomain: 'foodie',
-    plan: 'starter',
-    riskScore: 85,
-    riskFactors: ['No login for 18 days', 'Sales dropped 80%', 'Trial expiring soon'],
-    status: 'needs_attention'
-  },
-  {
-    tenantId: '3',
-    tenantName: 'TechMart Online',
-    tenantSubdomain: 'techmart',
-    plan: 'enterprise',
-    riskScore: 55,
-    riskFactors: ['Sales dropped 35%', 'Reduced login frequency'],
-    lastContact: '2025-12-22',
-    nextFollowUp: '2025-12-30',
-    notes: 'Merchant mentioned they are restructuring their business',
-    status: 'contacted'
-  }
-];
-
 // Loading fallback for lazy-loaded tabs - using skeleton instead of spinner
 const TabLoadingFallback = () => <SuperAdminTabSkeleton />;
 
@@ -374,8 +166,13 @@ const SuperAdminDashboard: React.FC = () => {
   const [isLoadingTickets, setIsLoadingTickets] = useState(false);
 
   // Merchant health state
-  const [merchantHealth, setMerchantHealth] = useState<MerchantHealth[]>(mockMerchantHealth);
-  const [atRiskMerchants, setAtRiskMerchants] = useState<AtRiskMerchant[]>(mockAtRiskMerchants);
+  const [merchantHealth, setMerchantHealth] = useState<MerchantHealth[]>([]);
+  const [atRiskMerchants, setAtRiskMerchants] = useState<AtRiskMerchant[]>([]);
+
+  // Top tenants and activities state - replace mock data with real data
+  const [topTenants, setTopTenants] = useState<TenantStats[]>([]);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   // Notifications state
   const [notifications, setNotifications] = useState<AdminNotification[]>([
@@ -401,12 +198,12 @@ const SuperAdminDashboard: React.FC = () => {
     }
   ]);
 
-  // Helper to get API URL
+  // Helper to get API URL - use port 5001 for backend
   const getApiUrl = (): string => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://localhost:3001/api';
+        return 'http://localhost:5001/api';
       }
       return 'https://systemnextit.com/api';
     }
@@ -519,14 +316,79 @@ const SuperAdminDashboard: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  // System stats derived from tenants
+  // Load tenant statistics from API
+  useEffect(() => {
+    const loadTenantStats = async () => {
+      if (tenants.length === 0) return;
+      
+      setIsLoadingStats(true);
+      try {
+        // Fetch stats for each tenant
+        const statsPromises = tenants.slice(0, 10).map(async (tenant) => {
+          try {
+            const response = await fetch(`${API_URL}/tenants/${tenant.id}/stats`, {
+              headers: getAuthHeader()
+            });
+            if (response.ok) {
+              const result = await response.json();
+              return {
+                id: tenant.id,
+                name: tenant.name,
+                subdomain: tenant.subdomain,
+                plan: tenant.plan || 'starter',
+                status: tenant.status,
+                totalOrders: result.data?.orderCount || 0,
+                totalRevenue: 0, // Would need to calculate from orders
+                activeUsers: result.data?.userCount || 0,
+                lastActivity: tenant.updatedAt ? formatTimeAgo(tenant.updatedAt) : 'Unknown'
+              };
+            }
+            return null;
+          } catch (err) {
+            console.error(`Failed to load stats for tenant ${tenant.id}:`, err);
+            return null;
+          }
+        });
+
+        const stats = (await Promise.all(statsPromises)).filter((s): s is TenantStats => s !== null);
+        
+        // Sort by total orders and take top 5
+        const sortedStats = stats.sort((a, b) => b.totalOrders - a.totalOrders).slice(0, 5);
+        setTopTenants(sortedStats);
+
+        // Generate recent activities from tenant data
+        const activities: Activity[] = [];
+        tenants.slice(0, 5).forEach((tenant, idx) => {
+          if (tenant.createdAt) {
+            activities.push({
+              id: idx + 1,
+              type: 'new_tenant',
+              message: `New tenant "${tenant.name}" registered`,
+              time: formatTimeAgo(tenant.createdAt),
+              icon: Building2
+            });
+          }
+        });
+        setRecentActivities(activities.slice(0, 5));
+        
+      } catch (error) {
+        console.error('Failed to load tenant statistics:', error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    loadTenantStats();
+  }, [tenants, API_URL]);
+
+  // System stats derived from tenants and loaded data
   const systemStats: SystemStats = {
-    totalTenants: tenants.length || 156,
-    activeTenants: tenants.filter(t => t.status === 'active').length || 142,
-    totalRevenue: 4250000,
-    monthlyRevenue: 485000,
-    totalOrders: 28450,
-    totalUsers: 1250,
+    totalTenants: tenants.length,
+    activeTenants: tenants.filter(t => t.status === 'active').length,
+    totalRevenue: topTenants.reduce((sum, t) => sum + (t.totalRevenue || 0), 0),
+    monthlyRevenue: topTenants.reduce((sum, t) => sum + (t.totalRevenue || 0), 0),
+    totalOrders: topTenants.reduce((sum, t) => sum + t.totalOrders, 0),
+    totalUsers: topTenants.reduce((sum, t) => sum + t.activeUsers, 0),
     serverLoad: 34,
     uptime: '99.98%',
     diskUsage: 45,
@@ -1242,8 +1104,8 @@ const SuperAdminDashboard: React.FC = () => {
           <React.Suspense fallback={<TabLoadingFallback />}>
             <OverviewTab
               systemStats={systemStats}
-              topTenants={mockTopTenants}
-              recentActivities={mockRecentActivities}
+              topTenants={topTenants}
+              recentActivities={recentActivities}
               onViewAllTenants={() => setActiveTab('tenants')}
             />
           </React.Suspense>

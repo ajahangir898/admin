@@ -322,30 +322,37 @@ export function useNavigation({ products, user }: UseNavigationOptions) {
   }, []);
 
   const handleProductClick = useCallback((product: Product) => {
-    setSelectedProduct(product);
+    // Start transition immediately for smoother UX
     setCurrentView('detail');
+    setSelectedProduct(product);
+    
     if (product.slug) {
       window.history.pushState({ slug: product.slug }, '', `/product-details/${product.slug}`);
     }
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    
+    // Smooth scroll with slight delay for view transition
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
   }, []);
 
   const handleCategoryFilterChange = useCallback((categorySlug: string | null) => {
-    if (categorySlug) {
-      if (categorySlug === 'all') {
-        window.history.pushState({}, '', '/all-products');
-      } else if (categorySlug.startsWith('brand:')) {
-        window.history.pushState({}, '', `/all-products?brand=${categorySlug.replace('brand:', '')}`);
+    // Apply filter immediately for instant feedback
+    setUrlCategoryFilter(categorySlug);
+    
+    requestAnimationFrame(() => {
+      if (categorySlug) {
+        if (categorySlug === 'all') {
+          window.history.pushState({}, '', '/all-products');
+        } else if (categorySlug.startsWith('brand:')) {
+          window.history.pushState({}, '', `/all-products?brand=${categorySlug.replace('brand:', '')}`);
+        } else {
+          window.history.pushState({}, '', `/all-products?category=${categorySlug}`);
+        }
       } else {
-        window.history.pushState({}, '', `/all-products?category=${categorySlug}`);
+        window.history.pushState({}, '', '/');
       }
-      setUrlCategoryFilter(categorySlug);
-    } else {
-      window.history.pushState({}, '', '/');
-      setUrlCategoryFilter(null);
-    }
+    });
   }, []);
 
   return {

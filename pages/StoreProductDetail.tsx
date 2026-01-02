@@ -413,7 +413,13 @@ const StoreProductDetail = ({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-50 font-sans text-slate-900 pb-20 md:pb-0 animate-fadeIn" style={{ animation: 'fadeIn 0.2s ease-out' }}>
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       <Suspense fallback={null}>
         <StoreHeader 
           onTrackOrder={() => setIsTrackOrderOpen(true)} 

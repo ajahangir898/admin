@@ -375,9 +375,12 @@ const App = () => {
     }
   }, []); // Empty deps - only run once on mount
 
-  // Persist user session
+  // Persist user session - only after session restoration is complete
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Don't clear storage during initial load before session restoration
+    if (!sessionRestoredRef.current) return;
+    
     if (user) {
       window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
     } else {

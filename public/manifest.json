@@ -59,8 +59,5 @@
       "type": "image/png",
       "purpose": "maskable any"
     }
-  ],
-  "categories": ["shopping", "lifestyle"],
-  "lang": "en",
-  "dir": "ltr"
+  ]
 }

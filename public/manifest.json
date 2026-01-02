@@ -1,12 +1,15 @@
 {
-  "name": "GadgetShob E-Commerce",
-  "short_name": "GadgetShob",
-  "description": "Your one-stop shop for electronics and gadgets",
+  "name": "SystemNext IT - Online Shopping Bangladesh",
+  "short_name": "SystemNext IT",
+  "description": "বাংলাদেশের বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম। সেরা দামে মোবাইল, ইলেকট্রনিক্স, ফ্যাশন ও গ্যাজেট কিনুন।",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f9fafb",
-  "theme_color": "#166d70",
+  "theme_color": "#E91E8C",
   "orientation": "portrait-primary",
+  "lang": "bn-BD",
+  "dir": "ltr",
+  "categories": ["shopping", "business"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

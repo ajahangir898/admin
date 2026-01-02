@@ -28,16 +28,13 @@ const getApiBaseUrl = (): string => {
   if (typeof process !== 'undefined' && process.env?.API_BASE_URL) {
     return process.env.API_BASE_URL;
   }
-  // Browser environment - detect production domain
+  // Browser environment - use current origin
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    // Production: use current domain
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return `${window.location.protocol}//${hostname}`;
-    }
+    return window.location.origin;
   }
-  // Local development fallback
-  return 'http://localhost:5001';
+  // Server-side fallback - use PORT env var
+  const port = process.env?.PORT || '3000';
+  return `http://0.0.0.0:${port}`;
 };
 
 class NotificationService {

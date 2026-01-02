@@ -82,7 +82,7 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                 {/* Logo & Description */}
                 <div className="text-center mb-8">
                     {resolvedFooterLogo ? (
-                        <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-14 object-contain mx-auto mb-4" />
+                        <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-28 object-contain mx-auto mb-4" />
                     ) : (
                         <h3 className="text-2xl font-black text-gray-900 mb-3">{websiteConfig?.websiteName || 'YourShop'}</h3>
                     )}

@@ -10,7 +10,7 @@
 
 ::selection {
   background: rgba(var(--color-primary-rgb), 0.25);
-  color: #fff;
+  color: #000;
 }
 
 @layer utilities {

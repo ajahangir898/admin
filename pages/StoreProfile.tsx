@@ -5,6 +5,7 @@ import { User, Order, WebsiteConfig, Product } from '../types';
 // Lazy load heavy layout components from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
+const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
 
 // Skeleton loaders removed for faster initial render
 import { User as UserIcon, Mail, Phone, MapPin, Package, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
@@ -54,6 +55,7 @@ const StoreProfile = ({
     address: user.address || ''
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 600);
@@ -85,6 +87,7 @@ const StoreProfile = ({
         <StoreHeader 
           onHomeClick={onHome}
           onImageSearchClick={onImageSearchClick}
+          onTrackOrder={() => setIsTrackOrderOpen(true)}
           user={user}
           onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick}
@@ -300,6 +303,12 @@ const StoreProfile = ({
       <Suspense fallback={null}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
+
+      {isTrackOrderOpen && (
+        <Suspense fallback={null}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
     </div>
   );
 };

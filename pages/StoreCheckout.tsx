@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig } from '../types';
+import { Product, User, WebsiteConfig, ProductVariantSelection, DeliveryConfig, Order } from '../types';
 
 // Lazy load heavy layout components from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
+const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
 
 // Skeleton loaders removed for faster initial render
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
@@ -47,6 +48,7 @@ interface CheckoutProps {
   onToggleCart?: (id: number) => void;
   onCheckoutFromCart?: (productId: number) => void;
   productCatalog?: Product[];
+  orders?: Order[];
 }
 
 type CheckoutFormState = {
@@ -82,7 +84,8 @@ const StoreCheckout = ({
   cart,
   onToggleCart,
   onCheckoutFromCart,
-  productCatalog
+  productCatalog,
+  orders = []
 }: CheckoutProps) => {
   const [formData, setFormData] = useState<CheckoutFormState>({
     fullName: '',
@@ -101,6 +104,7 @@ const StoreCheckout = ({
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [alertState, setAlertState] = useState<{ type: 'error' | 'success' | null; message: string }>({ type: null, message: '' });
   const [isLoading, setIsLoading] = useState(true);
+  const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 600);
@@ -249,6 +253,7 @@ const StoreCheckout = ({
         <StoreHeader 
           onHomeClick={onBack}
           onImageSearchClick={onImageSearchClick}
+          onTrackOrder={() => setIsTrackOrderOpen(true)}
           user={user}
           onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick}
@@ -755,6 +760,12 @@ const StoreCheckout = ({
       <Suspense fallback={null}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
+
+      {isTrackOrderOpen && (
+        <Suspense fallback={null}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
     </div>
   );
 };

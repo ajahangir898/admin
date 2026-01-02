@@ -8,6 +8,7 @@ import { CATEGORIES } from '../constants';
 
 const StoreHeader = lazy(() => import('./StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('./store/StoreFooter').then(m => ({ default: m.StoreFooter })));
+const TrackOrderModal = lazy(() => import('./store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
 
 interface Props {
   products: Product[]; categories?: Category[]; subCategories?: any[]; childCategories?: any[];
@@ -25,13 +26,13 @@ const eq = (a?: string, b?: string) => a?.toLowerCase() === b?.toLowerCase();
 export const StoreCategoryProducts = ({ products, categories, subCategories, childCategories, brands, tags,
   selectedCategory, onCategoryChange, onBack, onProductClick, onBuyNow, onQuickView, onAddToCart, websiteConfig,
   logo, user, wishlistCount = 0, wishlist = [], onToggleWishlist, cart = [], onToggleCart, onCheckoutFromCart,
-  onLoginClick, onLogoutClick, onProfileClick, onOpenChat, onImageSearchClick }: Props) => {
+  onLoginClick, onLogoutClick, onProfileClick, onOpenChat, onImageSearchClick, orders = [] }: Props) => {
   
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
   const [mobileFilter, setMobileFilter] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const isAll = selectedCategory === '__all__';
   const isBrandFilter = selectedCategory.startsWith('brand:');
   const brandFromUrl = isBrandFilter ? selectedCategory.slice(6) : null;
@@ -109,7 +110,7 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Suspense fallback={null}>
-        <StoreHeader onTrackOrder={() => {}} onImageSearchClick={onImageSearchClick} productCatalog={activeProducts}
+        <StoreHeader onTrackOrder={() => setIsTrackOrderOpen(true)} onImageSearchClick={onImageSearchClick} productCatalog={activeProducts}
           wishlistCount={wishlistCount} wishlist={wishlist} onToggleWishlist={onToggleWishlist} cart={cart}
           onToggleCart={onToggleCart} onCheckoutFromCart={onCheckoutFromCart} user={user} onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick} onProfileClick={onProfileClick} logo={logo} websiteConfig={websiteConfig}
@@ -177,6 +178,12 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
       </div>}
 
       <Suspense fallback={null}><StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} /></Suspense>
+
+      {isTrackOrderOpen && (
+        <Suspense fallback={null}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
     </div>
   );
 };

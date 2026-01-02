@@ -1311,6 +1311,7 @@ const App = () => {
                     onToggleCart={handleCartToggle}
                     onCheckoutFromCart={handleCheckoutFromCart}
                     productCatalog={products}
+                    orders={orders}
                   />
                 </Suspense>
               )}
@@ -1331,6 +1332,7 @@ const App = () => {
                     onToggleCart={handleCartToggle}
                     onCheckoutFromCart={handleCheckoutFromCart}
                     productCatalog={products}
+                    orders={orders}
                   />
                 </Suspense>
               )}

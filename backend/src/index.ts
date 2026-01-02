@@ -36,19 +36,19 @@ const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: (origin: string | string[] | undefined, callback: (arg0: Error | null, arg1: boolean | undefined) => void) => {
-      // Allow requests with no origin
+      // Allow requests with no origin (same-origin requests)
       if (!origin) return callback(null, true);
       
+      // Get allowed origins from environment
+      const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
       const systemnextPattern = /^https?:\/\/([a-z0-9-]+\.)?systemnextit\.com$/i;
       const cartngetPattern = /^https?:\/\/([a-z0-9-]+\.)?cartnget\.shop$/i;
       const origins = Array.isArray(origin) ? origin : [origin];
       const isAllowed = origins.some(o => 
         systemnextPattern.test(o) || 
         cartngetPattern.test(o) ||
-        o.includes('localhost') || 
-        o.includes('127.0.0.1') ||
-        o.startsWith('http://localhost') ||
-        o.startsWith('http://127.0.0.1')
+        allowedOrigins.includes(o) ||
+        allowedOrigins.some(allowed => allowed.includes('*') && new RegExp(allowed.replace(/\*/g, '.*')).test(o))
       );
       if (isAllowed) {
         return callback(null, true);

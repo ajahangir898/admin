@@ -418,7 +418,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
     100% { transform: translateX(-100%); }
 }
 .admin-notice-ticker {
-    animation: adminNoticeTicker 30s linear infinite;
+    animation: adminNoticeTicker 12s linear infinite;
     white-space: nowrap;
 }
       `}</style>

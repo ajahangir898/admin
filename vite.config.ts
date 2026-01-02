@@ -251,12 +251,22 @@ export default defineConfig(({ mode, isSsrBuild }) => {
       // Set base URL for all assets (CDN in production if configured)
       base: baseUrl,
       publicDir: 'public',
-      // Treat manifest.json as static asset to prevent JSON parsing issues
-      assetsInclude: ['**/*.json'],
       server: {
         port: 3000,
         host: '0.0.0.0',
         allowedHosts: ['.systemnextit.com', 'systemnextit.com', '.cartnget.shop', 'cartnget.shop', 'localhost', '.localhost'],
+        proxy: {
+          '/api': {
+            target: 'http://localhost:5001',
+            changeOrigin: true,
+            secure: false
+          },
+          '/socket.io': {
+            target: 'http://localhost:5001',
+            changeOrigin: true,
+            ws: true
+          }
+        },
         warmup: {
           clientFiles: [
             './App.tsx', 

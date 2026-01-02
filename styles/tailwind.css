@@ -58,7 +58,7 @@
 
 ::selection {
   background-color: rgb(var(--color-primary-rgb) / 0.25);
-  color: #fff;
+  color: #000;
 }
 
 /* Essential utilities only */

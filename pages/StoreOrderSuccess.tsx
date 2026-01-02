@@ -1,11 +1,12 @@
 
-import React, { lazy, Suspense, useMemo } from 'react';
+import React, { lazy, Suspense, useMemo, useState } from 'react';
 
 // Lazy load heavy layout components from individual files
 const StoreHeader = lazy(() => import('../components/StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
+const TrackOrderModal = lazy(() => import('../components/store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
 import { CheckCircle, Copy, Check } from 'lucide-react';
-import { User, WebsiteConfig, Product } from '../types';
+import { User, WebsiteConfig, Product, Order } from '../types';
 
 interface SuccessProps {
   onHome: () => void;
@@ -24,10 +25,12 @@ interface SuccessProps {
   onCheckoutFromCart?: (productId: number) => void;
   productCatalog?: Product[];
   orderId?: string;
+  orders?: Order[];
 }
 
-const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onImageSearchClick, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog, orderId: propsOrderId }: SuccessProps) => {
+const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfileClick, logo, websiteConfig, searchValue, onSearchChange, onImageSearchClick, onOpenChat, cart, onToggleCart, onCheckoutFromCart, productCatalog, orderId: propsOrderId, orders = [] }: SuccessProps) => {
   const [copied, setCopied] = React.useState(false);
+  const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   
   // Get orderId from URL or props
   const orderId = useMemo(() => {
@@ -53,6 +56,7 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
         <StoreHeader 
           onHomeClick={onHome}
           onImageSearchClick={onImageSearchClick}
+          onTrackOrder={() => setIsTrackOrderOpen(true)}
           user={user}
           onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick}
@@ -123,6 +127,12 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
       <Suspense fallback={null}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
+
+      {isTrackOrderOpen && (
+        <Suspense fallback={null}>
+          <TrackOrderModal onClose={() => setIsTrackOrderOpen(false)} orders={orders} />
+        </Suspense>
+      )}
     </div>
   );
 };

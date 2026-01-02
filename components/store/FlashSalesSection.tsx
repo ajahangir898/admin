@@ -46,15 +46,15 @@ export const FlashSalesSection = ({ products, showCounter, countdown, onProductC
           
           {/* Countdown Timer */}
           {showCounter && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               {countdown.map((s, idx) => (
-                <div key={s.label} className="flex items-center gap-1.5">
-                  <div className="border border-gray-300 rounded px-2 py-1 bg-white min-w-[45px] text-center">
-                    <span className="text-sm font-bold text-gray-800">{s.value}</span>
-                    <span className="text-[10px] text-gray-500 ml-0.5">{s.label}</span>
+                <div key={s.label} className="flex items-center">
+                  <div className="flex flex-col items-center bg-gradient-to-b from-gray-900 to-gray-800 rounded-lg px-2.5 py-1.5 min-w-[42px] shadow-md">
+                    <span className="text-base font-bold text-white tabular-nums leading-none">{s.value}</span>
+                    <span className="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">{s.label}</span>
                   </div>
                   {idx < countdown.length - 1 && (
-                    <span className="text-gray-400 font-light">|</span>
+                    <span className="text-red-500 font-bold mx-0.5 text-lg animate-pulse">:</span>
                   )}
                 </div>
               ))}

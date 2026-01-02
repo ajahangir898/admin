@@ -33,23 +33,23 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
     const resolvedFooterLogo = websiteConfig?.footerLogo || websiteConfig?.favicon || logo || null;
 
     const floatingChatButton = (() => {
-        const baseClasses = 'hidden md:flex fixed bottom-8 right-8 w-16 h-16 items-center justify-center rounded-[26px] text-white shadow-[0_18px_35px_rgba(255,122,85,0.35)] border border-white/30 transition-transform duration-200 hover:-translate-y-1 z-40';
-        const bubbleContent = (
-            <span className="relative flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-white opacity-90" />
-                <span className="w-2 h-2 rounded-full bg-white opacity-80" />
-                <span className="w-2 h-2 rounded-full bg-white opacity-70" />
-            </span>
-        );
+        const baseClasses = 'hidden md:flex fixed bottom-8 right-8 w-16 h-16 items-center justify-center rounded-full transition-transform duration-200 hover:-translate-y-1 hover:scale-105 z-40';
+        const gradientStyle = {
+            background: 'linear-gradient(135deg, #4F8EF7 0%, #8B5CF6 50%, #EC4899 100%)',
+            boxShadow: '0 8px 25px rgba(139, 92, 246, 0.4)',
+        };
+        const chatIcon = <MessageCircle size={28} strokeWidth={2} className="text-white" />;
+        
         if (chatEnabled && onOpenChat) {
             return (
                 <button
                     type="button"
                     onClick={onOpenChat}
                     aria-label="Open live chat"
-                    className={`${baseClasses} flex-1 btn-order py-1 text-sm`}
+                    className={baseClasses}
+                    style={gradientStyle}
                 >
-                    {bubbleContent}
+                    {chatIcon}
                 </button>
             );
         }
@@ -60,9 +60,14 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Chat on WhatsApp"
-                    className={`${baseClasses} bg-gradient-to-br from-[#34d399] to-[#059669]`}
+                    className={baseClasses}
+                    style={{
+                        ...gradientStyle,
+                        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                        boxShadow: '0 8px 25px rgba(37, 211, 102, 0.4)',
+                    }}
                 >
-                    {bubbleContent}
+                    {chatIcon}
                 </a>
             );
         }

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Facebook, Truck, Phone, Home, MessageSquare, List, Menu, LogOut, ChevronRight } from 'lucide-react';
+import { User, Facebook, Truck, Phone, Home, MessageCircle, List, Menu, LogOut, ChevronRight } from 'lucide-react';
 import { User as UserType, WebsiteConfig } from '../../types';
 
 const buildWhatsAppLink = (rawNumber?: string | null) => {
@@ -7,6 +7,20 @@ const buildWhatsAppLink = (rawNumber?: string | null) => {
     const sanitized = rawNumber.trim().replace(/[^0-9]/g, '');
     return sanitized ? `https://wa.me/${sanitized}` : null;
 };
+
+// Gradient Chat Icon Component - Blue to Pink gradient with white chat bubble
+const GradientChatIcon = ({ size = 44 }: { size?: number }) => (
+    <div 
+        className="rounded-full flex items-center justify-center shadow-lg"
+        style={{
+            width: size,
+            height: size,
+            background: 'linear-gradient(135deg, #4F8EF7 0%, #8B5CF6 50%, #EC4899 100%)',
+        }}
+    >
+        <MessageCircle size={size * 0.5} strokeWidth={2} className="text-white" />
+    </div>
+);
 
 export interface MobileBottomNavProps {
     onHomeClick: () => void;
@@ -90,19 +104,19 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 {/* Left Side */}
                 <div className="flex-1 flex justify-around items-center h-full pb-2 pr-10">
                     {chatEnabled && onChatClick ? (
-                        <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
-                            <MessageSquare size={20} strokeWidth={1.5} />
-                            <span className="text-[10px] font-medium">Chat</span>
+                        <button onClick={onChatClick} className="flex flex-col items-center gap-1 transition group">
+                            <GradientChatIcon size={36} />
+                            <span className="text-[10px] font-medium text-gray-600">Chat</span>
                         </button>
                     ) : chatFallbackLink ? (
-                        <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
-                            <MessageSquare size={20} strokeWidth={1.5} />
-                            <span className="text-[10px] font-medium">Chat</span>
+                        <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 transition group">
+                            <GradientChatIcon size={36} />
+                            <span className="text-[10px] font-medium text-gray-600">Chat</span>
                         </a>
                     ) : (
-                        <button className="flex flex-col items-center gap-1 text-gray-400 transition group" type="button" disabled>
-                            <MessageSquare size={20} strokeWidth={1.5} className="text-gray-400" />
-                            <span className="text-[10px] font-medium">Chat</span>
+                        <button className="flex flex-col items-center gap-1 transition group opacity-50" type="button" disabled>
+                            <GradientChatIcon size={36} />
+                            <span className="text-[10px] font-medium text-gray-400">Chat</span>
                         </button>
                     )}
                     <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
@@ -137,66 +151,25 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         );
     }
 
-    // Style 3: Clean 4 Columns
-    if (style === 'style3') {
-        return (
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2.5 px-6 grid grid-cols-4 items-center md:hidden z-50 shadow-lg pb-safe">
-                <button onClick={onHomeClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'home' ? 'text-pink-600' : 'text-gray-500'}`}>
-                    <Home size={22} strokeWidth={2} className={activeTab === 'home' ? 'fill-pink-100' : ''} />
-                    <span className="text-[10px] font-medium">Home</span>
-                </button>
-                <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-                    <List size={22} strokeWidth={1.5} />
-                    <span className="text-[10px] font-medium">Categories</span>
-                </button>
-                {chatEnabled && onChatClick ? (
-                    <button onClick={onChatClick} className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-                        <MessageSquare size={22} strokeWidth={1.5} />
-                        <span className="text-[10px] font-medium">Chat</span>
-                    </button>
-                ) : chatFallbackLink ? (
-                    <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition">
-                        <MessageSquare size={22} strokeWidth={1.5} />
-                        <span className="text-[10px] font-medium">Chat</span>
-                    </a>
-                ) : (
-                    <button className="flex flex-col items-center gap-1 text-gray-400 transition" type="button" disabled>
-                        <MessageSquare size={22} strokeWidth={1.5} className="text-gray-400" />
-                        <span className="text-[10px] font-medium">Chat</span>
-                    </button>
-                )}
-                <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500'}`}>
-                    <User size={22} strokeWidth={1.5} />
-                    <span className="text-[10px] font-medium">Account</span>
-                </button>
-            </div>
-        );
-    }
-
+  
     // Style 1 (Default): 5 Columns - Clean Modern Design
     return (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-1 flex justify-around items-end md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
             {/* Chat */}
             {chatEnabled && onChatClick ? (
                 <button onClick={onChatClick} className="flex flex-col items-center gap-0.5 transition w-1/5 group">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-                        <MessageSquare size={20} className="text-gray-600" />
-                    </div>
-                    <span className="text-[10px] font-medium text-gray-500">Chat</span>
+                    <GradientChatIcon size={40} />
+                    <span className="text-[10px] font-medium text-gray-600">Chat</span>
                 </button>
             ) : chatFallbackLink ? (
                 <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-0.5 transition w-1/5 group">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-                        <MessageSquare size={20} className="text-gray-600" />
-                    </div>
-                    <span className="text-[10px] font-medium text-gray-500">Chat</span>
+                    <GradientChatIcon size={40} />
+                    <span className="text-[10px] font-medium text-gray-600">Chat</span>
                 </a>
             ) : (
-                <button className="flex flex-col items-center gap-0.5 transition w-1/5" type="button" disabled>
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
-                        <MessageSquare size={20} className="text-gray-300" />
-                    </div>
-                    <span className="text-[10px] font-medium text-gray-300">Chat</span>
+                <button className="flex flex-col items-center gap-0.5 transition w-1/5 opacity-50" type="button" disabled>
+                    <GradientChatIcon size={40} />
+                    <span className="text-[10px] font-medium text-gray-400">Chat</span>
                 </button>
             )}
 

@@ -1,5 +1,6 @@
-# SystemNext IT - SEO Optimized Robots.txt
+# SystemNext IT / CartNGet - SEO Optimized Robots.txt
 # https://systemnextit.com
+# https://cartnget.shop
 
 User-agent: *
 Allow: /
@@ -22,6 +23,7 @@ Crawl-delay: 1
 
 # Sitemaps
 Sitemap: https://systemnextit.com/sitemap.xml
+Sitemap: https://cartnget.shop/sitemap.xml
 
 # Google specific
 User-agent: Googlebot

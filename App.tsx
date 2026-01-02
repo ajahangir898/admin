@@ -102,7 +102,7 @@ const StoreCheckout = lazy(() => import('./pages/StoreCheckout'));
 const StoreOrderSuccess = lazy(() => import('./pages/StoreOrderSuccess'));
 const StoreProfile = lazy(() => import('./pages/StoreProfile'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
-const ImageSearchPage = lazy(() => import('./pages/ImageSearch'));
+
 
 // Preload checkout page when user is browsing products
 export const preloadCheckout = () => import('./pages/StoreCheckout');
@@ -1377,11 +1377,6 @@ const App = () => {
                     onBack={handleCloseLandingPreview}
                     onSubmitLandingOrder={handleLandingOrderSubmit}
                   />
-                </Suspense>
-              )}
-              {currentView === 'visual-search' && (
-                <Suspense fallback={null}>
-                  <ImageSearchPage />
                 </Suspense>
               )}
               <StoreChatModal

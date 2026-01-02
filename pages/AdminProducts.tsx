@@ -2000,6 +2000,55 @@ const AdminProducts: React.FC<AdminProductsProps> = ({
 
                       {expandedSections.tags && (
                         <div className="p-4 space-y-4 bg-white">
+                          {/* Quick Sale Toggles */}
+                          <div className="flex flex-wrap gap-3 pb-4 border-b border-gray-200">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const hasFlashSale = formData.tags?.some(t => t.toLowerCase() === 'flash sale');
+                                if (hasFlashSale) {
+                                  setFormData({ ...formData, tags: formData.tags?.filter(t => t.toLowerCase() !== 'flash sale') });
+                                } else {
+                                  setFormData({ ...formData, tags: [...(formData.tags || []), 'Flash Sale'] });
+                                }
+                              }}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+                                formData.tags?.some(t => t.toLowerCase() === 'flash sale')
+                                  ? 'bg-orange-50 border-orange-400 text-orange-700'
+                                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-orange-300'
+                              }`}
+                            >
+                              <span className="text-lg">⚡</span>
+                              <span>Flash Sale</span>
+                              {formData.tags?.some(t => t.toLowerCase() === 'flash sale') && (
+                                <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded">ON</span>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const hasBestSale = formData.tags?.some(t => t.toLowerCase() === 'best sale');
+                                if (hasBestSale) {
+                                  setFormData({ ...formData, tags: formData.tags?.filter(t => t.toLowerCase() !== 'best sale') });
+                                } else {
+                                  setFormData({ ...formData, tags: [...(formData.tags || []), 'Best Sale'] });
+                                }
+                              }}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+                                formData.tags?.some(t => t.toLowerCase() === 'best sale')
+                                  ? 'bg-blue-50 border-blue-400 text-blue-700'
+                                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-blue-300'
+                              }`}
+                            >
+                              <span className="text-lg">🏆</span>
+                              <span>Best Sale</span>
+                              {formData.tags?.some(t => t.toLowerCase() === 'best sale') && (
+                                <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded">ON</span>
+                              )}
+                            </button>
+                          </div>
+
                           <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Tags</label>
                             <div className="flex gap-2">

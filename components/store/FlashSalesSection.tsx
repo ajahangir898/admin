@@ -34,7 +34,7 @@ export const FlashSalesSection = ({ products, showCounter, countdown, onProductC
         {/* Left: Title + Timer */}
         <div className="flex items-center gap-4 flex-wrap">
           {/* Flash Sale Title */}
-          <h2 className="text-lg md:text-xl font-bold text-gray-900">
+          <h2 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white drop-shadow-sm text-xl text-red-600">
             Flash Sale
           </h2>
           

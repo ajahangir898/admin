@@ -39,10 +39,12 @@ const io = new SocketIOServer(httpServer, {
       // Allow requests with no origin
       if (!origin) return callback(null, true);
       
-      const subdomainPattern = /^https?:\/\/([a-z0-9-]+\.)?systemnextit\.com$/i;
+      const systemnextPattern = /^https?:\/\/([a-z0-9-]+\.)?systemnextit\.com$/i;
+      const cartngetPattern = /^https?:\/\/([a-z0-9-]+\.)?cartnget\.shop$/i;
       const origins = Array.isArray(origin) ? origin : [origin];
       const isAllowed = origins.some(o => 
-        subdomainPattern.test(o) || 
+        systemnextPattern.test(o) || 
+        cartngetPattern.test(o) ||
         o.includes('localhost') || 
         o.includes('127.0.0.1') ||
         o.startsWith('http://localhost') ||

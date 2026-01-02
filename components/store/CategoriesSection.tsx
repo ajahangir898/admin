@@ -52,7 +52,7 @@ const CategoryButton = memo(({
           getIcon(category.icon, 18, 2)
         )}
       </div>
-      <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+      <span className="text-sm font-bold text-gray-700 whitespace-nowrap">
         {category.name}
       </span>
     </button>

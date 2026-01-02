@@ -108,23 +108,23 @@ const StoreProfile = ({
             {/* Sidebar Navigation */}
             <div className="w-full md:w-64 flex-shrink-0">
                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="p-6 bg-gradient-to-br from-green-500 to-green-600 text-center">
-                     <div className="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center text-green-600 shadow-md">
+                  <div className="p-6 text-center" style={{ background: 'linear-gradient(135deg, #E91E8C 0%, #00B4D8 100%)' }}>
+                     <div className="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center text-pink-600 shadow-md">
                         <UserIcon size={32} />
                      </div>
                      <h3 className="text-white font-bold truncate">{user.name}</h3>
-                     <p className="text-green-100 text-xs truncate">{user.email}</p>
+                     <p className="text-pink-100 text-xs truncate">{user.email}</p>
                   </div>
                   <nav className="p-2">
                      <button 
                        onClick={() => setActiveTab('info')}
-                       className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition mb-1 ${activeTab === 'info' ? 'bg-green-50 text-green-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                       className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition mb-1 ${activeTab === 'info' ? 'bg-pink-50 text-pink-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                      >
                         <UserIcon size={18} /> Personal Info
                      </button>
                      <button 
                        onClick={() => setActiveTab('orders')}
-                       className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition ${activeTab === 'orders' ? 'bg-green-50 text-green-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                       className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition ${activeTab === 'orders' ? 'bg-pink-50 text-pink-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                      >
                         <Package size={18} /> My Orders
                      </button>
@@ -221,13 +221,14 @@ const StoreProfile = ({
                              <button 
                                type="button" 
                                onClick={() => { setIsEditing(false); setFormData({name: user.name, email: user.email, phone: user.phone||'', address: user.address||''}); }}
-                               className="px-6 py-2 rounded-lg border border-gray-300 text-gray-600 font-medium hover:bg-gray-50 transition"
+                               className="px-6 py-2 rounded-lg border border-pink-300 text-pink-600 font-medium hover:bg-pink-50 transition"
                              >
                                Cancel
                              </button>
                              <button 
                                type="submit" 
-                               className="px-6 py-2 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 shadow-md shadow-green-200 transition"
+                               className="px-6 py-2 rounded-lg text-white font-medium shadow-md shadow-pink-200 transition"
+                               style={{ background: 'linear-gradient(135deg, #E91E8C 0%, #00B4D8 100%)' }}
                              >
                                Save Changes
                              </button>

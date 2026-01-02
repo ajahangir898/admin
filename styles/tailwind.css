@@ -4,12 +4,41 @@
 @tailwind utilities;
 
 :root {
-  --color-primary-rgb: 100, 116, 139;
-  --color-secondary-rgb: 71, 85, 105;
-  --color-tertiary-rgb: 100, 116, 139;
+  /* CartUp Brand Colors - Pink #E91E8C, Cyan #00B4D8 */
+  --color-primary-rgb: 233, 30, 140;
+  --color-secondary-rgb: 0, 180, 216;
+  --color-tertiary-rgb: 233, 30, 140;
   --color-font-rgb: 15, 23, 42;
-  --color-hover-rgb: 100, 116, 139;
+  --color-hover-rgb: 233, 30, 140;
   --color-surface-rgb: 241, 245, 249;
+}
+
+/* Static Brand Button Styles */
+.btn-order {
+  background: linear-gradient(135deg, #E91E8C 0%, #00B4D8 100%);
+  color: white;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(233, 30, 140, 0.3);
+}
+.btn-order:hover {
+  box-shadow: 0 6px 20px rgba(233, 30, 140, 0.4);
+  transform: translateY(-1px);
+}
+.btn-order:active {
+  transform: scale(0.98);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid #E91E8C;
+  color: #E91E8C;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+.btn-outline:hover {
+  background: #E91E8C;
+  color: white;
 }
 
 /* Essential theme utilities only */

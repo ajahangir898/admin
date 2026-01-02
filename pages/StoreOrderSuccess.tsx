@@ -70,23 +70,23 @@ const StoreOrderSuccess = ({ onHome, user, onLoginClick, onLogoutClick, onProfil
       
       <main className="flex-1 max-w-7xl mx-auto px-4 flex items-center justify-center py-12">
         <div className="store-card rounded-2xl p-8 md:p-12 max-w-lg w-full text-center animate-in fade-in zoom-in-95 duration-500">
-           <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={48} className="text-green-600" />
+           <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle size={48} className="text-pink-600" />
            </div>
            
            <h1 className="text-3xl font-bold text-gray-800 mb-2">Order Confirmed!</h1>
            <p className="text-gray-500 mb-8">Thank you for your purchase. Your order has been placed successfully and is being processed.</p>
            
            {orderId && (
-             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mb-6 border border-green-200">
+             <div className="bg-gradient-to-r from-pink-50 to-cyan-50 rounded-xl p-4 mb-6 border border-pink-200">
                <div className="flex items-center justify-between">
                  <div>
                    <span className="text-sm text-gray-500 block">Order ID</span>
-                   <span className="text-xl font-bold text-green-700">{orderId}</span>
+                   <span className="text-xl font-bold text-pink-700">{orderId}</span>
                  </div>
                  <button
                    onClick={handleCopyOrderId}
-                   className="p-2 hover:bg-green-100 rounded-lg transition-colors"
+                   className="p-2 hover:bg-pink-100 rounded-lg transition-colors"
                    title="Copy Order ID"
                  >
                    {copied ? <Check size={20} className="text-green-600" /> : <Copy size={20} className="text-gray-500" />}

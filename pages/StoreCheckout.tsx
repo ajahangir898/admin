@@ -651,13 +651,14 @@ const StoreCheckout = ({
               <div className="mt-6 flex flex-col gap-3">
                 <button
                   onClick={handleSubmit}
-                  className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold py-4 text-base tracking-wide shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-emerald-500/30 hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98]"
+                  className="w-full rounded-2xl text-white font-bold py-4 text-base tracking-wide shadow-xl shadow-pink-500/25 hover:shadow-2xl hover:shadow-pink-500/30 hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98]"
+                  style={{ background: 'linear-gradient(135deg, #E91E8C 0%, #00B4D8 100%)' }}
                 >
                   Confirm Order • ৳{grandTotal.toLocaleString()}
                 </button>
                 <button
                   onClick={onBack}
-                  className="w-full rounded-2xl border-2 border-gray-200 text-gray-700 font-semibold py-3.5 text-sm hover:bg-gray-50 hover:border-gray-300 flex items-center justify-center gap-2 transition-all duration-200"
+                  className="w-full rounded-2xl border-2 border-pink-200 text-pink-600 font-semibold py-3.5 text-sm hover:bg-pink-50 hover:border-pink-300 flex items-center justify-center gap-2 transition-all duration-200"
                 >
                   <ArrowLeft size={16} /> Continue Shopping
                 </button>
@@ -665,7 +666,7 @@ const StoreCheckout = ({
 
               <div className="mt-8 space-y-4 text-sm">
                 <div className="flex items-center gap-3">
-                  <ShieldCheck size={20} className="text-emerald-500" />
+                  <ShieldCheck size={20} className="text-pink-500" />
                   <span className="font-semibold text-gray-700">Money-back guarantee within 7 days.</span>
                 </div>
                 <div className="flex items-center gap-3">

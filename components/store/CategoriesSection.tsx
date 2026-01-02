@@ -131,9 +131,3 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
 
 CategoriesSection.displayName = 'CategoriesSection';
 export default CategoriesSection;
-    </div>
-  );
-});
-
-CategoriesSection.displayName = 'CategoriesSection';
-export default CategoriesSection;

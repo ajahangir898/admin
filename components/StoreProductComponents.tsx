@@ -82,20 +82,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onBu
           {product.originalPrice && (
             <span className="text-[10px] text-gray-400 line-through">৳{product.originalPrice?.toLocaleString()}</span>
           )}
-          <span className="text-sm font-bold text-cyan-600">৳{product.price?.toLocaleString()}</span>
+          <span className="text-sm font-bold text-theme-primary">৳{product.price?.toLocaleString()}</span>
         </div>
 
         {/* Buttons */}
         <div className="flex gap-1.5 mt-auto">
           <button 
-            className="flex items-center justify-center w-9 border-2 border-cyan-400 text-cyan-500 rounded-lg hover:bg-cyan-50 transition-all"
+            className="flex items-center justify-center w-9 border-2 border-theme-primary text-theme-primary rounded-lg hover:bg-theme-primary/10 transition-all"
             onClick={handleCart}
           >
             <ShoppingCart size={16} />
           </button>
           <button 
-            className="flex-1 text-white text-xs font-bold py-2 rounded-lg transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(to right, #06b6d4, #22d3ee)' }}
+            className="flex-1 btn-order text-xs py-2 rounded-lg"
             onClick={handleBuyNow}
           >
             Buy Now

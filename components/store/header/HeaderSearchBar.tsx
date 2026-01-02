@@ -62,7 +62,7 @@ export const DesktopSearchBar: React.FC<HeaderSearchProps> = ({
         supportsVoiceSearch={supportsVoiceSearch}
         onVoiceSearch={onVoiceSearch}
       />
-      <button className="bg-theme-primary text-white px-5 py-2 rounded-full font-semibold hover:opacity-90 transition-all hover:shadow-lg active:scale-95">
+      <button className="btn-order px-5 py-2 rounded-full font-semibold hover:shadow-lg active:scale-95">
         <Search size={18} />
       </button>
     </div>
@@ -109,7 +109,7 @@ export const MobileSearchBar: React.FC<HeaderSearchProps> = ({
         supportsVoiceSearch={supportsVoiceSearch}
         onVoiceSearch={onVoiceSearch}
       />
-      <button className="bg-theme-primary text-white p-2.5 rounded-full hover:opacity-90 transition-all active:scale-95">
+      <button className="btn-order p-2.5 rounded-full active:scale-95">
         <Search size={16} />
       </button>
     </div>

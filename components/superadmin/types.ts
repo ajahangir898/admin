@@ -308,6 +308,8 @@ export type TabType =
   | 'orders' 
   | 'subscriptions' 
   | 'analytics' 
+  | 'audit-logs'
+  | 'system-health'
   | 'server' 
   | 'database' 
   | 'security' 

@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   LayoutDashboard, Users, Building2, ShoppingCart, CreditCard,
   BarChart3, Server, Database, Shield, Settings, ChevronDown, Crown,
-  Bell, Palette, MessageCircle, Globe, Megaphone, LifeBuoy, Target
+  Bell, Palette, MessageCircle, Globe, Megaphone, LifeBuoy, Target, Activity
 } from 'lucide-react';
 import NavItem from './NavItem';
 import { TabType } from './types';
@@ -146,6 +146,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           {sidebarOpen && <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">System</p>}
         </div>
         
+        <NavItem 
+          icon={Activity} 
+          label="System Health" 
+          active={activeTab === 'system-health'} 
+          onClick={() => setActiveTab('system-health')} 
+          collapsed={!sidebarOpen} 
+        />
+        <NavItem 
+          icon={Shield} 
+          label="Audit Logs" 
+          active={activeTab === 'audit-logs'} 
+          onClick={() => setActiveTab('audit-logs')} 
+          collapsed={!sidebarOpen} 
+        />
         <NavItem 
           icon={Server} 
           label="Server Status" 

@@ -27,6 +27,7 @@ import supportRouter from './routes/support';
 import { User } from './models/User';
 import imageOptimizeRouter from './routes/imageOptimize';
 import { subscriptionsRouter } from './routes/subscriptions';
+import auditLogsRouter from './routes/auditLogs';
 
 
 const app = express();
@@ -128,6 +129,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/courier', courierRouter);
 app.use('/api/support', supportRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
+app.use('/api/audit-logs', auditLogsRouter);
 app.use('/api', dueListRoutes);
 
 // Visitors tracking (import at top of file)

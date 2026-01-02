@@ -39,6 +39,9 @@ const SubscriptionsTab = React.lazy(() => import('../components/superadmin/Subsc
 const BulkAnnouncementsTab = React.lazy(() => import('../components/superadmin/BulkAnnouncementsTab'));
 const SupportTicketsTab = React.lazy(() => import('../components/superadmin/SupportTicketsTab'));
 const MerchantSuccessTab = React.lazy(() => import('../components/superadmin/MerchantSuccessTab'));
+const AnalyticsTab = React.lazy(() => import('../components/superadmin/AnalyticsTab'));
+const AuditLogsTab = React.lazy(() => import('../components/superadmin/AuditLogsTab'));
+const SystemHealthTab = React.lazy(() => import('../components/superadmin/SystemHealthTab'));
 
 // Lazy load AdminTenantManagement
 const AdminTenantManagement = React.lazy(() => import('./AdminTenantManagement'));
@@ -1042,6 +1045,30 @@ const SuperAdminDashboard: React.FC = () => {
               onUpdateMerchantStatus={handleUpdateMerchantStatus}
               onAddNote={handleAddNote}
             />
+          </React.Suspense>
+        );
+
+      case 'analytics':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <AnalyticsTab
+              systemStats={systemStats}
+              tenants={tenants}
+            />
+          </React.Suspense>
+        );
+
+      case 'audit-logs':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <AuditLogsTab />
+          </React.Suspense>
+        );
+
+      case 'system-health':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <SystemHealthTab systemStats={systemStats} />
           </React.Suspense>
         );
 

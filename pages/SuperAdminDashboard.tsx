@@ -42,6 +42,7 @@ const MerchantSuccessTab = React.lazy(() => import('../components/superadmin/Mer
 const AnalyticsTab = React.lazy(() => import('../components/superadmin/AnalyticsTab'));
 const AuditLogsTab = React.lazy(() => import('../components/superadmin/AuditLogsTab'));
 const SystemHealthTab = React.lazy(() => import('../components/superadmin/SystemHealthTab'));
+const BulkOperationsTab = React.lazy(() => import('../components/superadmin/BulkOperationsTab'));
 
 // Lazy load AdminTenantManagement
 const AdminTenantManagement = React.lazy(() => import('./AdminTenantManagement'));
@@ -1069,6 +1070,32 @@ const SuperAdminDashboard: React.FC = () => {
         return (
           <React.Suspense fallback={<TabLoadingFallback />}>
             <SystemHealthTab systemStats={systemStats} />
+          </React.Suspense>
+        );
+
+      case 'bulk-operations':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <BulkOperationsTab
+              tenants={tenants}
+              onBulkStatusChange={async (tenantIds, status) => {
+                // Update status for multiple tenants
+                for (const tenantId of tenantIds) {
+                  await handleUpdateTenantStatus(tenantId, status as TenantStatus);
+                }
+              }}
+              onBulkDelete={async (tenantIds) => {
+                // Delete multiple tenants
+                for (const tenantId of tenantIds) {
+                  await handleDeleteTenant(tenantId);
+                }
+              }}
+              onBulkEmail={async (tenantIds, subject, message) => {
+                // Send bulk email - in production, this would call an API
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                console.log('Bulk email sent:', { tenantIds, subject, message });
+              }}
+            />
           </React.Suspense>
         );
 

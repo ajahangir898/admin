@@ -310,6 +310,7 @@ export type TabType =
   | 'analytics' 
   | 'audit-logs'
   | 'system-health'
+  | 'bulk-operations'
   | 'server' 
   | 'database' 
   | 'security' 

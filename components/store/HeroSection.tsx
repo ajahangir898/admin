@@ -225,11 +225,11 @@ export const CategoryCircle: React.FC<{ name: string; icon: React.ReactNode }> =
 );
 
 export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = ({ name, icon }) => (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:border-secondary-500 hover:shadow-md cursor-pointer transition whitespace-nowrap group">
-        <div className="w-7 h-7 rounded-full bg-secondary-50 text-secondary-500 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+    <div className="flex items-center gap-2.5 px-4 py-2 bg-gradient-to-r from-white to-gray-50 border border-gray-200/80 rounded-full shadow-sm hover:shadow-lg hover:border-primary-300 hover:from-primary-50 hover:to-white cursor-pointer transition-all duration-300 whitespace-nowrap group">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 text-primary-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-inner">
             {icon}
         </div>
-        <span className="text-sm font-bold text-[rgb(var(--color-font-rgb))] group-hover:text-secondary-600 tracking-wide">{name}</span>
+        <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 transition-colors">{name}</span>
     </div>
 );
 

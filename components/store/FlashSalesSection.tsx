@@ -30,11 +30,11 @@ export const FlashSalesSection = ({ products, showCounter, countdown, onProductC
   return (
     <section ref={sectionRef} className="py-3">
       {/* Header */}
-      <div className="flex items-center justify-between border-b-2 border-blue-600 pb-2 mb-4">
+      <div className="flex items-center justify-between pb-2 mb-4">
         {/* Left: Title + Timer */}
         <div className="flex items-center gap-4 flex-wrap">
           {/* Flash Sale Title */}
-          <h2 className="text-lg md:text-xl font-bold text-gray-900 border-b-2 border-orange-500 pb-1 -mb-[10px]">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900">
             Flash Sale
           </h2>
           

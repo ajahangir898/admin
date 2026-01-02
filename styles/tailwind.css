@@ -58,7 +58,7 @@
 
 ::selection {
   background-color: rgb(var(--color-primary-rgb) / 0.25);
-  color: #000;
+  color: #ffffff;
 }
 
 /* Marquee animation - single text scrolling right to left */

@@ -16,7 +16,7 @@ if (!MONGO_URI) {
 // Default subscription plans
 const defaultPlans = [
   {
-    name: 'basic',
+    name: 'basic' as const,
     displayName: 'Basic',
     description: 'Perfect for small businesses just getting started',
     price: 999,
@@ -46,8 +46,8 @@ const defaultPlans = [
     billingCycle: 'monthly',
     currency: 'BDT',
     features: {
-      maxProducts: 'unlimited',
-      maxOrders: 'unlimited',
+      maxProducts: 'unlimited' as const,
+      maxOrders: 'unlimited' as const,
       maxUsers: 5,
       maxStorageGB: 10,
       customDomain: true,
@@ -69,10 +69,10 @@ const defaultPlans = [
     billingCycle: 'monthly',
     currency: 'BDT',
     features: {
-      maxProducts: 'unlimited',
-      maxOrders: 'unlimited',
-      maxUsers: 'unlimited',
-      maxStorageGB: 'unlimited',
+      maxProducts: 'unlimited' as const,
+      maxOrders: 'unlimited' as const,
+      maxUsers: 'unlimited' as const,
+      maxStorageGB: 'unlimited' as const,
       customDomain: true,
       analyticsAccess: true,
       prioritySupport: true,

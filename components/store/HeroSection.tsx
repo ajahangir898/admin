@@ -234,8 +234,5 @@ export const CategoryPill: React.FC<{ name: string; icon: React.ReactNode }> = (
 );
 
 export const SectionHeader: React.FC<{ title: string; className?: string }> = ({ title, className }) => (
-    <div className="inline-flex flex-col gap-1">
-        <h2 className={`text-2xl font-black tracking-tight text-gray-900 dark:text-white drop-shadow-sm ${className ?? ''}`}>{title}</h2>
-        <span className="h-1 w-24 bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 rounded-full" />
-    </div>
+    <h2 className={`text-2xl font-black tracking-tight text-gray-900 dark:text-white drop-shadow-sm ${className ?? ''}`}>{title}</h2>
 );

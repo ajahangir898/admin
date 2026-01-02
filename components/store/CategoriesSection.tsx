@@ -86,8 +86,17 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
 
   return (
     <div ref={sectionRef} className="relative py-3 overflow-hidden">
-      {/* Gradient line above categories */}
-      <div className="h-1 w-24 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 mb-3"></div>
+      {/* Header with title and View All */}
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Categories</h2>
+          <div className="h-1 w-20 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 mt-1"></div>
+        </div>
+        <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+          View All
+          <ChevronRight size={16} className="text-blue-600" />
+        </button>
+      </div>
       
       <div 
         className="marquee-container"

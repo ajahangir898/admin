@@ -70,26 +70,42 @@ export const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
 }) => {
   if (!isOpen || suggestions.length === 0) return null;
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto z-50">
+    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-[420px] overflow-y-auto z-50">
       {suggestions.map((product) => (
         <button 
           key={product.id} 
           onClick={() => onSuggestionClick(product)} 
-          className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0 text-left"
+          className="w-full flex items-center gap-4 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0 text-left group"
         >
-          <img 
-            src={normalizeImageUrl(product.image)} 
-            alt={product.name} 
-            className="w-14 h-14 object-cover rounded" 
-            loading="lazy"
-            decoding="async"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-gray-900 truncate">{product.name}</div>
-            <div className="text-xs text-gray-500">{product.category}</div>
+          {/* Product Image */}
+          <div className="w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+            <img 
+              src={normalizeImageUrl(product.image)} 
+              alt={product.name} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+              loading="lazy"
+              decoding="async"
+            />
           </div>
-          <div className="text-right">
-            <div className="text-sm font-bold text-green-600">{formatCurrency(product.price)}</div>
+          
+          {/* Product Info */}
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 group-hover:text-theme-primary transition-colors">
+              {product.name}
+            </h4>
+            <p className="text-xs text-green-600 font-medium mt-0.5">{product.category || 'General'}</p>
+          </div>
+          
+          {/* Price */}
+          <div className="text-right flex-shrink-0">
+            <div className="text-base font-bold text-green-600">
+              {formatCurrency(product.price)}
+            </div>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <div className="text-xs text-gray-400 line-through">
+                {formatCurrency(product.originalPrice)}
+              </div>
+            )}
           </div>
         </button>
       ))}

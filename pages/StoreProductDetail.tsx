@@ -13,7 +13,7 @@ const getTrackPageView = () => import('../hooks/useVisitorStats').then(m => m.tr
 
 // Skeleton loaders removed for faster initial render
 
-import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight, Grid } from 'lucide-react';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
@@ -53,6 +53,7 @@ const iconMap: Record<string, React.ReactNode> = {
   bluetooth: <Bluetooth size={20} strokeWidth={1.5} />,
   'gamepad-2': <Gamepad2 size={20} strokeWidth={1.5} />,
   camera: <Camera size={20} strokeWidth={1.5} />,
+  grid: <Grid size={20} strokeWidth={1.5} />,
 };
 
 type MatchType = 'compatible' | 'complementary' | 'behavioral';
@@ -940,15 +941,15 @@ const StoreProductDetail = ({
                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition cursor-pointer group"
                    >
                       <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 group-hover:border-theme-primary/30 transition">
-                        {cat.image ? (
+                        {cat.image || (cat.icon && cat.icon.startsWith('http')) ? (
                           <img 
-                            src={normalizeImageUrl(cat.image)} 
+                            src={normalizeImageUrl(cat.image || cat.icon || '')} 
                             alt={cat.name} 
                             className="w-full h-full object-cover"
                           />
                         ) : (
                           <span className="text-gray-400 group-hover:text-theme-primary transition">
-                            {iconMap[cat.icon || 'smartphone']}
+                            {iconMap[cat.icon || 'grid'] || <Grid size={20} strokeWidth={1.5} />}
                           </span>
                         )}
                       </div>

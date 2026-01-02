@@ -349,6 +349,7 @@ export interface FacebookPixelConfig {
 
 // Catalog Types
 export interface Category {
+  slug: any;
   id: string;
   tenantId?: string;
   name: string;

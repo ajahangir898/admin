@@ -980,9 +980,8 @@ const StoreProductDetail = ({
             className={`h-12 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition ${
               isOutOfStock
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'text-white shadow-lg shadow-pink-200 active:scale-95'
+                : 'btn-order active:scale-95'
             }`}
-            style={!isOutOfStock ? { background: 'linear-gradient(135deg, #E91E8C 0%, #00B4D8 100%)' } : undefined}
           >
             <ShoppingCart size={20} />
             <span>Add to cart</span>
@@ -993,7 +992,7 @@ const StoreProductDetail = ({
             className={`h-12 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition ${
               isOutOfStock
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-[#E91E8C] text-white shadow-lg shadow-pink-200 active:scale-95'
+                : 'bg-theme-primary text-white shadow-lg active:scale-95'
             }`}
           >
             <ShoppingBag size={20} />

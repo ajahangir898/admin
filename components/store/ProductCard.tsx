@@ -72,7 +72,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </h3>
 
                 <div className="flex items-baseline gap-2 mb-3">
-                    <span className="text-lg font-bold text-pink-500">৳{product.price?.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-theme-primary">৳{product.price?.toLocaleString()}</span>
                     {product.originalPrice && (
                         <span className="text-xs text-gray-400 line-through">৳{product.originalPrice?.toLocaleString()}</span>
                     )}
@@ -80,14 +80,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                 <div className="flex gap-2 mt-auto">
                     <button 
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:border-pink-300 hover:text-pink-500 hover:bg-pink-50 transition-all"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:border-theme-primary hover:text-theme-primary hover:bg-theme-primary/10 transition-all"
                         onClick={(e) => { e.stopPropagation(); onAddToCart?.(product); }}
                     >
                         <ShoppingCart size={16} /> Cart
                     </button>
                     <button 
-                        className="flex-1 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all hover:opacity-90"
-                        style={{ background: 'linear-gradient(135deg, #E91E8C 0%, #00B4D8 100%)' }}
+                        className="flex-1 btn-order text-sm py-2 px-4 rounded-lg"
                         onClick={handleBuyNow}
                     >
                         Buy Now

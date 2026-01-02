@@ -34,25 +34,25 @@ const CategoryButton = memo(({
   return (
     <button
       onClick={handleClick}
-      className="flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 rounded-xl border-2 border-transparent bg-white hover:bg-pink-50 transition-colors duration-150 group"
+      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-transparent bg-white hover:bg-purple-50 transition-colors duration-150 group"
       style={{ 
         background: 'linear-gradient(white, white) padding-box, linear-gradient(to right, #E91E8C, #00B4D8) border-box' 
       }}
     >
-      <div className="w-8 h-8 flex items-center justify-center text-pink-500 mb-1">
+      <div className="w-6 h-6 flex items-center justify-center text-pink-500">
         {isImageUrl(category.icon) ? (
           <img 
             src={category.icon} 
             alt="" 
-            className="w-7 h-7 object-contain" 
+            className="w-5 h-5 object-contain" 
             loading="lazy"
             decoding="async"
           />
         ) : (
-          getIcon(category.icon, 24, 2)
+          getIcon(category.icon, 18, 2)
         )}
       </div>
-      <span className="text-xs font-bold text-gray-700 whitespace-nowrap max-w-[70px] truncate">
+      <span className="text-sm font-bold text-gray-700 whitespace-nowrap">
         {category.name}
       </span>
     </button>

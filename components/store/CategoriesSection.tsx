@@ -36,10 +36,10 @@ const CategoryButton = memo(({
       onClick={handleClick}
       className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-transparent bg-white hover:bg-purple-50 transition-colors duration-150 group"
       style={{ 
-        background: 'linear-gradient(white, white) padding-box, linear-gradient(to right, #a855f7, #d946ef, #ec4899) border-box' 
+        background: 'linear-gradient(white, white) padding-box, linear-gradient(to right, #E91E8C, #00B4D8) border-box' 
       }}
     >
-      <div className="w-6 h-6 flex items-center justify-center text-fuchsia-600">
+      <div className="w-6 h-6 flex items-center justify-center text-pink-500">
         {isImageUrl(category.icon) ? (
           <img 
             src={category.icon} 
@@ -90,7 +90,7 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Categories</h2>
-          <div className="h-1 w-20 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 mt-1"></div>
+          <div className="h-1 w-20 rounded-full bg-gradient-to-r from-pink-500 to-cyan-500 mt-1"></div>
         </div>
         <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
           View All

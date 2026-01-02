@@ -36,10 +36,10 @@ export const FlashSalesSection = ({ products, showCounter, countdown, onProductC
           {/* Flash Sale Title */}
           <div className="flex items-center gap-2">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
             </span>
-            <h2 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent">
+            <h2 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 to-cyan-500 bg-clip-text text-transparent">
               ⚡ Flash Sale
             </h2>
           </div>
@@ -49,12 +49,12 @@ export const FlashSalesSection = ({ products, showCounter, countdown, onProductC
             <div className="flex items-center gap-1">
               {countdown.map((s, idx) => (
                 <div key={s.label} className="flex items-center">
-                  <div className="flex flex-col items-center bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 rounded-lg px-2.5 py-1.5 min-w-[42px] shadow-md">
+                  <div className="flex flex-col items-center bg-gradient-to-br from-pink-500 to-cyan-500 rounded-lg px-2.5 py-1.5 min-w-[42px] shadow-md">
                     <span className="text-base font-bold text-white tabular-nums leading-none">{s.value}</span>
                     <span className="text-[9px] text-white/80 uppercase tracking-wider mt-0.5">{s.label}</span>
                   </div>
                   {idx < countdown.length - 1 && (
-                    <span className="text-fuchsia-500 font-bold mx-0.5 text-lg animate-pulse">:</span>
+                    <span className="text-pink-500 font-bold mx-0.5 text-lg animate-pulse">:</span>
                   )}
                 </div>
               ))}

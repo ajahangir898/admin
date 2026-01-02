@@ -13,13 +13,20 @@
   color: #000;
 }
 
-/* Seamless marquee animation */
-@keyframes marquee-seamless {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+/* Marquee animation - single text scrolling right to left */
+.marquee-container {
+  width: 100%;
+  overflow: hidden;
 }
-.animate-marquee-seamless {
-  animation: marquee-seamless 15s linear infinite;
+.marquee-content {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee-scroll 12s linear infinite;
+  padding-left: 100%;
+}
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
 }
 
 @layer utilities {

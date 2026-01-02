@@ -58,17 +58,15 @@ export const CameraButton: React.FC<CameraButtonProps> = ({ variant = 'dark', on
 };
 
 interface SearchSuggestionsProps {
-  isOpen: boolean;
   suggestions: Product[];
   onSuggestionClick: (product: Product) => void;
 }
 
 export const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
-  isOpen,
   suggestions,
   onSuggestionClick,
 }) => {
-  if (!isOpen || suggestions.length === 0) return null;
+  if (suggestions.length === 0) return null;
   return (
     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-[420px] overflow-y-auto z-50">
       {suggestions.map((product) => (

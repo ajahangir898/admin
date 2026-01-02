@@ -17,7 +17,7 @@ export const AddToCartSuccessModal = lazy(() => import('./AddToCartSuccessModal'
 // Store sections
 export { FlashSalesSection } from './FlashSalesSection';
 export { ProductGridSection } from './ProductGridSection';
-export { PromoBanner } from './PromoBanner';
+
 export { CategoriesSection } from './CategoriesSection';
 export { SearchResultsSection } from './SearchResultsSection';
 
@@ -33,4 +33,3 @@ export type { HeroSectionProps } from './HeroSection';
 export type { StoreFooterProps } from './StoreFooter';
 export type { ProductQuickViewModalProps } from './ProductQuickViewModal';
 export type { TrackOrderModalProps } from './TrackOrderModal';
-export type { AddToCartSuccessModalProps } from './AddToCartSuccessModal';

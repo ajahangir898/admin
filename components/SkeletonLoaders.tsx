@@ -36,6 +36,71 @@ export const ProductDetailSkeleton = () => (
   <div className="max-w-7xl mx-auto px-4 py-8"><div className="flex flex-col lg:flex-row gap-8"><div className="flex-1"><div className="bg-white rounded-xl p-6 flex flex-col md:flex-row gap-8"><div className="w-full md:w-1/2 space-y-4"><Bone className="aspect-square rounded-2xl"/><div className="flex gap-2">{arr(4).map((_, i) => <Bone key={i} className="w-16 h-16 rounded-lg"/>)}</div></div><div className="w-full md:w-1/2 space-y-4"><Bone className="h-8 w-3/4"/><Bone className="h-4 w-1/4"/><Bone className="h-10 w-1/3"/><div className="space-y-2 pt-4"><Bone className="h-4 w-full"/><Bone className="h-4 w-full"/><Bone className="h-4 w-2/3"/></div><div className="flex gap-3 pt-4"><Bone className="h-12 flex-1 rounded-lg"/><Bone className="h-12 flex-1 rounded-lg"/></div></div></div></div><div className="w-full lg:w-80 space-y-4"><Bone className="h-48 rounded-xl"/><Bone className="h-32 rounded-xl"/></div></div></div>
 );
 
+// Lightweight inline skeletons for store - no external deps, instant render
+export const StoreHeaderSkeleton = () => (
+  <div className="bg-white shadow-sm sticky top-0 z-50 px-4 py-3">
+    <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <Bone className="h-10 w-32 rounded"/>
+      <Bone className="h-10 flex-1 max-w-xl rounded-full hidden md:block"/>
+      <div className="flex gap-3">
+        <Bone className="h-10 w-10 rounded-full"/>
+        <Bone className="h-10 w-10 rounded-full"/>
+        <Bone className="h-10 w-20 rounded-lg hidden md:block"/>
+      </div>
+    </div>
+  </div>
+);
+
+export const StoreHeroSkeleton = () => (
+  <div className="max-w-7xl mx-auto px-4 mt-4">
+    <Bone className="w-full aspect-[2.5/1] md:aspect-[3.5/1] rounded-2xl"/>
+  </div>
+);
+
+export const StoreCategorySkeleton = () => (
+  <div className="max-w-7xl mx-auto px-4 pt-4">
+    <div className="flex gap-3 overflow-hidden py-2">
+      {arr(10).map((_, i) => (
+        <Bone key={i} className="h-10 w-28 rounded-full shrink-0"/>
+      ))}
+    </div>
+  </div>
+);
+
+export const StoreProductSectionSkeleton = ({ title, count = 5 }: { title?: string; count?: number }) => (
+  <div className="py-4">
+    {title && <Bone className="h-6 w-40 mb-4 rounded"/>}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      {arr(count).map((_, i) => (
+        <div key={i} className="bg-white rounded-xl overflow-hidden border border-gray-100">
+          <Bone className="aspect-square"/>
+          <div className="p-3 space-y-2">
+            <Bone className="h-4 w-full rounded"/>
+            <Bone className="h-4 w-2/3 rounded"/>
+            <div className="flex gap-2 pt-2">
+              <Bone className="h-8 flex-1 rounded-lg"/>
+              <Bone className="h-8 flex-1 rounded-lg"/>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+export const StorePageSkeleton = () => (
+  <div className="min-h-screen bg-gray-50">
+    <StoreHeaderSkeleton />
+    <StoreHeroSkeleton />
+    <StoreCategorySkeleton />
+    <div className="max-w-7xl mx-auto px-4 space-y-6 pb-8">
+      <StoreProductSectionSkeleton title="Flash Sale" count={5} />
+      <StoreProductSectionSkeleton title="Best Products" count={5} />
+      <StoreProductSectionSkeleton title="Our Products" count={10} />
+    </div>
+  </div>
+);
+
 export { Bone };
 
 export const SuperAdminDashboardSkeleton = () => (

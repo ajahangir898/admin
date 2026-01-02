@@ -17,6 +17,24 @@ import { FlashSalesSection } from '../components/store/FlashSalesSection';
 import { ProductGridSection } from '../components/store/ProductGridSection';
 import { CategoriesSection } from '../components/store/CategoriesSection';
 
+// Lightweight skeleton for lazy components
+const SectionSkeleton = () => (
+  <div className="animate-pulse space-y-4 py-4">
+    <div className="h-6 w-40 bg-gray-200 rounded" />
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="aspect-square bg-gray-200" />
+          <div className="p-3 space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-full" />
+            <div className="h-4 bg-gray-200 rounded w-2/3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 // Below-the-fold - lazy loaded (only when needed)
 const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
@@ -623,11 +641,7 @@ const StoreHome = ({
   // If a category is selected, show the category products view
   if (selectedCategoryView) {
     return (
-      <Suspense fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full" />
-        </div>
-      }>
+      <Suspense fallback={<SectionSkeleton />}>
         <StoreCategoryProducts
           products={displayProducts}
           categories={categories}
@@ -739,7 +753,7 @@ const StoreHome = ({
 
       <main className="max-w-7xl mx-auto px-4 space-y-4 pb-4">
         {hasSearchQuery ? (
-          <Suspense fallback={null}>
+          <Suspense fallback={<SectionSkeleton />}>
             <SearchResultsSection
               searchTerm={searchTerm.trim()}
               products={sortedProducts}

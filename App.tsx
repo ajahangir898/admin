@@ -120,7 +120,7 @@ const MobileBottomNav = lazy(() => import('./components/store/MobileBottomNav').
 const StoreChatModal = lazy(() => import('./components/store/StoreChatModal').then(m => ({ default: m.StoreChatModal })));
 
 // Skeleton loaders for better UX
-import { SuperAdminDashboardSkeleton } from './components/SkeletonLoaders';
+import { SuperAdminDashboardSkeleton, StorePageSkeleton, ProductDetailSkeleton } from './components/SkeletonLoaders';
 
 // Preload non-critical chunks during idle time (after initial render)
 if (typeof window !== 'undefined') {
@@ -1259,7 +1259,7 @@ const App = () => {
                 // </Suspense>
               )}
               {currentView === 'detail' && selectedProduct && (
-                <Suspense fallback={null}>
+                <Suspense fallback={<ProductDetailSkeleton />}>
                   <StoreProductDetail 
                     product={selectedProduct} 
                     orders={orders}

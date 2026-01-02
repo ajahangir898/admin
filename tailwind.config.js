@@ -27,13 +27,13 @@ module.exports = {
         },
         'marquee': {
           '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-33.33%)' }
+          '100%': { transform: 'translateX(-50%)' }
         }
       },
       animation: {
         'slide-in-right': 'slide-in-right 0.5s ease-out forwards',
         'fade-in': 'fade-in 0.4s ease-in-out forwards',
-        'marquee': 'marquee 12s linear infinite'
+        'marquee': 'marquee 25s linear infinite'
       },
       colors: {
         // Simplified theme colors for smaller bundle

@@ -1,4 +1,4 @@
-import { memo, useMemo, RefObject, useRef, useState, useCallback } from 'react';
+import { memo, useMemo, RefObject, useState, useCallback } from 'react';
 import { Grid, ChevronRight } from 'lucide-react';
 import { Category } from '../../types';
 
@@ -34,10 +34,7 @@ const CategoryButton = memo(({
   return (
     <button
       onClick={handleClick}
-      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-transparent bg-white hover:bg-purple-50 transition-colors duration-150 group"
-      style={{ 
-        background: 'linear-gradient(white, white) padding-box, linear-gradient(to right, #E91E8C, #00B4D8) border-box' 
-      }}
+      className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-pink-500 bg-white hover:bg-pink-50 transition-colors duration-150"
     >
       <div className="w-6 h-6 flex items-center justify-center text-pink-500">
         {isImageUrl(category.icon) ? (
@@ -99,11 +96,11 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
       </div>
       
       <div 
-        className="marquee-container"
+        className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20px,black_calc(100%-40px),transparent)]"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div className={`marquee-content ${isPaused ? 'paused' : ''}`}>
+        <div className={`flex gap-3 w-max px-2 animate-marquee ${isPaused ? '[animation-play-state:paused]' : ''}`}>
           {duplicatedItems.map((category, index) => (
             <CategoryButton 
               key={`${category.name}-${index}`} 
@@ -117,29 +114,6 @@ export const CategoriesSection = memo(({ categories, onCategoryClick, sectionRef
       <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full shadow-lg flex items-center justify-center border border-gray-200 pointer-events-none">
         <ChevronRight size={18} className="text-gray-400" />
       </div>
-
-      <style>{`
-        .marquee-container {
-          overflow: hidden;
-          mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 40px), transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 40px), transparent);
-        }
-        .marquee-content {
-          display: flex;
-          gap: 0.75rem;
-          width: max-content;
-          animation: marquee 25s linear infinite;
-          padding: 0 0.5rem;
-          will-change: transform;
-        }
-        .marquee-content.paused {
-          animation-play-state: paused;
-        }
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
     </div>
   );
 });

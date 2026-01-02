@@ -403,21 +403,25 @@ const StoreHome = ({
   }, [activeProducts, normalizedSearch]);
   
   // Handler for category click - navigates to category URL
-  const handleCategoryClick = (categoryName: string) => {
+  const handleCategoryClick = useCallback((categoryName: string) => {
     const categorySlug = slugify(categoryName);
     if (onCategoryFilterChange) {
       onCategoryFilterChange(categorySlug);
     }
     setSelectedCategoryView(categoryName);
-  };
+    // Instant scroll to top for smooth transition
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+  }, [onCategoryFilterChange]);
 
   // Handler for clearing category filter
-  const handleClearCategoryFilter = () => {
+  const handleClearCategoryFilter = useCallback(() => {
     if (onCategoryFilterChange) {
       onCategoryFilterChange(null);
     }
     setSelectedCategoryView(null);
-  };
+  }, [onCategoryFilterChange]);
   
   const sortedProducts = useMemo(() => {
     const productsClone = [...filteredProducts];

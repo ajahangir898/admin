@@ -6,7 +6,7 @@ import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import { ProductFilter, SortOption } from './ProductFilter';
 import { CATEGORIES } from '../constants';
 
-const StoreHeader = lazy(() => import('./StoreHeader').then(m => ({ default: m.StoreHeader })));
+const LazyStoreHeader = lazy(() => import('./StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('./store/StoreFooter').then(m => ({ default: m.StoreFooter })));
 const TrackOrderModal = lazy(() => import('./store/TrackOrderModal').then(m => ({ default: m.TrackOrderModal })));
 
@@ -110,7 +110,7 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Suspense fallback={null}>
-        <StoreHeader onTrackOrder={() => setIsTrackOrderOpen(true)} onHomeClick={onHome || onBack} onImageSearchClick={onImageSearchClick} productCatalog={activeProducts}
+        <LazyStoreHeader onTrackOrder={() => setIsTrackOrderOpen(true)} onHomeClick={onHome || onBack} onImageSearchClick={onImageSearchClick} productCatalog={activeProducts}
           wishlistCount={wishlistCount} wishlist={wishlist} onToggleWishlist={onToggleWishlist} cart={cart}
           onToggleCart={onToggleCart} onCheckoutFromCart={onCheckoutFromCart} user={user} onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick} onProfileClick={onProfileClick} logo={logo} websiteConfig={websiteConfig}

@@ -154,14 +154,12 @@ const App = () => {
   const tenant = useTenant();
   const {
     tenants,
-    setTenants,
     activeTenantId,
     setActiveTenantId,
     hostTenantId,
     setHostTenantId,
     hostTenantSlug,
     isTenantSwitching,
-    setIsTenantSwitching,
     isTenantSeeding,
     deletingTenantId,
     applyTenantList,

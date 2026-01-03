@@ -39,6 +39,10 @@ const SubscriptionsTab = React.lazy(() => import('../components/superadmin/Subsc
 const BulkAnnouncementsTab = React.lazy(() => import('../components/superadmin/BulkAnnouncementsTab'));
 const SupportTicketsTab = React.lazy(() => import('../components/superadmin/SupportTicketsTab'));
 const MerchantSuccessTab = React.lazy(() => import('../components/superadmin/MerchantSuccessTab'));
+const AnalyticsTab = React.lazy(() => import('../components/superadmin/AnalyticsTab'));
+const AuditLogsTab = React.lazy(() => import('../components/superadmin/AuditLogsTab'));
+const SystemHealthTab = React.lazy(() => import('../components/superadmin/SystemHealthTab'));
+const BulkOperationsTab = React.lazy(() => import('../components/superadmin/BulkOperationsTab'));
 
 // Lazy load AdminTenantManagement
 const AdminTenantManagement = React.lazy(() => import('./AdminTenantManagement'));
@@ -1041,6 +1045,56 @@ const SuperAdminDashboard: React.FC = () => {
               onScheduleFollowUp={handleScheduleFollowUp}
               onUpdateMerchantStatus={handleUpdateMerchantStatus}
               onAddNote={handleAddNote}
+            />
+          </React.Suspense>
+        );
+
+      case 'analytics':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <AnalyticsTab
+              systemStats={systemStats}
+              tenants={tenants}
+            />
+          </React.Suspense>
+        );
+
+      case 'audit-logs':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <AuditLogsTab />
+          </React.Suspense>
+        );
+
+      case 'system-health':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <SystemHealthTab systemStats={systemStats} />
+          </React.Suspense>
+        );
+
+      case 'bulk-operations':
+        return (
+          <React.Suspense fallback={<TabLoadingFallback />}>
+            <BulkOperationsTab
+              tenants={tenants}
+              onBulkStatusChange={async (tenantIds, status) => {
+                // Update status for multiple tenants
+                for (const tenantId of tenantIds) {
+                  await handleUpdateTenantStatus(tenantId, status as TenantStatus);
+                }
+              }}
+              onBulkDelete={async (tenantIds) => {
+                // Delete multiple tenants
+                for (const tenantId of tenantIds) {
+                  await handleDeleteTenant(tenantId);
+                }
+              }}
+              onBulkEmail={async (tenantIds, subject, message) => {
+                // Send bulk email - in production, this would call an API
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                console.log('Bulk email sent:', { tenantIds, subject, message });
+              }}
             />
           </React.Suspense>
         );

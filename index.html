@@ -17,30 +17,11 @@
     <link rel="preconnect" href="https://static.systemnextit.com" crossorigin>
     <link rel="preconnect" href="https://images.systemnextit.com" crossorigin>
     
-    <!-- Preload critical fonts (if using Google Fonts) -->
+    <!-- Preload critical fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
-    <style>
-      *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f9fafb}
-      @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-      .sk{position:fixed;inset:0;background:#f9fafb;z-index:9999;display:flex;flex-direction:column}
-      .sk-h{height:60px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 16px;gap:16px}
-      .sk-logo{width:100px;height:28px;background:#e5e7eb;border-radius:6px;animation:pulse 1.5s infinite}
-      .sk-search{flex:1;max-width:360px;height:36px;background:#f3f4f6;border-radius:18px;animation:pulse 1.5s infinite}
-      .sk-hero{max-width:1280px;margin:16px auto;padding:0 16px}
-      .sk-banner{aspect-ratio:4/1;min-height:160px;background:#e5e7eb;border-radius:12px;animation:pulse 1.5s infinite}
-      .sk-cats{max-width:1280px;margin:16px auto;padding:0 16px;display:flex;gap:10px;overflow:hidden}
-      .sk-cat{width:70px;height:32px;background:#e5e7eb;border-radius:16px;flex-shrink:0;animation:pulse 1.5s infinite}
-      .sk-grid{max-width:1280px;margin:16px auto;padding:0 16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-      @media(min-width:768px){.sk-grid{grid-template-columns:repeat(4,1fr)}}
-      @media(min-width:1024px){.sk-grid{grid-template-columns:repeat(5,1fr)}}
-      .sk-card{background:#fff;border-radius:10px;border:1px solid #e5e7eb;overflow:hidden}
-      .sk-img{aspect-ratio:1;background:#f3f4f6;animation:pulse 1.5s infinite}
-      .sk-body{padding:10px}
-      .sk-title{height:12px;background:#e5e7eb;border-radius:4px;margin-bottom:8px;animation:pulse 1.5s infinite}
-      .sk-price{height:12px;width:50%;background:#e5e7eb;border-radius:4px;animation:pulse 1.5s infinite}
-    </style>
-    <!-- CRITICAL: Start fetching data BEFORE any JS loads -->
+    
+    <!-- Early bootstrap prefetch -->
     <script>
       (function(){
         var h = location.hostname, t = h.split('.')[0];
@@ -54,17 +35,6 @@
     </script>
   </head>
   <body>
-    <div id="initial-loader" class="sk">
-      <div class="sk-h"><div class="sk-logo"></div><div class="sk-search"></div></div>
-      <div class="sk-hero"><div class="sk-banner"></div></div>
-      <div class="sk-cats"><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div><div class="sk-cat"></div></div>
-      <div class="sk-grid">
-        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
-        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
-        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
-        <div class="sk-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-title"></div><div class="sk-price"></div></div></div>
-      </div>
-    </div>
     <div id="root"></div>
     <script type="module" src="/entry-client.tsx"></script>
   </body>

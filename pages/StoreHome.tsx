@@ -18,7 +18,14 @@ import { FlashSalesSection } from '../components/store/FlashSalesSection';
 import { ProductGridSection } from '../components/store/ProductGridSection';
 import { CategoriesSection } from '../components/store/CategoriesSection';
 
-// Lightweight skeleton for lazy components
+// Import individual skeletons for component-level loading states
+import { 
+  StoreHeroSkeleton, 
+  StoreCategorySkeleton, 
+  StoreProductSectionSkeleton 
+} from '../components/SkeletonLoaders';
+
+// Lightweight skeleton for lazy components (search results, category products)
 const SectionSkeleton = () => (
   <div className="animate-pulse space-y-4 py-4">
     <div className="h-6 w-40 bg-gray-200 rounded" />

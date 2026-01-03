@@ -1189,7 +1189,7 @@ const App = () => {
           ) : (
             <>
               {currentView === 'store' && (
-                // <Suspense fallback={<StorePageSkeleton />}>
+                <Suspense fallback={<StorePageSkeleton />}>
                   <>
                     <StoreHome 
                       products={products} 
@@ -1234,7 +1234,7 @@ const App = () => {
                       onLogoutClick={handleLogout}
                     />
                   </>
-                // </Suspense>
+                </Suspense>
               )}
               {currentView === 'detail' && selectedProduct && (
                 <Suspense fallback={<ProductDetailSkeleton />}>

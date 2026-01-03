@@ -86,6 +86,12 @@ export const authenticateToken = async (
   }
 };
 
+// Backward-compatible aliases
+// Some routes expect `authenticate` / `authorizeRoles` naming.
+export const authenticate = authenticateToken;
+
+export const authorizeRoles = (roles: string[]) => requireRole(...roles);
+
 /**
  * Optional authentication - doesn't fail if no token, just doesn't set user
  */

@@ -37,6 +37,8 @@ export const MobileHeaderBar: React.FC<MobileHeaderBarProps> = ({
             key={logoKey}
             src={normalizeImageUrl(resolvedHeaderLogo)}
             alt="Store logo"
+            width="130"
+            height="36"
             className="h-9 max-w-[130px] object-contain"
           />
         ) : (

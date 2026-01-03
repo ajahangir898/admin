@@ -61,7 +61,14 @@ export const DesktopHeaderBar = memo<DesktopHeaderBarProps>(({
         {/* Logo */}
         <button type="button" className="flex items-center flex-shrink-0 group" onClick={onHomeClick}>
           {resolvedHeaderLogo ? (
-            <img key={logoKey} src={normalizeImageUrl(resolvedHeaderLogo)} alt="Logo" className="h-10 md:h-12 object-contain transition-transform group-hover:scale-105" />
+            <img 
+              key={logoKey} 
+              src={normalizeImageUrl(resolvedHeaderLogo)} 
+              alt="Logo" 
+              width="192"
+              height="48"
+              className="h-10 md:h-12 object-contain transition-transform group-hover:scale-105" 
+            />
           ) : (
             <h2 className="text-2xl font-black tracking-tight">
               <span className="text-theme-primary">YOUR</span>

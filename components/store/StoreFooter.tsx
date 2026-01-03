@@ -76,13 +76,19 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
 
     return (
         <>
-        <footer className="store-footer surface-panel bg-white border-t border-gray-100 mt-auto">
+        <footer className="store-footer surface-panel bg-white border-t border-gray-100 mt-auto" style={{ minHeight: '400px' }}>
             {/* Mobile Footer */}
             <div className="md:hidden px-4 py-8">
                 {/* Logo & Description */}
                 <div className="text-center mb-8">
                     {resolvedFooterLogo ? (
-                        <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-28 object-contain mx-auto mb-4" />
+                        <img 
+                            src={normalizeImageUrl(resolvedFooterLogo)} 
+                            alt={`${websiteConfig?.websiteName || 'Store'} logo`} 
+                            width="112"
+                            height="112"
+                            className="h-28 object-contain mx-auto mb-4" 
+                        />
                     ) : (
                         <h3 className="text-2xl font-black text-gray-900 mb-3">{websiteConfig?.websiteName || 'YourShop'}</h3>
                     )}
@@ -187,7 +193,13 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                 <div className="grid grid-cols-4 gap-10 mb-10">
                     <div className="col-span-1">
                         {resolvedFooterLogo ? (
-                            <img src={normalizeImageUrl(resolvedFooterLogo)} alt={`${websiteConfig?.websiteName || 'Store'} logo`} className="h-28 object-contain mb-5" />
+                            <img 
+                                src={normalizeImageUrl(resolvedFooterLogo)} 
+                                alt={`${websiteConfig?.websiteName || 'Store'} logo`} 
+                                width="112"
+                                height="112"
+                                className="h-28 object-contain mb-5" 
+                            />
                         ) : (
                             <h3 className="text-2xl font-black text-gray-900 mb-5">{websiteConfig?.websiteName || 'YourShop'}</h3>
                         )}

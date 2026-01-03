@@ -11,6 +11,9 @@ let cachedViewportWidth = typeof window !== 'undefined' ? window.innerWidth : 10
 let cachedViewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
 let rafId: number | null = null;
 
+// Listeners to notify when viewport changes
+const viewportChangeListeners = new Set<() => void>();
+
 /**
  * Update cached viewport dimensions
  * Uses RAF to batch updates and prevent forced reflows
@@ -23,8 +26,18 @@ const updateViewportCache = () => {
   }
   
   rafId = requestAnimationFrame(() => {
-    cachedViewportWidth = window.innerWidth;
-    cachedViewportHeight = window.innerHeight;
+    const newWidth = window.innerWidth;
+    const newHeight = window.innerHeight;
+    
+    // Only update and notify if dimensions actually changed
+    if (newWidth !== cachedViewportWidth || newHeight !== cachedViewportHeight) {
+      cachedViewportWidth = newWidth;
+      cachedViewportHeight = newHeight;
+      
+      // Notify all listeners
+      viewportChangeListeners.forEach(listener => listener());
+    }
+    
     rafId = null;
   });
 };
@@ -105,11 +118,15 @@ export const cleanupViewportTracking = () => {
     cancelAnimationFrame(rafId);
     rafId = null;
   }
+  
+  // Clear all listeners
+  viewportChangeListeners.clear();
 };
 
 /**
  * React hook to track viewport width changes
  * Returns the current viewport width and updates on resize
+ * Leverages the global cache to avoid redundant event listeners
  */
 export const useViewportWidth = (): number => {
   if (typeof window === 'undefined') return 1024;
@@ -122,16 +139,15 @@ export const useViewportWidth = (): number => {
       setWidth(getViewportWidth());
     };
     
-    // Listen to resize events to update state
-    window.addEventListener('resize', updateWidth);
-    window.addEventListener('orientationchange', updateWidth);
+    // Subscribe to viewport changes via the global listener system
+    viewportChangeListeners.add(updateWidth);
     
-    // Initial update
+    // Initial update in case viewport changed before subscription
     updateWidth();
     
     return () => {
-      window.removeEventListener('resize', updateWidth);
-      window.removeEventListener('orientationchange', updateWidth);
+      // Unsubscribe on cleanup
+      viewportChangeListeners.delete(updateWidth);
     };
   }, []);
   

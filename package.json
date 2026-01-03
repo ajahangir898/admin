@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node server.js",
     "dev:client": "vite",
-    "build": "npm run build:client && npm run build:server && npm run copy:html",
+    "ensure:env": "node scripts/ensure-env.mjs",
+    "build": "npm run ensure:env && npm run build:client && npm run build:server && npm run copy:html",
     "build:client": "vite build --outDir dist/client",
     "build:server": "vite build --ssr entry-server.tsx --outDir dist/server",
     "copy:html": "node scripts/copy-html-backup.js",

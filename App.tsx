@@ -148,7 +148,7 @@ const App = () => {
   
   // === LOADING STATE ===
   // Start with false if we have cached data to show content immediately
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // === TENANT MANAGEMENT (from useTenant hook) ===
   const tenant = useTenant();

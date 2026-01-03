@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
-import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
+// import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import type { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
 import type { SortOption } from '../components/ProductFilter';
 import { getInitialCachedData } from '../utils/appHelpers';
@@ -259,7 +259,7 @@ const StoreHome = ({
         setSelectedCategoryView(category.name);
       } else {
         // Check in default categories
-        const defaultCat = CATEGORIES.find(c => slugify(c.name) === initialCategoryFilter);
+        const defaultCat = categories?.find(c => slugify(c.name) === initialCategoryFilter);
         if (defaultCat) {
           setSelectedCategoryView(defaultCat.name);
         }
@@ -361,7 +361,7 @@ const StoreHome = ({
       return categories;
     }
     // Fallback to default categories with proper structure
-    return CATEGORIES.map(c => ({ 
+    return categories.map(c => ({ 
       ...c, 
       status: 'Active' as const,
       id: Math.random() // Add a unique id
@@ -783,7 +783,7 @@ const StoreHome = ({
         onSearchChange={updateSearchTerm}
         onCategoriesClick={handleCategoriesNav}
         onProductsClick={handleProductsNav}
-        categoriesList={CATEGORIES.map((cat) => cat.name)}
+        categoriesList={categories.map((cat) => cat.name)}
         onCategorySelect={(categoryName) => handleCategoryClick(categoryName)}
         onProductClick={onProductClick}
         categories={categories}

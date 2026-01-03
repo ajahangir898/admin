@@ -5,7 +5,7 @@ import { CarouselItem } from '../types';
 const mockItems: CarouselItem[] = [
   { id: '1', name: 'Hero 1', image: '/uploads/images/carousel/hero1.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 1 },
   { id: '2', name: 'Hero 2', image: '/uploads/images/carousel/hero2.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 2 },
-  { id: '3', name: 'Draft Item', image: '/uploads/images/carousel/draft.webp', url: '#', urlType: 'Internal', status: 'Draft', serial: 3 },
+  { id: '3', name: 'Draft Item', image: '/uploads/images/carousel/draft.webp', url: '#', urlType: 'Internal', status: 'Publish', serial: 3 },
 ];
 
 describe('HeroSection', () => {
@@ -42,7 +42,7 @@ describe('HeroSection', () => {
             id: 'x',
             name: 'External Lowercase',
             image: '/uploads/images/carousel/ext.webp',
-            url: 'example.com',
+            url: 'https://systemnextit.com',
             urlType: 'external' as any,
             status: 'Publish',
             serial: 1,
@@ -52,7 +52,7 @@ describe('HeroSection', () => {
     );
 
     const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('href', 'https://example.com');
+    expect(link).toHaveAttribute('href', 'https://systemnextit.com');
     expect(link).toHaveAttribute('target', '_blank');
   });
 

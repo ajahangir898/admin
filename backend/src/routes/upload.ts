@@ -4,10 +4,17 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 
-// Try to import sharp, but make it optional
-let sharp: any = null;
+// Try to import sharp dynamically, but make it optional
+interface SharpInstance {
+  (buffer: Buffer): SharpInstance;
+  webp(options: { quality: number }): SharpInstance;
+  resize(width: number, height: number, options?: any): SharpInstance;
+  toBuffer(): Promise<Buffer>;
+}
+
+let sharp: ((buffer: Buffer) => SharpInstance) | null = null;
 try {
-  sharp = require('sharp');
+  sharp = require('sharp') as (buffer: Buffer) => SharpInstance;
 } catch (e) {
   console.warn('[Upload] Sharp not installed - server-side compression disabled');
 }

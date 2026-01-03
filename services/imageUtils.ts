@@ -164,7 +164,7 @@ export const dataUrlToFile = (dataUrl: string, fileName: string): File => {
 
 /**
  * Converts and resizes image to fixed square dimensions for product images.
- * Output: 800 x 800 pixels (1:1 square), WebP format, under 25KB.
+ * Output: 800 x 800 pixels (1:1 square), WebP format, under 15KB.
  * The image is center-cropped to fit the exact square dimensions.
  */
 export const convertProductImage = async (file: File): Promise<File> => {
@@ -269,7 +269,7 @@ export const convertProductImage = async (file: File): Promise<File> => {
 };
 
 /**
- * Compresses a product image to target size (~25KB) for faster page loads.
+ * Compresses a product image to target size (~15KB) for faster page loads.
  * Uses iterative quality reduction to achieve optimal file size.
  * Returns a compressed File object ready for upload.
  */

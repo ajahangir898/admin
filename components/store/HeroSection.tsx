@@ -4,6 +4,7 @@ import { CarouselItem, WebsiteConfig, Campaign } from '../../types';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
 import { OptimizedImage } from '../OptimizedImage';
 import { HeroSkeleton } from '../SkeletonLoaders';
+import { getViewportWidth } from '../../utils/viewportHelpers';
 
 export interface HeroSectionProps {
     carouselItems?: CarouselItem[];
@@ -121,7 +122,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
 
     // Detect mobile & auto-advance
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        const checkMobile = () => setIsMobile(getViewportWidth() < 768);
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);

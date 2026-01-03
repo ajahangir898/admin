@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Product } from '../../types';
 import { ProductCard } from '../StoreProductComponents';
 import { SectionHeader } from '../StoreComponents';
+import { getViewportWidth } from '../../utils/viewportHelpers';
 
 interface Props { title: string; products: Product[]; accentColor?: 'green' | 'purple' | 'orange' | 'blue'; onProductClick: (p: Product) => void; onBuyNow: (p: Product) => void; onQuickView: (p: Product) => void; onAddToCart: (p: Product) => void; productCardStyle?: string; keyPrefix: string; maxProducts?: number; reverseOrder?: boolean; }
 const colors = { green: 'bg-green-500', purple: 'bg-purple-500', orange: 'bg-orange-500', blue: 'bg-blue-500' };
@@ -11,7 +12,7 @@ export const ProductGridSection = ({ title, products, accentColor = 'green', onP
   const initCount = useCallback(() => {
     const t = display.length;
     if (typeof window === 'undefined') return Math.min(6, t);
-    const w = window.innerWidth;
+    const w = getViewportWidth();
     return w >= 1280 ? Math.min(8, t) : w >= 768 ? Math.min(6, t) : Math.min(4, t);
   }, [display.length]);
 

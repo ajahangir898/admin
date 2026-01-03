@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Product } from '../../types';
 import { ProductCard } from '../StoreProductComponents';
 import { SectionHeader } from '../StoreComponents';
@@ -24,10 +24,21 @@ export const ProductGridSection = ({ title, products, accentColor = 'green', onP
     return () => clearTimeout(t);
   }, [display.length, visible]);
 
+  // Calculate grid min-height based on expected rows to prevent CLS
+  const gridMinHeight = useMemo(() => {
+    const cols = typeof window !== 'undefined' 
+      ? (getViewportWidth() >= 1024 ? 5 : getViewportWidth() >= 768 ? 4 : 2)
+      : 5;
+    const rows = Math.ceil(Math.min(visible, display.length) / cols);
+    // Approx card height: 280px mobile, 320px desktop
+    const cardHeight = typeof window !== 'undefined' && getViewportWidth() < 768 ? 280 : 320;
+    return Math.max(400, rows * cardHeight);
+  }, [visible, display.length]);
+
   return (
-    <section style={{ minHeight: '400px' }}>
+    <section style={{ minHeight: `${gridMinHeight}px`, contain: 'layout' }}>
       <div className="mb-1 flex items-center gap-3"><div className={`h-8 w-1.5 rounded-full ${colors[accentColor]}`}/><SectionHeader title={title} className="text-xl text-red-600"/></div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5" style={{ minHeight: `${gridMinHeight - 40}px` }}>
         {display.slice(0, visible).map(p => <ProductCard key={`${keyPrefix}-${p.id}`} product={p} onClick={onProductClick} onBuyNow={onBuyNow} variant={productCardStyle} onQuickView={onQuickView} onAddToCart={onAddToCart}/>)}
       </div>
     </section>

@@ -36,6 +36,24 @@ const SectionSkeleton = () => (
   </div>
 );
 
+// Footer skeleton to reserve space and prevent CLS
+const FooterSkeleton = () => (
+  <footer className="mt-auto bg-white border-t border-gray-100" style={{ minHeight: '400px' }}>
+    <div className="animate-pulse p-6 space-y-4">
+      <div className="h-8 w-32 bg-gray-200 rounded mx-auto" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-20" />
+            <div className="h-3 bg-gray-100 rounded w-full" />
+            <div className="h-3 bg-gray-100 rounded w-3/4" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </footer>
+);
+
 // Below-the-fold - lazy loaded (only when needed)
 const StorePopup = lazy(() => import('../components/StorePopup').then(m => ({ default: m.StorePopup })));
 const StoreFooter = lazy(() => import('../components/store/StoreFooter').then(m => ({ default: m.StoreFooter })));
@@ -848,7 +866,7 @@ const StoreHome = ({
         )}
       </main>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<FooterSkeleton />}>
         <StoreFooter websiteConfig={websiteConfig} logo={logo} onOpenChat={onOpenChat} />
       </Suspense>
       

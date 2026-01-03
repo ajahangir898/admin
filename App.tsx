@@ -104,30 +104,11 @@ const StoreProfile = lazy(() => import('./pages/StoreProfile'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 
 
-// Preload functions for route-based prefetching
+// Preload functions - ONLY called on user interaction (hover/focus)
+// NO automatic prefetching to improve initial load
 export const preloadCheckout = () => import('./pages/StoreCheckout');
-export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
 export const preloadProductDetail = () => import('./pages/StoreProductDetail');
 export const preloadStoreProfile = () => import('./pages/StoreProfile');
-
-// Prefetch helper - loads module during idle time
-const prefetchModule = (importFn: () => Promise<any>) => {
-  if (typeof window !== 'undefined') {
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => importFn().catch(() => {}), { timeout: 5000 });
-    } else {
-      setTimeout(() => importFn().catch(() => {}), 2000);
-    }
-  }
-};
-
-// Link prefetch helper - call on mouseenter/focus for instant navigation
-export const prefetchOnHover = {
-  checkout: () => preloadCheckout(),
-  productDetail: () => preloadProductDetail(),
-  profile: () => preloadStoreProfile(),
-  success: () => preloadSuccess()
-};
 
 // Admin pages - lazy loaded
 const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
@@ -142,56 +123,6 @@ const StoreChatModal = lazy(() => import('./components/store/StoreChatModal').th
 
 // Skeleton loaders for better UX
 import { SuperAdminDashboardSkeleton, StorePageSkeleton, ProductDetailSkeleton } from './components/SkeletonLoaders';
-
-// Preload non-critical chunks during idle time (after initial render)
-// IMPORTANT: Delay significantly to not compete with critical resources
-if (typeof window !== 'undefined') {
-  // Only prefetch after page is fully loaded and user is idle
-  const prefetchAfterLoad = () => {
-    // Wait for page to be fully interactive
-    if (document.readyState !== 'complete') {
-      window.addEventListener('load', () => setTimeout(prefetchAfterLoad, 5000), { once: true });
-      return;
-    }
-    
-    // First wave - only most likely next pages (after 8 seconds)
-    const preloadCritical = () => {
-      import('./pages/StoreProductDetail').catch(() => {});
-    };
-    
-    // Second wave - checkout flow (after 15 seconds)
-    const preloadSecondary = () => {
-      Promise.all([
-        import('./pages/StoreCheckout'),
-        import('./components/store/MobileBottomNav'),
-      ]).catch(() => {});
-    };
-    
-    // Third wave - less critical (after 25 seconds)
-    const preloadTertiary = () => {
-      Promise.all([
-        import('./pages/StoreOrderSuccess'),
-        import('./pages/StoreProfile'),
-        import('./components/store/StoreChatModal'),
-        import('./components/store/LoginModal'),
-      ]).catch(() => {});
-    };
-    
-    // Schedule prefetches with significant delays
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => preloadCritical(), { timeout: 15000 });
-      (window as any).requestIdleCallback(() => preloadSecondary(), { timeout: 25000 });
-      (window as any).requestIdleCallback(() => preloadTertiary(), { timeout: 35000 });
-    } else {
-      setTimeout(preloadCritical, 8000);
-      setTimeout(preloadSecondary, 15000);
-      setTimeout(preloadTertiary, 25000);
-    }
-  };
-  
-  // Start prefetch process after 5 seconds
-  setTimeout(prefetchAfterLoad, 5000);
-}
 
 const App = () => {
   // === ADMIN SUBDOMAIN HANDLING ===

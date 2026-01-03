@@ -2,6 +2,7 @@ import { useState, useEffect, RefObject } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Product } from '../../types';
 import { ProductCard } from '../StoreProductComponents';
+import { getViewportWidth } from '../../utils/viewportHelpers';
 
 interface Props { 
   products: Product[]; 
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export const FlashSalesSection = ({ products, showCounter, countdown, onProductClick, onBuyNow, onQuickView, onAddToCart, productCardStyle, sectionRef, onViewAll }: Props) => {
-  const initCount = () => typeof window === 'undefined' ? Math.min(4, products.length) : Math.min(window.innerWidth >= 1024 ? 6 : 4, products.length);
+  const initCount = () => typeof window === 'undefined' ? Math.min(4, products.length) : Math.min(getViewportWidth() >= 1024 ? 6 : 4, products.length);
   const [visible, setVisible] = useState(initCount);
 
   useEffect(() => { setVisible(initCount()); }, [products.length]);

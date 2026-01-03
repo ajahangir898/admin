@@ -4,6 +4,7 @@ import { CarouselItem, WebsiteConfig, Campaign } from '../../types';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
 import { OptimizedImage } from '../OptimizedImage';
 import { HeroSkeleton } from '../SkeletonLoaders';
+import { useIsMobile } from '../../utils/viewportHelpers';
 
 export interface HeroSectionProps {
     carouselItems?: CarouselItem[];
@@ -116,17 +117,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
-    const [isMobile, setIsMobile] = useState(false);
+    const isMobile = useIsMobile();
     const [isPaused, setIsPaused] = useState(false);
 
-    // Detect mobile & auto-advance
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
-
+    // Auto-advance carousel
     useEffect(() => {
         if (items.length <= 1 || isPaused) return;
         const timer = setInterval(() => setCurrentIndex(p => (p + 1) % items.length), 4500);

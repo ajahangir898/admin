@@ -1,7 +1,7 @@
 import { useState, useMemo, Suspense, lazy } from 'react';
 import { ChevronRight, ChevronLeft, Package, Tag, X, SlidersHorizontal } from 'lucide-react';
 import { Product, Category, Brand, WebsiteConfig, User, Order } from '../../../types';
-import { ProductCard } from '../StoreProductComponents';
+import { ProductCard } from '../../StoreProductComponents';
 import { normalizeImageUrl } from '../../../utils/imageUrlHelper';
 import { ProductFilter, SortOption } from '../../ProductFilter';
 import { CATEGORIES } from '../../../constants';

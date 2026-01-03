@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Facebook, Truck, Phone, Home, MessageCircle, Menu, LogOut, ChevronRight } from 'lucide-react';
+import { User, Facebook, Phone, Home, MessageCircle, Menu } from 'lucide-react';
 import { User as UserType, WebsiteConfig } from '../../types';
 
 const buildWhatsAppLink = (rawNumber?: string | null) => {

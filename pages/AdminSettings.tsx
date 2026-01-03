@@ -184,7 +184,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ onNavigate, user, onUpdat
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
               </div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{formatRole(user?.role)}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">{formatRole(user?.role)}</p>
               <h3 className="text-xl font-bold text-gray-900">{form.name || 'Admin'}</h3>
               <p className="text-gray-500 text-sm">{form.email}</p>
               <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">

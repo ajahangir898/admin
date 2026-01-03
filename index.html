@@ -102,15 +102,23 @@
       // Listen for React render and hide loader
       const loader = document.getElementById('app-loader');
       const root = document.getElementById('root');
+      const FADE_OUT_DURATION = 300; // Match CSS transition duration
+      let loaderRemoved = false;
+      
+      function removeLoader() {
+        if (loaderRemoved || !loader || !loader.parentNode) return;
+        loaderRemoved = true;
+        
+        loader.classList.add('loaded');
+        setTimeout(() => {
+          if (loader.parentNode) loader.remove();
+        }, FADE_OUT_DURATION);
+      }
       
       // Create observer to detect when React renders content
       const observer = new MutationObserver(() => {
         if (root && root.children.length > 0) {
-          if (loader) {
-            loader.classList.add('loaded');
-            // Remove from DOM after fade out
-            setTimeout(() => loader.remove(), 300);
-          }
+          removeLoader();
           observer.disconnect();
         }
       });
@@ -120,12 +128,7 @@
       }
       
       // Fallback: Remove loader after 5 seconds even if observer doesn't trigger
-      setTimeout(() => {
-        if (loader && loader.parentNode) {
-          loader.classList.add('loaded');
-          setTimeout(() => loader.remove(), 300);
-        }
-      }, 5000);
+      setTimeout(removeLoader, 5000);
     </script>
   </body>
 </html>

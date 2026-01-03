@@ -145,7 +145,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 
 			{/* Sidebar Menu - White background */}
 			<div className="p-3 space-y-1 flex-1 overflow-y-auto scrollbar-hide bg-white">
-				<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-2 text-gray-400">Main Menu</div>
+				<div className="text-[10px] font-bold uppercase tracking-widest mb-3 px-3 mt-2 text-gray-400">Main Menu</div>
 				{filteredMenuItems.map((item) => (
 					<div
 						key={item.id}
@@ -250,7 +250,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				{/* System Section */}
 				{(canSeeSettings || canSeeAdminControl || userRole === 'super_admin' || userRole === 'admin') && (
 					<>
-						<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-6 text-gray-400">System</div>
+						<div className="text-[10px] font-bold uppercase tracking-widest mb-3 px-3 mt-6 text-gray-400">System</div>
 						
 						{/* Cache Monitor - Only for admin/super_admin */}
 						{(userRole === 'super_admin' || userRole === 'admin') && (
@@ -576,7 +576,7 @@ export const AdminHeader: React.FC<{
 
 	const renderTenantSummary = () => (
 		<div className="text-left">
-			<p className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Tenant</p>
+			<p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Tenant</p>
 			<p className="text-sm font-semibold truncate max-w-[200px] text-gray-900">
 				{selectedTenant?.name || 'Select tenant'}
 			</p>

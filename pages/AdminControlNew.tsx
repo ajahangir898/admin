@@ -504,7 +504,7 @@ const AdminControl: React.FC<AdminControlProps> = ({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleColor(user.role)}`}>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${getRoleColor(user.role)}`}>
                         {getRoleLabel(user.role)}
                       </span>
                     </td>

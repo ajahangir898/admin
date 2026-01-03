@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCart, Heart, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, CarouselItem, WebsiteConfig } from '../types';
 import { LazyImage } from '../utils/performanceOptimization';
@@ -111,27 +111,45 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
   const items = carouselItems
     ?.filter(i => normalizeCarouselStatus(i.status) === 'publish')
     .sort((a, b) => Number(a.serial ?? 0) - Number(b.serial ?? 0)) || [];
+  
+  // Persist carousel items to prevent hiding during re-renders
+  const [persistedItems, setPersistedItems] = useState<CarouselItem[]>(items);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Update persisted items when new valid items are received
+  // Use a ref to track the last serialized items to avoid unnecessary updates
+  const lastItemsRef = useRef<string>('');
   useEffect(() => {
-    if (items.length <= 1) return;
-    const timer = setInterval(() => setCurrentIndex(p => (p + 1) % items.length), 5000);
+    const itemsStr = JSON.stringify(items);
+    if (items.length > 0 && itemsStr !== lastItemsRef.current) {
+      lastItemsRef.current = itemsStr;
+      setPersistedItems(items);
+    }
+  }, [items]);
+
+  // Use persisted items for rendering to prevent carousel from disappearing
+  const displayItems = persistedItems.length > 0 ? persistedItems : items;
+
+  useEffect(() => {
+    if (displayItems.length <= 1) return;
+    const timer = setInterval(() => setCurrentIndex(p => (p + 1) % displayItems.length), 5000);
     return () => clearInterval(timer);
-  }, [items.length]);
+  }, [displayItems.length]);
 
-  if (!items.length) return null;
+  // Only hide if we have no items at all (not even persisted ones)
+  if (!displayItems.length) return null;
 
-  const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + items.length) % items.length); };
+  const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + displayItems.length) % displayItems.length); };
 
   return (
     <div className="max-w-7xl mx-auto px-4 mt-4">
       <div className="relative w-full aspect-[5/2] sm:aspect-[3/1] md:aspect-[7/2] lg:aspect-[4/1] rounded-xl overflow-hidden shadow-lg group bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-        {items.map((item, index) => (
+        {displayItems.map((item, index) => (
           <a key={item.id} href={item.url || '#'} className={`absolute inset-0 transition-opacity duration-700 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
             <LazyImage src={normalizeImageUrl(item.image)} alt={item.name} className="absolute inset-0" size="full" priority={index === currentIndex} optimizationOptions={{ width: 1600, quality: 85 }} />
           </a>
         ))}
-        {items.length > 1 && (
+        {displayItems.length > 1 && (
           <>
             <button onClick={navigate(-1)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-700 w-9 h-9 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110">
               <ChevronLeft size={20} />
@@ -140,7 +158,7 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
               <ChevronRight size={20} />
             </button>
             <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
-              {items.map((_, i) => (
+              {displayItems.map((_, i) => (
                 <button key={i} onClick={e => { e.preventDefault(); setCurrentIndex(i); }} className={`h-2 rounded-full transition-all duration-300 shadow-sm ${i === currentIndex ? 'bg-white w-6' : 'bg-white/50 w-2 hover:bg-white/80'}`} />
               ))}
             </div>

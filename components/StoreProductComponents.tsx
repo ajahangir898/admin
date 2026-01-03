@@ -121,8 +121,9 @@ export const HeroSection: React.FC<{ carouselItems?: CarouselItem[]; websiteConf
   const lastItemsHashRef = useRef<string>('');
   useEffect(() => {
     if (items.length > 0) {
-      // Create a simple hash from length and first/last item IDs for efficient comparison
-      const hash = `${items.length}-${items[0]?.id || ''}-${items[items.length - 1]?.id || ''}`;
+      // Create a hash from length, first, middle, and last item IDs for robust comparison
+      const mid = Math.floor(items.length / 2);
+      const hash = `${items.length}-${items[0]?.id || ''}-${items[mid]?.id || ''}-${items[items.length - 1]?.id || ''}`;
       if (hash !== lastItemsHashRef.current) {
         lastItemsHashRef.current = hash;
         setPersistedItems(items);

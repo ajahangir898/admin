@@ -167,7 +167,7 @@ export const uploadImageToServer = async (
   tenantId: string
 ): Promise<string> => {
   try {
-    // Convert to fixed 800x800 square and compress to under 25KB
+    // Convert to fixed 800x800 square and compress to under 15KB
     const compressed = await convertProductImage(file);
 
     console.log(`[ImageUpload] Starting upload for ${compressed.name} (${compressed.size} bytes) to tenant: ${tenantId}`);

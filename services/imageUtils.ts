@@ -10,7 +10,7 @@ export interface CarouselOptions {
 }
 
 export interface ProductImageOptions {
-  targetSizeKB?: number; // Target size in KB (default: 30-35KB)
+  targetSizeKB?: number; // Target size in KB (default: 15KB)
   maxDimension?: number; // Max width/height (default: 800px)
   minQuality?: number;   // Minimum quality threshold (default: 0.3)
 }
@@ -28,7 +28,7 @@ export const PRODUCT_IMAGE_WIDTH = 800;
 export const PRODUCT_IMAGE_HEIGHT = 800;
 
 // Product image target size
-export const PRODUCT_IMAGE_TARGET_KB = 25; // Target under 25KB
+export const PRODUCT_IMAGE_TARGET_KB = 15; // Target under 15KB
 
 const fileToDataUrl = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -164,7 +164,7 @@ export const dataUrlToFile = (dataUrl: string, fileName: string): File => {
 
 /**
  * Converts and resizes image to fixed square dimensions for product images.
- * Output: 800 x 800 pixels (1:1 square), WebP format, under 25KB.
+ * Output: 800 x 800 pixels (1:1 square), WebP format, under 15KB.
  * The image is center-cropped to fit the exact square dimensions.
  */
 export const convertProductImage = async (file: File): Promise<File> => {
@@ -205,8 +205,8 @@ export const convertProductImage = async (file: File): Promise<File> => {
     // Draw the center-cropped image scaled to exact dimensions
     ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, PRODUCT_IMAGE_WIDTH, PRODUCT_IMAGE_HEIGHT);
 
-    // Binary search for optimal quality to reach target size (under 25KB)
-    let minQ = 0.2;
+    // Binary search for optimal quality to reach target size (under 15KB)
+    let minQ = 0.15;
     let maxQ = 0.85;
     let bestDataUrl = canvas.toDataURL('image/webp', maxQ);
     let bestSize = getDataUrlSize(bestDataUrl);
@@ -218,8 +218,8 @@ export const convertProductImage = async (file: File): Promise<File> => {
       return dataUrlToFile(bestDataUrl, newFileName);
     }
 
-    // Iterative quality reduction to find optimal size under 25KB
-    for (let i = 0; i < 12; i++) {
+    // Iterative quality reduction to find optimal size under 15KB
+    for (let i = 0; i < 15; i++) {
       const midQ = (minQ + maxQ) / 2;
       const testDataUrl = canvas.toDataURL('image/webp', midQ);
       const testSize = getDataUrlSize(testDataUrl);
@@ -232,18 +232,18 @@ export const convertProductImage = async (file: File): Promise<File> => {
         maxQ = midQ; // Need lower quality
       }
       
-      // Close enough to target
-      if (testSize <= targetSizeBytes && testSize > targetSizeBytes * 0.8) {
+      // Close enough to target (within 1KB)
+      if (testSize <= targetSizeBytes && testSize > targetSizeBytes * 0.9) {
         bestDataUrl = testDataUrl;
         bestSize = testSize;
         break;
       }
     }
 
-    // If still too large, reduce dimensions
+    // If still too large, reduce dimensions more aggressively
     if (bestSize > targetSizeBytes) {
-      let scale = 0.9;
-      while (bestSize > targetSizeBytes && scale > 0.5) {
+      let scale = 0.85;
+      while (bestSize > targetSizeBytes && scale > 0.4) {
         const newSize = Math.round(PRODUCT_IMAGE_WIDTH * scale);
         canvas.width = newSize;
         canvas.height = newSize;
@@ -251,9 +251,9 @@ export const convertProductImage = async (file: File): Promise<File> => {
         ctx.fillRect(0, 0, newSize, newSize);
         ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, newSize, newSize);
         
-        bestDataUrl = canvas.toDataURL('image/webp', 0.6);
+        bestDataUrl = canvas.toDataURL('image/webp', 0.5);
         bestSize = getDataUrlSize(bestDataUrl);
-        scale -= 0.1;
+        scale -= 0.05;
       }
     }
 
@@ -269,7 +269,7 @@ export const convertProductImage = async (file: File): Promise<File> => {
 };
 
 /**
- * Compresses a product image to target size (~25KB) for faster page loads.
+ * Compresses a product image to target size (~15KB) for faster page loads.
  * Uses iterative quality reduction to achieve optimal file size.
  * Returns a compressed File object ready for upload.
  */

@@ -4,6 +4,21 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 
+// Try to import sharp dynamically, but make it optional
+interface SharpInstance {
+  (buffer: Buffer): SharpInstance;
+  webp(options: { quality: number }): SharpInstance;
+  resize(width: number, height: number, options?: any): SharpInstance;
+  toBuffer(): Promise<Buffer>;
+}
+
+let sharp: ((buffer: Buffer) => SharpInstance) | null = null;
+try {
+  sharp = require('sharp') as (buffer: Buffer) => SharpInstance;
+} catch (e) {
+  console.warn('[Upload] Sharp not installed - server-side compression disabled');
+}
+
 const router = Router();
 const uploadDir = path.join(process.cwd(), 'uploads', 'images');
 const ALLOWED_FOLDERS = new Set(['carousel']);
@@ -25,6 +40,69 @@ const buildPath = (folder: string | null, tenantId: string, filename: string) =>
 const getImageUrl = (folder: string | null, tenantId: string, filename: string) =>
   folder ? `/uploads/images/${folder}/${tenantId}/${filename}` : `/uploads/images/${tenantId}/${filename}`;
 
+/**
+ * Compress product images to under 15KB using Sharp
+ * If Sharp is not available or image is already small, returns original buffer
+ */
+const compressProductImage = async (buffer: Buffer, originalName: string): Promise<Buffer> => {
+  const targetSizeKB = 15;
+  const targetSizeBytes = targetSizeKB * 1024;
+  
+  // If sharp is not available, return original
+  if (!sharp) {
+    console.log('[Upload] Sharp not available, skipping server-side compression');
+    return buffer;
+  }
+  
+  try {
+    // Skip compression for carousel images or if already small enough
+    if (buffer.length <= targetSizeBytes) {
+      console.log(`[Upload] Image already under ${targetSizeKB}KB: ${(buffer.length / 1024).toFixed(1)}KB`);
+      return buffer;
+    }
+    
+    // Start with quality 80 and compress to WebP
+    let quality = 80;
+    let compressed = await sharp(buffer)
+      .webp({ quality })
+      .toBuffer();
+    
+    // If still too large, reduce quality iteratively
+    let attempts = 0;
+    while (compressed.length > targetSizeBytes && quality > 20 && attempts < 8) {
+      quality -= 10;
+      compressed = await sharp(buffer)
+        .webp({ quality })
+        .toBuffer();
+      attempts++;
+    }
+    
+    // If still too large, resize down maintaining square aspect ratio
+    if (compressed.length > targetSizeBytes) {
+      let size = 800; // Start with 800x800
+      while (compressed.length > targetSizeBytes && size > 400) {
+        size -= 100;
+        compressed = await sharp(buffer)
+          .resize(size, size, { 
+            fit: 'cover',  // Maintain square crop
+            position: 'center' 
+          })
+          .webp({ quality: 60 })
+          .toBuffer();
+      }
+    }
+    
+    const originalSize = (buffer.length / 1024).toFixed(1);
+    const compressedSize = (compressed.length / 1024).toFixed(1);
+    console.log(`[Upload] Compressed: ${originalSize}KB → ${compressedSize}KB`);
+    
+    return compressed;
+  } catch (error) {
+    console.error('[Upload] Compression failed:', error);
+    return buffer; // Fallback to original
+  }
+};
+
 // Multer config
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -45,7 +123,7 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
 };
 
 // POST /api/upload - Upload image
-router.post('/api/upload', upload.single('file'), handleMulterError, (req: Request, res: Response) => {
+router.post('/api/upload', upload.single('file'), handleMulterError, async (req: Request, res: Response) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, error: 'No file uploaded' });
 
@@ -55,11 +133,22 @@ router.post('/api/upload', upload.single('file'), handleMulterError, (req: Reque
     
     fs.mkdirSync(tenantDir, { recursive: true });
     
-    const filename = `${uuidv4()}${path.extname(req.file.originalname) || '.jpg'}`;
-    fs.writeFileSync(path.join(tenantDir, filename), req.file.buffer);
+    // Compress product images (skip carousel images)
+    let fileBuffer = req.file.buffer;
+    let fileExtension = path.extname(req.file.originalname) || '.jpg';
+    
+    if (!folder || folder !== 'carousel') {
+      // This is a product image - compress it
+      fileBuffer = await compressProductImage(req.file.buffer, req.file.originalname);
+      // Force .webp extension for compressed images
+      fileExtension = '.webp';
+    }
+    
+    const filename = `${uuidv4()}${fileExtension}`;
+    fs.writeFileSync(path.join(tenantDir, filename), fileBuffer);
     
     const imageUrl = getImageUrl(folder, tenantId, filename);
-    console.log(`[upload] Image saved: ${imageUrl}`);
+    console.log(`[upload] Image saved: ${imageUrl} (${(fileBuffer.length / 1024).toFixed(1)}KB)`);
     
     res.json({ success: true, imageUrl, imageId: filename });
   } catch (error) {

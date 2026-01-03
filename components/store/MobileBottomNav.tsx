@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Facebook, Truck, Phone, Home, MessageCircle, List, Menu, LogOut, ChevronRight } from 'lucide-react';
+import { User, Facebook, Truck, Phone, Home, MessageCircle, Menu, LogOut, ChevronRight } from 'lucide-react';
 import { User as UserType, WebsiteConfig } from '../../types';
 
 const buildWhatsAppLink = (rawNumber?: string | null) => {
@@ -47,7 +47,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     user, 
     onLogoutClick 
 }) => {
-    const style = websiteConfig?.bottomNavStyle || 'style1';
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const accountSectionRef = useRef<HTMLDivElement>(null);
     const customerLabel = user?.name || user?.displayName || user?.email || 'Guest shopper';
@@ -63,12 +62,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         document.addEventListener('mousedown', handleOutsideClick);
         return () => document.removeEventListener('mousedown', handleOutsideClick);
     }, [isAccountMenuOpen]);
-    
-    useEffect(() => {
-        if (style !== 'style1') {
-            setIsAccountMenuOpen(false);
-        }
-    }, [style]);
     
     const handleAccountPrimaryAction = () => {
         setIsAccountMenuOpen(false);
@@ -97,62 +90,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     const chatEnabled = websiteConfig?.chatEnabled ?? true;
     const chatFallbackLink = !chatEnabled && websiteConfig?.chatWhatsAppFallback ? whatsappLink : null;
 
-    // Style 2: Floating Center Home Button
-    if (style === 'style2') {
-        return (
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 h-[70px] flex items-end px-2 md:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-1">
-                {/* Left Side */}
-                <div className="flex-1 flex justify-around items-center h-full pb-2 pr-10">
-                    {chatEnabled && onChatClick ? (
-                        <button onClick={onChatClick} className="flex flex-col items-center gap-1 transition group">
-                            <GradientChatIcon size={36} />
-                            <span className="text-[10px] font-medium text-gray-600">Chat</span>
-                        </button>
-                    ) : chatFallbackLink ? (
-                        <a href={chatFallbackLink} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 transition group">
-                            <GradientChatIcon size={36} />
-                            <span className="text-[10px] font-medium text-gray-600">Chat</span>
-                        </a>
-                    ) : (
-                        <button className="flex flex-col items-center gap-1 transition group opacity-50" type="button" disabled>
-                            <GradientChatIcon size={36} />
-                            <span className="text-[10px] font-medium text-gray-400">Chat</span>
-                        </button>
-                    )}
-                    <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
-                        <List size={22} strokeWidth={1.5} />
-                        <span className="text-[10px] font-medium">Categories</span>
-                    </button>
-                </div>
-
-                {/* Floating Home Button */}
-                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                    <button 
-                        onClick={onHomeClick}
-                        className="w-16 h-16 rounded-full bg-pink-100 text-pink-600 flex flex-col items-center justify-center border-[4px] border-white shadow-lg transform active:scale-95 transition-transform"
-                    >
-                        <Home size={24} strokeWidth={2.5} className="mb-0.5" />
-                        <span className="text-[10px] font-bold">Home</span>
-                    </button>
-                </div>
-
-                {/* Right Side */}
-                <div className="flex-1 flex justify-around items-center h-full pb-2 pl-10">
-                    <button onClick={onAccountClick} className={`flex flex-col items-center gap-1 transition group ${activeTab === 'account' ? 'text-pink-600' : 'text-gray-500 hover:text-pink-600'}`}>
-                        <User size={22} strokeWidth={1.5} />
-                        <span className="text-[10px] font-medium">Account</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-pink-600 transition group">
-                        <Menu size={22} strokeWidth={1.5} />
-                        <span className="text-[10px] font-medium">Menu</span>
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-  
-    // Style 1 (Default): 5 Columns - Clean Modern Design
+    // Default Style: 5 Columns - Clean Modern Design
     return (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-1 flex justify-around items-end md:hidden z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe h-[60px]">
             {/* Chat */}

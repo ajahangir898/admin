@@ -1295,7 +1295,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         item.id === popup.id
           ? {
               ...item,
-              status: item.status === 'Draft' ? ('Publish' as const) : ('Draft' as const),
+              status: item.status === 'Draft' ? 'Publish' : 'Draft',
               updatedAt: new Date().toISOString()
             }
           : item

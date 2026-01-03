@@ -17,6 +17,8 @@ const viewportChangeListeners = new Set<() => void>();
 /**
  * Update cached viewport dimensions
  * Uses RAF to batch updates and prevent forced reflows
+ * Note: Reading window.innerWidth/innerHeight in RAF is safe as we're doing
+ * pure reads without interleaving writes, avoiding layout thrashing
  */
 const updateViewportCache = () => {
   if (typeof window === 'undefined') return;
@@ -26,6 +28,7 @@ const updateViewportCache = () => {
   }
   
   rafId = requestAnimationFrame(() => {
+    // Read viewport dimensions - safe in RAF read phase
     const newWidth = window.innerWidth;
     const newHeight = window.innerHeight;
     
@@ -34,7 +37,7 @@ const updateViewportCache = () => {
       cachedViewportWidth = newWidth;
       cachedViewportHeight = newHeight;
       
-      // Notify all listeners
+      // Notify all listeners after cache update (write phase)
       viewportChangeListeners.forEach(listener => listener());
     }
     
@@ -132,18 +135,18 @@ export const useViewportWidth = (): number => {
   if (typeof window === 'undefined') return 1024;
   
   // Use React's useState and useEffect for proper reactivity
-  const [width, setWidth] = useState(getViewportWidth);
+  // Use function form to ensure we call getViewportWidth during initialization
+  const [width, setWidth] = useState(() => getViewportWidth());
   
   useEffect(() => {
     const updateWidth = () => {
-      setWidth(getViewportWidth());
+      const newWidth = getViewportWidth();
+      // Only update if width has changed to avoid unnecessary re-renders
+      setWidth(prevWidth => prevWidth !== newWidth ? newWidth : prevWidth);
     };
     
     // Subscribe to viewport changes via the global listener system
     viewportChangeListeners.add(updateWidth);
-    
-    // Initial update in case viewport changed before subscription
-    updateWidth();
     
     return () => {
       // Unsubscribe on cleanup
@@ -172,7 +175,12 @@ export const useIsDesktop = (): boolean => {
   return width >= 1024;
 };
 
-// Initialize on module load if in browser
+/**
+ * Initialize viewport tracking on module load in browser environment
+ * This is safe for most use cases. For more control, call initViewportTracking()
+ * explicitly from your application entry point before rendering components.
+ */
 if (typeof window !== 'undefined') {
-  initViewportTracking();
+  // Use setTimeout to avoid potential race conditions during module loading
+  setTimeout(() => initViewportTracking(), 0);
 }

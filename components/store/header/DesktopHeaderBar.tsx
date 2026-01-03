@@ -65,8 +65,8 @@ export const DesktopHeaderBar = memo<DesktopHeaderBarProps>(({
               key={logoKey} 
               src={normalizeImageUrl(resolvedHeaderLogo)} 
               alt="Logo" 
-              width="192"
-              height="48"
+              width={192}
+              height={48}
               className="h-10 md:h-12 object-contain transition-transform group-hover:scale-105" 
             />
           ) : (

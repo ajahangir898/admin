@@ -85,8 +85,8 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 key={logoKey} 
                 src={normalizeImageUrl(logo)} 
                 alt="Store Logo" 
-                width="130"
-                height="36"
+                width={130}
+                height={36}
                 className="h-9 object-contain" 
               />
             ) : (

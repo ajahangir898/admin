@@ -85,8 +85,8 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                         <img 
                             src={normalizeImageUrl(resolvedFooterLogo)} 
                             alt={`${websiteConfig?.websiteName || 'Store'} logo`} 
-                            width="112"
-                            height="112"
+                            width={112}
+                            height={112}
                             className="h-28 object-contain mx-auto mb-4" 
                         />
                     ) : (
@@ -196,8 +196,8 @@ export const StoreFooter: React.FC<StoreFooterProps> = ({ websiteConfig, logo, o
                             <img 
                                 src={normalizeImageUrl(resolvedFooterLogo)} 
                                 alt={`${websiteConfig?.websiteName || 'Store'} logo`} 
-                                width="112"
-                                height="112"
+                                width={112}
+                                height={112}
                                 className="h-28 object-contain mb-5" 
                             />
                         ) : (

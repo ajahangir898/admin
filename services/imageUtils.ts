@@ -10,7 +10,7 @@ export interface CarouselOptions {
 }
 
 export interface ProductImageOptions {
-  targetSizeKB?: number; // Target size in KB (default: 30-35KB)
+  targetSizeKB?: number; // Target size in KB (default: 15KB)
   maxDimension?: number; // Max width/height (default: 800px)
   minQuality?: number;   // Minimum quality threshold (default: 0.3)
 }

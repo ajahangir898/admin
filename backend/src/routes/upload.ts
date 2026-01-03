@@ -77,13 +77,16 @@ const compressProductImage = async (buffer: Buffer, originalName: string): Promi
       attempts++;
     }
     
-    // If still too large, resize down
+    // If still too large, resize down maintaining square aspect ratio
     if (compressed.length > targetSizeBytes) {
-      let width = 800;
-      while (compressed.length > targetSizeBytes && width > 400) {
-        width -= 100;
+      let size = 800; // Start with 800x800
+      while (compressed.length > targetSizeBytes && size > 400) {
+        size -= 100;
         compressed = await sharp(buffer)
-          .resize(width, width, { fit: 'inside' })
+          .resize(size, size, { 
+            fit: 'cover',  // Maintain square crop
+            position: 'center' 
+          })
           .webp({ quality: 60 })
           .toBuffer();
       }

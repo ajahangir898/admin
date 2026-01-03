@@ -40,6 +40,41 @@
       .sk-title{height:12px;background:#e5e7eb;border-radius:4px;margin-bottom:8px;animation:pulse 1.5s infinite}
       .sk-price{height:12px;width:50%;background:#e5e7eb;border-radius:4px;animation:pulse 1.5s infinite}
     </style>
+    <!-- CRITICAL: Start fetching data BEFORE any JS loads -->
+    <script>
+      (function(){
+        try {
+          var h = location.hostname, parts = h.split('.'), tenant = '';
+          if (parts.length >= 3 && parts[0] !== 'www' && parts[0] !== 'admin' && parts[0] !== 'superadmin') {
+            tenant = parts[0].toLowerCase().replace(/[^a-z0-9-]/g, '');
+            var cached = localStorage.getItem('tenant_id_' + tenant);
+            if (cached) tenant = cached;
+          }
+          if (!tenant) {
+            var stored = localStorage.getItem('activeTenant');
+            if (stored) tenant = stored;
+            else {
+              var session = localStorage.getItem('user_session');
+              if (session) {
+                var p = JSON.parse(session);
+                tenant = p.tenantId || (p.tenant && p.tenant.id) || 'public';
+              } else tenant = 'public';
+            }
+          }
+          if (tenant) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/tenant-data/' + tenant + '/bootstrap', true);
+            xhr.withCredentials = true;
+            xhr.onload = function() {
+              if (xhr.status === 200) {
+                try { window.__BOOTSTRAP_DATA__ = JSON.parse(xhr.responseText); } catch(e) {}
+              }
+            };
+            xhr.send();
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="initial-loader" class="sk">

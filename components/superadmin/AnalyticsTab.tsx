@@ -1,5 +1,5 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Store, Calendar } from 'lucide-react';
+import React, { useState, useEffect, lazy, Suspense, useRef, useCallback } from 'react';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Store, Loader2 } from 'lucide-react';
 
 const RevenueTrendChart = lazy(() => import('./RevenueTrendChart'));
 const TenantGrowthChart = lazy(() => import('./TenantGrowthChart'));
@@ -20,15 +20,58 @@ interface AnalyticsTabProps {
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+// Custom hook for intersection observer based lazy loading
+const useInView = (options?: IntersectionObserverInit) => {
+  const [isInView, setIsInView] = useState(false);
+  const [hasBeenInView, setHasBeenInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsInView(true);
+        setHasBeenInView(true);
+      } else {
+        setIsInView(false);
+      }
+    }, { threshold: 0.1, rootMargin: '100px', ...options });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [options]);
+
+  return { ref, isInView, hasBeenInView };
+};
+
+// Loading skeleton for sections
+const SectionSkeleton = ({ height = 300 }: { height?: number }) => (
+  <div 
+    className="animate-pulse bg-slate-100 rounded-lg flex items-center justify-center"
+    style={{ height }}
+  >
+    <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+  </div>
+);
+
 const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ systemStats, tenants }) => {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [tenantGrowthData, setTenantGrowthData] = useState<any[]>([]);
   const [planDistribution, setPlanDistribution] = useState<any[]>([]);
 
-  useEffect(() => {
-    // Generate revenue data
+  // Intersection observers for each section
+  const chartsRow1Ref = useInView();
+  const chartsRow2Ref = useInView();
+  const kpiRef = useInView();
+
+  // Only generate data when needed
+  const generateData = useCallback(() => {
     const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
+    
+    // Revenue data
     const revenue: any[] = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
@@ -41,7 +84,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ systemStats, tenants }) => 
     }
     setRevenueData(revenue);
 
-    // Generate tenant growth data
+    // Tenant growth data
     const growth: any[] = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
@@ -58,7 +101,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ systemStats, tenants }) => 
     }
     setTenantGrowthData(growth);
 
-    // Calculate plan distribution
+    // Plan distribution
     const planCounts: { [key: string]: number } = {};
     tenants.forEach(t => {
       const plan = t.plan || 'starter';
@@ -70,6 +113,13 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ systemStats, tenants }) => 
     }));
     setPlanDistribution(distribution);
   }, [timeRange, tenants]);
+
+  // Load data only when charts section comes into view
+  useEffect(() => {
+    if (chartsRow1Ref.hasBeenInView) {
+      generateData();
+    }
+  }, [chartsRow1Ref.hasBeenInView, generateData]);
 
   const statCards = [
     {
@@ -155,72 +205,110 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ systemStats, tenants }) => 
         })}
       </div>
 
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Revenue Trend</h3>
-          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
-            <RevenueTrendChart data={revenueData} />
-          </Suspense>
-        </div>
+      {/* Charts Row 1 - Lazy loaded on scroll */}
+      <div ref={chartsRow1Ref.ref} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {chartsRow1Ref.hasBeenInView ? (
+          <>
+            {/* Revenue Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Revenue Trend</h3>
+              <Suspense fallback={<SectionSkeleton />}> 
+                <RevenueTrendChart data={revenueData} />
+              </Suspense>
+            </div>
 
-        {/* Tenant Growth Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Tenant Growth</h3>
-          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
-            <TenantGrowthChart data={tenantGrowthData} />
-          </Suspense>
-        </div>
+            {/* Tenant Growth Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Tenant Growth</h3>
+              <Suspense fallback={<SectionSkeleton />}> 
+                <TenantGrowthChart data={tenantGrowthData} />
+              </Suspense>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Revenue Trend</h3>
+              <SectionSkeleton />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Tenant Growth</h3>
+              <SectionSkeleton />
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Orders Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Daily Orders</h3>
-          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
-            <DailyOrdersChart data={revenueData} />
-          </Suspense>
-        </div>
+      {/* Charts Row 2 - Lazy loaded on scroll */}
+      <div ref={chartsRow2Ref.ref} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {chartsRow2Ref.hasBeenInView ? (
+          <>
+            {/* Orders Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Daily Orders</h3>
+              <Suspense fallback={<SectionSkeleton />}> 
+                <DailyOrdersChart data={revenueData} />
+              </Suspense>
+            </div>
 
-        {/* Plan Distribution Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Plan Distribution</h3>
-          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
-            <PlanDistributionChart data={planDistribution} colors={COLORS} />
-          </Suspense>
-        </div>
+            {/* Plan Distribution Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Plan Distribution</h3>
+              <Suspense fallback={<SectionSkeleton />}> 
+                <PlanDistributionChart data={planDistribution} colors={COLORS} />
+              </Suspense>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Daily Orders</h3>
+              <SectionSkeleton />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Plan Distribution</h3>
+              <SectionSkeleton />
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Performance Metrics */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      {/* Performance Metrics - Lazy loaded on scroll */}
+      <div ref={kpiRef.ref} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <h3 className="text-lg font-semibold text-slate-800 mb-4">Key Performance Indicators</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex flex-col">
-            <span className="text-sm text-slate-600 mb-2">Average Revenue per Tenant</span>
-            <span className="text-2xl font-bold text-slate-800">
-              ৳{systemStats.activeTenants > 0 
-                ? Math.floor(systemStats.totalRevenue / systemStats.activeTenants).toLocaleString() 
-                : '0'}
-            </span>
-            <span className="text-sm text-emerald-600 mt-1">+9.3% from last month</span>
+        {kpiRef.hasBeenInView ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col">
+              <span className="text-sm text-slate-600 mb-2">Average Revenue per Tenant</span>
+              <span className="text-2xl font-bold text-slate-800">
+                ৳{systemStats.activeTenants > 0 
+                  ? Math.floor(systemStats.totalRevenue / systemStats.activeTenants).toLocaleString() 
+                  : '0'}
+              </span>
+              <span className="text-sm text-emerald-600 mt-1">+9.3% from last month</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm text-slate-600 mb-2">Average Orders per Tenant</span>
+              <span className="text-2xl font-bold text-slate-800">
+                {systemStats.activeTenants > 0 
+                  ? Math.floor(systemStats.totalOrders / systemStats.activeTenants).toLocaleString() 
+                  : '0'}
+              </span>
+              <span className="text-sm text-emerald-600 mt-1">+12.7% from last month</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm text-slate-600 mb-2">Customer Retention Rate</span>
+              <span className="text-2xl font-bold text-slate-800">94.2%</span>
+              <span className="text-sm text-emerald-600 mt-1">+2.1% from last month</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm text-slate-600 mb-2">Average Orders per Tenant</span>
-            <span className="text-2xl font-bold text-slate-800">
-              {systemStats.activeTenants > 0 
-                ? Math.floor(systemStats.totalOrders / systemStats.activeTenants).toLocaleString() 
-                : '0'}
-            </span>
-            <span className="text-sm text-emerald-600 mt-1">+12.7% from last month</span>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <SectionSkeleton height={80} />
+            <SectionSkeleton height={80} />
+            <SectionSkeleton height={80} />
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm text-slate-600 mb-2">Customer Retention Rate</span>
-            <span className="text-2xl font-bold text-slate-800">94.2%</span>
-            <span className="text-sm text-emerald-600 mt-1">+2.1% from last month</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

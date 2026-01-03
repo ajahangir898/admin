@@ -7,6 +7,57 @@ import { getInitialCachedData } from '../utils/appHelpers';
 import { getViewportWidth } from '../utils/viewportHelpers';
 import { DataService } from '../services/DataService';
 
+// Lazy Section Component - loads content only when visible in viewport
+interface LazySectionProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  rootMargin?: string;
+  threshold?: number;
+  minHeight?: string;
+}
+
+const LazySection: React.FC<LazySectionProps> = ({ 
+  children, 
+  fallback = null, 
+  rootMargin = '200px',
+  threshold = 0.01,
+  minHeight = '200px'
+}) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = sectionRef.current;
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      // Fallback for SSR or old browsers
+      setIsVisible(true);
+      setHasLoaded(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasLoaded) {
+          setIsVisible(true);
+          setHasLoaded(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin, threshold }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [hasLoaded, rootMargin, threshold]);
+
+  return (
+    <div ref={sectionRef} style={{ minHeight: hasLoaded ? 'auto' : minHeight }}>
+      {isVisible ? children : fallback}
+    </div>
+  );
+};
+
 // Lazy load utilities - only import when needed
 const getSlugify = () => import('../services/slugify').then(m => m.slugify);
 const getTrackPageView = () => import('../hooks/useVisitorStats').then(m => m.trackPageView);
@@ -799,7 +850,7 @@ const StoreHome = ({
           </Suspense>
         ) : (
           <>
-            {/* Flash Deals - loaded eagerly */}
+            {/* Flash Deals - loads first (above fold) */}
             {flashSalesProducts.length > 0 && (
               <FlashSalesSection
                 products={flashSalesProducts}
@@ -814,21 +865,27 @@ const StoreHome = ({
               />
             )}
 
-            {/* Best Sale Products - loaded eagerly */}
+            {/* Best Sale Products - loads when scrolled into view */}
             {bestSaleProducts.length > 0 && (
-              <ProductGridSection
-                title="Best Sale Products"
-                products={bestSaleProducts}
-                accentColor="green"
-                keyPrefix="best"
-                maxProducts={10}
-                reverseOrder={true}
-                onProductClick={onProductClick}
-                onBuyNow={handleBuyNow}
-                onQuickView={setQuickViewProduct}
-                onAddToCart={handleAddProductToCartFromCard}
-                productCardStyle={websiteConfig?.productCardStyle}
-              />
+              <LazySection 
+                fallback={<SectionSkeleton />}
+                rootMargin="300px"
+                minHeight="400px"
+              >
+                <ProductGridSection
+                  title="Best Sale Products"
+                  products={bestSaleProducts}
+                  accentColor="green"
+                  keyPrefix="best"
+                  maxProducts={10}
+                  reverseOrder={true}
+                  onProductClick={onProductClick}
+                  onBuyNow={handleBuyNow}
+                  onQuickView={setQuickViewProduct}
+                  onAddToCart={handleAddProductToCartFromCard}
+                  productCardStyle={websiteConfig?.productCardStyle}
+                />
+              </LazySection>
             )}
 
             {/* OMG Fashion Banner */}
@@ -836,38 +893,50 @@ const StoreHome = ({
               {/* <PromoBanner /> */}
             </Suspense>
 
-            {/* Popular Products - loaded eagerly */}
+            {/* Popular Products - loads when scrolled into view */}
             {popularProducts.length > 0 && (
-              <ProductGridSection
-                title="Popular products"
-                products={popularProducts}
-                accentColor="purple"
-                keyPrefix="pop"
-                maxProducts={10}
-                reverseOrder={false}
-                onProductClick={onProductClick}
-                onBuyNow={handleBuyNow}
-                onQuickView={setQuickViewProduct}
-                onAddToCart={handleAddProductToCartFromCard}
-                productCardStyle={websiteConfig?.productCardStyle}
-              />
+              <LazySection 
+                fallback={<SectionSkeleton />}
+                rootMargin="300px"
+                minHeight="400px"
+              >
+                <ProductGridSection
+                  title="Popular products"
+                  products={popularProducts}
+                  accentColor="purple"
+                  keyPrefix="pop"
+                  maxProducts={10}
+                  reverseOrder={false}
+                  onProductClick={onProductClick}
+                  onBuyNow={handleBuyNow}
+                  onQuickView={setQuickViewProduct}
+                  onAddToCart={handleAddProductToCartFromCard}
+                  productCardStyle={websiteConfig?.productCardStyle}
+                />
+              </LazySection>
             )}
 
-            {/* All Products - Always show all products */}
+            {/* All Products - loads when scrolled into view */}
             {activeProducts.length > 0 && (
-              <ProductGridSection
-                title="Our Products"
-                products={activeProducts}
-                accentColor="blue"
-                keyPrefix="all"
-                maxProducts={50}
-                reverseOrder={false}
-                onProductClick={onProductClick}
-                onBuyNow={handleBuyNow}
-                onQuickView={setQuickViewProduct}
-                onAddToCart={handleAddProductToCartFromCard}
-                productCardStyle={websiteConfig?.productCardStyle}
-              />
+              <LazySection 
+                fallback={<SectionSkeleton />}
+                rootMargin="300px"
+                minHeight="500px"
+              >
+                <ProductGridSection
+                  title="Our Products"
+                  products={activeProducts}
+                  accentColor="blue"
+                  keyPrefix="all"
+                  maxProducts={50}
+                  reverseOrder={false}
+                  onProductClick={onProductClick}
+                  onBuyNow={handleBuyNow}
+                  onQuickView={setQuickViewProduct}
+                  onAddToCart={handleAddProductToCartFromCard}
+                  productCardStyle={websiteConfig?.productCardStyle}
+                />
+              </LazySection>
             )}
           </>
         )}

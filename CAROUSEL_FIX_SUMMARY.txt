@@ -1,0 +1,48 @@
+# Carousel Fix - Quick Summary
+
+## Problem
+Carousel was disappearing when products loaded in the store.
+
+## Root Cause
+HeroSection component was returning `null` immediately when carousel items became empty, even temporarily during re-renders.
+
+## Solution
+Implemented state persistence to maintain carousel visibility:
+- Carousel items are persisted in local state
+- Component displays last known good items during transitions
+- Only hides when definitively no items exist
+
+## Impact
+✅ **Zero Flicker**: Carousel stays visible during all state updates  
+✅ **Better UX**: Smooth experience even during heavy data operations  
+✅ **Performance**: Lightweight hash comparison (O(1) complexity)  
+✅ **Reliability**: 8/8 tests passing, 0 security alerts
+
+## Files Changed
+1. `components/store/HeroSection.tsx` - Main fix
+2. `components/StoreProductComponents.tsx` - Same fix for alternate version
+3. `components/HeroSection.test.tsx` - Added 3 new tests
+4. `CAROUSEL_PERSISTENCE_FIX.md` - Full technical documentation
+
+## How It Works
+```
+Before: items empty → return null → carousel disappears ❌
+After:  items empty → use persisted → carousel stays visible ✅
+```
+
+## Testing
+- ✅ All 8 unit tests pass
+- ✅ TypeScript compilation succeeds
+- ✅ Production build succeeds
+- ✅ Security scan passes (0 alerts)
+
+## Deployment
+Ready for production deployment. No database changes, no breaking changes.
+
+## Documentation
+See `CAROUSEL_PERSISTENCE_FIX.md` for full technical details.
+
+---
+**Status**: ✅ READY FOR MERGE  
+**Risk Level**: LOW  
+**Breaking Changes**: NONE

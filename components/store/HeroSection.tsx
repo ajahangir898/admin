@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CarouselItem, WebsiteConfig, Campaign } from '../../types';
 import { normalizeImageUrl } from '../../utils/imageUrlHelper';
@@ -114,10 +114,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
         []
     ).slice(0, MAX_CAROUSEL_ITEMS);
 
+    // Persist carousel items to prevent hiding during re-renders
+    const [persistedItems, setPersistedItems] = useState<CarouselItem[]>(() => items || []);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
     const [isMobile, setIsMobile] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+
+    // Update persisted items when new valid items are received
+    // Use lightweight comparison to avoid unnecessary updates
+    const lastItemsHashRef = useRef<string>('');
+    useEffect(() => {
+        if (items.length > 0) {
+            // Create a hash from length, first, middle, and last item IDs for robust comparison
+            const mid = Math.floor(items.length / 2);
+            const hash = `${items.length}-${items[0]?.id || ''}-${items[mid]?.id || ''}-${items[items.length - 1]?.id || ''}`;
+            if (hash !== lastItemsHashRef.current) {
+                lastItemsHashRef.current = hash;
+                setPersistedItems(items);
+            }
+        }
+    }, [items]);
 
     // Detect mobile & auto-advance
     useEffect(() => {
@@ -127,26 +144,30 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Use persisted items for rendering to prevent carousel from disappearing
+    const displayItems = persistedItems.length > 0 ? persistedItems : items;
+
     useEffect(() => {
-        if (items.length <= 1 || isPaused) return;
-        const timer = setInterval(() => setCurrentIndex(p => (p + 1) % items.length), 4500);
+        if (displayItems.length <= 1 || isPaused) return;
+        const timer = setInterval(() => setCurrentIndex(p => (p + 1) % displayItems.length), 4500);
         return () => clearInterval(timer);
-    }, [items.length, isPaused]);
+    }, [displayItems.length, isPaused]);
 
     // Preload next & reset index
     useEffect(() => {
-        if (items.length > 1) setLoadedImages(p => new Set([...p, currentIndex, (currentIndex + 1) % items.length]));
-    }, [currentIndex, items.length]);
+        if (displayItems.length > 1) setLoadedImages(p => new Set([...p, currentIndex, (currentIndex + 1) % displayItems.length]));
+    }, [currentIndex, displayItems.length]);
 
-    useEffect(() => { setCurrentIndex(p => p >= items.length ? 0 : p); }, [items.length]);
+    useEffect(() => { setCurrentIndex(p => p >= displayItems.length ? 0 : p); }, [displayItems.length]);
 
     const handleImageLoad = useCallback((i: number) => {
         setLoadedImages(p => new Set([...p, i]));
     }, []);
     const getImageSrc = (item: CarouselItem) => isMobile && item.mobileImage ? item.mobileImage : item.image;
-    const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + items.length) % items.length); };
+    const navigate = (dir: number) => (e: React.MouseEvent) => { e.preventDefault(); setCurrentIndex(p => (p + dir + displayItems.length) % displayItems.length); };
 
-    if (!items.length) return null;
+    // Only hide if we have no items at all (not even persisted ones)
+    if (!displayItems.length) return null;
 
     // Always show carousel - don't wait for image load
     const showSkeleton = false;
@@ -165,7 +186,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                             height: isMobile ? '200px' : '330px'
                         }}
                     >
-                        {items.map((item, index) => {
+                        {displayItems.map((item, index) => {
                             const isActive = index === currentIndex;
                             const { href, isExternal } = getCarouselHref(item);
                             // Use mobileImage for mobile, fallback to desktop image
@@ -189,7 +210,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                         <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black/20 to-transparent z-15 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-black/20 to-transparent z-15 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
                         
-                        {items.length > 1 && (
+                        {displayItems.length > 1 && (
                             <>
                                 <button onClick={navigate(-1)} aria-label="Previous slide" className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white text-gray-700 w-10 h-10 rounded-full shadow-lg z-20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center hover:scale-110 backdrop-blur-sm">
                                     <ChevronLeft size={22} strokeWidth={2.5} />
@@ -198,7 +219,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
                                     <ChevronRight size={22} strokeWidth={2.5} />
                                 </button>
                                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-                                    {items.map((_, i) => (
+                                    {displayItems.map((_, i) => (
                                         <button key={i} onClick={e => { e.preventDefault(); setCurrentIndex(i); }} aria-label={`Go to slide ${i + 1}`}
                                             className={`h-2.5 rounded-full transition-all duration-300 shadow-md ${i === currentIndex ? 'bg-white w-8' : 'bg-white/60 w-2.5 hover:bg-white/90 hover:w-3'}`} />
                                     ))}

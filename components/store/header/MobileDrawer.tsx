@@ -81,7 +81,14 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100">
           <div className="flex items-center gap-3">
             {logo ? (
-              <img key={logoKey} src={normalizeImageUrl(logo)} alt="Store Logo" className="h-9 object-contain" />
+              <img 
+                key={logoKey} 
+                src={normalizeImageUrl(logo)} 
+                alt="Store Logo" 
+                width={130}
+                height={36}
+                className="h-9 object-contain" 
+              />
             ) : (
               <span className="text-xl font-black tracking-tight text-gray-900">
                 GADGET<span className="text-theme-primary">SHOB</span>

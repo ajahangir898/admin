@@ -761,7 +761,8 @@ class DataServiceImpl {
       chatGreeting: '',
       chatOfflineMessage: '',
       chatSupportHours: { from: '09:00', to: '18:00' },
-      chatWhatsAppFallback: false
+      chatWhatsAppFallback: false,
+      popups: []
     };
   }
 

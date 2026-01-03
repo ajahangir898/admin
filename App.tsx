@@ -104,9 +104,30 @@ const StoreProfile = lazy(() => import('./pages/StoreProfile'));
 const LandingPagePreview = lazy(() => import('./pages/LandingPagePreview'));
 
 
-// Preload checkout page when user is browsing products
+// Preload functions for route-based prefetching
 export const preloadCheckout = () => import('./pages/StoreCheckout');
 export const preloadSuccess = () => import('./pages/StoreOrderSuccess');
+export const preloadProductDetail = () => import('./pages/StoreProductDetail');
+export const preloadStoreProfile = () => import('./pages/StoreProfile');
+
+// Prefetch helper - loads module during idle time
+const prefetchModule = (importFn: () => Promise<any>) => {
+  if (typeof window !== 'undefined') {
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(() => importFn().catch(() => {}), { timeout: 5000 });
+    } else {
+      setTimeout(() => importFn().catch(() => {}), 2000);
+    }
+  }
+};
+
+// Link prefetch helper - call on mouseenter/focus for instant navigation
+export const prefetchOnHover = {
+  checkout: () => preloadCheckout(),
+  productDetail: () => preloadProductDetail(),
+  profile: () => preloadStoreProfile(),
+  success: () => preloadSuccess()
+};
 
 // Admin pages - lazy loaded
 const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
@@ -124,19 +145,33 @@ import { SuperAdminDashboardSkeleton, StorePageSkeleton, ProductDetailSkeleton }
 
 // Preload non-critical chunks during idle time (after initial render)
 if (typeof window !== 'undefined') {
-  const preload = () => {
-    // Only preload components likely to be used soon
+  const preloadCritical = () => {
+    // Prefetch likely next pages based on user flow
+    // Store: Home -> ProductDetail -> Checkout -> Success
     Promise.all([
+      import('./pages/StoreProductDetail'),
+      import('./pages/StoreCheckout'),
       import('./components/store/MobileBottomNav'),
       import('./components/store/StoreChatModal'),
     ]).catch(() => {});
   };
   
-  // Delay preloading to prioritize initial render - use longer timeout
+  // Second wave - less critical
+  const preloadSecondary = () => {
+    Promise.all([
+      import('./pages/StoreOrderSuccess'),
+      import('./pages/StoreProfile'),
+      import('./components/store/LoginModal'),
+    ]).catch(() => {});
+  };
+  
+  // Delay preloading to prioritize initial render
   if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(preload, { timeout: 8000 });
+    (window as any).requestIdleCallback(preloadCritical, { timeout: 5000 });
+    (window as any).requestIdleCallback(preloadSecondary, { timeout: 10000 });
   } else {
-    setTimeout(preload, 3000);
+    setTimeout(preloadCritical, 2000);
+    setTimeout(preloadSecondary, 5000);
   }
 }
 
@@ -148,7 +183,7 @@ const App = () => {
   
   // === LOADING STATE ===
   // Start with false if we have cached data to show content immediately
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // === TENANT MANAGEMENT (from useTenant hook) ===
   const tenant = useTenant();

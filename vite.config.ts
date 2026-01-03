@@ -15,16 +15,23 @@ const CRITICAL_JS_CHUNKS = [
   'react-jsx-runtime',
   // App entry chunks
   'index-',
+  'App-',
   // Store page critical path - ONLY above-the-fold
   'page-storehome',
   'store-herosection',
-  'cmp-storeheader'
-  // Note: icons-chunk, categoriessection, productgrid deferred to reduce initial load
+  'cmp-storeheader',
+  'store-header',
+  // Store product components (critical for product display)
+  'cmp-storeproductcomponents',
+  'store-categoriessection'
+  // Note: icons-chunk, recharts deferred to reduce initial load
 ];
 
 // Critical CSS patterns for preloading (ordered by priority)
 const CRITICAL_CSS_PATTERNS = [
-  { pattern: 'index-', priority: 1 }    // Main CSS bundle - highest priority
+  { pattern: 'tailwind-', priority: 1 },  // Tailwind CSS - highest priority
+  { pattern: 'index-', priority: 2 },     // Main CSS bundle
+  { pattern: 'cmp-storeheader', priority: 3 }  // Store header CSS
 ];
 
 /**

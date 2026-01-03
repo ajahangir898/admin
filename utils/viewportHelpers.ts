@@ -4,6 +4,8 @@
  * Uses requestAnimationFrame to batch layout reads and avoid layout thrashing
  */
 
+import { useState, useEffect } from 'react';
+
 // Cache for viewport dimensions
 let cachedViewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 let cachedViewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
@@ -103,6 +105,55 @@ export const cleanupViewportTracking = () => {
     cancelAnimationFrame(rafId);
     rafId = null;
   }
+};
+
+/**
+ * React hook to track viewport width changes
+ * Returns the current viewport width and updates on resize
+ */
+export const useViewportWidth = (): number => {
+  if (typeof window === 'undefined') return 1024;
+  
+  // Use React's useState and useEffect for proper reactivity
+  const [width, setWidth] = useState(getViewportWidth);
+  
+  useEffect(() => {
+    const updateWidth = () => {
+      setWidth(getViewportWidth());
+    };
+    
+    // Listen to resize events to update state
+    window.addEventListener('resize', updateWidth);
+    window.addEventListener('orientationchange', updateWidth);
+    
+    // Initial update
+    updateWidth();
+    
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+      window.removeEventListener('orientationchange', updateWidth);
+    };
+  }, []);
+  
+  return width;
+};
+
+/**
+ * React hook to check if viewport is mobile
+ * Returns true if viewport width is less than 768px
+ */
+export const useIsMobile = (): boolean => {
+  const width = useViewportWidth();
+  return width < 768;
+};
+
+/**
+ * React hook to check if viewport is desktop
+ * Returns true if viewport width is >= 1024px
+ */
+export const useIsDesktop = (): boolean => {
+  const width = useViewportWidth();
+  return width >= 1024;
 };
 
 // Initialize on module load if in browser

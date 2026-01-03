@@ -5,10 +5,10 @@ import type { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popu
 import type { SortOption } from '../components/ProductFilter';
 import { getInitialCachedData } from '../utils/appHelpers';
 import { getViewportWidth } from '../utils/viewportHelpers';
+import { DataService } from '../services/DataService';
 
 // Lazy load utilities - only import when needed
 const getSlugify = () => import('../services/slugify').then(m => m.slugify);
-const getDataService = () => import('../services/DataService').then(m => m.DataService);
 const getTrackPageView = () => import('../hooks/useVisitorStats').then(m => m.trackPageView);
 
 // Critical above-the-fold components - loaded EAGERLY for instant render
@@ -212,7 +212,6 @@ const StoreHome = ({
 
       // Fetch fresh data in background
       try {
-        const DataService = await getDataService();
         const allPopups = await DataService.get<Popup[]>('popups', []);
         popupList = allPopups.filter(p => p.status?.toLowerCase() === 'publish');
       } catch {}

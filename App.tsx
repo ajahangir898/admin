@@ -21,8 +21,8 @@ import type {
 } from './types';
 import type { LandingCheckoutPayload } from './components/LandingPageComponents';
 
-// Core services - socket join/leave deferred, but sync functions needed for effects
-import { DataService, isKeyFromSocket, clearSocketFlag } from './services/DataService';
+// Core services - socket join/leave calls deferred via timers, but imports are static for proper bundling
+import { DataService, isKeyFromSocket, clearSocketFlag, joinTenantRoom, leaveTenantRoom } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
 import { DEFAULT_TENANT_ID } from './constants';
 import { ThemeProvider } from './context/ThemeContext';
@@ -299,15 +299,11 @@ const App = () => {
     if (!activeTenantId) return;
     // Defer socket initialization 3.5s after initial render - prioritize content over real-time
     const timer = setTimeout(() => {
-      import('./services/DataService').then(({ joinTenantRoom }) => {
-        joinTenantRoom(activeTenantId);
-      });
+      joinTenantRoom(activeTenantId);
     }, 3500);
     return () => {
       clearTimeout(timer);
-      import('./services/DataService').then(({ leaveTenantRoom }) => {
-        leaveTenantRoom(activeTenantId);
-      });
+      leaveTenantRoom(activeTenantId);
     };
   }, [activeTenantId]);
 

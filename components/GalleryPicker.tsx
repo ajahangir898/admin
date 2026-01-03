@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { X, Search, Image as ImageIcon, Check, FolderOpen } from 'lucide-react';
 import { GalleryItem } from '../types';
 import { DataService } from '../services/DataService';
-import { GALLERY_IMAGES } from '../constants';
+
+// No default gallery images - users upload their own
+const DEFAULT_GALLERY_IMAGES: GalleryItem[] = [];
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 
 interface GalleryPickerProps {
@@ -34,11 +36,11 @@ export const GalleryPicker: React.FC<GalleryPickerProps> = ({
     const loadGallery = async () => {
       setIsLoading(true);
       try {
-        const stored = await DataService.get<GalleryItem[]>('gallery', GALLERY_IMAGES);
+        const stored = await DataService.get<GalleryItem[]>('gallery', DEFAULT_GALLERY_IMAGES);
         setImages(stored);
       } catch (error) {
         console.warn('Failed to load gallery:', error);
-        setImages(GALLERY_IMAGES);
+        setImages(DEFAULT_GALLERY_IMAGES);
       } finally {
         setIsLoading(false);
       }

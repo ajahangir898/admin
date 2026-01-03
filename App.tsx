@@ -24,7 +24,7 @@ import type { LandingCheckoutPayload } from './components/LandingPageComponents'
 // Core services - socket join/leave calls deferred via timers, but imports are static for proper bundling
 import { DataService, isKeyFromSocket, clearSocketFlag, joinTenantRoom, leaveTenantRoom } from './services/DataService';
 import { useDataRefreshDebounced } from './hooks/useDataRefresh';
-import { DEFAULT_TENANT_ID } from './constants';
+
 import { ThemeProvider } from './context/ThemeContext';
 
 // Defer Toaster import - not critical for initial render (loads ~20KB)
@@ -384,7 +384,7 @@ const App = () => {
       return;
     }
 
-    const resolvedTenantId = user.tenantId || activeTenantId || DEFAULT_TENANT_ID;
+    const resolvedTenantId = user.tenantId || activeTenantId;
     if (resolvedTenantId !== activeTenantId) {
       setActiveTenantId(resolvedTenantId);
     }
@@ -447,10 +447,10 @@ const App = () => {
             setHostTenantId(resolved.id);
             console.log(`[Perf] Tenant resolved by subdomain in ${(performance.now() - startTime).toFixed(0)}ms`);
           } else {
-            // Tenant not found for this subdomain - show error or fallback
-            console.error(`[Tenant] No tenant found for subdomain: ${sanitizedSlug}`);
-            resolvedTenantId = DEFAULT_TENANT_ID;
-            setActiveTenantId(resolvedTenantId);
+            // // Tenant not found for this subdomain - show error or fallback
+            // console.error(`[Tenant] No tenant found for subdomain: ${sanitizedSlug}`);
+            // resolvedTenantId = DEFAULT_TENANT_ID;
+            // setActiveTenantId(resolvedTenantId);
           }
         }
         

@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import './StoreHeader.css';
 import { Product, User as UserType, WebsiteConfig } from '../../types';
-import { PRODUCTS } from '../../constants';
 import { AdminNoticeTicker } from '../store/header/AdminNoticeTicker';
 import { MobileHeaderBar } from '../store/header/MobileHeaderBar';
 import { DesktopHeaderBar } from '../store/header/DesktopHeaderBar';
@@ -84,7 +83,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
   const normalizedWishlist = useMemo(() => (Array.isArray(wishlist) ? wishlist : []), [wishlist]);
   const catalogSource = useMemo(
     () => {
-      const allProducts = Array.isArray(productCatalog) && productCatalog.length ? productCatalog : PRODUCTS;
+      const allProducts = Array.isArray(productCatalog) && productCatalog.length ? productCatalog : [];
       // Filter only Active products for store search
       return allProducts.filter(p => !p.status || p.status === 'Active');
     },

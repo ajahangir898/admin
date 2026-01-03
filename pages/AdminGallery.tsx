@@ -1,17 +1,18 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, FolderOpen, Upload, CheckCircle, Smartphone, Copy, Download, Check } from 'lucide-react';
-import { GALLERY_IMAGES } from '../constants';
 import { GalleryItem } from '../types';
 import { DataService } from '../services/DataService';
 import { convertFileToWebP } from '../services/imageUtils';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
 import { ImageGridSkeleton } from '../components/SkeletonLoaders';
 
+const GALLERY_IMAGES: GalleryItem[] = [];
+
 const AdminGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-   const [images, setImages] = useState<GalleryItem[]>(GALLERY_IMAGES);
+   const [images, setImages] = useState<GalleryItem[]>([]);
    const [isLoaded, setIsLoaded] = useState(false);
    const [copiedId, setCopiedId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

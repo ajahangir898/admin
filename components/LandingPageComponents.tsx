@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Product, LandingPage, LandingPageBlock, LandingPageTemplate, LandingPageStyle, LandingPageSEO } from '../types';
-import { LANDING_PAGE_TEMPLATES } from '../constants';
+
+// Empty landing page templates - users create their own
+const LANDING_PAGE_TEMPLATES: LandingPageTemplate[] = [];
 import { Sparkles, Eye, Copy, CheckCircle, Edit3, Trash2, Layout, Plus, PenSquare, Layers, Palette, Globe, Zap, Quote, HelpCircle, Image as ImageIcon, Phone, ShoppingBag, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
 

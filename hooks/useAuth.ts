@@ -4,8 +4,10 @@
 
 import { useCallback, Dispatch, SetStateAction } from 'react';
 import type { User, Tenant } from '../types';
-import { DEFAULT_TENANT_ID } from '../constants';
 import { isAdminRole, getAuthErrorMessage } from '../utils/appHelpers';
+
+// Default tenant ID
+const DEFAULT_TENANT_ID = 'opbd';
 
 interface UseAuthOptions {
   tenants: Tenant[];

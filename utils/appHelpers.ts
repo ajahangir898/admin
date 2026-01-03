@@ -4,7 +4,15 @@
 
 import type { Product, User, ProductVariantSelection } from '../types';
 import { slugify } from '../services/slugify';
-import { DEFAULT_TENANT_ID, RESERVED_TENANT_SLUGS } from '../constants';
+
+// Reserved subdomains that cannot be used for tenants
+const RESERVED_TENANT_SLUGS = [
+  'www', 'admin', 'adminlogin', 'superadmin', 'login', 'app',
+  'api', 'dashboard', 'tenant', 'support', 'cdn', 'static'
+];
+
+// Default tenant ID
+const DEFAULT_TENANT_ID = 'opbd';
 
 // --- Constants ---
 export const FALLBACK_VARIANT: ProductVariantSelection = { color: 'Default', size: 'Standard' };

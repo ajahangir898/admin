@@ -14,7 +14,6 @@ const getTrackPageView = () => import('../hooks/useVisitorStats').then(m => m.tr
 // Skeleton loaders removed for faster initial render
 
 import { Heart, Star, ShoppingCart, ShoppingBag, Smartphone, Watch, BatteryCharging, Headphones, Zap, Bluetooth, Gamepad2, Camera, ArrowLeft, Share2, AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight, Grid } from 'lucide-react';
-import { PRODUCTS, CATEGORIES } from '../constants';
 import { formatCurrency } from '../utils/format';
 import { LazyImage } from '../utils/performanceOptimization';
 import { normalizeImageUrl } from '../utils/imageUrlHelper';
@@ -328,7 +327,7 @@ const StoreProductDetail = ({
 
   // Filter only Active products for store display
   const catalogProducts = useMemo(() => {
-    const allProducts = Array.isArray(productCatalog) && productCatalog.length ? productCatalog : PRODUCTS;
+    const allProducts = Array.isArray(productCatalog) && productCatalog.length ? productCatalog : [];
     return allProducts.filter(p => !p.status || p.status === 'Active');
   }, [productCatalog]);
 
@@ -934,7 +933,7 @@ const StoreProductDetail = ({
             <div className="store-card rounded-xl p-5 shadow-lg border border-gray-200">
                <h3 className="font-bold text-lg text-gray-800 mb-4 pb-2 border-b border-gray-100">Category</h3>
                <div className="space-y-2">
-                 {(categories && categories.length > 0 ? categories.filter(c => c.status === 'Active').slice(0, 6) : CATEGORIES.slice(0, 6)).map((cat, idx) => (
+                 {(categories && categories.length > 0 ? categories.filter(c => c.status === 'Active').slice(0, 6) : []).map((cat, idx) => (
                    <div 
                      key={idx} 
                      onClick={() => onCategoryClick?.(cat.name)}

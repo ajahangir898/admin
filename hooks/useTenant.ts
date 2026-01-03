@@ -4,7 +4,6 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { Tenant, User, CreateTenantPayload } from '../types';
-import { DEFAULT_TENANT_ID } from '../constants';
 import { DataService } from '../services/DataService';
 import { 
   sanitizeSubdomainSlug, 
@@ -14,6 +13,9 @@ import {
   ACTIVE_TENANT_STORAGE_KEY,
   DEFAULT_TENANT_SLUG 
 } from '../utils/appHelpers';
+
+// Default tenant ID
+const DEFAULT_TENANT_ID = 'opbd';
 
 // Lazy load toast to avoid including in initial bundle
 let toastModule: typeof import('react-hot-toast') | null = null;

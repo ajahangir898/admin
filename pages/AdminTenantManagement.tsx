@@ -6,7 +6,12 @@ import {
   PlayCircle, LogIn, Settings
 } from 'lucide-react';
 import { CreateTenantPayload, Tenant } from '../types';
-import { RESERVED_TENANT_SLUGS } from '../constants';
+
+// Reserved subdomains that cannot be used for tenants
+const RESERVED_TENANT_SLUGS = [
+  'www', 'admin', 'adminlogin', 'superadmin', 'login', 'app',
+  'api', 'dashboard', 'tenant', 'support', 'cdn', 'static'
+];
 
 interface AdminTenantManagementProps {
   tenants: Tenant[];

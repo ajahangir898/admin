@@ -34,7 +34,11 @@ import {
   Globe,
   Wifi
 } from 'lucide-react';
-import { REVENUE_DATA as DEFAULT_REVENUE_DATA, CATEGORY_DATA as DEFAULT_CATEGORY_DATA } from '../constants';
+// Chart default data types
+type RevenueDataPoint = { name: string; value: number };
+type CategoryDataPoint = { name: string; value: number };
+const DEFAULT_REVENUE_DATA: RevenueDataPoint[] = [];
+const DEFAULT_CATEGORY_DATA: CategoryDataPoint[] = [];
 import { Order, Product } from '../types';
 import { DashboardStatCard } from '@/components/AdminComponents';
 import { useVisitorStats } from '../hooks/useVisitorStats';

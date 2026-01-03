@@ -115,20 +115,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ carouselItems, website
     ).slice(0, MAX_CAROUSEL_ITEMS);
 
     // Persist carousel items to prevent hiding during re-renders
-    const [persistedItems, setPersistedItems] = useState<CarouselItem[]>(items);
+    const [persistedItems, setPersistedItems] = useState<CarouselItem[]>(() => items || []);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
     const [isMobile, setIsMobile] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
 
     // Update persisted items when new valid items are received
-    // Use a ref to track the last serialized items to avoid unnecessary updates
-    const lastItemsRef = useRef<string>('');
+    // Use lightweight comparison to avoid unnecessary updates
+    const lastItemsHashRef = useRef<string>('');
     useEffect(() => {
-        const itemsStr = JSON.stringify(items);
-        if (items.length > 0 && itemsStr !== lastItemsRef.current) {
-            lastItemsRef.current = itemsStr;
-            setPersistedItems(items);
+        if (items.length > 0) {
+            // Create a simple hash from length and first/last item IDs for efficient comparison
+            const hash = `${items.length}-${items[0]?.id || ''}-${items[items.length - 1]?.id || ''}`;
+            if (hash !== lastItemsHashRef.current) {
+                lastItemsHashRef.current = hash;
+                setPersistedItems(items);
+            }
         }
     }, [items]);
 

@@ -19,8 +19,8 @@ The website was experiencing Cumulative Layout Shift (CLS) issues with a total s
 <img 
   src={normalizeImageUrl(resolvedHeaderLogo)} 
   alt="Store logo" 
-  width="130"
-  height="36"
+  width={130}
+  height={36}
   className="h-9 max-w-[130px] object-contain"
 />
 ```

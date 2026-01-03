@@ -144,14 +144,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 			</div>
 
 			{/* Sidebar Menu - White background */}
-			<div className="p-3 space-y-1 flex-1 overflow-y-auto scrollbar-hide bg-white">
-				<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-2 text-gray-400">Main Menu</div>
+			<div className="p-2 space-y-0.5 flex-1 overflow-y-auto scrollbar-hide bg-white">
+				<div className="text-[10px] font-semibold uppercase tracking-widest mb-2 px-3 mt-1 text-gray-400">Main Menu</div>
 				{filteredMenuItems.map((item) => (
 					<div
 						key={item.id}
 						onClick={() => { onNavigate && onNavigate(item.id); onClose && onClose(); }}
-						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-							activePage === item.id ? 'font-semibold' : ''
+						className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold ${
+							activePage === item.id ? '' : ''
 						}`}
 						style={activePage === item.id ? {
 							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
@@ -170,8 +170,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				{canSeeBusinessReport && (
 					<div
 						onClick={() => { onNavigate && onNavigate('business_report_expense'); onClose && onClose(); }}
-						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-							activePage?.startsWith('business_report_') ? 'font-semibold' : ''
+						className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold ${
+							activePage?.startsWith('business_report_') ? '' : ''
 						}`}
 						style={activePage?.startsWith('business_report_') ? {
 							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
@@ -190,8 +190,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				{canSeeCatalog && (
 					<div
 						onClick={() => { onNavigate && onNavigate('catalog_categories'); onClose && onClose(); }}
-						className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${
-							activePage?.startsWith('catalog_') ? 'font-semibold' : ''
+						className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold ${
+							activePage?.startsWith('catalog_') ? '' : ''
 						}`}
 						style={activePage?.startsWith('catalog_') ? {
 							background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
@@ -211,7 +211,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					<div>
 						<div
 							onClick={() => setIsCustomizationOpen(!isCustomizationOpen)}
-							className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm hover:bg-gray-50"
+							className="flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold hover:bg-gray-50"
 							style={{ color: '#4b5563' }}
 						>
 							<div className="flex items-center gap-3">
@@ -250,13 +250,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 				{/* System Section */}
 				{(canSeeSettings || canSeeAdminControl || userRole === 'super_admin' || userRole === 'admin') && (
 					<>
-						<div className="text-[10px] font-semibold uppercase tracking-widest mb-3 px-3 mt-6 text-gray-400">System</div>
+						<div className="text-[10px] font-semibold uppercase tracking-widest mb-2 px-3 mt-4 text-gray-400">System</div>
 						
 						{/* Cache Monitor - Only for admin/super_admin */}
 						{(userRole === 'super_admin' || userRole === 'admin') && (
 							<div
 								onClick={() => { onNavigate && onNavigate('cache_monitor'); onClose && onClose(); }}
-								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'cache_monitor' ? 'font-semibold' : ''}`}
+								className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold`}
 								style={activePage === 'cache_monitor' ? {
 									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
 									color: 'white',
@@ -273,7 +273,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 						{canSeeSettings && (
 							<div
 								onClick={() => { onNavigate && onNavigate('settings'); onClose && onClose(); }}
-								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'settings' ? 'font-semibold' : ''}`}
+								className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold`}
 								style={activePage === 'settings' ? {
 									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
 									color: 'white',
@@ -290,7 +290,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 						{canSeeSettings && (
 							<div
 								onClick={() => { onNavigate && onNavigate('support'); onClose && onClose(); }}
-								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'support' ? 'font-semibold' : ''}`}
+								className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold`}
 								style={activePage === 'support' ? {
 									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
 									color: 'white',
@@ -306,7 +306,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 						{canSeeAdminControl && (
 							<div
 								onClick={() => { onNavigate && onNavigate('admin'); onClose && onClose(); }}
-								className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-sm ${activePage === 'admin' ? 'font-semibold' : ''}`}
+								className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold`}
 								style={activePage === 'admin' ? {
 									background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #16a34a 100%)',
 									color: 'white',
@@ -322,18 +322,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, onNaviga
 					</>
 				)}
 
-				<div className="mt-8 pt-4 border-t border-gray-100"> 
+				<div className="mt-6 pt-3 border-t border-gray-100"> 
 					{/* Back to Store - Only show on tenant subdomain with /admin path */}
 					{isOnTenantAdminPath && (
 						<a
 							href="/"
-							className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 mb-2"
+							className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 mb-1"
 						>
 							<Store size={18} />
 							<span>Back to Store</span>
 						</a>
 					)}
-					<div className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition text-sm text-gray-400 hover:text-gray-600">
+					<div className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition text-sm font-semibold text-gray-400 hover:text-gray-600">
 						<LogOut size={18} />
 						<span>More Options (Coming Soon)</span>
 					</div>

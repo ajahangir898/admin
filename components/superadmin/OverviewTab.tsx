@@ -24,9 +24,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   onViewAllTenants
 }) => {
   return (
-    <div className="p-3 sm:p-4 lg:p-6">
+    <div className="p-3 sm:p-4">
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <StatsCard
           title="Total Tenants"
           value={systemStats.totalTenants}
@@ -70,10 +70,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {/* Pie Chart & Server Status Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {/* Subscription Distribution Pie Chart */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Subscription Distribution</h3>
             <PieChart className="w-5 h-5 text-slate-400" />
           </div>
@@ -147,8 +147,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* Server Status */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Server Status</h3>
             <span className="flex items-center gap-2 text-xs sm:text-sm text-emerald-600">
               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -157,7 +157,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             </span>
           </div>
           
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3">
             <ServerMetric label="CPU Usage" value={systemStats.serverLoad} color="violet" />
             <ServerMetric label="Memory" value={systemStats.memoryUsage} color="blue" />
             <ServerMetric label="Disk Space" value={systemStats.diskUsage} color="emerald" />
@@ -170,10 +170,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {/* Quick Actions & Recent Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
-          <h3 className="font-semibold text-slate-900 mb-4 sm:mb-6 text-sm sm:text-base">Quick Actions</h3>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <h3 className="font-semibold text-slate-900 mb-4 text-sm sm:text-base">Quick Actions</h3>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <QuickActionButton icon={Plus} label="Add Tenant" color="violet" />
             <QuickActionButton icon={UserPlus} label="Add User" color="blue" />
@@ -185,12 +185,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Recent Activity</h3>
-            <button className="text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 font-medium">View All</button>
+            <button className="text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 font-semibold">View All</button>
           </div>
-          <div className="space-y-3 sm:space-y-4 max-h-64 overflow-y-auto">
+          <div className="space-y-3 max-h-64 overflow-y-auto">
             {recentActivities.slice(0, 5).map((activity) => (
               <div key={activity.id} className="flex items-start gap-2 sm:gap-3">
                 <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
@@ -212,19 +212,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {/* Top Tenants Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-4 sm:p-6 border-b border-slate-200">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-4 border-b border-slate-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Top Performing Tenants</h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">Based on revenue and orders</p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex items-center gap-1.5 sm:gap-2">
+              <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex items-center gap-1.5 sm:gap-2">
                 <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Filter
               </button>
-              <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-1.5 sm:gap-2">
+              <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-1.5 sm:gap-2">
                 <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Add Tenant</span>
                 <span className="sm:hidden">Add</span>
@@ -239,20 +239,20 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <table className="w-full hidden md:table">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tenant</th>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Plan</th>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Orders</th>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Revenue</th>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Users</th>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden xl:table-cell">Last Active</th>
-                <th className="px-4 lg:px-6 py-3 lg:py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tenant</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Plan</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Orders</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Revenue</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Users</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden xl:table-cell">Last Active</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {topTenants.map((tenant) => (
                 <tr key={tenant.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                  <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2 lg:gap-3">
                       <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
                         {tenant.name.charAt(0)}
@@ -263,7 +263,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                  <td className="px-4 py-2.5">
                     <span className={`inline-flex items-center gap-1 lg:gap-1.5 px-2 lg:px-3 py-1 rounded-full text-xs font-medium ${getPlanBadge(tenant.plan)}`}>
                       {tenant.plan === 'enterprise' && <Crown className="w-3 h-3" />}
                       {tenant.plan === 'growth' && <Rocket className="w-3 h-3" />}
@@ -271,28 +271,28 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                       <span className="lg:hidden">{tenant.plan.charAt(0).toUpperCase()}</span>
                     </span>
                   </td>
-                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                  <td className="px-4 py-2.5">
                     <span className={`inline-flex items-center gap-1 lg:gap-1.5 px-2 lg:px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(tenant.status)}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${tenant.status === 'active' ? 'bg-emerald-500' : tenant.status === 'trialing' ? 'bg-amber-500' : 'bg-red-500'}`}></span>
                       <span className="hidden lg:inline">{tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1)}</span>
                     </span>
                   </td>
-                  <td className="px-4 lg:px-6 py-3 lg:py-4">
+                  <td className="px-4 py-2.5">
                     <span className="text-xs lg:text-sm font-medium text-slate-900">{tenant.totalOrders.toLocaleString()}</span>
                   </td>
-                  <td className="px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
+                  <td className="px-4 py-2.5 hidden lg:table-cell">
                     <span className="text-sm font-semibold text-emerald-600">{formatCurrency(tenant.totalRevenue)}</span>
                   </td>
-                  <td className="px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
+                  <td className="px-4 py-2.5 hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-slate-400" />
                       <span className="text-sm text-slate-600">{tenant.activeUsers}</span>
                     </div>
                   </td>
-                  <td className="px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
+                  <td className="px-4 py-2.5 hidden xl:table-cell">
                     <span className="text-sm text-slate-500">{tenant.lastActivity}</span>
                   </td>
-                  <td className="px-4 lg:px-6 py-3 lg:py-4 text-right">
+                  <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1 lg:gap-2">
                       <button className="p-1.5 lg:p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
                         <Eye className="w-3.5 h-3.5 lg:w-4 lg:h-4" />

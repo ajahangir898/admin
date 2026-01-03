@@ -607,9 +607,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [dateFilteredOrders]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500 text-sm mt-1">Welcome back! Here's what's happening with your store.</p>
@@ -620,7 +620,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={clearDateFilter}
-                className="flex items-center gap-2 px-4 py-2.5 border border-red-200 rounded-xl text-sm font-medium text-red-500 bg-white hover:bg-red-50 transition shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 border border-red-200 rounded-xl text-sm font-semibold text-red-500 bg-white hover:bg-red-50 transition shadow-sm"
               >
                 <XCircle size={16} />
                 Clear
@@ -635,7 +635,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   setIsDatePickerOpen((prev) => !prev);
                   setIsQuickMenuOpen(false);
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 border border-violet-200 rounded-xl text-sm font-medium text-violet-600 bg-white hover:bg-violet-50 transition shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 border border-violet-200 rounded-xl text-sm font-semibold text-violet-600 bg-white hover:bg-violet-50 transition shadow-sm"
               >
                 <Calendar size={16} />
                 {formatRangeLabel(dateFilter.from, dateFilter.to)}
@@ -657,7 +657,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 setIsDatePickerOpen((prev) => !prev);
                 setIsQuickMenuOpen(false);
               }}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm"
             >
               <Calendar size={16} />
               Filter by Date
@@ -667,7 +667,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             type="button"
             onClick={() => setIsQuickMenuOpen((prev) => !prev)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl text-sm font-medium text-white hover:from-violet-700 hover:to-purple-700 transition shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl text-sm font-semibold text-white hover:from-violet-700 hover:to-purple-700 transition shadow-sm"
           >
             <ChevronDown size={16} />
             Quick Filter
@@ -751,7 +751,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Modern Stats Cards - Row 1 (2x2 on mobile) */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <ModernStatCard
           title="Total Orders"
           value={totalOrders.toLocaleString()}
@@ -788,8 +788,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Order Status Cards - Row 2 (Hidden on mobile, visible on tablet+) */}
-      <div className="hidden sm:grid grid-cols-3 gap-4 lg:grid-cols-6">
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+      <div className="hidden sm:grid grid-cols-3 gap-3 lg:grid-cols-6">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center">
               <ShoppingBag className="w-5 h-5 text-pink-600" />
@@ -801,7 +801,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
         
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
               <Truck className="w-5 h-5 text-orange-600" />
@@ -813,7 +813,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
         
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-green-600" />
@@ -825,7 +825,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
         
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
               <Clock className="w-5 h-5 text-amber-600" />
@@ -837,7 +837,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
         
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
               <XCircle className="w-5 h-5 text-red-600" />
@@ -849,7 +849,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
         
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
               <ArchiveRestore className="w-5 h-5 text-blue-600" />
@@ -863,9 +863,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3">
         {/* Revenue Overview Chart - Takes 2 columns */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-3 sm:p-4 shadow-sm">
           <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
             <div>
               <h3 className="text-base sm:text-lg font-bold text-gray-900">Revenue Overview</h3>
@@ -963,7 +963,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         {/* Device Traffic - Bar Chart Style for Mobile */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 sm:p-4 shadow-sm">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className="text-base sm:text-lg font-bold text-gray-900">Device Traffic</h3>
             <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition">
@@ -1023,7 +1023,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Visitor Statistics */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3">
         {/* Total Visitors Card */}
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -1106,9 +1106,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Sales by Category & Location Traffic */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
         {/* Sales by Category */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 sm:p-4 shadow-sm">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className="text-base sm:text-lg font-bold text-gray-900">Sales by Category</h3>
             <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition">
@@ -1117,7 +1117,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           
           {categoryData.length > 0 && categoryData[0].value > 0 ? (
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
               {/* Donut Chart */}
               <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -1192,7 +1192,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         {/* Location Traffic */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-100 p-3 sm:p-4 shadow-sm">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className="text-base sm:text-lg font-bold text-gray-900">Top Locations</h3>
             <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition">
@@ -1234,7 +1234,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Recent Orders & Top Products */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
         {/* Recent Orders */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-3 sm:p-5 flex items-center justify-between border-b border-gray-100">

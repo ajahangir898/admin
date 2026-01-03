@@ -4,6 +4,7 @@ import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
 import type { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
 import type { SortOption } from '../components/ProductFilter';
 import { getInitialCachedData } from '../utils/appHelpers';
+import { getViewportWidth } from '../utils/viewportHelpers';
 
 // Lazy load utilities - only import when needed
 const getSlugify = () => import('../services/slugify').then(m => m.slugify);
@@ -305,7 +306,8 @@ const StoreHome = ({
     if (typeof window === 'undefined') {
       return displayProducts.slice(0, Math.min(16, total));
     }
-    const width = window.innerWidth;
+    // Use cached viewport width to prevent forced reflows
+    const width = getViewportWidth();
     const sliceTarget = width >= 1536 ? 28 : width >= 1280 ? 22 : width >= 768 ? 16 : 12;
     return displayProducts.slice(0, Math.min(sliceTarget, total));
   }, [displayProducts]);

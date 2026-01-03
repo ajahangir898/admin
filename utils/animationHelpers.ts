@@ -148,22 +148,33 @@ export const triggerSuccessAnimation = (elementId: string) => {
 };
 
 // Create a ripple effect (Material Design style)
+// Uses RAF to prevent forced reflows when reading layout properties
 export const createRippleEffect = (event: React.MouseEvent<HTMLElement>) => {
   const button = event.currentTarget;
-  const circle = document.createElement('span');
+  const clientX = event.clientX;
+  const clientY = event.clientY;
   
-  const diameter = Math.max(button.clientWidth, button.clientHeight);
-  const radius = diameter / 2;
-  
-  circle.style.width = circle.style.height = `${diameter}px`;
-  circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
-  circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
-  circle.classList.add('ripple');
-  
-  const ripple = button.querySelector('.ripple');
-  if (ripple) ripple.remove();
-  
-  button.appendChild(circle);
+  // Use RAF to batch layout reads and prevent forced reflows
+  requestAnimationFrame(() => {
+    // Read phase - read all layout properties together
+    const diameter = Math.max(button.clientWidth, button.clientHeight);
+    const radius = diameter / 2;
+    const buttonRect = button.getBoundingClientRect();
+    const offsetLeft = buttonRect.left;
+    const offsetTop = buttonRect.top;
+    
+    // Write phase - create and append elements
+    const circle = document.createElement('span');
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${clientX - offsetLeft - radius}px`;
+    circle.style.top = `${clientY - offsetTop - radius}px`;
+    circle.classList.add('ripple');
+    
+    const ripple = button.querySelector('.ripple');
+    if (ripple) ripple.remove();
+    
+    button.appendChild(circle);
+  });
 };
 
 // Page transition helpers

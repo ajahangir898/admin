@@ -72,9 +72,18 @@ describe('viewportHelpers', () => {
   });
 
   it('should identify desktop viewport correctly', () => {
-    // Already at 1024
-    expect(isDesktopViewport()).toBe(true);
-    expect(isLargeDesktopViewport()).toBe(false);
+    // Clean up first, then set to desktop size
+    cleanupViewportTracking();
+    (window as any).innerWidth = 1024;
+    initViewportTracking();
+    
+    return new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        expect(isDesktopViewport()).toBe(true);
+        expect(isLargeDesktopViewport()).toBe(false);
+        resolve();
+      });
+    });
   });
 
   it('should identify large desktop viewport correctly', () => {
@@ -92,13 +101,23 @@ describe('viewportHelpers', () => {
   });
 
   it('should cache viewport dimensions to prevent forced reflows', () => {
-    // This test ensures that repeated calls don't trigger layout recalculation
-    const width1 = getViewportWidth();
-    const width2 = getViewportWidth();
-    const width3 = getViewportWidth();
+    // Clean up first, then set to known size
+    cleanupViewportTracking();
+    (window as any).innerWidth = 1024;
+    initViewportTracking();
     
-    expect(width1).toBe(width2);
-    expect(width2).toBe(width3);
-    expect(width1).toBe(1024);
+    return new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        // This test ensures that repeated calls don't trigger layout recalculation
+        const width1 = getViewportWidth();
+        const width2 = getViewportWidth();
+        const width3 = getViewportWidth();
+        
+        expect(width1).toBe(width2);
+        expect(width2).toBe(width3);
+        expect(width1).toBe(1024);
+        resolve();
+      });
+    });
   });
 });

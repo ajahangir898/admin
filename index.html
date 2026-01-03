@@ -118,8 +118,8 @@
       // Create observer to detect when React renders content
       const observer = new MutationObserver(() => {
         if (root && root.children.length > 0) {
-          removeLoader();
           observer.disconnect();
+          removeLoader();
         }
       });
       

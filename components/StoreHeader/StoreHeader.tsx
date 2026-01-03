@@ -1,12 +1,13 @@
 // StoreHeader orchestrates layout, state, and async modals for the storefront header.
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Product, User as UserType, WebsiteConfig } from '../types';
-import { PRODUCTS } from '../constants';
-import { AdminNoticeTicker } from './store/header/AdminNoticeTicker';
-import { MobileHeaderBar } from './store/header/MobileHeaderBar';
-import { DesktopHeaderBar } from './store/header/DesktopHeaderBar';
-import { StoreHeaderModals } from './store/header/StoreHeaderModals';
-import type { CatalogGroup, HeaderSearchProps } from './store/header/headerTypes';
+import './StoreHeader.css';
+import { Product, User as UserType, WebsiteConfig } from '../../types';
+import { PRODUCTS } from '../../constants';
+import { AdminNoticeTicker } from '../store/header/AdminNoticeTicker';
+import { MobileHeaderBar } from '../store/header/MobileHeaderBar';
+import { DesktopHeaderBar } from '../store/header/DesktopHeaderBar';
+import { StoreHeaderModals } from '../store/header/StoreHeaderModals';
+import type { CatalogGroup, HeaderSearchProps } from '../store/header/headerTypes';
 
 // Lazy load toast - avoid sync import of heavy dependency
 const showToast = {
@@ -402,27 +403,6 @@ export const StoreHeader: React.FC<StoreHeaderProps> = (props) => {
 
   return (
     <>
-      <style>{`
-@keyframes searchHintSlideUp {
-    0% { opacity: 0; transform: translateY(40%); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-.search-hint-animate {
-    animation: searchHintSlideUp 0.45s ease;
-    display: inline-block;
-}
-      `}</style>
-      <style>{`
-@keyframes adminNoticeTicker {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-}
-.admin-notice-ticker {
-    animation: adminNoticeTicker 12s linear infinite;
-    white-space: nowrap;
-}
-      `}</style>
-
       <AdminNoticeTicker noticeText={websiteConfig?.adminNoticeText} />
 
       <header className="store-header w-full bg-white shadow-sm sticky top-0 z-50 transition-colors duration-300">

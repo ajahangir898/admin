@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Store, Calendar } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+const RevenueTrendChart = lazy(() => import('./RevenueTrendChart'));
+const TenantGrowthChart = lazy(() => import('./TenantGrowthChart'));
+const DailyOrdersChart = lazy(() => import('./DailyOrdersChart'));
+const PlanDistributionChart = lazy(() => import('./PlanDistributionChart'));
 
 interface AnalyticsTabProps {
   systemStats: {
@@ -156,37 +160,17 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ systemStats, tenants }) => 
         {/* Revenue Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">Revenue Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                labelStyle={{ color: '#475569', fontWeight: 600 }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} name="Revenue (৳)" />
-            </LineChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
+            <RevenueTrendChart data={revenueData} />
+          </Suspense>
         </div>
 
         {/* Tenant Growth Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">Tenant Growth</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={tenantGrowthData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                labelStyle={{ color: '#475569', fontWeight: 600 }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="tenants" stroke="#3b82f6" strokeWidth={2} name="Total Tenants" />
-            </LineChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
+            <TenantGrowthChart data={tenantGrowthData} />
+          </Suspense>
         </div>
       </div>
 
@@ -195,43 +179,17 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ systemStats, tenants }) => 
         {/* Orders Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">Daily Orders</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                labelStyle={{ color: '#475569', fontWeight: 600 }}
-              />
-              <Legend />
-              <Bar dataKey="orders" fill="#8b5cf6" name="Orders" />
-            </BarChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
+            <DailyOrdersChart data={revenueData} />
+          </Suspense>
         </div>
 
         {/* Plan Distribution Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">Plan Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={planDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {planDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<div style={{ width: '100%', height: 300 }} />}> 
+            <PlanDistributionChart data={planDistribution} colors={COLORS} />
+          </Suspense>
         </div>
       </div>
 

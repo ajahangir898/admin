@@ -136,10 +136,22 @@ const vendorChunkMatchers = [
 
 const resolveRechartsChunk = (normalized: string) => {
   if (!normalized.includes('node_modules/recharts/')) return undefined;
-  const segment = normalized.split('node_modules/recharts/')[1];
-  if (!segment) return 'recharts';
-  const folder = segment.split('/')[0].replace(/\W+/g, '-');
-  return `recharts-${folder || 'core'}`;
+
+  const segment = normalized.split('node_modules/recharts/')[1] || '';
+  const parts = segment.split('/').filter(Boolean);
+
+  // Typical path looks like: es6/chart/LineChart.js
+  const top = parts[0] || 'core';
+  const area = parts[1] || 'core';
+  const file = parts[2] || '';
+  const baseName = file.replace(/\.(mjs|cjs|js|ts)$/, '').toLowerCase().replace(/\W+/g, '-');
+
+  if (top === 'es6' && (area === 'chart' || area === 'component' || area === 'container')) {
+    return `recharts-${area}-${baseName || 'index'}`;
+  }
+
+  // Coarser split for other areas (cartesian/polar/shape/util/etc.)
+  return `recharts-${top}-${area}`.replace(/\W+/g, '-');
 };
 
 const manualChunkResolver = (id: string): string | undefined => {

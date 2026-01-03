@@ -47,7 +47,6 @@ import {
   isBase64Image,
   convertBase64ToUploadedUrl
 } from '../services/imageUploadService';
-import { DEFAULT_CAROUSEL_ITEMS } from '../constants';
 import { GalleryPicker } from '../components/GalleryPicker';
 
 // ============================================================================
@@ -130,7 +129,7 @@ const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   showPoweredBy: false,
   showFlashSaleCounter: true,
   brandingText: '',
-  carouselItems: DEFAULT_CAROUSEL_ITEMS.map(item => ({ ...item })),
+  carouselItems: [],
   campaigns: [],
   popups: [],
   searchHints: '',
@@ -1808,7 +1807,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
             <form onSubmit={handleSaveCarousel} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Desktop Banner*</label>
-                <p className="text-xs text-gray-500 mb-2">{CAROUSEL_WIDTH}×{CAROUSEL_HEIGHT}px (4:1). Auto WebP.</p>
+                <p className="text-xs text-gray-500 mb-2">{CAROUSEL_WIDTH}×{CAROUSEL_HEIGHT}px. Auto WebP.</p>
                 <input type="file" ref={carouselDesktopInputRef} onChange={e => handleImageUpload(e, 'carousel')} className="hidden" accept="image/*"/>
                 <div className="flex gap-2">
                   <div onClick={() => carouselDesktopInputRef.current?.click()} className="flex-1 border-2 border-dashed rounded-lg p-2 text-center cursor-pointer hover:bg-gray-50 h-28">
@@ -1822,7 +1821,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Banner</label>
-                <p className="text-xs text-gray-500 mb-2">{CAROUSEL_MOBILE_WIDTH}×{CAROUSEL_MOBILE_HEIGHT}px (16:9).</p>
+                <p className="text-xs text-gray-500 mb-2">{CAROUSEL_MOBILE_WIDTH}×{CAROUSEL_MOBILE_HEIGHT}px. Auto WebP.</p>
                 <input type="file" ref={carouselMobileInputRef} onChange={e => handleImageUpload(e, 'carouselMobile')} className="hidden" accept="image/*"/>
                 <div className="flex gap-2">
                   <div onClick={() => carouselMobileInputRef.current?.click()} className="flex-1 border-2 border-dashed border-blue-300 rounded-lg p-2 text-center cursor-pointer hover:bg-blue-50 h-28">

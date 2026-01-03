@@ -15,13 +15,13 @@ export interface ProductImageOptions {
   minQuality?: number;   // Minimum quality threshold (default: 0.3)
 }
 
-// Carousel standard dimensions: 1280 x 330 pixels
-export const CAROUSEL_WIDTH = 1280;
+// Carousel standard dimensions: 1100 x 330 pixels
+export const CAROUSEL_WIDTH = 1100;
 export const CAROUSEL_HEIGHT = 330;
 
-// Mobile carousel dimensions: 800 x 450 pixels (16:9 aspect ratio)
-export const CAROUSEL_MOBILE_WIDTH = 800;
-export const CAROUSEL_MOBILE_HEIGHT = 450;
+// Mobile carousel dimensions: 400 x 192 pixels
+export const CAROUSEL_MOBILE_WIDTH = 400;
+export const CAROUSEL_MOBILE_HEIGHT = 192;
 
 // Product image fixed dimensions: 800 x 800 pixels (1:1 square)
 export const PRODUCT_IMAGE_WIDTH = 800;

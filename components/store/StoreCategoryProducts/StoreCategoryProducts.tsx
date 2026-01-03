@@ -4,7 +4,6 @@ import { Product, Category, Brand, WebsiteConfig, User, Order } from '../../../t
 import { ProductCard } from '../../StoreProductComponents';
 import { normalizeImageUrl } from '../../../utils/imageUrlHelper';
 import { ProductFilter, SortOption } from '../../ProductFilter';
-import { CATEGORIES } from '../../../constants';
 
 const LazyStoreHeader = lazy(() => import('../../StoreHeader').then(m => ({ default: m.StoreHeader })));
 const StoreFooter = lazy(() => import('../StoreFooter').then(m => ({ default: m.StoreFooter })));
@@ -37,8 +36,7 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
   const isBrandFilter = selectedCategory.startsWith('brand:');
   const brandFromUrl = isBrandFilter ? selectedCategory.slice(6) : null;
 
-  const activeCats = useMemo(() => categories?.filter(c => c.status === 'Active') || 
-    CATEGORIES.map((c, i) => ({ id: String(i), name: c.name, icon: c.icon, image: undefined, status: 'Active' as const })), [categories]);
+  const activeCats = useMemo(() => categories?.filter(c => c.status === 'Active') || [], [categories]);
   const activeBrands = useMemo(() => brands?.filter(b => b.status === 'Active') || [], [brands]);
 
   // Filter products to show only Active status in store
@@ -115,7 +113,7 @@ export const StoreCategoryProducts = ({ products, categories, subCategories, chi
           onToggleCart={onToggleCart} onCheckoutFromCart={onCheckoutFromCart} user={user} onLoginClick={onLoginClick}
           onLogoutClick={onLogoutClick} onProfileClick={onProfileClick} logo={logo} websiteConfig={websiteConfig}
           searchValue={searchTerm} onSearchChange={setSearchTerm} onCategoriesClick={onBack} onProductsClick={onBack}
-          categoriesList={CATEGORIES.map(c => c.name)} onCategorySelect={onCategoryChange} onProductClick={onProductClick}
+          categoriesList={activeCats.map(c => c.name)} onCategorySelect={onCategoryChange} onProductClick={onProductClick}
           categories={categories} subCategories={subCategories} childCategories={childCategories} brands={brands} tags={tags} />
       </Suspense>
 

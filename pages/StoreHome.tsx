@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
-// import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS } from '../constants';
+// import { CATEGORIES } from '../constants';
 import type { Product, User, WebsiteConfig, Order, ProductVariantSelection, Popup, Category, Brand } from '../types';
 import type { SortOption } from '../components/ProductFilter';
 import { getInitialCachedData } from '../utils/appHelpers';
@@ -355,17 +355,12 @@ const StoreHome = ({
   const categoriesSectionRef = useRef<HTMLElement | null>(null);
   const productsSectionRef = useRef<HTMLElement | null>(null);
 
-  // Categories to display - use passed categories or fallback to defaults
+  // Categories to display - only show user-created categories (no defaults)
   const displayCategories = useMemo(() => {
     if (categories && categories.length > 0) {
-      return categories;
+      return categories.filter(c => c.status === 'Active' || !c.status);
     }
-    // Fallback to default categories with proper structure
-    return categories.map(c => ({ 
-      ...c, 
-      status: 'Active' as const,
-      id: Math.random() // Add a unique id
-    }));
+    return [];
   }, [categories]);
 
   // Use passed products - don't fallback to demo products to avoid showing wrong data

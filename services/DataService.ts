@@ -1,8 +1,13 @@
 import { Product, Order, User, ThemeConfig, WebsiteConfig, Role, DeliveryConfig, LandingPage, Tenant, CreateTenantPayload, ChatMessage, Category, SubCategory, ChildCategory, Brand, Tag } from '../types';
-import { PRODUCTS, RECENT_ORDERS, DEFAULT_LANDING_PAGES, DEMO_TENANTS, RESERVED_TENANT_SLUGS, DEFAULT_CAROUSEL_ITEMS } from '../constants';
 import { getAuthHeader } from './authService';
 import { getCached, setCached, deleteCached, CacheKeys, setCachedByType, clearTenantCache } from './RedisService';
 import type { Socket } from 'socket.io-client';
+
+// Reserved subdomains that cannot be used for tenants
+const RESERVED_TENANT_SLUGS = [
+  'www', 'admin', 'adminlogin', 'superadmin', 'login', 'app',
+  'api', 'dashboard', 'tenant', 'support', 'cdn', 'static'
+];
 
 // API base URL from environment variable
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -517,7 +522,7 @@ class DataServiceImpl {
 
   private async fetchMockTenants(): Promise<Tenant[]> {
     if (typeof fetch === 'undefined') {
-      return DEMO_TENANTS;
+      return [];
     }
     try {
       const response = await fetch(buildApiUrl('/api/tenants'));
@@ -525,10 +530,10 @@ class DataServiceImpl {
         throw new Error(`Unable to load tenants (${response.status})`);
       }
       const payload = await response.json();
-      return Array.isArray(payload?.data) ? (payload.data as Tenant[]) : DEMO_TENANTS;
+      return Array.isArray(payload?.data) ? (payload.data as Tenant[]) : [];
     } catch (error) {
-      console.warn('Falling back to demo tenants', error);
-      return DEMO_TENANTS;
+      console.warn('Failed to load tenants', error);
+      return [];
     }
   }
 
@@ -702,12 +707,8 @@ class DataServiceImpl {
       if (theme_config) setCachedData('theme_config', theme_config, tenantId);
       if (website_config) setCachedData('website_config', website_config, tenantId);
       
-      // Return products from server if we got a response (even empty array)
-      // Only fallback to demo PRODUCTS if server returned null/undefined
-      const hasProductsFromServer = products !== null && products !== undefined;
-      const finalProducts = hasProductsFromServer 
-        ? products.map((p, i) => ({ ...p, id: p.id ?? i + 1 }))
-        : this.filterByTenant(PRODUCTS, tenantId);
+      // Return products from server (even empty array is valid - tenant has no products yet)
+      const finalProducts = (products || []).map((p, i) => ({ ...p, id: p.id ?? i + 1 }));
       
       return {
         products: finalProducts,
@@ -750,7 +751,7 @@ class DataServiceImpl {
       hideCopyrightText: false,
       showPoweredBy: false,
       brandingText: '',
-      carouselItems: DEFAULT_CAROUSEL_ITEMS.map(item => ({ ...item })),
+      carouselItems: [],
       searchHints: '',
       orderLanguage: 'English',
       productCardStyle: 'style2',
@@ -781,24 +782,6 @@ class DataServiceImpl {
   }> {
     const scope = this.resolveTenantScope(tenantId);
     console.log(`[DataService] Loading secondary data for tenant: ${scope}`);
-    
-    // Default catalog data for auto-population
-    const defaultCategories = [
-      { id: '1', name: 'Phones', icon: '', status: 'Active' as const },
-      { id: '2', name: 'Watches', icon: '', status: 'Active' as const }
-    ];
-    const defaultSubCategories = [
-      { id: '1', categoryId: '1', name: 'Smartphones', status: 'Active' as const },
-      { id: '2', categoryId: '1', name: 'Feature Phones', status: 'Active' as const }
-    ];
-    const defaultBrands = [
-      { id: '1', name: 'Apple', logo: '', status: 'Active' as const },
-      { id: '2', name: 'Samsung', logo: '', status: 'Active' as const }
-    ];
-    const defaultTags = [
-      { id: '1', name: 'Flash Deal', status: 'Active' as const },
-      { id: '2', name: 'New Arrival', status: 'Active' as const }
-    ];
 
     // Serve cached data immediately
     const cachedOrders = getCachedData<Order[]>('orders', tenantId);
@@ -821,12 +804,7 @@ class DataServiceImpl {
     );
 
     if (hasCachedSecondary) {
-      this.revalidateSecondary(scope, tenantId, {
-        defaultBrands,
-        defaultCategories,
-        defaultSubCategories,
-        defaultTags
-      }).catch(err => console.warn('[DataService] Secondary revalidation failed', err));
+      this.revalidateSecondary(scope, tenantId).catch(err => console.warn('[DataService] Secondary revalidation failed', err));
 
       return {
         orders: cachedOrders || [],
@@ -834,30 +812,24 @@ class DataServiceImpl {
         deliveryConfig: cachedDelivery || [],
         chatMessages: cachedChat || [],
         landingPages: cachedLanding || [],
-        categories: cachedCategories && cachedCategories.length ? cachedCategories : defaultCategories,
-        subcategories: cachedSubcategories && cachedSubcategories.length ? cachedSubcategories : defaultSubCategories,
+        categories: cachedCategories || [],
+        subcategories: cachedSubcategories || [],
         childcategories: cachedChildCategories || [],
-        brands: cachedBrands && cachedBrands.length ? cachedBrands : defaultBrands,
-        tags: cachedTags && cachedTags.length ? cachedTags : defaultTags
+        brands: cachedBrands || [],
+        tags: cachedTags || []
       };
     }
     
-    return this.fetchFreshSecondary(scope, tenantId, {
-      defaultBrands,
-      defaultCategories,
-      defaultSubCategories,
-      defaultTags
-    });
+    return this.fetchFreshSecondary(scope, tenantId);
   }
 
-  private async revalidateSecondary(scope: string, tenantId: string | undefined, defaults: { defaultCategories: Category[]; defaultSubCategories: SubCategory[]; defaultBrands: Brand[]; defaultTags: Tag[]; }) {
-    await this.fetchFreshSecondary(scope, tenantId, defaults, true);
+  private async revalidateSecondary(scope: string, tenantId: string | undefined) {
+    await this.fetchFreshSecondary(scope, tenantId, true);
   }
 
   private async fetchFreshSecondary(
     scope: string,
     tenantId: string | undefined,
-    defaults: { defaultCategories: Category[]; defaultSubCategories: SubCategory[]; defaultBrands: Brand[]; defaultTags: Tag[]; },
     isBackground = false
   ) {
     try {
@@ -898,11 +870,11 @@ class DataServiceImpl {
         deliveryConfig: data.delivery_config || [],
         chatMessages: data.chat_messages || [],
         landingPages: data.landing_pages || [],
-        categories: (data.categories && data.categories.length > 0) ? data.categories : defaults.defaultCategories,
-        subcategories: (data.subcategories && data.subcategories.length > 0) ? data.subcategories : defaults.defaultSubCategories,
+        categories: data.categories || [],
+        subcategories: data.subcategories || [],
         childcategories: data.childcategories || [],
-        brands: (data.brands && data.brands.length > 0) ? data.brands : defaults.defaultBrands,
-        tags: (data.tags && data.tags.length > 0) ? data.tags : defaults.defaultTags
+        brands: data.brands || [],
+        tags: data.tags || []
       };
     } catch (error) {
       if (isBackground) throw error;
@@ -913,11 +885,11 @@ class DataServiceImpl {
         deliveryConfig: [],
         chatMessages: [],
         landingPages: [],
-        categories: defaults.defaultCategories,
-        subcategories: defaults.defaultSubCategories,
+        categories: [],
+        subcategories: [],
         childcategories: [],
-        brands: defaults.defaultBrands,
-        tags: defaults.defaultTags
+        brands: [],
+        tags: []
       };
     }
   }
@@ -963,19 +935,16 @@ class DataServiceImpl {
     }
     
     // Fetch from API and cache
-    const fallback = this.filterByTenant(RECENT_ORDERS, tenantId);
     const remote = await this.getCollection<Order>('orders', [], tenantId);
-    const result = remote.length ? remote : fallback;
     
     // Cache the result
-    await setCachedByType(cacheKey, result, 'api');
+    await setCachedByType(cacheKey, remote, 'api');
     
-    return result;
+    return remote;
   }
 
   async getLandingPages(tenantId?: string): Promise<LandingPage[]> {
-    const remote = await this.getCollection<LandingPage>('landing_pages', [], tenantId);
-    return remote.length ? remote : DEFAULT_LANDING_PAGES;
+    return this.getCollection<LandingPage>('landing_pages', [], tenantId);
   }
 
   async getUsers(tenantId?: string): Promise<User[]> {

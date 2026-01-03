@@ -13,25 +13,21 @@ const CRITICAL_JS_CHUNKS = [
   'react-core', 
   'scheduler',
   'react-jsx-runtime',
-  // App entry chunks
+  // App entry chunks ONLY
   'index-',
   'App-',
-  // Store page critical path - ONLY above-the-fold
+  // Store home critical path ONLY - minimal set
   'page-storehome',
   'store-herosection',
-  'cmp-storeheader',
-  'store-header',
-  // Store product components (critical for product display)
-  'cmp-storeproductcomponents',
-  'store-categoriessection'
-  // Note: icons-chunk, recharts deferred to reduce initial load
+  'cmp-storeheader'
+  // REMOVED: store-header, cmp-storeproductcomponents, store-categoriessection
+  // These load via dynamic imports and don't need preload
 ];
 
 // Critical CSS patterns for preloading (ordered by priority)
 const CRITICAL_CSS_PATTERNS = [
-  { pattern: 'tailwind-', priority: 1 },  // Tailwind CSS - highest priority
-  { pattern: 'index-', priority: 2 },     // Main CSS bundle
-  { pattern: 'cmp-storeheader', priority: 3 }  // Store header CSS
+  { pattern: 'tailwind-', priority: 1 }  // Tailwind CSS only - highest priority
+  // REMOVED: cmp-storeheader CSS - not critical for first paint
 ];
 
 /**

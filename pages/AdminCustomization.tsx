@@ -132,6 +132,7 @@ const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   brandingText: '',
   carouselItems: DEFAULT_CAROUSEL_ITEMS.map(item => ({ ...item })),
   campaigns: [],
+  popups: [],
   searchHints: '',
   orderLanguage: 'English',
   adminNoticeText: '',
@@ -325,7 +326,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   // ---------------------------------------------------------------------------
   // Popup Management State
   // ---------------------------------------------------------------------------
-  const [popupList, setPopupList] = useState<Popup[]>([]);
   const [popupFilterStatus, setPopupFilterStatus] = useState<PopupFilterStatus>('All');
   const [popupSearchQuery, setPopupSearchQuery] = useState('');
   const [isPopupModalOpen, setIsPopupModalOpen] = useState(false);
@@ -503,6 +503,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           footerLogo: websiteConfig.footerLogo ?? null,
           campaigns: websiteConfig.campaigns || [],
           carouselItems: websiteConfig.carouselItems || [],
+          popups: websiteConfig.popups || [],
           categorySectionStyle: websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
         });
         hasLoadedInitialConfig.current = true;
@@ -524,6 +525,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         footerLogo: websiteConfig.footerLogo ?? null,
         campaigns: websiteConfig.campaigns || [],
         carouselItems: websiteConfig.carouselItems || [],
+        popups: websiteConfig.popups || [],
         categorySectionStyle: websiteConfig.categorySectionStyle || DEFAULT_WEBSITE_CONFIG.categorySectionStyle
       });
       hasLoadedInitialConfig.current = true;
@@ -549,11 +551,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     // Always update prevWebsiteConfigRef to track latest state
     prevWebsiteConfigRef.current = websiteConfiguration;
   }, [websiteConfiguration]);
-
-  // Load popups from storage
-  useEffect(() => {
-    DataService.get<Popup[]>('popups', []).then(setPopupList);
-  }, []);
 
   // Sync theme colors with prop
   useEffect(() => {
@@ -1204,23 +1201,36 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     const startTime = Date.now();
 
     try {
-      const updatedPopups = editingPopup
-        ? popupList.map((item) =>
-            item.id === editingPopup.id
-              ? { ...popupFormData, id: editingPopup.id, updatedAt: new Date().toISOString() } as Popup
-              : item
-          )
-        : [
-            ...popupList,
-            {
-              ...popupFormData,
-              id: Date.now(),
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            } as Popup
-          ];
+      const popup: Popup = {
+        id: editingPopup?.id || Date.now(),
+        name: popupFormData.name,
+        image: popupFormData.image,
+        url: popupFormData.url || '',
+        urlType: popupFormData.urlType as 'Internal' | 'External',
+        priority: Number(popupFormData.priority),
+        status: popupFormData.status as 'Draft' | 'Publish',
+        createdAt: editingPopup?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-      await DataService.save('popups', updatedPopups);
+      const updatedPopups = editingPopup
+        ? (websiteConfiguration.popups || []).map((item) =>
+            item.id === editingPopup.id ? popup : item
+          )
+        : [...(websiteConfiguration.popups || []), popup];
+
+      const updatedConfig = { ...websiteConfiguration, popups: updatedPopups };
+
+      if (onUpdateWebsiteConfig) {
+        await onUpdateWebsiteConfig(updatedConfig);
+      }
+
+      // Update local state after successful save
+      setWebsiteConfiguration(updatedConfig);
+      // Mark as saved and set protection timestamp
+      hasUnsavedChangesRef.current = false;
+      prevWebsiteConfigRef.current = updatedConfig;
+      lastSaveTimestampRef.current = Date.now();
 
       // Ensure minimum 1 second loading time
       const elapsed = Date.now() - startTime;
@@ -1228,7 +1238,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
       }
 
-      setPopupList(updatedPopups);
       toast.dismiss(loadingToast);
       toast.success(editingPopup ? 'Popup updated successfully!' : 'Popup added successfully!');
       setIsPopupModalOpen(false);
@@ -1245,8 +1254,21 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
       const startTime = Date.now();
 
       try {
-        const updatedPopups = popupList.filter((item) => item.id !== popupId);
-        await DataService.save('popups', updatedPopups);
+        const updatedConfig = {
+          ...websiteConfiguration,
+          popups: (websiteConfiguration.popups || []).filter((item) => item.id !== popupId)
+        };
+
+        if (onUpdateWebsiteConfig) {
+          await onUpdateWebsiteConfig(updatedConfig);
+        }
+
+        // Update local state after successful save
+        setWebsiteConfiguration(updatedConfig);
+        // Mark as saved and set protection timestamp
+        hasUnsavedChangesRef.current = false;
+        prevWebsiteConfigRef.current = updatedConfig;
+        lastSaveTimestampRef.current = Date.now();
 
         // Ensure minimum 1 second loading time
         const elapsed = Date.now() - startTime;
@@ -1254,7 +1276,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
           await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
         }
 
-        setPopupList(updatedPopups);
         toast.dismiss(loadingToast);
         toast.success('Popup deleted successfully!');
       } catch (error) {
@@ -1270,16 +1291,28 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
     const startTime = Date.now();
 
     try {
-      const updatedPopups = popupList.map((item) =>
+      const updatedPopups = (websiteConfiguration.popups || []).map((item) =>
         item.id === popup.id
           ? {
               ...item,
-              status: item.status === 'Draft' ? 'Publish' : 'Draft',
+              status: item.status === 'Draft' ? ('Publish' as const) : ('Draft' as const),
               updatedAt: new Date().toISOString()
             }
           : item
       );
-      await DataService.save('popups', updatedPopups);
+
+      const updatedConfig = { ...websiteConfiguration, popups: updatedPopups };
+
+      if (onUpdateWebsiteConfig) {
+        await onUpdateWebsiteConfig(updatedConfig);
+      }
+
+      // Update local state after successful save
+      setWebsiteConfiguration(updatedConfig);
+      // Mark as saved and set protection timestamp
+      hasUnsavedChangesRef.current = false;
+      prevWebsiteConfigRef.current = updatedConfig;
+      lastSaveTimestampRef.current = Date.now();
 
       // Ensure minimum 1 second loading time
       const elapsed = Date.now() - startTime;
@@ -1287,7 +1320,6 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         await new Promise(resolve => setTimeout(resolve, 1000 - elapsed));
       }
 
-      setPopupList(updatedPopups);
       toast.dismiss(loadingToast);
       toast.success('Status updated!');
     } catch (error) {
@@ -1298,7 +1330,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
   };
 
   // Filter popups based on status and search
-  const filteredPopups = popupList.filter(
+  const filteredPopups = (websiteConfiguration.popups || []).filter(
     (popup) =>
       (popupFilterStatus === 'All' || popup.status === popupFilterStatus) &&
       popup.name.toLowerCase().includes(popupSearchQuery.toLowerCase())
@@ -1667,7 +1699,7 @@ const AdminCustomization: React.FC<AdminCustomizationProps> = ({
         {activeTab === 'popup' && (
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex bg-gray-100 rounded-lg p-1">{['All', 'Publish', 'Draft'].map(s => <button key={s} onClick={() => setPopupFilterStatus(s as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${popupFilterStatus === s ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{s === 'All' ? 'All Data' : s}{s === 'All' && <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">{popupList.length}</span>}</button>)}</div>
+              <div className="flex bg-gray-100 rounded-lg p-1">{['All', 'Publish', 'Draft'].map(s => <button key={s} onClick={() => setPopupFilterStatus(s as any)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${popupFilterStatus === s ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{s === 'All' ? 'All Data' : s}{s === 'All' && <span className="ml-1 text-xs bg-gray-200 px-1.5 rounded-full">{(websiteConfiguration.popups || []).length}</span>}</button>)}</div>
               <div className="flex gap-3 w-full md:w-auto">
                 <div className="relative flex-1 md:w-64"><input type="text" placeholder="Search" className="w-full pl-10 pr-4 py-2 bg-white border rounded-lg text-sm focus:ring-1 focus:ring-green-500" value={popupSearchQuery} onChange={e => setPopupSearchQuery(e.target.value)}/><Search className="absolute left-3 top-2.5 text-gray-400" size={16}/></div>
                 <ActionButton onClick={() => openPopupModal()} variant="bg-green-600 text-white hover:bg-green-700 flex items-center gap-2"><Plus size={16}/>Add Popup</ActionButton>

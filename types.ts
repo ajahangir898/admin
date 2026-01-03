@@ -321,6 +321,8 @@ export interface WebsiteConfig {
   adminNoticeText?: string;
   // Campaigns
   campaigns?: Campaign[];
+  // Popups
+  popups?: Popup[];
 }
 
 export interface DeliveryConfig {
